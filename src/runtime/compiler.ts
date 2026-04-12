@@ -1191,24 +1191,53 @@ function parseLabeledRelations(
   sourceCitation: string,
 ): RelationEdge[] {
   const relationEdges: RelationEdge[] = [];
-  const relationRegex =
+
+  // Bold markdown format: **Builds on:** A.1, A.2.
+  const boldRegex =
     /\*\*([^:*]+):\*\*\s*([\s\S]*?)(?=(?:\n\s*[*-]\s*\*\*[^:*]+:\*\*|\s+\*\*[^:*]+:\*\*|$))/g;
-  for (const match of text.matchAll(relationRegex)) {
-    const label = normalizeForLookup(match[1] ?? '');
-    const relation = RELATION_LABELS[label];
-    if (!relation) {
-      continue;
-    }
-    for (const target of extractIds(match[2] ?? '')) {
-      relationEdges.push({
-        from: sourceId,
-        relation,
-        to: target,
-        source: sourceCitation,
-      });
+  for (const match of text.matchAll(boldRegex)) {
+    pushRelationEdges(relationEdges, sourceId, match[1] ?? '', match[2] ?? '', sourceCitation);
+  }
+
+  // Plain-text catalog format: Builds on: A.1, A.2. Constrains: B.3.
+  // Uses lookahead to split on the next known label or end-of-string.
+  if (relationEdges.length === 0) {
+    const escapedLabels = Object.keys(RELATION_LABELS).map(
+      (label) => label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+    );
+    const labelAlternation = escapedLabels.join('|');
+    const plainRegex = new RegExp(
+      `(${labelAlternation}):\\s*(.*?)(?=(?:${labelAlternation}):|$)`,
+      'gis',
+    );
+    for (const match of text.matchAll(plainRegex)) {
+      pushRelationEdges(relationEdges, sourceId, match[1] ?? '', match[2] ?? '', sourceCitation);
     }
   }
+
   return relationEdges;
+}
+
+function pushRelationEdges(
+  edges: RelationEdge[],
+  sourceId: string,
+  rawLabel: string,
+  rawTargets: string,
+  sourceCitation: string,
+): void {
+  const label = normalizeForLookup(rawLabel);
+  const relation = RELATION_LABELS[label];
+  if (!relation) {
+    return;
+  }
+  for (const target of extractIds(rawTargets)) {
+    edges.push({
+      from: sourceId,
+      relation,
+      to: target,
+      source: sourceCitation,
+    });
+  }
 }
 
 function parseKeywords(cell: string): string[] {
