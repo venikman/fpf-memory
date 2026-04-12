@@ -1,0 +1,82 @@
+:root {
+  --rp-nav-height: 60px;
+  --rp-sidebar-width: 300px;
+  --rp-aside-width: 224px;
+  --rp-content-padding-x: 18px;
+  --rp-content-padding-y: 24px;
+}
+
+@media (width >= 1280px) {
+  html:root {
+    --rp-content-padding-x: 32px;
+  }
+
+  .rspress-doc-container .rspress-doc,
+  .rspress-doc-container .rspress-doc-footer {
+    max-width: min(100%, 1120px);
+  }
+}
+
+.rspress-doc-container .rspress-doc-title {
+  margin-bottom: 1.25rem !important;
+  line-height: 1.1;
+}
+
+.rspress-doc p,
+.rspress-doc li,
+.rspress-doc blockquote,
+.rspress-doc table {
+  line-height: 1.45;
+}
+
+.rspress-doc p,
+.rspress-doc ul,
+.rspress-doc ol,
+.rspress-doc table,
+.rspress-doc blockquote {
+  margin-top: 0.65rem;
+  margin-bottom: 0.65rem;
+}
+
+.rspress-doc li + li {
+  margin-top: 0.12rem;
+}
+
+.rspress-doc h2 {
+  margin-top: 1.6rem;
+  margin-bottom: 0.55rem;
+}
+
+.rspress-doc h3,
+.rspress-doc h4 {
+  margin-top: 1.2rem;
+  margin-bottom: 0.45rem;
+}
+
+.rspress-doc th,
+.rspress-doc td {
+  padding: 0.45rem 0.6rem;
+}
+
+.rspress-sidebar-section h2 {
+  line-height: 1.15;
+}
+
+.rspress-sidebar-item,
+.rspress-sidebar-section {
+  font-size: 0.82rem;
+}
+
+.rspress-sidebar-item [class*='menuItem'],
+.rspress-sidebar-item [class*='menuItemActive'] {
+  padding-top: 0.38rem !important;
+  padding-bottom: 0.38rem !important;
+}
+
+.rspress-toc-link {
+  line-height: 1.2;
+}
+
+.rspress-toc-link + .rspress-toc-link {
+  margin-top: 0.1rem;
+}

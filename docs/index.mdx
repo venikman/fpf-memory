@@ -1,0 +1,21 @@
+---
+title: "Pattern Catalog"
+description: "Default entry route for the FPF reference."
+outline: false
+---
+
+import { useEffect } from 'react';
+
+export default function IndexRedirect() {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.location.replace('/generated/patterns/index');
+    }
+  }, []);
+
+  return (
+    <>
+      <p>Redirecting to <a href="/generated/patterns/index">Pattern Catalog</a>…</p>
+    </>
+  );
+}

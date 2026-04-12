@@ -1,0 +1,17 @@
+---
+title: "A.2.2:6.1 Physical system on a line (structural example)"
+description: "Generated reference page for heading:a-2-2-6-1-physical-system-on-a-line-structural-example:2161."
+---
+
+# A.2.2:6.1 Physical system on a line (structural example)
+> Preface node `heading:a-2-2-6-1-physical-system-on-a-line-structural-example:2161`
+
+## Content
+
+* **Holder:** `RobotArm_A` (`U.System`).
+* **Task family:** seam welding per `Weld_MIG_v3` **MethodDescription**.
+* **WorkScope:** workpiece steel grades S235–S355; ambient 18–30 °C; argon mix 92–95 %; torch T‑MIG‑07.
+* **Measures:** bead width 6.0 mm ± 0.2 mm; throughput ≤ 12 seams/min; defect rate < 0.5 %.
+* **Context:** `AssemblyLine_2025`.
+* **Readable claim:** *RobotArm\_A can execute Weld\_MIG\_v3 within the stated **WorkScope** at the stated measures (AssemblyLine\_2025).*
+* **What this is not:** It is **not** “the welder”—that is a **Role assignment** when assigned on a shift. It is **not** the weld recipe— that is the **MethodDescription**.
