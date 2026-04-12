@@ -1,0 +1,21 @@
+{
+  "name": "fpf_memory",
+  "version": "1.0.0",
+  "description": "Local vectorless FPF-spec runtime — 9 MCP tools for asking questions, inspecting evidence, reading docs, and tracing retrieval paths.",
+  "tools": [
+    "refresh_fpf_index",
+    "get_fpf_index_status",
+    "query_fpf_spec",
+    "ask_fpf",
+    "trace_fpf_path",
+    "inspect_fpf_node",
+    "read_fpf_doc",
+    "inspect_fpf_anchor",
+    "expand_fpf_citations"
+  ],
+  "transport": "stdio",
+  "runtime": {
+    "bun": "bun src/mcp-stdio.ts",
+    "node": "node --import tsx src/mcp-stdio.ts"
+  }
+}

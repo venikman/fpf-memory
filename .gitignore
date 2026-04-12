@@ -1,0 +1,11 @@
+node_modules
+dist
+doc_build
+.mastra
+.runtime
+.env
+.env.development
+output.txt
+*.db
+*.db-*
+.DS_Store

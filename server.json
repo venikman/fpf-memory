@@ -1,0 +1,12 @@
+{
+  "name": "fpf_memory",
+  "version": "1.0.0",
+  "description": "Local vectorless FPF-spec runtime — ask questions, get cited answers with IDs, constraints, and confidence.",
+  "transport": "stdio",
+  "command": "node",
+  "args": ["--import", "tsx", "src/mcp-stdio.ts"],
+  "env": {
+    "FPF_SPEC_SOURCE_PATH": "FPF-spec.md",
+    "FPF_RUNTIME_ARTIFACT_DIR": ".runtime/fpf-index"
+  }
+}
