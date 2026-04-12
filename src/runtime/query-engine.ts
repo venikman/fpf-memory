@@ -64,6 +64,7 @@ interface GroundingResult {
 
 export class QueryEngine {
   private anchorOwnerNodeMap?: Map<string, CompiledNode>;
+  private adjacencyByFrom?: Map<string, RelationEdge[]>;
 
   constructor(
     private readonly snapshot: Snapshot,
@@ -71,6 +72,38 @@ export class QueryEngine {
     private readonly synthesizer?: LocalAnswerSynthesizer,
     private readonly sessionState?: RetrievalSessionState,
   ) {}
+
+  private getAdjacencyMap(): Map<string, RelationEdge[]> {
+    if (!this.adjacencyByFrom) {
+      this.adjacencyByFrom = new Map();
+      for (const edge of this.snapshot.relationGraph) {
+        const existing = this.adjacencyByFrom.get(edge.from);
+        if (existing) {
+          existing.push(edge);
+        } else {
+          this.adjacencyByFrom.set(edge.from, [edge]);
+        }
+      }
+    }
+    return this.adjacencyByFrom;
+  }
+
+  private edgesFrom(nodeId: string): RelationEdge[] {
+    return this.getAdjacencyMap().get(nodeId) ?? [];
+  }
+
+  private edgesAmong(nodeIds: string[]): RelationEdge[] {
+    const idSet = new Set(nodeIds);
+    const result: RelationEdge[] = [];
+    for (const nodeId of nodeIds) {
+      for (const edge of this.edgesFrom(nodeId)) {
+        if (idSet.has(edge.to)) {
+          result.push(edge);
+        }
+      }
+    }
+    return result;
+  }
 
   async query(question: string, mode: AnswerMode = 'compact'): Promise<QueryResult> {
     const trace = this.trace(question, mode);
@@ -909,10 +942,7 @@ export class QueryEngine {
     };
 
     for (const nodeId of selectedNodeIds) {
-      for (const edge of this.snapshot.relationGraph) {
-        if (edge.from !== nodeId) {
-          continue;
-        }
+      for (const edge of this.edgesFrom(nodeId)) {
         const target = this.snapshot.compiledNodes[edge.to];
         if (!target || target.kind === 'lexeme') {
           continue;
@@ -1236,8 +1266,7 @@ export class QueryEngine {
   ): QueryResult {
     const route = this.snapshot.routeGraph.nodes[routeNodeId]!;
     const ids = unique([...route.orderedIds, ...route.optionalIds, ...route.landingIds]);
-    const relations = this.snapshot.relationGraph
-      .filter((edge) => ids.includes(edge.from) && ids.includes(edge.to))
+    const relations = this.edgesAmong(ids)
       .map((edge) => ({ from: edge.from, relation: edge.relation, to: edge.to }));
     const constraints = [
       route.firstHonestBurden
@@ -1340,8 +1369,7 @@ export class QueryEngine {
       }),
     ).slice(0, mode === 'compact' ? 3 : 6);
 
-    const relations = this.snapshot.relationGraph
-      .filter((edge) => patternIds.includes(edge.from) && patternIds.includes(edge.to))
+    const relations = this.edgesAmong(patternIds)
       .map((edge) => ({ from: edge.from, relation: edge.relation, to: edge.to }));
 
     return this.result(question, mode, {
