@@ -35,7 +35,7 @@ FPF_SPEC_SOURCE_PATH=FPF-spec.md
 FPF_RUNTIME_ARTIFACT_DIR=.runtime/fpf-index
 FPF_QUERY_DEFAULT_MODE=verbose
 FPF_LOCAL_LLM_BASE_URL=http://localhost:1234/v1
-FPF_LOCAL_LLM_MODEL=google/gemma-4-31b
+FPF_LOCAL_LLM_MODEL=your-installed-lm-studio-model-id
 FPF_LOCAL_LLM_API_STYLE=responses
 FPF_LOCAL_LLM_API_KEY=
 FPF_LOCAL_LLM_TIMEOUT_MS=20000
@@ -64,6 +64,8 @@ If you opt into the LM Studio path by setting either `FPF_LOCAL_LLM_BASE_URL` or
 - `FPF_LOCAL_LLM_BASE_URL=http://localhost:1234/v1`
 - `FPF_LOCAL_LLM_MODEL=google/gemma-4-31b`
 - `FPF_LOCAL_LLM_API_STYLE=responses`
+
+The model name must match exactly what LM Studio exposes (for example `meta-llama/Meta-Llama-3-8B-Instruct`). The fallback `google/gemma-4-31b` entry is only a placeholder—set `FPF_LOCAL_LLM_MODEL` to a model you have installed locally or the LM Studio call will fail.
 
 For the OpenAI-compatible route, use `FPF_LOCAL_LLM_BASE_URL=http://localhost:1234/v1`, because the synthesizer targets `/v1/responses` rather than `/api/v1/chat`.
 
