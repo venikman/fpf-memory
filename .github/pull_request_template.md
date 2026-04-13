@@ -28,7 +28,7 @@
 
 <!--
 Examples of measurable metrics:
-- LOC / module count (refactors): `wc -l src/runtime/compiler.ts` before and after
+- LOC / module count (refactors): `wc -l src/runtime/query-engine.ts` before and after
 - File count (splits): `ls src/runtime/*.ts | wc -l`
 - Hard-coded IDs removed: `grep -c` specific patterns
 - Test count / coverage: `bun run test` summary
