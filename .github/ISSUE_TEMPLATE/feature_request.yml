@@ -51,8 +51,8 @@ body:
       placeholder: |
         | Metric | Before | After (target) | How to measure |
         |--------|--------|----------------|----------------|
-        | New MCP tools available | 0 | 2 | `grep -c createTool src/mcp/tools.ts` |
-        | Test coverage for feature | 0 tests | ≥5 tests | `bun run test` |
+        | Total MCP tool definitions | 10 | 12 | `grep -c createTool src/mcp/tools.ts` |
+        | Feature test cases added | 0 | ≥5 | `grep -Ec '\b(it|test)\(' tests/feature.test.ts` |
     validations:
       required: true
 
