@@ -64,7 +64,6 @@ interface GroundingResult {
 
 export class QueryEngine {
   private anchorOwnerNodeMap?: Map<string, CompiledNode>;
-  private adjacencyByFrom?: Map<string, RelationEdge[]>;
 
   constructor(
     private readonly snapshot: Snapshot,
@@ -73,23 +72,8 @@ export class QueryEngine {
     private readonly sessionState?: RetrievalSessionState,
   ) {}
 
-  private getAdjacencyMap(): Map<string, RelationEdge[]> {
-    if (!this.adjacencyByFrom) {
-      this.adjacencyByFrom = new Map();
-      for (const edge of this.snapshot.relationGraph) {
-        const existing = this.adjacencyByFrom.get(edge.from);
-        if (existing) {
-          existing.push(edge);
-        } else {
-          this.adjacencyByFrom.set(edge.from, [edge]);
-        }
-      }
-    }
-    return this.adjacencyByFrom;
-  }
-
   private edgesFrom(nodeId: string): RelationEdge[] {
-    return this.getAdjacencyMap().get(nodeId) ?? [];
+    return this.snapshot.compiledNodes[nodeId]?.neighborEdges ?? [];
   }
 
   private edgesAmong(nodeIds: string[]): RelationEdge[] {
