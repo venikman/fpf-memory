@@ -59,6 +59,21 @@ body:
     validations:
       required: false
 
+  - type: textarea
+    id: impact
+    attributes:
+      label: Measurable impact verification
+      description: |
+        How will we verify the task is complete and measure its impact? Provide a table with concrete metrics.
+        Every metric must be quantifiable — no vague criteria like "works better" or "improved".
+      placeholder: |
+        | Metric | Before | After (target) | How to measure |
+        |--------|--------|----------------|----------------|
+        | LOC in target file | 1614 | ≤400 | `wc -l src/runtime/target.ts` |
+        | Existing test pass rate | all pass | all pass | `bun run test` |
+    validations:
+      required: true
+
   - type: dropdown
     id: agent_delegable
     attributes:

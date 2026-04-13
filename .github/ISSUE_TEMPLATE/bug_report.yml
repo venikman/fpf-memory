@@ -71,6 +71,21 @@ body:
       required: false
 
   - type: textarea
+    id: impact
+    attributes:
+      label: Measurable impact verification
+      description: |
+        How will we verify the fix works and measure its impact? Provide a table with concrete metrics.
+        Every metric must be quantifiable — no vague criteria like "works better" or "improved".
+      placeholder: |
+        | Metric | Before (broken) | After (target) | How to measure |
+        |--------|-----------------|----------------|----------------|
+        | Error on query X | throws TypeError | returns valid answer | `bun run cli -- query --question "X"` |
+        | Test pass rate | 38/39 (1 failure) | 39/39 | `bun run test` |
+    validations:
+      required: true
+
+  - type: textarea
     id: context
     attributes:
       label: Additional context

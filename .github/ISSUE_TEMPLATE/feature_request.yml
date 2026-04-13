@@ -42,6 +42,21 @@ body:
       required: true
 
   - type: textarea
+    id: impact
+    attributes:
+      label: Measurable impact verification
+      description: |
+        How will we verify the feature works and measure its impact? Provide a table with concrete metrics.
+        Every metric must be quantifiable — no vague criteria like "works better" or "improved".
+      placeholder: |
+        | Metric | Before | After (target) | How to measure |
+        |--------|--------|----------------|----------------|
+        | New MCP tools available | 0 | 2 | `grep -c createTool src/mcp/tools.ts` |
+        | Test coverage for feature | 0 tests | ≥5 tests | `bun run test` |
+    validations:
+      required: true
+
+  - type: textarea
     id: alternatives
     attributes:
       label: Alternatives considered

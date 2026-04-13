@@ -18,6 +18,15 @@
 
 <!-- Key changes, one bullet per logical unit -->
 
+## Measurable impact verification
+
+<!-- Required. Provide a table showing before/after metrics that prove this PR's impact.
+     Every metric must be quantifiable — no vague criteria like "works better" or "improved". -->
+
+| Metric | Before | After (target) | How to measure |
+|--------|--------|----------------|----------------|
+| <!-- e.g. LOC in target file --> | <!-- e.g. 1614 --> | <!-- e.g. ≤400 --> | <!-- e.g. `wc -l src/runtime/target.ts` --> |
+
 ## Validation
 
 - [ ] `bun run lint` passes locally
