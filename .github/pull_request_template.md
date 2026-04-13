@@ -24,7 +24,7 @@
 
 | Metric | Before | After | How to measure |
 |--------|--------|-------|----------------|
-| <!-- e.g. hard-coded node IDs in query-engine.ts --> | <!-- e.g. 12 --> | <!-- e.g. 0 --> | <!-- e.g. `grep -c 'C\.\|A\.' src/runtime/query-engine.ts` --> |
+| <!-- e.g. hard-coded node IDs in query-engine.ts --> | <!-- e.g. 12 --> | <!-- e.g. 0 --> | <!-- e.g. `grep -Ec 'C\.|A\.' src/runtime/query-engine.ts` --> |
 
 <!--
 Examples of measurable metrics:
