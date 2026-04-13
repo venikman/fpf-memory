@@ -42,6 +42,20 @@ body:
       required: true
 
   - type: textarea
+    id: impact
+    attributes:
+      label: Measurable impact
+      description: |
+        How will we know this feature works? List at least one metric with a before/after target and a command or method to measure it.
+        Example: "MCP tool count: before 8 → after 10. Measure: count tools in `src/mcp/tools.ts`"
+      placeholder: |
+        | Metric | Before | After (target) | How to measure |
+        |--------|--------|----------------|----------------|
+        |        |        |                |                |
+    validations:
+      required: true
+
+  - type: textarea
     id: alternatives
     attributes:
       label: Alternatives considered

@@ -71,6 +71,20 @@ body:
       required: false
 
   - type: textarea
+    id: impact
+    attributes:
+      label: Measurable impact of the fix
+      description: |
+        How will we verify the bug is fixed? Provide at least one measurable criterion and a command or method to check it.
+        Example: "Exit code of `bun run cli -- query --question '...'`: before 1 → after 0"
+      placeholder: |
+        | Metric | Before (broken) | After (fixed) | How to measure |
+        |--------|-----------------|---------------|----------------|
+        |        |                 |               |                |
+    validations:
+      required: true
+
+  - type: textarea
     id: context
     attributes:
       label: Additional context

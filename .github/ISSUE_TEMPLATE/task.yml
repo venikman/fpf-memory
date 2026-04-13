@@ -59,6 +59,20 @@ body:
     validations:
       required: false
 
+  - type: textarea
+    id: impact
+    attributes:
+      label: Measurable impact
+      description: |
+        How will we verify the impact of this task? List at least one metric with a before/after target and a reproducible measurement command.
+        Example: "LOC in compiler.ts: before 1509 → after ≤300. Measure: `wc -l src/runtime/compiler.ts`"
+      placeholder: |
+        | Metric | Before | After (target) | How to measure |
+        |--------|--------|----------------|----------------|
+        |        |        |                |                |
+    validations:
+      required: true
+
   - type: dropdown
     id: agent_delegable
     attributes:

@@ -18,6 +18,29 @@
 
 <!-- Key changes, one bullet per logical unit -->
 
+## Impact verification
+
+<!-- Every PR must declare its measurable impact. Fill in at least one row. -->
+
+| Metric | Before | After | How to measure |
+|--------|--------|-------|----------------|
+| <!-- e.g. hard-coded node IDs in query-engine.ts --> | <!-- e.g. 12 --> | <!-- e.g. 0 --> | <!-- e.g. `grep -c 'C\.\|A\.' src/runtime/query-engine.ts` --> |
+
+<!--
+Examples of measurable metrics:
+- LOC / module count (refactors): `wc -l src/runtime/compiler.ts` before and after
+- File count (splits): `ls src/runtime/*.ts | wc -l`
+- Hard-coded IDs removed: `grep -c` specific patterns
+- Test count / coverage: `bun run test` summary
+- CI steps passing: workflow green/red status
+- Build time: `time bun run build`
+- Artifact size: `du -sh .runtime/fpf-index/`
+- New MCP tools: tool count in `src/mcp/tools.ts`
+- Cache hit rate: before/after with `bun run cli -- status`
+
+Pick what fits the PR. The goal: reviewers can independently reproduce the measurement.
+-->
+
 ## Validation
 
 - [ ] `bun run lint` passes locally
