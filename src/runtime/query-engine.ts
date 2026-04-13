@@ -94,15 +94,9 @@ export class QueryEngine {
 
   private edgesAmong(nodeIds: string[]): RelationEdge[] {
     const idSet = new Set(nodeIds);
-    const result: RelationEdge[] = [];
-    for (const nodeId of nodeIds) {
-      for (const edge of this.edgesFrom(nodeId)) {
-        if (idSet.has(edge.to)) {
-          result.push(edge);
-        }
-      }
-    }
-    return result;
+    return this.snapshot.relationGraph.filter(
+      (edge) => idSet.has(edge.from) && idSet.has(edge.to),
+    );
   }
 
   async query(question: string, mode: AnswerMode = 'compact'): Promise<QueryResult> {
