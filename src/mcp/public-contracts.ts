@@ -106,7 +106,7 @@ export const runtimeStatusSchema = z
   })
   .strict();
 
-export const queryFpfSpecInputSchema = z
+export const baseQueryInputSchema = z
   .object({
     question: z.string().min(1),
     mode: answerModeSchema.optional(),
@@ -115,14 +115,9 @@ export const queryFpfSpecInputSchema = z
   })
   .strict();
 
-export const askFpfInputSchema = z
-  .object({
-    question: z.string().min(1),
-    mode: answerModeSchema.optional(),
-    forceRefresh: z.boolean().optional(),
-    sessionId: z.string().min(1).optional(),
-  })
-  .strict();
+export const queryFpfSpecInputSchema = baseQueryInputSchema;
+
+export const askFpfInputSchema = baseQueryInputSchema;
 
 export const getFpfIndexStatusInputSchema = z.object({}).strict();
 

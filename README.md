@@ -161,8 +161,8 @@ Smoke-test the local full-surface runtime before using expert tools or deploying
 
 ```bash
 bun run cli -- status
-bun run cli -- lm-check --timeout-ms 60000
-bun run cli -- lm-check --base-url http://localhost:1234 --api-style chat --api-key "$FPF_LOCAL_LLM_API_KEY" --timeout-ms 60000
+bun run src/runtime/synthesizer/lm-check.ts --timeout-ms 60000
+bun run src/runtime/synthesizer/lm-check.ts --base-url http://localhost:1234 --api-style chat --api-key "$FPF_LOCAL_LLM_API_KEY" --timeout-ms 60000
 bun run cli -- refresh
 bun run cli -- query --question "What is U.BoundedContext?" --mode verbose
 bun run cli -- trace --question "How do U.RoleAssignment and U.BoundedContext connect?" --mode proof

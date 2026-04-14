@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   answerModeSchema,
   answerStatusSchema,
+  baseQueryInputSchema,
   snapshotWithRebuildSchema,
 } from './public-contracts.js';
 
@@ -288,14 +289,7 @@ export const refreshFpfIndexInputSchema = z
   })
   .strict();
 
-export const traceFpfPathInputSchema = z
-  .object({
-    question: z.string().min(1),
-    mode: answerModeSchema.optional(),
-    forceRefresh: z.boolean().optional(),
-    sessionId: z.string().min(1).optional(),
-  })
-  .strict();
+export const traceFpfPathInputSchema = baseQueryInputSchema;
 
 export const inspectFpfNodeInputSchema = z
   .object({
