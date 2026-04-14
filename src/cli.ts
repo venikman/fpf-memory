@@ -127,6 +127,6 @@ function printHelp(): void {
   bun run cli -- inspect --selector "A.1.1" [--kind auto|id|route|lexeme] [--force]
   bun run cli -- read-doc --selector "A.1.1" [--kind auto|id|route|lexeme] [--force]
   bun run cli -- trace --question "How do routes work?" [--mode compact|verbose|proof] [--session s1] [--force]
-  bun run src/runtime/synthesizer/lm-check.ts [--base-url http://localhost:1234/v1] [--model google/gemma-4-31b] [--api-style responses|chat|lmstudio_chat] [--api-key <token>] [--timeout-ms 60000]
+  bun run src/runtime/synthesizer/lm-check.ts [--base-url http://localhost:1234/v1] [--model google/gemma-4-31b] [--api-style responses|chat|chat_completions|lmstudio_chat] [--api-key <token>] [--timeout-ms 60000]
 `);
 }
