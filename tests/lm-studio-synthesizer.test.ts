@@ -11,7 +11,7 @@ import {
   DEFAULT_LM_STUDIO_MODEL,
   LmStudioSynthesizer,
   runLmStudioHealthCheck,
-} from '../src/runtime/lm-studio-synthesizer.js';
+} from '../src/runtime/synthesizer/lm-studio-synthesizer.js';
 import { FpfRuntime } from '../src/runtime/runtime.js';
 
 describe('LmStudioSynthesizer', () => {

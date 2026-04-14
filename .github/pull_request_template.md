@@ -33,7 +33,7 @@
 - [ ] Runtime source set is `FPF-spec.md` only — no additional corpora added
 - [ ] No vector database or remote indexing introduced
 - [ ] No Python code added
-- [ ] MCP tool contracts stay in `src/mcp/tool-contracts.ts`
+- [ ] MCP tool contracts stay in `src/mcp/public-contracts.ts` and `src/mcp/expert-contracts.ts`
 
 ## Agent metadata
 

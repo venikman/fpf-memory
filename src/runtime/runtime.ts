@@ -8,7 +8,7 @@ import {
   DEFAULT_SOURCE_PATH,
 } from './constants.js';
 import { compileFpfSource } from './compiler.js';
-import { createSynthesizerFromEnv } from './lm-studio-synthesizer.js';
+import { createSynthesizerFromEnv } from './synthesizer/index.js';
 import { QueryEngine } from './query-engine.js';
 import { resolveRuntimePath } from './path-resolution.js';
 import {

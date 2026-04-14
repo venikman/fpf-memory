@@ -221,7 +221,8 @@ Call trace_fpf_path with:
 
 ## Runtime surfaces
 
-- `src/mcp/tool-contracts.ts`: Zod-authored MCP input and output contracts
+- `src/mcp/public-contracts.ts`: Zod-authored MCP input/output contracts for the 3 public tools
+- `src/mcp/expert-contracts.ts`: Zod-authored MCP input/output contracts for the 6 expert tools
 - `src/mcp/tools.ts`: canonical snake_case MCP tools and `ask_fpf`
 - `src/mastra/mcp/server.ts`: MCPServer definitions (public and full surfaces)
 - `src/mastra/index.ts`: Mastra instance registration

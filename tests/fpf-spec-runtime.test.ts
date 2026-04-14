@@ -10,10 +10,12 @@ import {
 } from '../src/mcp/tools.js';
 import {
   askFpfInputSchema,
-  expandFpfCitationsInputSchema,
   getFpfIndexStatusInputSchema,
   queryFpfSpecInputSchema,
-} from '../src/mcp/tool-contracts.js';
+} from '../src/mcp/public-contracts.js';
+import {
+  expandFpfCitationsInputSchema,
+} from '../src/mcp/expert-contracts.js';
 import { ARTIFACT_FILENAMES } from '../src/runtime/constants.js';
 import { FpfRuntime } from '../src/runtime/runtime.js';
 

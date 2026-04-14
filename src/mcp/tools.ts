@@ -5,23 +5,25 @@ import type { AnswerMode, AskFpfResult, QueryResult } from '../runtime/types.js'
 import {
   askFpfInputSchema,
   askFpfResultSchema,
+  getFpfIndexStatusInputSchema,
+  queryFpfSpecInputSchema,
+  queryResultSchema,
+  runtimeStatusSchema,
+} from './public-contracts.js';
+import {
+  buildAuditSchema,
   expandCitationsResultSchema,
   expandFpfCitationsInputSchema,
-  getFpfIndexStatusInputSchema,
   inspectAnchorResultSchema,
   inspectFpfAnchorInputSchema,
   inspectFpfNodeInputSchema,
   inspectResultSchema,
-  queryFpfSpecInputSchema,
-  queryResultSchema,
   readDocResultSchema,
   readFpfDocInputSchema,
   refreshFpfIndexInputSchema,
-  runtimeStatusSchema,
-  buildAuditSchema,
   traceFpfPathInputSchema,
   traceResultSchema,
-} from './tool-contracts.js';
+} from './expert-contracts.js';
 
 const runtime = new FpfRuntime();
 const DEFAULT_QUERY_MODE: AnswerMode = 'verbose';

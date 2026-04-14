@@ -1,13 +1,13 @@
 import { SpanType } from '@mastra/core/observability';
 
-import { withRuntimeSpan } from '../observability/runtime-observability.js';
+import { withRuntimeSpan } from '../../observability/runtime-observability.js';
 import type {
   AnswerSlice,
   AnswerSynthesizerInput,
   AnswerSynthesizerOutput,
   LocalAnswerSynthesizer,
   LocalAnswerSynthesizerInfo,
-} from './types.js';
+} from '../types.js';
 import { createAiTraceRecorder } from './ai-trace-log.js';
 
 export type LmStudioApiStyle = 'responses' | 'lmstudio_chat' | 'chat_completions';

@@ -1,8 +1,4 @@
 import { getRuntimeLogger } from './logging/runtime-logger.js';
-import {
-  normalizeLmStudioApiStyle,
-  runLmStudioHealthCheck,
-} from './runtime/lm-studio-synthesizer.js';
 import { FpfRuntime } from './runtime/runtime.js';
 import type { AnswerMode } from './runtime/types.js';
 
@@ -33,9 +29,6 @@ try {
       break;
     case 'trace':
       await runTrace(args.slice(1));
-      break;
-    case 'lm-check':
-      await runLmCheck(args.slice(1));
       break;
     default:
       printHelp();
@@ -109,24 +102,6 @@ async function runTrace(commandArgs: string[]): Promise<void> {
   await print(runtime.trace(question, mode, forceRefresh, sessionId));
 }
 
-async function runLmCheck(commandArgs: string[]): Promise<void> {
-  const timeoutMsRaw = value(commandArgs, '--timeout-ms');
-  const timeoutMs = timeoutMsRaw ? Number(timeoutMsRaw) : undefined;
-  const apiStyle = normalizeLmStudioApiStyle(value(commandArgs, '--api-style'));
-
-  await print(
-    runLmStudioHealthCheck({
-      baseUrl: value(commandArgs, '--base-url'),
-      model: value(commandArgs, '--model'),
-      apiStyle,
-      apiKey: value(commandArgs, '--api-key') ?? process.env.FPF_LOCAL_LLM_API_KEY,
-      timeoutMs: Number.isFinite(timeoutMs) ? timeoutMs : undefined,
-      systemPrompt: value(commandArgs, '--system-prompt'),
-      input: value(commandArgs, '--input'),
-    }),
-  );
-}
-
 function flag(argsList: string[], flagName: string): boolean {
   return argsList.includes(flagName);
 }
@@ -152,6 +127,6 @@ function printHelp(): void {
   bun run cli -- inspect --selector "A.1.1" [--kind auto|id|route|lexeme] [--force]
   bun run cli -- read-doc --selector "A.1.1" [--kind auto|id|route|lexeme] [--force]
   bun run cli -- trace --question "How do routes work?" [--mode compact|verbose|proof] [--session s1] [--force]
-  bun run cli -- lm-check [--base-url http://localhost:1234/v1] [--model google/gemma-4-31b] [--api-style responses|chat|lmstudio_chat] [--api-key <token>] [--timeout-ms 60000]
+  bun run src/runtime/synthesizer/lm-check.ts [--base-url http://localhost:1234/v1] [--model google/gemma-4-31b] [--api-style responses|chat|lmstudio_chat] [--api-key <token>] [--timeout-ms 60000]
 `);
 }
