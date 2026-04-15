@@ -94,9 +94,7 @@ export function parseLmStudioConfig(env: NodeJS.ProcessEnv): LmStudioConfig {
     enabled,
     baseUrl,
     model,
-    apiKey:
-      normalizeOptionalString(env.FPF_LOCAL_LLM_API_KEY)
-      ?? (isGeminiHost(baseUrl) ? normalizeOptionalString(env.GEMINI_AI_API_KEY) : undefined),
+    apiKey: normalizeOptionalString(env.FPF_LOCAL_LLM_API_KEY),
     timeoutMs: parsePositiveInteger(
       env.FPF_LOCAL_LLM_TIMEOUT_MS,
       DEFAULT_LM_STUDIO_TIMEOUT_MS,
@@ -192,18 +190,4 @@ function parseEnum<TValue extends string>(
   const normalized = normalizeOptionalString(value);
   const parsed = normalized ? schema.safeParse(normalized.toLowerCase()) : undefined;
   return parsed?.success ? parsed.data : fallback;
-}
-
-/** True when `baseUrl` targets the Generative Language API host (hostname match, not substring-in-path). */
-export function isGeminiHost(baseUrl: string): boolean {
-  const trimmed = baseUrl.trim();
-  if (!trimmed) {
-    return false;
-  }
-  try {
-    const { hostname } = new URL(trimmed);
-    return hostname.toLowerCase() === 'generativelanguage.googleapis.com';
-  } catch {
-    return false;
-  }
 }

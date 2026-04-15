@@ -2,7 +2,6 @@ import { describe, expect, it } from '@rstest/core';
 
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
 import {
-  isGeminiHost,
   parseBuildConfig,
   parseDocsConfig,
   parseHostedConfig,
@@ -120,25 +119,12 @@ describe('context config parsing', () => {
     });
   });
 
-  it('detects Gemini API host by URL hostname only', () => {
-    expect(isGeminiHost('https://generativelanguage.googleapis.com/v1beta')).toBe(true);
-    expect(isGeminiHost('http://localhost/foo/generativelanguage.googleapis.com')).toBe(false);
-    expect(isGeminiHost('not-a-url')).toBe(false);
-  });
-
-  it('attaches GEMINI_AI_API_KEY only for real Gemini hostnames', () => {
-    const geminiEnv = {
+  it('ignores GEMINI_AI_API_KEY — runtime only speaks Anthropic Messages', () => {
+    const env = {
       FPF_LOCAL_LLM_BASE_URL: 'https://generativelanguage.googleapis.com/v1beta',
       FPF_LOCAL_LLM_MODEL: 'gemini-pro',
       GEMINI_AI_API_KEY: 'gemini-secret',
     } as NodeJS.ProcessEnv;
-    expect(parseLmStudioConfig(geminiEnv).apiKey).toBe('gemini-secret');
-
-    const decoyHostEnv = {
-      FPF_LOCAL_LLM_BASE_URL: 'http://127.0.0.1/generativelanguage.googleapis.com',
-      FPF_LOCAL_LLM_MODEL: 'm',
-      GEMINI_AI_API_KEY: 'should-not-attach',
-    } as NodeJS.ProcessEnv;
-    expect(parseLmStudioConfig(decoyHostEnv).apiKey).toBeUndefined();
+    expect(parseLmStudioConfig(env).apiKey).toBeUndefined();
   });
 });
