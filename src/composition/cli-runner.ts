@@ -133,7 +133,6 @@ export async function runCli(argv = process.argv.slice(2)): Promise<void> {
             ...envLm,
             baseUrl: effectiveBaseUrl,
             model: command.model ?? envLm.model,
-            apiStyle: command.apiStyle ?? envLm.apiStyle,
             apiKey,
             timeoutMs: command.timeoutMs ?? envLm.timeoutMs,
             systemPrompt: command.systemPrompt,
@@ -179,6 +178,6 @@ function printHelp(): void {
   bun run cli -- inspect --selector "A.1.1" [--kind auto|id|route|lexeme] [--force]
   bun run cli -- read-doc --selector "A.1.1" [--kind auto|id|route|lexeme] [--force]
   bun run cli -- trace --question "How do routes work?" [--mode compact|verbose|proof] [--session s1] [--force]
-  bun run cli -- lm-check [--base-url http://localhost:1234/v1] [--model google/gemma-4-31b] [--api-style responses|chat|lmstudio_chat] [--api-key <token>] [--timeout-ms 60000]
+  bun run cli -- lm-check [--base-url http://localhost:1234/v1] [--model google/gemma-4-31b] [--api-key <token>] [--timeout-ms 60000]
 `);
 }

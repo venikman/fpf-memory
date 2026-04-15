@@ -38,7 +38,6 @@ FPF_RUNTIME_ARTIFACT_DIR=.runtime/fpf-index
 FPF_QUERY_DEFAULT_MODE=verbose
 FPF_LOCAL_LLM_BASE_URL=http://localhost:1234/v1
 FPF_LOCAL_LLM_MODEL=google/gemma-4-31b
-FPF_LOCAL_LLM_API_STYLE=responses
 FPF_LOCAL_LLM_API_KEY=
 FPF_LOCAL_LLM_TIMEOUT_MS=20000
 FPF_MASTRA_LOG_PATH=.runtime/logs/mastra.log
@@ -55,34 +54,14 @@ FPF_AI_TRACE_LOG_PATH=.runtime/logs/ai-traces.jsonl
 
 `FPF_QUERY_DEFAULT_MODE` applies to `query_fpf_spec` and `ask_fpf` when `mode` is omitted. `trace_fpf_path` stays `compact` by default.
 
-`FPF_LOCAL_LLM_*` is optional. If present, the runtime uses the local LM Studio `/v1/responses` API only after deterministic retrieval has selected a bounded slice set. If absent, the runtime stays fully deterministic.
-
-`FPF_LOCAL_LLM_API_STYLE` controls which LM Studio generation route is used:
-
-- `responses`: OpenAI-compatible `/v1/responses`
-- `chat_completions`: OpenAI-compatible `/v1/chat/completions` (alias: `completions`)
-- `lmstudio_chat`: LM Studio-native `/api/v1/chat` (alias: `chat`)
-- `anthropic_messages`: Anthropic-compatible `/v1/messages` (aliases: `anthropic`, `messages`)
+`FPF_LOCAL_LLM_*` is optional. If present, the runtime calls the local LM Studio Anthropic-compatible API (`POST /v1/messages` with model discovery at `GET /v1/models`) only after deterministic retrieval has selected a bounded slice set. If absent, the runtime stays fully deterministic.
 
 If you opt into the LM Studio path by setting either `FPF_LOCAL_LLM_BASE_URL` or `FPF_LOCAL_LLM_MODEL`, the missing half falls back to the repo defaults:
 
 - `FPF_LOCAL_LLM_BASE_URL=http://localhost:1234/v1`
 - `FPF_LOCAL_LLM_MODEL=google/gemma-4-31b`
-- `FPF_LOCAL_LLM_API_STYLE=responses`
 
-For the OpenAI-compatible route, use `FPF_LOCAL_LLM_BASE_URL=http://localhost:1234/v1`, because the synthesizer targets `/v1/responses` rather than `/api/v1/chat`.
-
-If you want to force the LM Studio-native route instead, set:
-
-- `FPF_LOCAL_LLM_BASE_URL=http://localhost:1234`
-- `FPF_LOCAL_LLM_API_STYLE=lmstudio_chat`
-
-For the Anthropic-compatible route, use:
-
-- `FPF_LOCAL_LLM_BASE_URL=http://localhost:1234/v1`
-- `FPF_LOCAL_LLM_API_STYLE=anthropic_messages`
-
-The synthesizer posts to `/v1/messages` with the Anthropic Messages request shape (`system` + `messages`) and parses `content[].text` from the response.
+The synthesizer posts to `{FPF_LOCAL_LLM_BASE_URL}/messages` with the Anthropic Messages request shape (`system` + `messages` + `max_tokens`) and parses `content[].text` from the response. Generate an API token in LM Studio → Developer → Server Settings → Manage Tokens and set it on `FPF_LOCAL_LLM_API_KEY`.
 
 `FPF_MASTRA_LOG_PATH` configures the Mastra-backed runtime/MCP logger and writes structured JSON logs.
 
@@ -113,7 +92,7 @@ bun run cli -- inspect --selector "A.1.1"
 bun run cli -- read-doc --selector "A.1.1"
 bun run cli -- trace --question "How do U.RoleAssignment and U.BoundedContext connect?" --mode proof --session s1
 bun run cli -- lm-check --timeout-ms 60000
-bun run cli -- lm-check --base-url http://localhost:1234 --api-style chat --api-key "$FPF_LOCAL_LLM_API_KEY" --timeout-ms 60000
+bun run cli -- lm-check --base-url http://localhost:1234/v1 --api-key "$FPF_LOCAL_LLM_API_KEY" --timeout-ms 60000
 bun run mcp
 ```
 
@@ -177,7 +156,7 @@ Smoke-test the local full-surface runtime before using expert tools or deploying
 ```bash
 bun run cli -- status
 bun run cli -- lm-check --timeout-ms 60000
-bun run cli -- lm-check --base-url http://localhost:1234 --api-style chat --api-key "$FPF_LOCAL_LLM_API_KEY" --timeout-ms 60000
+bun run cli -- lm-check --base-url http://localhost:1234/v1 --api-key "$FPF_LOCAL_LLM_API_KEY" --timeout-ms 60000
 bun run cli -- refresh
 bun run cli -- query --question "What is U.BoundedContext?" --mode verbose
 bun run cli -- trace --question "How do U.RoleAssignment and U.BoundedContext connect?" --mode proof

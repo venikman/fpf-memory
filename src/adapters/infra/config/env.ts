@@ -9,7 +9,6 @@ import type {
   BuildConfig,
   DocsConfig,
   HostedConfig,
-  LmStudioApiStyle,
   LmStudioConfig,
   LoggingConfig,
   McpConfig,
@@ -27,7 +26,6 @@ const MAX_TCP_PORT = 65_535;
 const DEFAULT_MAX_SESSIONS = 50;
 const DEFAULT_LM_STUDIO_BASE_URL = 'http://localhost:1234/v1';
 const DEFAULT_LM_STUDIO_MODEL = 'google/gemma-4-31b';
-const DEFAULT_LM_STUDIO_API_STYLE: LmStudioApiStyle = 'responses';
 const DEFAULT_LM_STUDIO_TIMEOUT_MS = 20_000;
 
 const answerModeSchema = z.enum(['compact', 'verbose', 'proof']);
@@ -35,12 +33,6 @@ const mcpSurfaceSchema = z.enum(['public', 'full']);
 const loggingLevelSchema = z.enum(['debug', 'info', 'warn', 'error']);
 const observabilityFormatSchema = z.enum(['flat', 'tree', 'normalized']);
 const observabilityLogLevelSchema = z.enum(['debug', 'info', 'warn', 'error', 'fatal']);
-const lmStudioApiStyleSchema = z.enum([
-  'responses',
-  'lmstudio_chat',
-  'chat_completions',
-  'anthropic_messages',
-]);
 
 export function parseRuntimeCoreConfig(
   env: NodeJS.ProcessEnv,
@@ -102,11 +94,6 @@ export function parseLmStudioConfig(env: NodeJS.ProcessEnv): LmStudioConfig {
     enabled,
     baseUrl,
     model,
-    apiStyle: parseEnum(
-      normalizeLmStudioApiStyleValue(env.FPF_LOCAL_LLM_API_STYLE),
-      lmStudioApiStyleSchema,
-      DEFAULT_LM_STUDIO_API_STYLE,
-    ),
     apiKey:
       normalizeOptionalString(env.FPF_LOCAL_LLM_API_KEY)
       ?? (isGeminiHost(baseUrl) ? normalizeOptionalString(env.GEMINI_AI_API_KEY) : undefined),
@@ -205,20 +192,6 @@ function parseEnum<TValue extends string>(
   const normalized = normalizeOptionalString(value);
   const parsed = normalized ? schema.safeParse(normalized.toLowerCase()) : undefined;
   return parsed?.success ? parsed.data : fallback;
-}
-
-function normalizeLmStudioApiStyleValue(value: string | undefined): string | undefined {
-  switch (normalizeOptionalString(value)?.toLowerCase()) {
-    case 'chat':
-      return 'lmstudio_chat';
-    case 'completions':
-      return 'chat_completions';
-    case 'anthropic':
-    case 'messages':
-      return 'anthropic_messages';
-    default:
-      return normalizeOptionalString(value)?.toLowerCase();
-  }
 }
 
 /** True when `baseUrl` targets the Generative Language API host (hostname match, not substring-in-path). */

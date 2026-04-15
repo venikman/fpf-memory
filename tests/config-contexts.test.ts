@@ -29,7 +29,6 @@ describe('context config parsing', () => {
       FPF_MASTRA_OBSERVABILITY_LOG_LEVEL: 'error',
       FPF_LOCAL_LLM_BASE_URL: 'http://localhost:1234',
       FPF_LOCAL_LLM_MODEL: 'google/gemma-4-31b',
-      FPF_LOCAL_LLM_API_STYLE: 'chat_completions',
       FPF_LOCAL_LLM_API_KEY: 'secret-token',
       FPF_LOCAL_LLM_TIMEOUT_MS: '45000',
       FPF_AI_TRACE_LOG_PATH: '/tmp/fpf/logs/ai-traces.jsonl',
@@ -65,7 +64,6 @@ describe('context config parsing', () => {
       enabled: true,
       baseUrl: 'http://localhost:1234',
       model: 'google/gemma-4-31b',
-      apiStyle: 'chat_completions',
       apiKey: 'secret-token',
       timeoutMs: 45000,
       traceLogPath: '/tmp/fpf/logs/ai-traces.jsonl',
@@ -92,10 +90,9 @@ describe('context config parsing', () => {
     });
   });
 
-  it('uses defaults and normalizes LM Studio aliases at the edge', () => {
+  it('uses repo defaults when LM Studio env is partial at the edge', () => {
     const env = {
       FPF_LOCAL_LLM_MODEL: 'google/gemma-4-31b',
-      FPF_LOCAL_LLM_API_STYLE: 'chat',
       PORT: '70000',
     } as NodeJS.ProcessEnv;
 
@@ -109,7 +106,6 @@ describe('context config parsing', () => {
       enabled: true,
       baseUrl: 'http://localhost:1234/v1',
       model: 'google/gemma-4-31b',
-      apiStyle: 'lmstudio_chat',
       apiKey: undefined,
       timeoutMs: 20000,
       traceLogPath: '.runtime/logs/ai-traces.jsonl',

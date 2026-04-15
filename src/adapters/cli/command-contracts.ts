@@ -1,15 +1,8 @@
 import { z } from 'zod';
 
 import { answerModeSchema } from '../../mcp/tool-contracts.js';
-import { lmStudioApiStyleSchema } from '../../mcp/tool-contracts.js';
-import { normalizeLmStudioApiStyle } from '../../runtime/lm-studio-synthesizer.js';
 
 const selectorKindSchema = z.enum(['auto', 'id', 'route', 'lexeme']);
-const lmStudioApiStyleInputSchema = z
-  .string()
-  .optional()
-  .transform((value) => (value ? normalizeLmStudioApiStyle(value) : undefined))
-  .pipe(lmStudioApiStyleSchema.optional());
 
 const statusCommandSchema = z.object({
   kind: z.literal('status'),
@@ -54,7 +47,6 @@ const lmCheckCommandSchema = z.object({
   kind: z.literal('lm-check'),
   baseUrl: z.string().url().optional(),
   model: z.string().min(1).optional(),
-  apiStyle: lmStudioApiStyleInputSchema,
   apiKey: z.string().min(1).optional(),
   timeoutMs: z.number().int().positive().optional(),
   systemPrompt: z.string().min(1).optional(),
@@ -141,7 +133,6 @@ export function parseCliCommand(args: string[]): ParsedCliCommand {
       const parsed = scanArgs(commandArgs, [
         '--base-url',
         '--model',
-        '--api-style',
         '--api-key',
         '--timeout-ms',
         '--system-prompt',
@@ -152,7 +143,6 @@ export function parseCliCommand(args: string[]): ParsedCliCommand {
         kind: 'lm-check',
         baseUrl: value(parsed, '--base-url'),
         model: value(parsed, '--model'),
-        apiStyle: value(parsed, '--api-style'),
         apiKey: value(parsed, '--api-key'),
         timeoutMs: timeoutRaw ? Number(timeoutRaw) : undefined,
         systemPrompt: value(parsed, '--system-prompt'),

@@ -138,6 +138,11 @@ describe('Mastra MCP server', () => {
       cwd: process.cwd(),
       env: {
         ...process.env,
+        // Isolate the child from any live LM Studio config on the host so
+        // `ask_fpf` / `query_fpf_spec` stay deterministic and fast.
+        FPF_LOCAL_LLM_BASE_URL: '',
+        FPF_LOCAL_LLM_MODEL: '',
+        FPF_LOCAL_LLM_API_KEY: '',
         ...(surface === 'full' ? { FPF_MCP_SURFACE: 'full' } : {}),
         FPF_MASTRA_LOG_PATH: resolve(tempDir, 'mastra.log'),
         FPF_MASTRA_OBSERVABILITY_PATH: resolve(tempDir, 'mastra-observability.json'),

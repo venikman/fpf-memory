@@ -37,7 +37,6 @@ export function createConfiguredRuntime(
         ? createSynthesizerFromConfig({
             baseUrl: lmStudioConfig.baseUrl,
             model: lmStudioConfig.model,
-            apiStyle: lmStudioConfig.apiStyle,
             apiKey: lmStudioConfig.apiKey,
             timeoutMs: lmStudioConfig.timeoutMs,
             traceLogPath: lmStudioConfig.traceLogPath,
@@ -50,7 +49,6 @@ export function createConfiguredRuntime(
     lmStudioHealthCheckOptions: {
       baseUrl: lmStudioConfig.baseUrl,
       model: lmStudioConfig.model,
-      apiStyle: lmStudioConfig.apiStyle,
       apiKey: lmStudioConfig.apiKey,
       timeoutMs: lmStudioConfig.timeoutMs,
     },

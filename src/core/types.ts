@@ -515,7 +515,6 @@ export interface RuntimeStatus {
     provider?: string;
     model?: string;
     baseUrl?: string;
-    apiStyle?: 'responses' | 'lmstudio_chat' | 'chat_completions' | 'anthropic_messages';
   };
   observability: {
     configured: boolean;
@@ -565,7 +564,6 @@ export interface LocalAnswerSynthesizerInfo {
   provider: string;
   model?: string;
   baseUrl?: string;
-  apiStyle?: 'responses' | 'lmstudio_chat' | 'chat_completions' | 'anthropic_messages';
 }
 
 export interface LocalAnswerSynthesizer {
