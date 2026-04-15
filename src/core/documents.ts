@@ -547,8 +547,11 @@ function appendNodeIdList(
   }
 }
 
+// Keep this anchored regex aligned with `ID_PATTERN` in `src/core/text.ts` so
+// the generator only renders pattern-ID chips for strings the compiler itself
+// treats as valid IDs.
 function isPatternIdShape(nodeId: string): boolean {
-  return /^[A-Z]\.[A-Za-z0-9.:-]+$/u.test(nodeId);
+  return /^[A-Z]\.\d+(?:\.[A-Za-z0-9]+)*(?::[A-Za-z0-9.]+)?$/u.test(nodeId);
 }
 
 function formatRelation(snapshot: Snapshot, relation: RelationEdge): string {
@@ -565,16 +568,18 @@ function formatNodeReferenceHtml(snapshot: Snapshot, nodeId: string): string {
   const node = snapshot.compiledNodes[nodeId];
   const docTarget = node ? resolveDocTarget(snapshot, nodeId) : undefined;
   if (docTarget) {
-    return `<a class="fpf-relation-target" href="${docTarget.docRef.staticPath}">${escapeHtml(docTarget.title)}</a>`;
+    return `<a class="fpf-relation-target" href="${escapeHtml(docTarget.docRef.staticPath)}">${escapeHtml(docTarget.title)}</a>`;
   }
   return `<code>${escapeHtml(nodeId)}</code>`;
 }
 
-const PART_CHIP_LETTERS = new Set(['A', 'B', 'C', 'D', 'E', 'F', 'G']);
-
+// Emit `fpf-pid--<letter>` unconditionally for any leading A–Z. The Part-specific
+// palette lives in `src/docs/theme.css` (`.fpf-pid--a` … `.fpf-pid--g`); letters
+// without a matching modifier class fall back to the neutral `.fpf-pid` default,
+// so the CSS stays the single source of truth for which Parts have colours.
 function patternIdChip(id: string): string {
-  const first = id.charAt(0).toUpperCase();
-  const modifier = PART_CHIP_LETTERS.has(first) ? ` fpf-pid--${first.toLowerCase()}` : '';
+  const first = id.charAt(0);
+  const modifier = /^[A-Z]$/u.test(first) ? ` fpf-pid--${first.toLowerCase()}` : '';
   return `<span class="fpf-pid${modifier}">${escapeHtml(id)}</span>`;
 }
 
@@ -593,7 +598,7 @@ function renderBreadcrumb(segments: BreadcrumbSegment[]): string {
       parts.push(`<span class="fpf-breadcrumb-separator" aria-hidden="true">›</span>`);
     }
     if (segment.link && index < segments.length - 1) {
-      parts.push(`<a href="${segment.link}">${escapeHtml(segment.text)}</a>`);
+      parts.push(`<a href="${escapeHtml(segment.link)}">${escapeHtml(segment.text)}</a>`);
     } else {
       parts.push(`<span>${escapeHtml(segment.text)}</span>`);
     }

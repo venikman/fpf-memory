@@ -9,7 +9,8 @@
  *   4. Typography scale
  *   5. Content primitives (blockquote meta-strip, lists, tables, code, callouts)
  *   6. Sidebar & TOC density
- *   7. Pattern-ID chip primitive (reserved classes for upcoming generator change)
+ *   7. Pattern-ID chip, relation-row, and breadcrumb primitives (emitted by the
+ *      generator in `src/core/documents.ts`)
  */
 
 /* ───────── 1. Design tokens ───────── */
@@ -111,8 +112,10 @@ html.dark {
 }
 
 .rspress-doc-container .rspress-doc {
-  /* Keep prose paragraphs readable even in wide containers.
-     Lists / tables / code can still use the full width. */
+  /* Keep prose readable even in wide containers: paragraphs, blockquotes, and
+     top-level lists share the measure so bullet labels stay aligned with the
+     surrounding copy. Tables, code blocks, and admonitions are intentionally
+     excluded and keep the full container width. */
   --prose-measure: var(--fpf-measure);
 }
 
@@ -212,9 +215,12 @@ html.dark .rspress-doc h2 {
 /* ───────── 5. Content primitives ───────── */
 
 /*  Meta-strip — the first blockquote on pattern/route pages, e.g.
- *   > Pattern `A.1` · Stable · Architectural (A) · Normative
+ *   > Pattern <span class="fpf-pid fpf-pid--a">A.1</span> · Stable · Architectural (A) · Normative
  *   > Part A – Kernel Architecture Cluster
- *   > "Name the thing without smuggling in its parts." */
+ *   > "Name the thing without smuggling in its parts."
+ *  The pattern ID is emitted as a `.fpf-pid` chip (see section 7); older
+ *  inline-code snapshots are kept working via the chip-coloured `code` rule
+ *  below so migrated content keeps looking native. */
 .rspress-doc > blockquote:first-of-type {
   margin-top: 0;
   margin-bottom: 1.5rem;
@@ -354,10 +360,10 @@ html.dark .rspress-doc > blockquote:first-of-type :not(pre) > code {
 
 /* ───────── 7. Pattern-ID chip primitive ─────────
  *
- * These classes are reserved for an upcoming generator change that will
- * emit `<span class="fpf-pid fpf-pid--a">A.1</span>` in pattern titles,
- * relations, and node references. Defined here so the styles land in the
- * same commit as the tokens that back them.
+ * The generator (`src/core/documents.ts::patternIdChip`) emits
+ * `<span class="fpf-pid fpf-pid--a">A.1</span>` in pattern titles, relations,
+ * and node references. Part-specific hues come from the `.fpf-pid--{letter}`
+ * modifiers below; unknown letters fall back to the neutral `.fpf-pid` base.
  */
 
 .fpf-pid {
@@ -390,8 +396,8 @@ html.dark .fpf-pid {
 .fpf-pid--f { --fpf-chip-h: var(--fpf-part-f); }
 .fpf-pid--g { --fpf-chip-h: var(--fpf-part-g); }
 
-/* Relation-row primitive — emitted by generator in a follow-up commit
- * Shape:
+/* Relation-row primitive — emitted by the generator
+ * (`src/core/documents.ts::formatRelation`). Shape:
  *   <div class="fpf-relation">
  *     <span class="fpf-pid fpf-pid--a">A.1</span>
  *     <span class="fpf-relation-kind">prerequisite for</span>

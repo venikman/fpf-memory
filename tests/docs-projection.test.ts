@@ -106,11 +106,20 @@ describe('docs projection', () => {
     const patternPage =
       projection.pagesByMarkdownPath['docs/generated/patterns/A.1.md']?.markdown ?? '';
 
-    const a2Mentions = patternPage.match(
-      /<div class="fpf-relation"><span class="fpf-pid fpf-pid--a">A\.1<\/span><span class="fpf-relation-kind">explicit reference<\/span><a class="fpf-relation-target" href="\/generated\/patterns\/A\.2">Role Taxonomy<\/a><\/div>/g,
+    // Assert the invariants of a relation row (pid chip + kind label + link
+    // target) rather than the exact serialized HTML so additive formatting
+    // changes — extra classes, attribute reordering, whitespace — don't break
+    // this test while it's still guarding the dedup behaviour.
+    const relationRows = patternPage.match(/<div class="fpf-relation">[\s\S]*?<\/div>/g) ?? [];
+    const a1ToA2ExplicitRows = relationRows.filter(
+      (row) =>
+        /class="fpf-pid[^"]*fpf-pid--a[^"]*"[^>]*>A\.1</.test(row) &&
+        /<span class="fpf-relation-kind">explicit reference<\/span>/.test(row) &&
+        /href="\/generated\/patterns\/A\.2"/.test(row) &&
+        row.includes('Role Taxonomy'),
     );
 
-    expect(a2Mentions).toHaveLength(1);
+    expect(a1ToA2ExplicitRows).toHaveLength(1);
     expect(navigation.patterns.some((group) => group.text.startsWith('Part A'))).toBe(true);
     expect(navigation.routes[0]?.items.length).toBeGreaterThan(0);
   });
