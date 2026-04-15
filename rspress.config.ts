@@ -151,6 +151,10 @@ export default defineConfig({
               text: 'Automation scripts',
               link: '/scripts/',
             },
+            {
+              text: 'Deploy to Mastra Cloud',
+              link: '/deploy/',
+            },
           ],
         },
       ],
@@ -169,6 +173,10 @@ export default defineConfig({
             {
               text: 'Automation scripts',
               link: '/scripts/',
+            },
+            {
+              text: 'Deploy to Mastra Cloud',
+              link: '/deploy/',
             },
           ],
         },
@@ -194,6 +202,10 @@ export default defineConfig({
               text: 'Automation scripts',
               link: '/scripts/',
             },
+            {
+              text: 'Deploy to Mastra Cloud',
+              link: '/deploy/',
+            },
           ],
         },
       ],
@@ -201,6 +213,33 @@ export default defineConfig({
         {
           text: 'Additional',
           items: [
+            {
+              text: 'Automation scripts',
+              link: '/scripts/',
+            },
+            {
+              text: 'MCP Interface',
+              link: '/mcp-interface/',
+            },
+            {
+              text: 'DRR-0001',
+              link: '/drr/DRR-0001-mcp-first-class-interface/',
+            },
+            {
+              text: 'Deploy to Mastra Cloud',
+              link: '/deploy/',
+            },
+          ],
+        },
+      ],
+      '/deploy/': [
+        {
+          text: 'Additional',
+          items: [
+            {
+              text: 'Deploy to Mastra Cloud',
+              link: '/deploy/',
+            },
             {
               text: 'Automation scripts',
               link: '/scripts/',
