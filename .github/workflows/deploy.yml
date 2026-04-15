@@ -41,10 +41,6 @@ jobs:
         with:
           bun-version: 1.3.5
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
       - name: Verify required secrets and variables are set
         env:
           MASTRA_API_TOKEN: ${{ secrets.MASTRA_API_TOKEN }}
@@ -75,4 +71,4 @@ jobs:
           MASTRA_API_TOKEN: ${{ secrets.MASTRA_API_TOKEN }}
           MASTRA_ORG_ID: ${{ vars.MASTRA_ORG_ID }}
           MASTRA_PROJECT_ID: ${{ vars.MASTRA_PROJECT_ID }}
-        run: bun run predeploy && npx --yes mastra build && npx --yes mastra server deploy --yes
+        run: bun run predeploy && bunx mastra build && bunx mastra server deploy --yes

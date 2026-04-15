@@ -37,14 +37,22 @@ const ADDITIONAL_LINK = {
 
 type AdditionalLink = (typeof ADDITIONAL_LINK)[keyof typeof ADDITIONAL_LINK];
 
-// All "Additional" sections behave the same way: collapsible, collapsed
-// by default so they don't crowd the main navigation. The helper keeps
-// that behavior consistent everywhere it's rendered.
-function additionalSection(items: readonly AdditionalLink[]) {
+// "Additional" sections are always collapsible. Callers choose the
+// initial state:
+//   - collapsed: true (default) when "Additional" sits next to a primary
+//     section (e.g. /drr/, /generated/preface/) so it doesn't crowd the
+//     main nav.
+//   - collapsed: false when "Additional" is the sidebar's only section
+//     (e.g. /mcp-interface/, /scripts/, /deploy/) so users don't land on
+//     an empty-looking sidebar and have to click to see any links.
+function additionalSection(
+  items: readonly AdditionalLink[],
+  options: { collapsed?: boolean } = {},
+) {
   return {
     text: 'Additional',
     collapsible: true,
-    collapsed: true,
+    collapsed: options.collapsed ?? true,
     items: [...items],
   };
 }
@@ -169,12 +177,15 @@ export default defineConfig({
         ]),
       ],
       '/mcp-interface/': [
-        additionalSection([
-          ADDITIONAL_LINK.mcpInterface,
-          ADDITIONAL_LINK.drr,
-          ADDITIONAL_LINK.scripts,
-          ADDITIONAL_LINK.deploy,
-        ]),
+        additionalSection(
+          [
+            ADDITIONAL_LINK.mcpInterface,
+            ADDITIONAL_LINK.drr,
+            ADDITIONAL_LINK.scripts,
+            ADDITIONAL_LINK.deploy,
+          ],
+          { collapsed: false },
+        ),
       ],
       '/drr/': [
         {
@@ -193,20 +204,26 @@ export default defineConfig({
         ]),
       ],
       '/scripts/': [
-        additionalSection([
-          ADDITIONAL_LINK.scripts,
-          ADDITIONAL_LINK.mcpInterface,
-          ADDITIONAL_LINK.drr,
-          ADDITIONAL_LINK.deploy,
-        ]),
+        additionalSection(
+          [
+            ADDITIONAL_LINK.scripts,
+            ADDITIONAL_LINK.mcpInterface,
+            ADDITIONAL_LINK.drr,
+            ADDITIONAL_LINK.deploy,
+          ],
+          { collapsed: false },
+        ),
       ],
       '/deploy/': [
-        additionalSection([
-          ADDITIONAL_LINK.deploy,
-          ADDITIONAL_LINK.scripts,
-          ADDITIONAL_LINK.mcpInterface,
-          ADDITIONAL_LINK.drr,
-        ]),
+        additionalSection(
+          [
+            ADDITIONAL_LINK.deploy,
+            ADDITIONAL_LINK.scripts,
+            ADDITIONAL_LINK.mcpInterface,
+            ADDITIONAL_LINK.drr,
+          ],
+          { collapsed: false },
+        ),
       ],
     },
     search: true,
