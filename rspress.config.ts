@@ -63,7 +63,7 @@ export default defineConfig({
   base: '/fpf-memory/',
   title: 'FPF Reference',
   description: 'Compiler-backed FPF reference docs generated from the configured spec source.',
-  globalStyles: resolve(process.cwd(), 'src/docs/density.css'),
+  globalStyles: resolve(process.cwd(), 'src/docs/theme.css'),
   route: {
     cleanUrls: true,
   },

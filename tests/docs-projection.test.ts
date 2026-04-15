@@ -77,7 +77,7 @@ describe('docs projection', () => {
 
     expect(patternPage).toContain('## Problem frame');
     expect(patternPage).not.toContain('## A.2:1 - Problem frame');
-    expect(patternPage).toContain('> Pattern `A.2`');
+    expect(patternPage).toContain('> Pattern <span class="fpf-pid fpf-pid--a">A.2</span>');
     expect(patternPage).not.toContain('- **ID:** `A.2`');
   });
 
@@ -107,7 +107,7 @@ describe('docs projection', () => {
       projection.pagesByMarkdownPath['docs/generated/patterns/A.1.md']?.markdown ?? '';
 
     const a2Mentions = patternPage.match(
-      /`A\.1` --explicit_reference--> \[Role Taxonomy\]\(\/generated\/patterns\/A\.2\)/g,
+      /<div class="fpf-relation"><span class="fpf-pid fpf-pid--a">A\.1<\/span><span class="fpf-relation-kind">explicit reference<\/span><a class="fpf-relation-target" href="\/generated\/patterns\/A\.2">Role Taxonomy<\/a><\/div>/g,
     );
 
     expect(a2Mentions).toHaveLength(1);
