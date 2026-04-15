@@ -209,6 +209,10 @@ describe('FpfRuntime', () => {
     expect(trace.sufficient).toBe(true);
   });
 
+  // This test chains `refresh()` (full snapshot build, ~16–18s on GitHub
+  // ubuntu-latest runners) with many downstream inspect/readDoc/trace calls.
+  // The default 20s global timeout consistently tips over on CI. Give it the
+  // same headroom as the other snapshot-building tests in this file.
   it('supports inspect, trace, and status surfaces over the compiled local index', async () => {
     await runtime.refresh();
 
@@ -285,7 +289,7 @@ describe('FpfRuntime', () => {
     for (const key of Object.keys(ARTIFACT_FILENAMES)) {
       expect(status.artifacts[key]).toBe(true);
     }
-  });
+  }, 40_000);
 
   it('expands citations in batch without changing single-anchor semantics', async () => {
     await runtime.refresh();
