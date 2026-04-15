@@ -6,6 +6,8 @@ import readline from 'node:readline';
 
 import { afterEach, describe, expect, it } from '@rstest/core';
 
+import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
+
 interface JsonRpcResponse {
   jsonrpc: '2.0';
   id: string | number | null;
@@ -35,6 +37,16 @@ class StdioMcpHarness {
     this.rl = readline.createInterface({ input: child.stdout, crlfDelay: Infinity });
     this.rl.on('line', (line) => this.handleLine(line));
     this.child.stderr.on('data', (chunk) => this.stderr.push(chunk.toString()));
+    // Spawn failures (e.g. binary not on PATH) emit 'error' without ever
+    // firing 'exit' — reject pending requests so the test fails fast
+    // instead of blocking on the 15s request timeout.
+    this.child.on('error', (err) => {
+      for (const { reject, timeout } of this.pending.values()) {
+        clearTimeout(timeout);
+        reject(new Error(`MCP stdio spawn failed: ${err.message}\n${this.stderr.join('')}`));
+      }
+      this.pending.clear();
+    });
     this.child.once('exit', (code, signal) => {
       for (const { reject, timeout } of this.pending.values()) {
         clearTimeout(timeout);
@@ -71,8 +83,17 @@ class StdioMcpHarness {
   async close(): Promise<void> {
     this.rl.close();
     if (this.child.exitCode !== null) return;
+    // Escalate to SIGKILL if the child ignores SIGTERM so afterEach never
+    // blocks the whole test process on an unresponsive MCP server.
     await new Promise<void>((resolve) => {
-      this.child.once('exit', () => resolve());
+      const killTimer = setTimeout(() => {
+        this.child.kill('SIGKILL');
+        resolve();
+      }, 3_000);
+      this.child.once('exit', () => {
+        clearTimeout(killTimer);
+        resolve();
+      });
       this.child.kill();
     });
   }
@@ -80,7 +101,16 @@ class StdioMcpHarness {
   private handleLine(line: string): void {
     const trimmed = line.trim();
     if (!trimmed) return;
-    const message = JSON.parse(trimmed) as JsonRpcResponse;
+    // The MCP server occasionally emits non-JSON banner lines. A JSON.parse
+    // throw here would crash the harness without ever rejecting the pending
+    // request — swallow, log, and keep listening.
+    let message: JsonRpcResponse;
+    try {
+      message = JSON.parse(trimmed) as JsonRpcResponse;
+    } catch {
+      this.stderr.push(`[non-JSON stdout] ${line}\n`);
+      return;
+    }
     const id = typeof message.id === 'number' ? message.id : undefined;
     if (id === undefined) return;
     const pending = this.pending.get(id);
@@ -114,11 +144,19 @@ describe('MCP session-continuity roundtrip', () => {
       cwd: process.cwd(),
       env: {
         ...process.env,
-        // Isolate the child from any live LM Studio config on the host so
-        // tool calls stay deterministic and fast.
+        // Isolate the child from any ambient host/CI state so the test is
+        // hermetic: (1) no live LM Studio call, (2) per-harness artifact
+        // dir to avoid sharing `.runtime/fpf-index` with parallel workers
+        // (which would bump `builtAt` between our status assertions),
+        // (3) pinned spec source so the test doesn't drift with the host's
+        // `FPF_SPEC_SOURCE_PATH`, (4) no persistent session cache so
+        // `activeSessions` resets per run.
         FPF_LOCAL_LLM_BASE_URL: '',
         FPF_LOCAL_LLM_MODEL: '',
         FPF_LOCAL_LLM_API_KEY: '',
+        FPF_SPEC_SOURCE_PATH: resolve(process.cwd(), DEFAULT_SOURCE_PATH),
+        FPF_RUNTIME_ARTIFACT_DIR: resolve(tempDir, 'fpf-index'),
+        FPF_PERSIST_SESSION_CACHE: 'false',
         FPF_MCP_SURFACE: 'full',
         FPF_MASTRA_LOG_PATH: resolve(tempDir, 'mastra.log'),
         FPF_MASTRA_OBSERVABILITY_PATH: resolve(tempDir, 'mastra-observability.json'),
