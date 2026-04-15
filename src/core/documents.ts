@@ -610,13 +610,25 @@ function buildPatternBreadcrumb(pattern: PatternRecord): BreadcrumbSegment[] {
   const segments: BreadcrumbSegment[] = [
     { text: 'Patterns', link: '/generated/patterns/index' },
   ];
-  const partLabel = pattern.part?.split(/\s*[-–—]\s*/u);
-  if (partLabel && partLabel.length > 0 && partLabel[0]) {
-    segments.push({ text: partLabel[0] });
-    const clusterLabel = partLabel.slice(1).join(' — ').trim();
-    if (clusterLabel) {
-      segments.push({ text: clusterLabel });
+
+  // Split `pattern.part` into a "Part X" prefix and the cluster name that
+  // follows it, but only on the first dash/en-dash/em-dash that has spaces
+  // on *both* sides. Requiring surrounding whitespace keeps intra-word
+  // hyphens intact — e.g. "Part B — Trans-disciplinary Reasoning" must
+  // stay as ("Part B", "Trans-disciplinary Reasoning") instead of being
+  // chopped into ("Part B", "Trans", "disciplinary Reasoning").
+  const partLabelMatch = pattern.part?.match(/^(.+?)\s+[-–—]\s+(.+)$/u);
+  if (partLabelMatch) {
+    const head = partLabelMatch[1]!.trim();
+    const tail = partLabelMatch[2]!.trim();
+    if (head) {
+      segments.push({ text: head });
     }
+    if (tail) {
+      segments.push({ text: tail });
+    }
+  } else if (pattern.part) {
+    segments.push({ text: pattern.part.trim() });
   } else if (pattern.cluster) {
     segments.push({ text: pattern.cluster });
   }

@@ -81,6 +81,24 @@ describe('docs projection', () => {
     expect(patternPage).not.toContain('- **ID:** `A.2`');
   });
 
+  it('keeps hyphenated cluster names intact in breadcrumbs', () => {
+    // Regression guard for the breadcrumb split bug flagged on PR #46:
+    // `pattern.part` for Part B is "Part B – Trans-disciplinary Reasoning
+    // Cluster", and the earlier split on every dash broke "Trans-disciplinary"
+    // into two separate breadcrumb segments ("Trans" / "disciplinary ..."). We
+    // only want to split on the first dash that has spaces on both sides.
+    const projection = buildDocsProjection(snapshot);
+    const patternPage =
+      projection.pagesByMarkdownPath['docs/generated/patterns/B.1.1.md']?.markdown ?? '';
+
+    expect(patternPage).toMatch(/<nav class="fpf-breadcrumb"[^>]*>[\s\S]*?<\/nav>/);
+    expect(patternPage).toContain('<span>Part B</span>');
+    // The cluster segment must keep the hyphen that belongs to "Trans-disciplinary".
+    expect(patternPage).toMatch(/<span>Trans[-‑]disciplinary Reasoning Cluster<\/span>/);
+    expect(patternPage).not.toMatch(/<span>Trans<\/span>/);
+    expect(patternPage).not.toMatch(/<span>disciplinary Reasoning Cluster<\/span>/);
+  });
+
   it('renders catalog reminders for stub pages with no body content', () => {
     const projection = buildDocsProjection(snapshot);
     const stubPage =
