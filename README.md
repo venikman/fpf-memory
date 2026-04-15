@@ -1,5 +1,7 @@
 # FPF Spec Runtime
 
+> **📖 Live reference: [venikman.github.io/fpf-memory](https://venikman.github.io/fpf-memory/)** — searchable pattern catalog, routes, and preface. Type an ID like `A.2` or `route:project-alignment` in the search box to jump in.
+
 Local **FPF spec** runtime built around the `LocalFPFSpecKnowledgeRuntime` use case. The markdown source is **not committed**; after clone run `bun run spec:download` (or set `FPF_SPEC_SOURCE_PATH` to any local file, for example a checkout of [fpf-sync](https://github.com/venikman/fpf-sync)).
 
 It uses:

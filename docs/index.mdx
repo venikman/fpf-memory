@@ -1,21 +1,34 @@
 ---
-title: "Pattern Catalog"
-description: "Default entry route for the FPF reference."
+title: "FPF Reference"
+description: "Compiler-backed reference for the FPF spec — patterns, routes, preface, and decision records projected from a single source markdown file."
 outline: false
 ---
 
-import { useEffect } from 'react';
+# FPF Reference
 
-export default function IndexRedirect() {
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.location.replace('/fpf-memory/generated/patterns/index');
-    }
-  }, []);
+A compiler-backed reference for the FPF spec. The full pattern catalog, route graph, and preface are projected deterministically from the authored spec markdown — no vector database, no remote indexing, no manual cross-linking.
 
-  return (
-    <>
-      <p>Redirecting to <a href="/fpf-memory/generated/patterns/index">Pattern Catalog</a>…</p>
-    </>
-  );
-}
+## Who this is for
+
+- **Spec consumers** writing or reviewing patterns, looking up IDs, or following routes.
+- **Engineers** integrating the FPF runtime via the [MCP interface](./mcp-interface).
+- **Contributors** tracing decision records or debugging the compiler output.
+
+## Start here
+
+- [Pattern Catalog](./generated/patterns/index) — the full Part A–G pattern taxonomy
+- [Route Catalog](./generated/routes/index) — lawful routes through the patterns (e.g. `route:project-alignment`, `J.4`)
+- [Preface](./generated/preface/index) — non-normative onboarding, glossary, and key terms
+- [MCP Interface](./mcp-interface) — `query_fpf_spec`, `trace_fpf_path`, `read_fpf_doc`, and related tools
+
+:::tip
+The search box (top-right) accepts FPF IDs and route names directly — try `A.2`, `C.11`, or `route:project-alignment` to jump straight to a page.
+:::
+
+## Decision records
+
+- [DRR-0001: MCP as the first-class Codex interface](/drr/DRR-0001-mcp-first-class-interface/)
+
+## Source and build
+
+The reference is generated from a single upstream spec (see [fpf-sync](https://github.com/venikman/fpf-sync)) and rebuilt deterministically. Architecture and build details live in the [repository README](https://github.com/venikman/fpf-memory#readme).
