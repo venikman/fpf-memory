@@ -41,7 +41,7 @@ Only the final `mastra server deploy` step talks to Mastra Cloud. The first two 
 
 3. **Add the org and project IDs as GitHub variables** (same page → **Variables** tab → **New repository variable**):
    - `MASTRA_ORG_ID` — `bun x mastra auth whoami` prints it.
-   - `MASTRA_PROJECT_ID` — open [`.mastra-project.json`](../.mastra-project.json) locally (gitignored) and copy `projectId`.
+   - `MASTRA_PROJECT_ID` — open `.mastra-project.json` locally (gitignored, not in the repo) and copy `projectId`. If the file does not exist yet, run `bun x mastra init` in the repo root once to create it.
 
 4. **Trigger a deploy**: go to **Actions → Deploy to Mastra Cloud → Run workflow**, or run `gh workflow run deploy.yml` from the CLI.
 
