@@ -14,7 +14,7 @@
     "build:mcp": "tsup src/mastra/stdio.ts --format esm --out-dir dist --no-splitting && node -e \"const fs=require('node:fs');const path='dist/stdio.js';const data=fs.readFileSync(path,'utf8');const shebang='#!/usr/bin/env node';if(!data.startsWith(shebang))fs.writeFileSync(path, shebang + '\\\\n' + data);\" && chmod +x dist/stdio.js",
     "start": "bun src/server.ts",
     "predeploy": "bun run spec:download && bash scripts/prepare-deploy.sh",
-    "deploy": "bun run predeploy && npx mastra build && npx mastra server deploy",
+    "deploy": "bun run predeploy && npx mastra build && npx mastra server deploy --yes",
     "lint": "rslint --type-check src tests scripts/generate-docs.ts scripts/download-upstream-spec.ts scripts/generate-architecture-diagrams.ts *.config.ts",
     "check": "tsc --noEmit",
     "check:boundaries": "bun scripts/check-boundaries.ts",
