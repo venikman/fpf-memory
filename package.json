@@ -24,7 +24,8 @@
     "test": "rstest run",
     "docs:generate": "bun scripts/generate-docs.ts",
     "diagrams:generate": "bun scripts/generate-architecture-diagrams.ts",
-    "docs:dev": "bun run docs:generate && RSPRESS_PERSISTENT_CACHE=false rspress",
+    "docs:dev": "bun run docs:generate && rspress",
+    "docs:dev:fresh": "bun run docs:generate && RSPRESS_PERSISTENT_CACHE=false rspress",
     "docs:build": "bun run docs:generate && RSPRESS_PERSISTENT_CACHE=false rspress build",
     "docs:preview": "RSPRESS_PERSISTENT_CACHE=false rspress preview"
   },
