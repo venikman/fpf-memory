@@ -35,7 +35,12 @@ const mcpSurfaceSchema = z.enum(['public', 'full']);
 const loggingLevelSchema = z.enum(['debug', 'info', 'warn', 'error']);
 const observabilityFormatSchema = z.enum(['flat', 'tree', 'normalized']);
 const observabilityLogLevelSchema = z.enum(['debug', 'info', 'warn', 'error', 'fatal']);
-const lmStudioApiStyleSchema = z.enum(['responses', 'lmstudio_chat', 'chat_completions']);
+const lmStudioApiStyleSchema = z.enum([
+  'responses',
+  'lmstudio_chat',
+  'chat_completions',
+  'anthropic_messages',
+]);
 
 export function parseRuntimeCoreConfig(
   env: NodeJS.ProcessEnv,
@@ -208,6 +213,9 @@ function normalizeLmStudioApiStyleValue(value: string | undefined): string | und
       return 'lmstudio_chat';
     case 'completions':
       return 'chat_completions';
+    case 'anthropic':
+    case 'messages':
+      return 'anthropic_messages';
     default:
       return normalizeOptionalString(value)?.toLowerCase();
   }

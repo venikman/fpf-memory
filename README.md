@@ -60,8 +60,9 @@ FPF_AI_TRACE_LOG_PATH=.runtime/logs/ai-traces.jsonl
 `FPF_LOCAL_LLM_API_STYLE` controls which LM Studio generation route is used:
 
 - `responses`: OpenAI-compatible `/v1/responses`
-- `lmstudio_chat`: LM Studio-native `/api/v1/chat`
-- `chat`: accepted alias for `lmstudio_chat`
+- `chat_completions`: OpenAI-compatible `/v1/chat/completions` (alias: `completions`)
+- `lmstudio_chat`: LM Studio-native `/api/v1/chat` (alias: `chat`)
+- `anthropic_messages`: Anthropic-compatible `/v1/messages` (aliases: `anthropic`, `messages`)
 
 If you opt into the LM Studio path by setting either `FPF_LOCAL_LLM_BASE_URL` or `FPF_LOCAL_LLM_MODEL`, the missing half falls back to the repo defaults:
 
@@ -75,6 +76,13 @@ If you want to force the LM Studio-native route instead, set:
 
 - `FPF_LOCAL_LLM_BASE_URL=http://localhost:1234`
 - `FPF_LOCAL_LLM_API_STYLE=lmstudio_chat`
+
+For the Anthropic-compatible route, use:
+
+- `FPF_LOCAL_LLM_BASE_URL=http://localhost:1234/v1`
+- `FPF_LOCAL_LLM_API_STYLE=anthropic_messages`
+
+The synthesizer posts to `/v1/messages` with the Anthropic Messages request shape (`system` + `messages`) and parses `content[].text` from the response.
 
 `FPF_MASTRA_LOG_PATH` configures the Mastra-backed runtime/MCP logger and writes structured JSON logs.
 

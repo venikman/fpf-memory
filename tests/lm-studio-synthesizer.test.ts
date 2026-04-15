@@ -511,4 +511,102 @@ describe('LmStudioSynthesizer', () => {
     expect(observabilityLog).toContain('"type": "model_generation"');
     expect(observabilityLog).toContain('"errorInfo"');
   });
+
+  it('posts to /v1/messages with the Anthropic Messages shape when api style is anthropic_messages', async () => {
+    let requestUrl = '';
+    let requestBody: Record<string, unknown> | undefined;
+
+    const runtime = new FpfRuntime({
+      sourcePath,
+      artifactDir,
+      synthesizer: new LmStudioSynthesizer({
+        baseUrl: 'http://localhost:1234/v1',
+        model: 'google/gemma-4-31b',
+        apiStyle: 'anthropic_messages',
+        traceLogPath: aiTraceLogPath,
+        observabilityConfig: createObservabilityConfig(),
+        fetchImpl: async (url, init) => {
+          requestUrl = String(url);
+          requestBody = JSON.parse(String(init?.body ?? '{}')) as Record<string, unknown>;
+          return new Response(
+            JSON.stringify({
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify({
+                    answer: 'Anthropic synthesis answer.',
+                    constraints: ['Use only provided bounded slices.'],
+                    confidence: 0.83,
+                  }),
+                },
+              ],
+              stop_reason: 'end_turn',
+            }),
+            {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          );
+        },
+      }),
+    });
+
+    const result = await runtime.query('What is U.BoundedContext?', 'compact');
+
+    expect(result.answer).toBe('Anthropic synthesis answer.');
+    expect(result.constraints).toEqual(['Use only provided bounded slices.']);
+    expect(result.confidence).toBe(0.83);
+    expect(requestUrl).toBe('http://localhost:1234/v1/messages');
+    expect(requestBody?.model).toBe('google/gemma-4-31b');
+    expect(typeof requestBody?.system).toBe('string');
+    expect(Array.isArray(requestBody?.messages)).toBe(true);
+    const messages = requestBody?.messages as Array<{ role: string; content: string }>;
+    expect(messages[0].role).toBe('user');
+    expect(typeof messages[0].content).toBe('string');
+    // Anthropic Messages requires max_tokens.
+    expect(typeof requestBody?.max_tokens).toBe('number');
+  });
+
+  it('reports health for the anthropic_messages api style against /v1/messages + /v1/models', async () => {
+    const requestedUrls: string[] = [];
+
+    const result = await runLmStudioHealthCheck({
+      baseUrl: 'http://localhost:1234/v1',
+      model: 'google/gemma-4-31b',
+      apiStyle: 'anthropic_messages',
+      fetchImpl: async (url, init) => {
+        requestedUrls.push(String(url));
+        if ((init?.method ?? 'GET') === 'GET') {
+          return new Response(
+            JSON.stringify({ data: [{ id: 'google/gemma-4-31b' }] }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          );
+        }
+        return new Response(
+          JSON.stringify({
+            content: [{ type: 'text', text: 'Health check response.' }],
+            stop_reason: 'end_turn',
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        );
+      },
+    });
+
+    expect(result.apiStyle).toBe('anthropic_messages');
+    expect(result.endpoints.models).toBe('http://localhost:1234/v1/models');
+    expect(result.endpoints.generation).toBe('http://localhost:1234/v1/messages');
+    expect(result.modelDiscovery.ok).toBe(true);
+    expect(result.generation.ok).toBe(true);
+    expect(result.generation.responsePreview).toContain('Health check response.');
+    expect(requestedUrls).toEqual([
+      'http://localhost:1234/v1/models',
+      'http://localhost:1234/v1/messages',
+    ]);
+  });
+
+  it('normalizes anthropic / messages aliases to anthropic_messages', () => {
+    expect(normalizeLmStudioApiStyle('anthropic')).toBe('anthropic_messages');
+    expect(normalizeLmStudioApiStyle('messages')).toBe('anthropic_messages');
+    expect(normalizeLmStudioApiStyle('anthropic_messages')).toBe('anthropic_messages');
+  });
 });
