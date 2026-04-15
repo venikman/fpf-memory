@@ -52,13 +52,21 @@ jobs:
             echo "::error::MASTRA_API_TOKEN secret is not set. Create one with 'bun x mastra auth tokens create ci-deploy' and add it under repo Settings → Secrets."
             missing=1
           fi
-          if [ -z "${MASTRA_ORG_ID}" ]; then
-            echo "::error::MASTRA_ORG_ID variable is not set. Find it via 'bun x mastra auth whoami' and add it under repo Settings → Variables."
-            missing=1
-          fi
-          if [ -z "${MASTRA_PROJECT_ID}" ]; then
-            echo "::error::MASTRA_PROJECT_ID variable is not set. Find it in .mastra-project.json after running 'bun x mastra init' and add it under repo Settings → Variables."
-            missing=1
+          # Org/project IDs may come from either GitHub variables or a
+          # committed .mastra-project.json. The Mastra CLI prefers env
+          # vars when set, then falls back to the file. Only require the
+          # vars when the file isn't available.
+          if [ -f .mastra-project.json ]; then
+            echo "Found .mastra-project.json in checkout — using it for org/project IDs (GitHub vars override if set)."
+          else
+            if [ -z "${MASTRA_ORG_ID}" ]; then
+              echo "::error::MASTRA_ORG_ID variable is not set and .mastra-project.json is not committed. Either commit the file or add the variable under repo Settings → Variables (find the ID via 'bun x mastra auth whoami')."
+              missing=1
+            fi
+            if [ -z "${MASTRA_PROJECT_ID}" ]; then
+              echo "::error::MASTRA_PROJECT_ID variable is not set and .mastra-project.json is not committed. Either commit the file or add the variable under repo Settings → Variables (find the ID in .mastra-project.json after 'bun x mastra init')."
+              missing=1
+            fi
           fi
           if [ "${missing}" -ne 0 ]; then
             exit 1
