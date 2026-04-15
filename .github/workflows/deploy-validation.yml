@@ -1,0 +1,58 @@
+name: Deploy validation (dry-run)
+
+# Runs predeploy + mastra build on every PR and push to main.
+# Asserts the hosted bundle stages correctly and produces a deployable
+# .mastra/output tree. Does NOT push anywhere.
+#
+# This is the lightweight guardrail for the predeploy/build pipeline.
+# The actual deploy lives in deploy.yml and is gated on maintainer action.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+
+      - run: bun install --frozen-lockfile
+
+      - name: Stage hosted assets (runs spec:download then prepare-deploy.sh)
+        run: bun run predeploy
+
+      - name: Assert predeploy staged spec + snapshot
+        run: |
+          test -f src/mastra/public/.fpf-upstream/FPF-Spec.md
+          test -f src/mastra/public/.runtime/fpf-index/snapshot.json
+          spec_bytes=$(wc -c < src/mastra/public/.fpf-upstream/FPF-Spec.md)
+          snapshot_bytes=$(wc -c < src/mastra/public/.runtime/fpf-index/snapshot.json)
+          echo "Staged spec: ${spec_bytes} bytes"
+          echo "Staged snapshot: ${snapshot_bytes} bytes"
+          test "${spec_bytes}" -gt 10000
+          test "${snapshot_bytes}" -gt 100000
+
+      - name: Build hosted bundle (mastra build)
+        run: bunx mastra build
+
+      - name: Assert mastra build produced deployable output
+        run: |
+          test -f .mastra/output/index.mjs
+          test -f .mastra/output/package.json
+          test -d .mastra/output/node_modules
+          echo ".mastra/output tree size:"
+          du -sh .mastra/output

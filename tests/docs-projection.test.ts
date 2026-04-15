@@ -188,7 +188,7 @@ describe('docs projection', () => {
       );
 
       expect(await readFile(resolve(outDir, 'index.html'), 'utf8')).toContain(
-        'Redirecting to',
+        'FPF Reference',
       );
       expect(await readFile(resolve(outDir, 'mcp-interface.html'), 'utf8')).toContain(
         'read_fpf_doc',
