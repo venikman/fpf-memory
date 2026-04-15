@@ -25,6 +25,30 @@ const snapshot = compileFpfSource({
 }).snapshot;
 const navigation = buildDocsNavigation(snapshot);
 
+// Shared catalog of auxiliary doc pages that show up in "Additional"
+// sections across sidebars. Each sidebar picks the subset relevant to
+// its context; the order in the subset controls visual ordering.
+const ADDITIONAL_LINK = {
+  mcpInterface: { text: 'MCP Interface', link: '/mcp-interface/' },
+  drr: { text: 'DRR-0001', link: '/drr/DRR-0001-mcp-first-class-interface/' },
+  scripts: { text: 'Automation scripts', link: '/scripts/' },
+  deploy: { text: 'Deploy to Mastra Cloud', link: '/deploy/' },
+} as const;
+
+type AdditionalLink = (typeof ADDITIONAL_LINK)[keyof typeof ADDITIONAL_LINK];
+
+// All "Additional" sections behave the same way: collapsible, collapsed
+// by default so they don't crowd the main navigation. The helper keeps
+// that behavior consistent everywhere it's rendered.
+function additionalSection(items: readonly AdditionalLink[]) {
+  return {
+    text: 'Additional',
+    collapsible: true,
+    collapsed: true,
+    items: [...items],
+  };
+}
+
 export default defineConfig({
   root: docsRoot,
   outDir,
@@ -138,48 +162,19 @@ export default defineConfig({
             })),
           ],
         },
-        {
-          text: 'Additional',
-          collapsible: true,
-          collapsed: true,
-          items: [
-            {
-              text: 'MCP Interface',
-              link: '/mcp-interface/',
-            },
-            {
-              text: 'Automation scripts',
-              link: '/scripts/',
-            },
-            {
-              text: 'Deploy to Mastra Cloud',
-              link: '/deploy/',
-            },
-          ],
-        },
+        additionalSection([
+          ADDITIONAL_LINK.mcpInterface,
+          ADDITIONAL_LINK.scripts,
+          ADDITIONAL_LINK.deploy,
+        ]),
       ],
       '/mcp-interface/': [
-        {
-          text: 'Additional',
-          items: [
-            {
-              text: 'MCP Interface',
-              link: '/mcp-interface/',
-            },
-            {
-              text: 'DRR-0001',
-              link: '/drr/DRR-0001-mcp-first-class-interface/',
-            },
-            {
-              text: 'Automation scripts',
-              link: '/scripts/',
-            },
-            {
-              text: 'Deploy to Mastra Cloud',
-              link: '/deploy/',
-            },
-          ],
-        },
+        additionalSection([
+          ADDITIONAL_LINK.mcpInterface,
+          ADDITIONAL_LINK.drr,
+          ADDITIONAL_LINK.scripts,
+          ADDITIONAL_LINK.deploy,
+        ]),
       ],
       '/drr/': [
         {
@@ -191,69 +186,27 @@ export default defineConfig({
             },
           ],
         },
-        {
-          text: 'Additional',
-          items: [
-            {
-              text: 'MCP Interface',
-              link: '/mcp-interface/',
-            },
-            {
-              text: 'Automation scripts',
-              link: '/scripts/',
-            },
-            {
-              text: 'Deploy to Mastra Cloud',
-              link: '/deploy/',
-            },
-          ],
-        },
+        additionalSection([
+          ADDITIONAL_LINK.mcpInterface,
+          ADDITIONAL_LINK.scripts,
+          ADDITIONAL_LINK.deploy,
+        ]),
       ],
       '/scripts/': [
-        {
-          text: 'Additional',
-          items: [
-            {
-              text: 'Automation scripts',
-              link: '/scripts/',
-            },
-            {
-              text: 'MCP Interface',
-              link: '/mcp-interface/',
-            },
-            {
-              text: 'DRR-0001',
-              link: '/drr/DRR-0001-mcp-first-class-interface/',
-            },
-            {
-              text: 'Deploy to Mastra Cloud',
-              link: '/deploy/',
-            },
-          ],
-        },
+        additionalSection([
+          ADDITIONAL_LINK.scripts,
+          ADDITIONAL_LINK.mcpInterface,
+          ADDITIONAL_LINK.drr,
+          ADDITIONAL_LINK.deploy,
+        ]),
       ],
       '/deploy/': [
-        {
-          text: 'Additional',
-          items: [
-            {
-              text: 'Deploy to Mastra Cloud',
-              link: '/deploy/',
-            },
-            {
-              text: 'Automation scripts',
-              link: '/scripts/',
-            },
-            {
-              text: 'MCP Interface',
-              link: '/mcp-interface/',
-            },
-            {
-              text: 'DRR-0001',
-              link: '/drr/DRR-0001-mcp-first-class-interface/',
-            },
-          ],
-        },
+        additionalSection([
+          ADDITIONAL_LINK.deploy,
+          ADDITIONAL_LINK.scripts,
+          ADDITIONAL_LINK.mcpInterface,
+          ADDITIONAL_LINK.drr,
+        ]),
       ],
     },
     search: true,
