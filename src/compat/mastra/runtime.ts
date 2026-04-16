@@ -5,6 +5,7 @@ import {
   buildHostedMastraRuntimeOptions,
   type HostedMastraRuntimeDependencies,
 } from '../../adapters/hosted/mastra-runtime.js';
+import { applyHostedEnvDefaults } from '../../composition/hosted-env.js';
 import { getSharedMcpComposition } from '../../composition/mcp.js';
 
 export function createMastraRuntime(env: NodeJS.ProcessEnv = process.env) {
@@ -20,8 +21,9 @@ export function createMastraRuntime(env: NodeJS.ProcessEnv = process.env) {
 export function resolveMastraRuntimeDependencies(
   env: NodeJS.ProcessEnv = process.env,
 ): HostedMastraRuntimeDependencies {
-  const hostedConfig = parseHostedConfig(env);
-  const mcpComposition = getSharedMcpComposition(env);
+  const hostedEnv = applyHostedEnvDefaults(env);
+  const hostedConfig = parseHostedConfig(hostedEnv);
+  const mcpComposition = getSharedMcpComposition(hostedEnv);
 
   return {
     logger: mcpComposition.logger,

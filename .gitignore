@@ -6,6 +6,7 @@ doc_build
 .runtime
 .fpf-upstream
 docs/generated/
+docs/index.md
 docs/architecture/html/
 .claude
 .cursor/hooks/state/

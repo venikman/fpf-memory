@@ -1,8 +1,20 @@
 /** Default when `FPF_SPEC_SOURCE_PATH` is unset; populated by `bun run spec:download`. */
 export const DEFAULT_SOURCE_PATH = '.fpf-upstream/FPF-Spec.md';
-/** Hosted bundles stage the spec under the same relative path the runtime uses by default. */
-export const HOSTED_STAGED_SOURCE_PATH = DEFAULT_SOURCE_PATH;
 export const DEFAULT_ARTIFACT_DIR = '.runtime/fpf-index';
+
+/**
+ * Where the hosted deploy bundle stages its runtime inputs.
+ *
+ * Deliberately non-dotfile because Mastra's `bunx mastra server deploy`
+ * zip step silently excludes dotfile directories from the upload
+ * artifact. Staging under `.fpf-upstream/`/`.runtime/` looks correct
+ * locally but arrives empty in the container, forcing a 16-18 s cold
+ * compile on the first tool call. A plain `hosted/` prefix survives
+ * the zip and lets the hosted runtime boot with a pre-compiled
+ * snapshot in ~1-2 s.
+ */
+export const HOSTED_STAGED_SOURCE_PATH = 'hosted/FPF-Spec.md';
+export const HOSTED_STAGED_ARTIFACT_DIR = 'hosted/fpf-index';
 
 export const ARTIFACT_FILENAMES = {
   snapshot: 'snapshot.json',

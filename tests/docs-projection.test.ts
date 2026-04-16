@@ -27,6 +27,12 @@ async function copyNonGeneratedDocs(srcRoot: string, dstRoot: string) {
     const fullPath = resolve(entry.parentPath, entry.name);
     const relPath = relative(srcRoot, fullPath);
     if (relPath.startsWith('generated/') || relPath.startsWith('architecture/html/')) continue;
+    // `docs/index.md` is generator output (the site root now serves the
+    // pattern catalog). `generateDocsSite` writes it into the temp docsRoot
+    // directly, so copying the committed source tree's copy here would
+    // potentially overwrite freshly-generated content with a stale dev-
+    // machine copy.
+    if (relPath === 'index.md') continue;
     const target = resolve(dstRoot, relPath);
     await mkdir(dirname(target), { recursive: true });
     await copyFile(fullPath, target);
@@ -177,6 +183,14 @@ describe('docs projection', () => {
       expect(
         await readFile(resolve(docsRoot, 'generated/patterns/index.md'), 'utf8'),
       ).toContain('# Pattern Catalog');
+      // The docs root itself serves the pattern catalog so `/fpf-memory/`
+      // lands on the catalog with no separate home page. The rendered body
+      // mirrors `/generated/patterns/` (same renderer, different title).
+      const rootIndex = await readFile(resolve(docsRoot, 'index.md'), 'utf8');
+      expect(rootIndex).toContain('title: "FPF Reference"');
+      expect(rootIndex).toContain('# FPF Reference');
+      expect(rootIndex).toContain('## Part A - Kernel Architecture Cluster');
+      expect(rootIndex).toContain('/generated/patterns/A.1.1');
     } finally {
       await rm(tempRoot, { recursive: true, force: true });
     }

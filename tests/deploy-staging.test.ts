@@ -4,7 +4,11 @@ import { resolve } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, it } from '@rstest/core';
 
-import { DEFAULT_SOURCE_PATH, HOSTED_STAGED_SOURCE_PATH } from '../src/core/constants.js';
+import {
+  DEFAULT_SOURCE_PATH,
+  HOSTED_STAGED_ARTIFACT_DIR,
+  HOSTED_STAGED_SOURCE_PATH,
+} from '../src/core/constants.js';
 import { stageDeployAssets } from '../src/build/stage-deploy-assets.js';
 import { resetRuntimeObservabilityForTests } from '../src/observability/runtime-observability.js';
 
@@ -62,7 +66,7 @@ describe('deploy staging', () => {
       {
         kind: 'runtime_snapshot',
         sourcePath: resolve(artifactDir, 'snapshot.json'),
-        outputPath: resolve(hostedPublicDir, '.runtime/fpf-index/snapshot.json'),
+        outputPath: resolve(hostedPublicDir, HOSTED_STAGED_ARTIFACT_DIR, 'snapshot.json'),
         consumer: 'hosted',
       },
     ]);
@@ -71,7 +75,20 @@ describe('deploy staging', () => {
       await readFile(sourcePath, 'utf8'),
     );
     expect(
-      await readFile(resolve(hostedPublicDir, '.runtime/fpf-index/snapshot.json'), 'utf8'),
+      await readFile(
+        resolve(hostedPublicDir, HOSTED_STAGED_ARTIFACT_DIR, 'snapshot.json'),
+        'utf8',
+      ),
     ).toContain('"sourceHash"');
+    // Fix for #48: staged paths must live outside of any dotfile directory so
+    // `bunx mastra server deploy`'s zip step doesn't silently drop them.
+    expect(HOSTED_STAGED_SOURCE_PATH.startsWith('.')).toBe(false);
+    expect(HOSTED_STAGED_ARTIFACT_DIR.startsWith('.')).toBe(false);
+    expect(HOSTED_STAGED_SOURCE_PATH.split('/').every((segment) => !segment.startsWith('.'))).toBe(
+      true,
+    );
+    expect(
+      HOSTED_STAGED_ARTIFACT_DIR.split('/').every((segment) => !segment.startsWith('.')),
+    ).toBe(true);
   });
 });

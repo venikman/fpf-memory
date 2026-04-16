@@ -56,6 +56,7 @@ export function buildDocsProjection(snapshot: Snapshot): DocsProjection {
     buildPatternIndexPage(snapshot),
     buildRouteIndexPage(snapshot),
     buildPrefaceIndexPage(snapshot),
+    buildRootIndexPage(snapshot),
   ];
 
   return {
@@ -192,7 +193,16 @@ function buildPrefacePages(snapshot: Snapshot): GeneratedDocPage[] {
   });
 }
 
-function buildPatternIndexPage(snapshot: Snapshot): GeneratedDocPage {
+/**
+ * Shared renderer for the pattern catalog markdown body. Consumed by
+ * both `buildPatternIndexPage` (deep-link at `/generated/patterns/`)
+ * and `buildRootIndexPage` (the site home at `/`). Keeping one
+ * renderer guarantees the two surfaces never drift.
+ */
+function renderPatternCatalogMarkdown(
+  snapshot: Snapshot,
+  options: { title: string; description: string; heading?: string },
+): string {
   const groups = new Map<string, PatternRecord[]>();
   for (const pattern of sortedPatterns(snapshot)) {
     const key = pattern.part ?? pattern.cluster ?? 'Ungrouped';
@@ -203,11 +213,11 @@ function buildPatternIndexPage(snapshot: Snapshot): GeneratedDocPage {
 
   const lines = [
     renderFrontMatter({
-      title: 'Pattern Catalog',
-      description: 'Generated pattern pages from the compiler snapshot.',
+      title: options.title,
+      description: options.description,
       outline: false,
     }),
-    '# Pattern Catalog',
+    `# ${options.heading ?? options.title}`,
     '',
     `Generated pages: ${Object.keys(snapshot.patternGraph.nodes).length}`,
   ];
@@ -220,12 +230,40 @@ function buildPatternIndexPage(snapshot: Snapshot): GeneratedDocPage {
     }
   }
 
+  return `${lines.join('\n')}\n`;
+}
+
+function buildPatternIndexPage(snapshot: Snapshot): GeneratedDocPage {
   return {
     kind: 'index',
     title: 'Pattern Catalog',
     markdownPath: `${GENERATED_ROOT}/patterns/index.md`,
     staticPath: '/generated/patterns/index',
-    markdown: `${lines.join('\n')}\n`,
+    markdown: renderPatternCatalogMarkdown(snapshot, {
+      title: 'Pattern Catalog',
+      description: 'Generated pattern pages from the compiler snapshot.',
+    }),
+  };
+}
+
+/**
+ * Serve the pattern catalog at the docs root so navigating to
+ * `/fpf-memory/` lands on the catalog directly, with no separate
+ * marketing/home page. Shares its body with the canonical
+ * `/generated/patterns/` index so the two never diverge.
+ */
+function buildRootIndexPage(snapshot: Snapshot): GeneratedDocPage {
+  return {
+    kind: 'index',
+    title: 'FPF Reference',
+    markdownPath: `${DOCS_ROOT}/index.md`,
+    staticPath: '/',
+    markdown: renderPatternCatalogMarkdown(snapshot, {
+      title: 'FPF Reference',
+      description:
+        'Compiler-backed reference for the FPF spec — the full pattern catalog, rendered directly at the site root.',
+      heading: 'FPF Reference',
+    }),
   };
 }
 

@@ -3,11 +3,13 @@ import { Hono } from 'hono';
 
 import { parseHostedConfig } from '../adapters/infra/config/env.js';
 import { createHostedMastraRuntime } from '../adapters/hosted/mastra-runtime.js';
+import { applyHostedEnvDefaults } from './hosted-env.js';
 import { getSharedMcpComposition } from './mcp.js';
 
 export function createHostedComposition(env: NodeJS.ProcessEnv) {
-  const hostedConfig = parseHostedConfig(env);
-  const mcpComposition = getSharedMcpComposition(env);
+  const hostedEnv = applyHostedEnvDefaults(env);
+  const hostedConfig = parseHostedConfig(hostedEnv);
+  const mcpComposition = getSharedMcpComposition(hostedEnv);
   const mcpServer =
     hostedConfig.surface === 'full'
       ? mcpComposition.fpfMemory
