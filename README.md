@@ -82,7 +82,6 @@ bun run build
 bun run docs:generate
 bun run docs:build
 bun run docs:dev
-./scripts/verify-runtime.sh
 bun run start
 bun run cli -- status
 bun run cli -- refresh
@@ -159,13 +158,7 @@ bun run cli -- trace --question "How do U.RoleAssignment and U.BoundedContext co
 bun run cli -- inspect --selector "A.1.1"
 ```
 
-Run the end-to-end verification script for the real CLI, MCP stdio, and hosted Hono startup paths:
-
-```bash
-./scripts/verify-runtime.sh
-```
-
-The verification script also checks the direct stdio launcher (same entry as `bun run mcp`; add `FPF_MCP_SURFACE=full` for expert-tool work):
+The direct stdio launcher (same entry as `bun run mcp`; add `FPF_MCP_SURFACE=full` for expert-tool work):
 
 ```bash
 FPF_MCP_SURFACE=full bun src/mastra/stdio.ts
@@ -279,18 +272,3 @@ The docs pipeline does not use an LLM step. `bun run docs:generate` writes the c
 - `.runtime/logs/mastra-observability.json`: runtime observability snapshot containing manual LM Studio `model_generation` traces
 - `.runtime/logs/ai-traces.jsonl`: request/response/error traces for local LM Studio synthesis calls
 
-## Real Verification
-
-Run:
-
-```bash
-bun run docs:build
-./scripts/verify-runtime.sh
-```
-
-The script verifies:
-
-- the real `cli` path updates `.runtime/logs/mastra.log`
-- the real `mcp` stdio startup path writes a startup record to `.runtime/logs/mastra.log`
-- the real `start` path writes a hosted-runtime startup record to `.runtime/logs/mastra.log`
-- the LM Studio path updates `.runtime/logs/mastra-observability.json` and `.runtime/logs/ai-traces.jsonl` when either `FPF_LOCAL_LLM_BASE_URL` or `FPF_LOCAL_LLM_MODEL` is set; the missing half falls back to the repo defaults
