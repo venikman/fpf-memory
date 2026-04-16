@@ -25,7 +25,8 @@
     "check": "tsc --noEmit",
     "check:boundaries": "bun scripts/check-boundaries.ts",
     "test": "rstest run",
-    "predeploy": "bun run spec:download && bun scripts/prepare-deploy.ts"
+    "predeploy": "bun run spec:download && bun scripts/prepare-deploy.ts",
+    "deploy": "bun run predeploy && bunx mastra build && bunx mastra server deploy --yes"
   },
   "license": "ISC",
   "type": "module",
