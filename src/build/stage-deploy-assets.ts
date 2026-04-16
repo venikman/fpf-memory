@@ -1,4 +1,4 @@
-import { copyFile, mkdir } from 'node:fs/promises';
+import { copyFile, mkdir, rm } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 import type { BuildConfig } from '../adapters/infra/config/types.js';
@@ -25,6 +25,12 @@ export async function stageDeployAssets(
   const stagedSourcePath = resolve(hostedPublicDir, HOSTED_STAGED_SOURCE_PATH);
   const stagedSnapshotPath = resolve(hostedRuntimeDir, 'snapshot.json');
   const snapshotSourcePath = resolve(runtimeArtifactDir, 'snapshot.json');
+
+  // Clean up legacy dotfile staging paths so dev checkouts don't accumulate
+  // stale copies that could mask a broken staging pipeline. Harmless on a
+  // clean tree (rm -rf --force semantics via `force: true`).
+  await rm(resolve(hostedPublicDir, '.fpf-upstream'), { recursive: true, force: true });
+  await rm(resolve(hostedPublicDir, '.runtime'), { recursive: true, force: true });
 
   await mkdir(hostedRuntimeDir, { recursive: true });
   await mkdir(dirname(stagedSourcePath), { recursive: true });
