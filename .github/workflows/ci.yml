@@ -51,9 +51,8 @@ jobs:
         run: bun run test
 
   deploy-validation:
-    # Dry-run of the Mastra Cloud deploy pipeline: predeploy + mastra build,
+    # Dry-run of the hosted deploy pipeline: predeploy + mastra build,
     # asserting the hosted bundle stages correctly. Does NOT push anywhere.
-    # The actual deploy lives in deploy.yml and is gated on maintainer action.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
