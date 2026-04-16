@@ -25,18 +25,17 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - name: Fetch FPF spec for tests and docs
-        run: bun run spec:download
-
-      - name: Generate docs markdown for Rspress and link checks
-        run: bun run docs:generate
-
-      - name: Smoke-check generated docs
+      - name: Assert published/current is populated
+        # The publication surface is owned by the local pre-push hook
+        # (`bun run publish:current`). CI never regenerates it. If the
+        # committed tree is missing the spec, snapshot, or manifest, the
+        # commit skipped the publish step — fail here so the broken push
+        # doesn't reach the deploy job.
         run: |
-          test -f docs/generated/patterns/A.1.md
-          generated_count=$(find docs/generated -name '*.md' -print | grep -c .)
-          echo "Generated $generated_count markdown files under docs/generated"
-          test "$generated_count" -gt 100
+          test -f published/current/FPF-Spec.md
+          test -f published/current/fpf-index/snapshot.json
+          test -f published/current/manifest.json
+          echo "Published from: $(jq -r '.sourceHash, .upstreamRef, .publishedAt' published/current/manifest.json)"
 
       - name: Lint
         run: bun run lint
@@ -50,50 +49,16 @@ jobs:
       - name: Test
         run: bun run test
 
-  deploy-validation:
-    # Dry-run of the hosted deploy pipeline: predeploy + mastra build,
-    # asserting the hosted bundle stages correctly. Does NOT push anywhere.
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      - name: Build MCP bundle
+        run: bun run build:mcp
 
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.5
-
-      - run: bun install --frozen-lockfile
-
-      - name: Stage hosted assets (runs spec:download then prepare-deploy.ts)
-        run: bun run predeploy
-
-      - name: Assert predeploy staged spec + snapshot
-        # Staging lives under `hosted/` (non-dotfile) as of PR #50 so the
-        # files survive `bunx mastra server deploy`'s zip step, which drops
-        # dotfile directories. Keep `! -d` assertions so a regression to
-        # the old dotpath is caught here, not in production.
+      - name: Stage + mastra build (deploy dry-run)
+        # Assemble the deploy bundle without uploading. Catches packaging
+        # regressions (missing hosted files, broken `mastra build`) on
+        # every PR without requiring deploy credentials.
         run: |
-          test -f src/mastra/public/hosted/FPF-Spec.md
-          test -f src/mastra/public/hosted/fpf-index/snapshot.json
-          test ! -d src/mastra/public/.fpf-upstream
-          test ! -d src/mastra/public/.runtime
-          spec_bytes=$(wc -c < src/mastra/public/hosted/FPF-Spec.md)
-          snapshot_bytes=$(wc -c < src/mastra/public/hosted/fpf-index/snapshot.json)
-          echo "Staged spec: ${spec_bytes} bytes"
-          echo "Staged snapshot: ${snapshot_bytes} bytes"
-          test "${spec_bytes}" -gt 10000
-          test "${snapshot_bytes}" -gt 100000
-
-      - name: Build hosted bundle (mastra build)
-        run: bunx mastra build
-
-      - name: Assert mastra build produced deployable output
-        # The staged files must also make it through `mastra build` into
-        # `.mastra/output/hosted/…` — that's the tree that gets zipped + uploaded.
-        run: |
+          bun run stage:from-published
+          bunx mastra build
           test -f .mastra/output/index.mjs
-          test -f .mastra/output/package.json
-          test -d .mastra/output/node_modules
           test -f .mastra/output/hosted/FPF-Spec.md
           test -f .mastra/output/hosted/fpf-index/snapshot.json
-          echo ".mastra/output tree size:"
-          du -sh .mastra/output

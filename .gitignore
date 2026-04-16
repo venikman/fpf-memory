@@ -1,5 +1,9 @@
 node_modules
 FPF-spec.md
+# published/current/ is the committed publication surface (spec + snapshot +
+# manifest) owned by the local pre-push hook. Override the case-insensitive
+# FPF-spec.md rule above so the committed copy tracks.
+!published/current/FPF-Spec.md
 dist
 doc_build
 .mastra

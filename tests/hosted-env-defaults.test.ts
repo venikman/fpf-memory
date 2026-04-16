@@ -9,7 +9,7 @@ import { applyHostedEnvDefaults } from '../src/composition/hosted-env.js';
 /**
  * Hosted deploys run inside Mastra Cloud's container. After
  * `bunx mastra build` + `bunx mastra server deploy`, the files staged
- * by `stage-deploy-assets.ts` land at `/app/.mastra/output/hosted/…`.
+ * by `stage-from-published.ts` land at `/app/.mastra/output/hosted/…`.
  * `applyHostedEnvDefaults` wires the runtime to those locations unless
  * the operator has opted in to an explicit override via env.
  */

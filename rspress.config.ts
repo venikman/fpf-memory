@@ -56,28 +56,15 @@ export default defineConfig({
         link: '/generated/routes/index',
       },
       {
-        text: 'Preface',
-        link: '/generated/preface/index',
+        text: 'Glossary',
+        link: '/generated/patterns/H.1',
+      },
+      {
+        text: 'Change log',
+        link: '/generated/patterns/I.3',
       },
     ],
     sidebar: {
-      '/': [
-        {
-          text: 'Patterns',
-          items: [
-            {
-              text: 'Pattern Catalog',
-              link: '/generated/patterns/index',
-            },
-            ...navigation.patterns.map((group) => ({
-              text: group.text,
-              collapsible: true,
-              collapsed: false,
-              items: group.items,
-            })),
-          ],
-        },
-      ],
       '/generated/patterns/': [
         {
           text: 'Patterns',
@@ -112,29 +99,12 @@ export default defineConfig({
           ],
         },
       ],
-      '/generated/preface/': [
-        {
-          text: 'Preface',
-          items: [
-            {
-              text: 'Preface Catalog',
-              link: '/generated/preface/index',
-            },
-            ...navigation.preface.map((group) => ({
-              text: group.text,
-              collapsible: true,
-              collapsed: false,
-              items: group.items,
-            })),
-          ],
-        },
-      ],
     },
     search: true,
     lastUpdated: true,
     enableScrollToTop: true,
     footer: {
-      message: 'Built from the local FPF compiler snapshot.',
+      message: 'Projection of the latest published FPF.',
     },
   },
 });

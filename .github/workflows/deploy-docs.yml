@@ -3,6 +3,7 @@ name: Deploy Docs to GitHub Pages
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -25,9 +26,18 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - run: bun run spec:download
+      # No spec:download here — the wiki is a projection of the committed
+      # published/current/** surface, owned by the local pre-push hook.
+      - name: Assert published/current is populated
+        run: |
+          test -f published/current/FPF-Spec.md
+          test -f published/current/fpf-index/snapshot.json
+          test -f published/current/manifest.json
 
-      - run: bun run docs:build
+      - name: Build docs from published/current
+        env:
+          FPF_SPEC_SOURCE_PATH: published/current/FPF-Spec.md
+        run: bun run docs:build
 
       - uses: actions/upload-pages-artifact@v3
         with:

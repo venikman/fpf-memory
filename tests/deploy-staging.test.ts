@@ -1,57 +1,68 @@
-import { copyFile, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, it } from '@rstest/core';
 
 import {
-  DEFAULT_SOURCE_PATH,
+  ARTIFACT_FILENAMES,
   HOSTED_STAGED_ARTIFACT_DIR,
   HOSTED_STAGED_SOURCE_PATH,
 } from '../src/core/constants.js';
-import { stageDeployAssets } from '../src/build/stage-deploy-assets.js';
-import { resetRuntimeObservabilityForTests } from '../src/observability/runtime-observability.js';
+import { stageFromPublished } from '../src/build/stage-from-published.js';
 
-describe('deploy staging', () => {
-  const canonicalSourcePath = resolve(process.cwd(), DEFAULT_SOURCE_PATH);
+describe('stageFromPublished', () => {
   let tempRoot: string;
-  let sourcePath: string;
-  let artifactDir: string;
+  let publishedRoot: string;
+  let publishedSpecPath: string;
+  let publishedArtifactDir: string;
+  let publishedManifestPath: string;
   let hostedPublicDir: string;
 
+  const SPEC_TEXT = '# Fake FPF\n\nMinimal spec body for stage tests.\n';
+  const SNAPSHOT_TEXT = JSON.stringify({ sourceHash: 'sha256:deadbeef' }) + '\n';
+  const MANIFEST_TEXT = `${JSON.stringify({
+    channel: 'latest-published',
+    sourceHash: 'sha256:deadbeef',
+    upstreamRef: 'test-ref',
+    publishedAt: '2026-04-16T00:00:00.000Z',
+  })}\n`;
+
   beforeEach(async () => {
-    tempRoot = await mkdtemp(resolve(tmpdir(), 'fpf-deploy-stage-'));
-    sourcePath = resolve(tempRoot, 'FPF-spec.md');
-    artifactDir = resolve(tempRoot, 'artifacts');
+    tempRoot = await mkdtemp(resolve(tmpdir(), 'fpf-stage-from-published-'));
+    publishedRoot = resolve(tempRoot, 'published/current');
+    publishedSpecPath = resolve(publishedRoot, 'FPF-Spec.md');
+    publishedArtifactDir = resolve(publishedRoot, 'fpf-index');
+    publishedManifestPath = resolve(publishedRoot, 'manifest.json');
     hostedPublicDir = resolve(tempRoot, 'public');
-    await copyFile(canonicalSourcePath, sourcePath);
-    await resetRuntimeObservabilityForTests();
+
+    await mkdir(publishedArtifactDir, { recursive: true });
+    await writeFile(publishedSpecPath, SPEC_TEXT);
+    await writeFile(
+      resolve(publishedArtifactDir, ARTIFACT_FILENAMES.snapshot),
+      SNAPSHOT_TEXT,
+    );
+    await writeFile(publishedManifestPath, MANIFEST_TEXT);
   });
 
   afterEach(async () => {
-    await resetRuntimeObservabilityForTests();
     await rm(tempRoot, { recursive: true, force: true });
   });
 
-  it('stages the hosted runtime source and snapshot with a typed manifest', async () => {
-    const env = {
-      ...process.env,
-      FPF_SPEC_SOURCE_PATH: sourcePath,
-      FPF_RUNTIME_ARTIFACT_DIR: artifactDir,
-      FPF_HOSTED_PUBLIC_DIR: hostedPublicDir,
-      FPF_MASTRA_LOG_PATH: resolve(tempRoot, 'logs/mastra.log'),
-      FPF_MASTRA_OBSERVABILITY_PATH: resolve(tempRoot, 'logs/observability.json'),
-    } as NodeJS.ProcessEnv;
-
-    const manifest = await stageDeployAssets(
+  it('copies published spec + snapshot into the hosted staging tree', async () => {
+    const manifest = await stageFromPublished(
       {
-        sourcePath,
-        runtimeArtifactDir: artifactDir,
+        sourcePath: publishedSpecPath,
+        runtimeArtifactDir: publishedArtifactDir,
         distDir: resolve(tempRoot, 'dist'),
         hostedPublicDir,
         docsRoot: resolve(tempRoot, 'docs'),
       },
-      env,
+      {
+        publishedSpecPath,
+        publishedArtifactDir,
+        publishedManifestPath,
+      },
     );
 
     expect(manifest.ownerContext).toBe('Ctx.Build');
@@ -59,36 +70,61 @@ describe('deploy staging', () => {
     expect(manifest.artifacts).toEqual([
       {
         kind: 'runtime_source',
-        sourcePath,
+        sourcePath: publishedSpecPath,
         outputPath: resolve(hostedPublicDir, HOSTED_STAGED_SOURCE_PATH),
         consumer: 'hosted',
       },
       {
         kind: 'runtime_snapshot',
-        sourcePath: resolve(artifactDir, 'snapshot.json'),
-        outputPath: resolve(hostedPublicDir, HOSTED_STAGED_ARTIFACT_DIR, 'snapshot.json'),
+        sourcePath: resolve(publishedArtifactDir, ARTIFACT_FILENAMES.snapshot),
+        outputPath: resolve(
+          hostedPublicDir,
+          HOSTED_STAGED_ARTIFACT_DIR,
+          ARTIFACT_FILENAMES.snapshot,
+        ),
         consumer: 'hosted',
       },
     ]);
 
     expect(await readFile(resolve(hostedPublicDir, HOSTED_STAGED_SOURCE_PATH), 'utf8')).toBe(
-      await readFile(sourcePath, 'utf8'),
+      SPEC_TEXT,
     );
     expect(
       await readFile(
-        resolve(hostedPublicDir, HOSTED_STAGED_ARTIFACT_DIR, 'snapshot.json'),
+        resolve(hostedPublicDir, HOSTED_STAGED_ARTIFACT_DIR, ARTIFACT_FILENAMES.snapshot),
         'utf8',
       ),
-    ).toContain('"sourceHash"');
-    // Fix for #48: staged paths must live outside of any dotfile directory so
+    ).toBe(SNAPSHOT_TEXT);
+
+    // Fix for #48: staged paths must live outside any dotfile directory so
     // `bunx mastra server deploy`'s zip step doesn't silently drop them.
     expect(HOSTED_STAGED_SOURCE_PATH.startsWith('.')).toBe(false);
     expect(HOSTED_STAGED_ARTIFACT_DIR.startsWith('.')).toBe(false);
-    expect(HOSTED_STAGED_SOURCE_PATH.split('/').every((segment) => !segment.startsWith('.'))).toBe(
-      true,
-    );
+    expect(
+      HOSTED_STAGED_SOURCE_PATH.split('/').every((segment) => !segment.startsWith('.')),
+    ).toBe(true);
     expect(
       HOSTED_STAGED_ARTIFACT_DIR.split('/').every((segment) => !segment.startsWith('.')),
     ).toBe(true);
+  });
+
+  it('fails fast when the publication surface was never prepared', async () => {
+    await rm(publishedManifestPath);
+    await expect(
+      stageFromPublished(
+        {
+          sourcePath: publishedSpecPath,
+          runtimeArtifactDir: publishedArtifactDir,
+          distDir: resolve(tempRoot, 'dist'),
+          hostedPublicDir,
+          docsRoot: resolve(tempRoot, 'docs'),
+        },
+        {
+          publishedSpecPath,
+          publishedArtifactDir,
+          publishedManifestPath,
+        },
+      ),
+    ).rejects.toThrow(/Run `bun run publish:current`/);
   });
 });

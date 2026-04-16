@@ -45,10 +45,25 @@ export interface DocsNavigation {
   preface: DocsNavGroup[];
 }
 
+/**
+ * Publication manifest block surfaced on the wiki homepage so readers
+ * can tell at a glance which FPF version this build was projected from.
+ * Sourced from `published/current/manifest.json` at docs build time.
+ */
+export interface PublicationManifestSummary {
+  channel: string;
+  sourceHash: string;
+  upstreamRef: string;
+  publishedAt: string;
+}
+
 const DOCS_ROOT = 'docs';
 const GENERATED_ROOT = `${DOCS_ROOT}/generated`;
 
-export function buildDocsProjection(snapshot: Snapshot): DocsProjection {
+export function buildDocsProjection(
+  snapshot: Snapshot,
+  manifest?: PublicationManifestSummary,
+): DocsProjection {
   const pages: GeneratedDocPage[] = [
     ...buildPatternPages(snapshot),
     ...buildRoutePages(snapshot),
@@ -56,7 +71,7 @@ export function buildDocsProjection(snapshot: Snapshot): DocsProjection {
     buildPatternIndexPage(snapshot),
     buildRouteIndexPage(snapshot),
     buildPrefaceIndexPage(snapshot),
-    buildRootIndexPage(snapshot),
+    buildRootIndexPage(snapshot, manifest),
   ];
 
   return {
@@ -247,24 +262,75 @@ function buildPatternIndexPage(snapshot: Snapshot): GeneratedDocPage {
 }
 
 /**
- * Serve the pattern catalog at the docs root so navigating to
- * `/fpf-memory/` lands on the catalog directly, with no separate
- * marketing/home page. Shares its body with the canonical
- * `/generated/patterns/` index so the two never diverge.
+ * The site home. Intentionally short: one-sentence framing, a manifest
+ * block so readers can tell which FPF snapshot this build is projected
+ * from, a pointer to the hosted MCP endpoint, and links to the four
+ * navigable surfaces (Patterns, Routes, Glossary, Change log). The
+ * pattern catalog itself still lives at `/generated/patterns/index`.
  */
-function buildRootIndexPage(snapshot: Snapshot): GeneratedDocPage {
+function buildRootIndexPage(
+  snapshot: Snapshot,
+  manifest?: PublicationManifestSummary,
+): GeneratedDocPage {
   return {
     kind: 'index',
     title: 'FPF Reference',
     markdownPath: `${DOCS_ROOT}/index.md`,
     staticPath: '/',
-    markdown: renderPatternCatalogMarkdown(snapshot, {
+    markdown: renderHomeMarkdown(snapshot, manifest),
+  };
+}
+
+const HOSTED_MCP_ENDPOINT =
+  'https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp';
+
+function renderHomeMarkdown(
+  snapshot: Snapshot,
+  manifest?: PublicationManifestSummary,
+): string {
+  const patternCount = Object.keys(snapshot.patternGraph.nodes).length;
+  const routeCount = Object.keys(snapshot.routeGraph.nodes).length;
+
+  const lines: string[] = [
+    renderFrontMatter({
       title: 'FPF Reference',
       description:
-        'Compiler-backed reference for the FPF spec — the full pattern catalog, rendered directly at the site root.',
-      heading: 'FPF Reference',
+        'Compiler-backed reference for the latest published FPF, projected as a slim wiki.',
+      outline: false,
     }),
-  };
+    '# FPF Reference',
+    '',
+    'Compiler-backed projection of the latest published FPF.',
+    '',
+    '## Navigate',
+    '',
+    `- [Patterns](/generated/patterns/index) — ${patternCount} patterns across parts A–K`,
+    `- [Routes](/generated/routes/index) — ${routeCount} routes`,
+    '- [Glossary](/generated/patterns/H.1)',
+    '- [Change log](/generated/patterns/I.3)',
+    '',
+    '## MCP endpoint',
+    '',
+    '```',
+    HOSTED_MCP_ENDPOINT,
+    '```',
+    '',
+    'Tool catalog and local-surface setup: [MCP interface docs on GitHub](https://github.com/venikman/fpf-memory#mcp).',
+  ];
+
+  if (manifest) {
+    lines.push(
+      '',
+      '## Published from',
+      '',
+      `- **Channel:** \`${manifest.channel}\``,
+      `- **Source hash:** \`${manifest.sourceHash}\``,
+      `- **Upstream ref:** \`${manifest.upstreamRef}\``,
+      `- **Published at:** ${manifest.publishedAt}`,
+    );
+  }
+
+  return `${lines.join('\n')}\n`;
 }
 
 function buildRouteIndexPage(snapshot: Snapshot): GeneratedDocPage {

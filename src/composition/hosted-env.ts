@@ -5,7 +5,7 @@ import {
 
 /**
  * Layer hosted defaults on top of the caller env so the runtime finds
- * the spec + pre-compiled snapshot that `stage-deploy-assets.ts` put
+ * the spec + pre-compiled snapshot that `stage-from-published.ts` put
  * inside `src/mastra/public/hosted/…`. After `bunx mastra build`
  * + `bunx mastra server deploy`, those files land at
  * `/app/.mastra/output/hosted/FPF-Spec.md` and

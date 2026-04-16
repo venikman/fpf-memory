@@ -1,6 +1,29 @@
-/** Default when `FPF_SPEC_SOURCE_PATH` is unset; populated by `bun run spec:download`. */
-export const DEFAULT_SOURCE_PATH = '.fpf-upstream/FPF-Spec.md';
+/**
+ * Default when `FPF_SPEC_SOURCE_PATH` is unset.
+ *
+ * Points at the committed publication surface (`published/current/`) so
+ * tests, docs:generate, and rspress all read the same FPF the last
+ * pre-push run published. Local memory preparation overrides this via
+ * `FPF_PUBLISH_SOURCE_PATH` (see `scripts/publish-current.ts`).
+ */
+export const DEFAULT_SOURCE_PATH = 'published/current/FPF-Spec.md';
 export const DEFAULT_ARTIFACT_DIR = '.runtime/fpf-index';
+
+/**
+ * The committed publication surface. Owned by local pre-push; CI and
+ * the docs pipeline consume it read-only. See the repo-shape section of
+ * the implementation plan and `scripts/publish-current.ts`.
+ */
+export const PUBLISHED_CHANNEL_DIR = 'published/current';
+export const PUBLISHED_SPEC_PATH = `${PUBLISHED_CHANNEL_DIR}/FPF-Spec.md`;
+export const PUBLISHED_ARTIFACT_DIR = `${PUBLISHED_CHANNEL_DIR}/fpf-index`;
+export const PUBLISHED_MANIFEST_PATH = `${PUBLISHED_CHANNEL_DIR}/manifest.json`;
+
+/**
+ * Default upstream working copy for `publish:current`. Gitignored and
+ * refreshed by `bun run spec:download`.
+ */
+export const DEFAULT_PUBLISH_SOURCE_PATH = '.fpf-upstream/FPF-Spec.md';
 
 /**
  * Where the hosted deploy bundle stages its runtime inputs.
