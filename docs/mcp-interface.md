@@ -7,10 +7,6 @@ description: "Spec-oriented interface contract for the hosted and local FPF MCP 
 
 This page documents the MCP surfaces implemented by `fpf_memory`.
 
-Decision record:
-
-- [DRR-0001: MCP As The First-Class Codex Interface](/drr/DRR-0001-mcp-first-class-interface/)
-
 The runtime itself is compiler-backed and local to the spec file at **`FPF_SPEC_SOURCE_PATH`** (default `.fpf-upstream/FPF-Spec.md` after `bun run spec:download`).
 
 - authored source: not vendored in this repository; see README environment section

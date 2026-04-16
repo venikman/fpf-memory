@@ -17,7 +17,6 @@
     "build:runtime": "bun build ./src/cli.ts ./src/server.ts --outdir dist --target bun",
     "build:mcp": "tsup src/mastra/stdio.ts --format esm --out-dir dist --no-splitting && bun scripts/fixup-stdio-build.ts",
     "docs:generate": "bun scripts/generate-docs.ts",
-    "diagrams:generate": "bun scripts/generate-architecture-diagrams.ts",
     "docs:dev": "bun run docs:generate && rspress",
     "docs:dev:fresh": "bun run docs:generate && RSPRESS_PERSISTENT_CACHE=false rspress",
     "docs:build": "bun run docs:generate && RSPRESS_PERSISTENT_CACHE=false rspress build",
@@ -26,8 +25,7 @@
     "check": "tsc --noEmit",
     "check:boundaries": "bun scripts/check-boundaries.ts",
     "test": "rstest run",
-    "predeploy": "bun run spec:download && bun scripts/prepare-deploy.ts",
-    "deploy": "bun run predeploy && bunx mastra build && bunx mastra server deploy --yes"
+    "predeploy": "bun run spec:download && bun scripts/prepare-deploy.ts"
   },
   "license": "ISC",
   "type": "module",

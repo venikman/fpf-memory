@@ -38,16 +38,10 @@ export default defineConfig({
   markdown: {
     link: {
       checkDeadLinks: {
-        // Skip relative links (`./foo.md`, `../README.md`, `../src/foo.ts`).
-        // The new architecture/scripts docs intentionally link back to source
-        // files and sibling .md pages with relative paths so they remain
-        // navigable on GitHub; rspress can't resolve those routes. Absolute
-        // internal links (sidebar entries, cross-page `/foo/bar`) are still
-        // dead-link checked.
-        excludes: (url: string) =>
-          url === '/drr/DRR-0001-mcp-first-class-interface/' ||
-          url.startsWith('./') ||
-          url.startsWith('../'),
+        // Skip relative links (`./foo.md`, `../README.md`, `../src/foo.ts`) —
+        // authored docs use these to stay navigable on GitHub, and rspress
+        // can't resolve them. Absolute internal links are still checked.
+        excludes: (url: string) => url.startsWith('./') || url.startsWith('../'),
       },
     },
   },
@@ -64,10 +58,6 @@ export default defineConfig({
       {
         text: 'Preface',
         link: '/generated/preface/index',
-      },
-      {
-        text: 'Decision Records',
-        link: '/drr/DRR-0001-mcp-first-class-interface/',
       },
     ],
     sidebar: {
@@ -136,17 +126,6 @@ export default defineConfig({
               collapsed: false,
               items: group.items,
             })),
-          ],
-        },
-      ],
-      '/drr/': [
-        {
-          text: 'Decision Records',
-          items: [
-            {
-              text: 'DRR-0001',
-              link: '/drr/DRR-0001-mcp-first-class-interface/',
-            },
           ],
         },
       ],

@@ -7,7 +7,6 @@ doc_build
 .fpf-upstream
 docs/generated/
 docs/index.md
-docs/architecture/html/
 .claude
 .cursor/hooks/state/
 .env

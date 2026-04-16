@@ -118,11 +118,7 @@ bun run start
 
 ## Codex Setup
 
-Decision record for this interface choice:
-
-- [DRR-0001: MCP As The First-Class Codex Interface](docs/drr/DRR-0001-mcp-first-class-interface.md)
-
-The DRR records the MCP-first boundary choice; the current Codex default is the hosted public MCP.
+The current Codex default is the hosted public MCP.
 
 Equivalent `~/.codex/config.toml` entry:
 
@@ -232,8 +228,6 @@ Call trace_fpf_path with:
 
 - `docs/`: hand-authored Rspress landing content
 - `scripts/generate-docs.ts`: compiler-backed docs generation into `docs/generated/` (gitignored; run `docs:generate` after `spec:download`)
-- `scripts/generate-architecture-diagrams.ts`: standalone HTML diagram pack under `docs/architecture/html/` (also gitignored; run `bun run diagrams:generate` when you want local diagrams)
-- Full script-by-script reference: [docs/scripts.md](docs/scripts.md)
 - `rspress.config.ts`: docs site config
 
 ## MCP tool roles
@@ -276,7 +270,6 @@ Artifacts are stored under `.runtime/fpf-index/`.
 - Spec source: path from `FPF_SPEC_SOURCE_PATH` (canonical upstream lives in [fpf-sync](https://github.com/venikman/fpf-sync))
 - `docs/generated/**`: produced locally by `docs:generate` (not committed; CI runs it before lint and deploy runs it via `docs:build`)
 - `doc_build/`: deterministic Rspress build output for the wiki-like static viewer
-- Canonical root-folder contract and generated-output origins: [docs/architecture/artifact-directories.md](docs/architecture/artifact-directories.md)
 
 The docs pipeline does not use an LLM step. `bun run docs:generate` writes the canonical markdown collection, and `bun run docs:build` builds the static viewer from that collection.
 
