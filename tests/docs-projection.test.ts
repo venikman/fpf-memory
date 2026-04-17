@@ -205,6 +205,7 @@ describe('docs projection', () => {
       expect(rootIndex).toContain('[Change log](/generated/patterns/I.3)');
       expect(rootIndex).toContain('## MCP endpoint');
       expect(rootIndex).toContain('fpf-memory.server.mastra.cloud');
+      expect(rootIndex).toContain('https://github.com/venikman/fpf-memory#run-and-test-mcp');
     } finally {
       await rm(tempRoot, { recursive: true, force: true });
     }

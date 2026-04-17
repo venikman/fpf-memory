@@ -10,10 +10,12 @@ import {
   PUBLISHED_MANIFEST_PATH,
   PUBLISHED_SPEC_PATH,
 } from '../core/constants.js';
+import { computeCompilerFingerprint } from './compiler-fingerprint.js';
 
 export interface PublishCurrentManifest {
   channel: string;
   sourceHash: string;
+  compilerFingerprint: string;
   upstreamRef: string;
   publishedAt: string;
   specPath: string;
@@ -24,6 +26,7 @@ export interface PublishCurrentManifest {
 export const publishCurrentManifestSchema = z.object({
   channel: z.string(),
   sourceHash: z.string(),
+  compilerFingerprint: z.string(),
   upstreamRef: z.string(),
   publishedAt: z.string(),
   specPath: z.string(),
@@ -35,12 +38,14 @@ export const publicationSnapshotSchema = z.object({
   sourceHash: z.string(),
   sourcePath: z.string(),
   builtAt: z.string(),
+  compilerFingerprint: z.string(),
 }).passthrough();
 
 export type PublicationSnapshot = z.infer<typeof publicationSnapshotSchema>;
 
 export interface PublishedSurfaceOptions {
   cwd?: string;
+  compilerRoot?: string;
   publishedSpecPath?: string;
   publishedArtifactDir?: string;
   publishedManifestPath?: string;
@@ -61,6 +66,7 @@ export interface ValidatedPublishedSurface {
   manifest: PublishCurrentManifest;
   snapshot: PublicationSnapshot;
   sourceHash: string;
+  compilerFingerprint: string;
   specBytes: number;
 }
 
@@ -98,15 +104,28 @@ export async function validatePublishedSurface(
   const manifest = parseManifest(manifestBytes, paths.publishedManifestPath);
   const snapshot = parseSnapshot(snapshotBytes, paths.publishedSnapshotPath);
   const sourceHash = `sha256:${createHash('sha256').update(specBytes).digest('hex')}`;
+  const compilerFingerprint = await computeCompilerFingerprint({
+    cwd: options.compilerRoot ?? process.cwd(),
+  });
 
   if (manifest.sourceHash !== sourceHash) {
     throw new Error(
       `published surface manifest sourceHash ${manifest.sourceHash} does not match ${sourceHash} for ${paths.expectedSpecPath}.`,
     );
   }
+  if (manifest.compilerFingerprint !== compilerFingerprint) {
+    throw new Error(
+      `published surface manifest compilerFingerprint ${manifest.compilerFingerprint} does not match ${compilerFingerprint}.`,
+    );
+  }
   if (snapshot.sourceHash !== sourceHash) {
     throw new Error(
       `published surface snapshot sourceHash ${snapshot.sourceHash} does not match ${sourceHash} for ${paths.expectedSpecPath}.`,
+    );
+  }
+  if (snapshot.compilerFingerprint !== compilerFingerprint) {
+    throw new Error(
+      `published surface snapshot compilerFingerprint ${snapshot.compilerFingerprint} does not match ${compilerFingerprint}.`,
     );
   }
   if (manifest.specBytes !== specBytes.byteLength) {
@@ -129,12 +148,18 @@ export async function validatePublishedSurface(
       `published surface snapshot sourcePath ${snapshot.sourcePath} does not match ${paths.expectedSpecPath}.`,
     );
   }
+  if (manifest.compilerFingerprint !== snapshot.compilerFingerprint) {
+    throw new Error(
+      `published surface compilerFingerprint mismatch between manifest (${manifest.compilerFingerprint}) and snapshot (${snapshot.compilerFingerprint}).`,
+    );
+  }
 
   return {
     paths,
     manifest,
     snapshot,
     sourceHash,
+    compilerFingerprint,
     specBytes: specBytes.byteLength,
   };
 }

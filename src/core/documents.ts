@@ -313,7 +313,7 @@ function renderHomeMarkdown(
     HOSTED_MCP_ENDPOINT,
     '```',
     '',
-    'Tool catalog and local-surface setup: [MCP interface docs on GitHub](https://github.com/venikman/fpf-memory#mcp).',
+    'Tool catalog and local-surface setup: [README on GitHub](https://github.com/venikman/fpf-memory#run-and-test-mcp).',
   ];
 
   if (manifest) {

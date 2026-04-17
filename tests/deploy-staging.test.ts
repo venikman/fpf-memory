@@ -10,6 +10,7 @@ import {
   HOSTED_STAGED_ARTIFACT_DIR,
   HOSTED_STAGED_SOURCE_PATH,
 } from '../src/core/constants.js';
+import { computeCompilerFingerprint } from '../src/build/compiler-fingerprint.js';
 import { stageFromPublished } from '../src/build/stage-from-published.js';
 
 describe('stageFromPublished', () => {
@@ -19,23 +20,10 @@ describe('stageFromPublished', () => {
   let publishedArtifactDir: string;
   let publishedManifestPath: string;
   let hostedPublicDir: string;
+  let compilerFingerprint: string;
 
   const SPEC_TEXT = '# Fake FPF\n\nMinimal spec body for stage tests.\n';
   const SOURCE_HASH = `sha256:${createHash('sha256').update(SPEC_TEXT).digest('hex')}`;
-  const SNAPSHOT_TEXT = `${JSON.stringify({
-    sourceHash: SOURCE_HASH,
-    sourcePath: 'published/current/FPF-Spec.md',
-    builtAt: '2026-04-16T00:00:00.000Z',
-  })}\n`;
-  const MANIFEST_TEXT = `${JSON.stringify({
-    channel: 'latest-published',
-    sourceHash: SOURCE_HASH,
-    upstreamRef: 'test-ref',
-    publishedAt: '2026-04-16T00:00:00.000Z',
-    specPath: 'published/current/FPF-Spec.md',
-    snapshotPath: 'published/current/fpf-index/snapshot.json',
-    specBytes: Buffer.byteLength(SPEC_TEXT),
-  })}\n`;
 
   beforeEach(async () => {
     tempRoot = await mkdtemp(resolve(tmpdir(), 'fpf-stage-from-published-'));
@@ -44,14 +32,32 @@ describe('stageFromPublished', () => {
     publishedArtifactDir = resolve(publishedRoot, 'fpf-index');
     publishedManifestPath = resolve(publishedRoot, 'manifest.json');
     hostedPublicDir = resolve(tempRoot, 'public');
+    compilerFingerprint = await computeCompilerFingerprint();
 
     await mkdir(publishedArtifactDir, { recursive: true });
     await writeFile(publishedSpecPath, SPEC_TEXT);
     await writeFile(
       resolve(publishedArtifactDir, ARTIFACT_FILENAMES.snapshot),
-      SNAPSHOT_TEXT,
+      `${JSON.stringify({
+        sourceHash: SOURCE_HASH,
+        sourcePath: 'published/current/FPF-Spec.md',
+        builtAt: '2026-04-16T00:00:00.000Z',
+        compilerFingerprint,
+      })}\n`,
     );
-    await writeFile(publishedManifestPath, MANIFEST_TEXT);
+    await writeFile(
+      publishedManifestPath,
+      `${JSON.stringify({
+        channel: 'latest-published',
+        sourceHash: SOURCE_HASH,
+        compilerFingerprint,
+        upstreamRef: 'test-ref',
+        publishedAt: '2026-04-16T00:00:00.000Z',
+        specPath: 'published/current/FPF-Spec.md',
+        snapshotPath: 'published/current/fpf-index/snapshot.json',
+        specBytes: Buffer.byteLength(SPEC_TEXT),
+      })}\n`,
+    );
   });
 
   afterEach(async () => {
@@ -103,7 +109,14 @@ describe('stageFromPublished', () => {
         resolve(hostedPublicDir, HOSTED_STAGED_ARTIFACT_DIR, ARTIFACT_FILENAMES.snapshot),
         'utf8',
       ),
-    ).toBe(SNAPSHOT_TEXT);
+    ).toBe(
+      `${JSON.stringify({
+        sourceHash: SOURCE_HASH,
+        sourcePath: 'published/current/FPF-Spec.md',
+        builtAt: '2026-04-16T00:00:00.000Z',
+        compilerFingerprint,
+      })}\n`,
+    );
 
     // Fix for #48: staged paths must live outside any dotfile directory so
     // `bunx mastra server deploy`'s zip step doesn't silently drop them.
@@ -185,6 +198,7 @@ describe('stageFromPublished', () => {
       `${JSON.stringify({
         channel: 'latest-published',
         sourceHash: 'sha256:not-the-spec',
+        compilerFingerprint,
         upstreamRef: 'test-ref',
         publishedAt: '2026-04-16T00:00:00.000Z',
         specPath: 'published/current/FPF-Spec.md',

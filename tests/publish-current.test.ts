@@ -1,10 +1,11 @@
-import { copyFile, mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, it } from '@rstest/core';
 
 import { publishCurrent } from '../src/build/publish-current.js';
+import { validatePublishedSurface } from '../src/build/published-surface.js';
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
 
 describe('publishCurrent', () => {
@@ -115,5 +116,65 @@ describe('publishCurrent', () => {
     expect(await readFile(resolve(publishedArtifactDir, 'snapshot.json'), 'utf8')).toBe(
       firstSnapshot,
     );
+  }, 30_000);
+
+  it('writes a compiler fingerprint into the published manifest and snapshot', async () => {
+    await publishCurrent(
+      {
+        publishSourcePath,
+        upstreamRef: 'test-ref',
+        channel: 'latest-published',
+        publishedSpecPath,
+        publishedArtifactDir,
+        publishedManifestPath,
+      },
+      {
+        ...process.env,
+        FPF_RUNTIME_ARTIFACT_DIR: runtimeArtifactDir,
+      } as NodeJS.ProcessEnv,
+    );
+
+    const manifest = JSON.parse(await readFile(publishedManifestPath, 'utf8')) as {
+      compilerFingerprint?: string;
+    };
+    const snapshot = JSON.parse(
+      await readFile(resolve(publishedArtifactDir, 'snapshot.json'), 'utf8'),
+    ) as {
+      compilerFingerprint?: string;
+    };
+
+    expect(manifest.compilerFingerprint).toMatch(/^sha256:/);
+    expect(snapshot.compilerFingerprint).toBe(manifest.compilerFingerprint);
+  }, 30_000);
+
+  it('rejects a published surface whose compiler fingerprint drifted', async () => {
+    await publishCurrent(
+      {
+        publishSourcePath,
+        upstreamRef: 'test-ref',
+        channel: 'latest-published',
+        publishedSpecPath,
+        publishedArtifactDir,
+        publishedManifestPath,
+      },
+      {
+        ...process.env,
+        FPF_RUNTIME_ARTIFACT_DIR: runtimeArtifactDir,
+      } as NodeJS.ProcessEnv,
+    );
+
+    const publishedSnapshotPath = resolve(publishedArtifactDir, 'snapshot.json');
+    const snapshot = JSON.parse(await readFile(publishedSnapshotPath, 'utf8')) as Record<string, unknown>;
+    snapshot.compilerFingerprint = 'sha256:stale-compiler-fingerprint';
+    await writeFile(publishedSnapshotPath, `${JSON.stringify(snapshot, null, 2)}\n`);
+
+    await expect(
+      validatePublishedSurface({
+        cwd: tempRoot,
+        publishedSpecPath: 'published/current/FPF-Spec.md',
+        publishedArtifactDir: 'published/current/fpf-index',
+        publishedManifestPath: 'published/current/manifest.json',
+      }),
+    ).rejects.toThrow(/compilerFingerprint/);
   }, 30_000);
 });

@@ -18,6 +18,11 @@ import {
   publishCurrentManifestSchema,
   type PublishCurrentManifest,
 } from './published-surface.js';
+import { computeCompilerFingerprint } from './compiler-fingerprint.js';
+
+const publicationSnapshotInputSchema = publicationSnapshotSchema.extend({
+  compilerFingerprint: z.string().optional(),
+});
 
 export interface PublishCurrentConfig {
   /** The working-copy spec path that feeds the publish run. Gitignored. */
@@ -77,14 +82,17 @@ export async function publishCurrent(
   );
   const specBytes = sourceBytes.byteLength;
   const sourceHash = `sha256:${createHash('sha256').update(sourceBytes).digest('hex')}`;
+  const compilerFingerprint = await computeCompilerFingerprint();
   const normalizedSnapshotBytes = await normalizeSnapshotForPublication(
     snapshotBytes,
     config.publishedSpecPath ?? PUBLISHED_SPEC_PATH,
     publishedSnapshotPath,
+    compilerFingerprint,
   );
   const manifestWithoutTimestamp = {
     channel: config.channel,
     sourceHash,
+    compilerFingerprint,
     upstreamRef: config.upstreamRef,
     specPath: config.publishedSpecPath ?? PUBLISHED_SPEC_PATH,
     snapshotPath: `${config.publishedArtifactDir ?? PUBLISHED_ARTIFACT_DIR}/${ARTIFACT_FILENAMES.snapshot}`,
@@ -136,6 +144,7 @@ function isSamePublicationManifest(
 ): boolean {
   return existingManifest.channel === manifestWithoutTimestamp.channel
     && existingManifest.sourceHash === manifestWithoutTimestamp.sourceHash
+    && existingManifest.compilerFingerprint === manifestWithoutTimestamp.compilerFingerprint
     && existingManifest.upstreamRef === manifestWithoutTimestamp.upstreamRef
     && existingManifest.specPath === manifestWithoutTimestamp.specPath
     && existingManifest.snapshotPath === manifestWithoutTimestamp.snapshotPath
@@ -155,6 +164,7 @@ async function normalizeSnapshotForPublication(
   snapshotBytes: Buffer,
   publishedSpecPath: string,
   publishedSnapshotPath: string,
+  compilerFingerprint: string,
 ): Promise<Buffer> {
   const currentSnapshot = parsePublicationSnapshot(snapshotBytes);
   if (!currentSnapshot) {
@@ -168,6 +178,7 @@ async function normalizeSnapshotForPublication(
   const normalizedCurrent = {
     ...currentSnapshot,
     sourcePath: publishedSpecPath,
+    compilerFingerprint,
   };
   const canPreserveBuiltAt =
     existingSnapshot
@@ -184,7 +195,7 @@ async function normalizeSnapshotForPublication(
 function parsePublicationSnapshot(bytes: Buffer) {
   try {
     const parsed = JSON.parse(bytes.toString('utf8'));
-    const result = publicationSnapshotSchema.safeParse(parsed);
+    const result = publicationSnapshotInputSchema.safeParse(parsed);
     return result.success ? result.data : undefined;
   } catch {
     return undefined;
@@ -192,7 +203,7 @@ function parsePublicationSnapshot(bytes: Buffer) {
 }
 
 function comparableSnapshotShape(
-  snapshot: z.infer<typeof publicationSnapshotSchema>,
+  snapshot: z.infer<typeof publicationSnapshotInputSchema>,
   publishedSpecPath: string,
 ): string {
   const comparable = {
@@ -200,7 +211,22 @@ function comparableSnapshotShape(
     sourcePath: publishedSpecPath,
   };
   const { builtAt: _builtAt, ...withoutBuiltAt } = comparable;
-  return JSON.stringify(withoutBuiltAt);
+  return JSON.stringify(sortJsonValue(withoutBuiltAt));
+}
+
+function sortJsonValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(sortJsonValue);
+  }
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entryValue]) => [key, sortJsonValue(entryValue)]),
+  );
 }
 
 async function readFileIfExists(filePath: string): Promise<Buffer | undefined> {
