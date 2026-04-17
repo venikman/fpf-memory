@@ -1,14 +1,16 @@
 name: Deploy MCP to Mastra Cloud
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
-# Don't race two deploys; the newer push supersedes an in-flight one.
+# Newer deploys supersede older queued/in-flight runs.
 concurrency:
   group: deploy-mcp
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -16,14 +18,14 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Only run after CI (`ci.yml`) is green on this SHA. `needs:` across
-    # workflows isn't a thing, so we gate by waiting for the required
-    # status check to pass — GitHub's branch protection on `main` already
-    # enforces that for merges, and a direct push that bypasses CI
-    # should still bypass deploy.
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    # Automatic deploys only run after the `CI` workflow succeeds on a
+    # push to `main`. `workflow_dispatch` remains available as an explicit
+    # maintainer override.
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main')
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - uses: oven-sh/setup-bun@v2
         with:

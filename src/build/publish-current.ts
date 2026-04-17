@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
-import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
+
+import { z } from 'zod';
 
 import { parseRuntimeCoreConfig } from '../adapters/infra/config/env.js';
 import { createConfiguredRuntime } from '../composition/runtime.js';
@@ -10,6 +12,7 @@ import {
   PUBLISHED_MANIFEST_PATH,
   PUBLISHED_SPEC_PATH,
 } from '../core/constants.js';
+import { resolveRuntimePath } from '../runtime/path-resolution.js';
 
 export interface PublishCurrentConfig {
   /** The working-copy spec path that feeds the publish run. Gitignored. */
@@ -33,6 +36,21 @@ export interface PublishCurrentManifest {
   snapshotPath: string;
   specBytes: number;
 }
+
+const publishCurrentManifestSchema = z.object({
+  channel: z.string(),
+  sourceHash: z.string(),
+  upstreamRef: z.string(),
+  publishedAt: z.string(),
+  specPath: z.string(),
+  snapshotPath: z.string(),
+  specBytes: z.number(),
+});
+
+const publicationSnapshotSchema = z.object({
+  sourcePath: z.string(),
+  builtAt: z.string(),
+}).passthrough();
 
 /**
  * Compile the runtime snapshot for the given working-copy spec and write
@@ -58,8 +76,14 @@ export async function publishCurrent(
   const { runtime } = createConfiguredRuntime(runtimeEnv);
   await runtime.refresh(false);
 
-  const runtimeArtifactDir = resolve(cwd, runtimeConfig.artifactDir);
+  const sourceResolution = resolveRuntimePath(publishSourcePath, { kind: 'file' });
+  const runtimeArtifactDir = resolveRuntimePath(
+    resolve(sourceResolution.root, runtimeConfig.artifactDir),
+    { kind: 'directory' },
+  ).path;
   const snapshotSourcePath = resolve(runtimeArtifactDir, ARTIFACT_FILENAMES.snapshot);
+  const sourceBytes = await readFile(publishSourcePath);
+  const snapshotBytes = await readFile(snapshotSourcePath);
 
   const publishedSpecPath = resolve(cwd, config.publishedSpecPath ?? PUBLISHED_SPEC_PATH);
   const publishedArtifactDir = resolve(
@@ -71,27 +95,138 @@ export async function publishCurrent(
     cwd,
     config.publishedManifestPath ?? PUBLISHED_MANIFEST_PATH,
   );
+  const specBytes = sourceBytes.byteLength;
+  const sourceHash = `sha256:${createHash('sha256').update(sourceBytes).digest('hex')}`;
+  const normalizedSnapshotBytes = await normalizeSnapshotForPublication(
+    snapshotBytes,
+    config.publishedSpecPath ?? PUBLISHED_SPEC_PATH,
+    publishedSnapshotPath,
+  );
+  const manifestWithoutTimestamp = {
+    channel: config.channel,
+    sourceHash,
+    upstreamRef: config.upstreamRef,
+    specPath: config.publishedSpecPath ?? PUBLISHED_SPEC_PATH,
+    snapshotPath: `${config.publishedArtifactDir ?? PUBLISHED_ARTIFACT_DIR}/${ARTIFACT_FILENAMES.snapshot}`,
+    specBytes,
+  };
+  const existingManifest = await readExistingManifest(publishedManifestPath);
+
+  if (
+    existingManifest
+    && isSamePublicationManifest(existingManifest, manifestWithoutTimestamp)
+    && await filesMatch(publishedSpecPath, sourceBytes)
+    && await filesMatch(publishedSnapshotPath, normalizedSnapshotBytes)
+  ) {
+    return existingManifest;
+  }
 
   await rm(publishedArtifactDir, { recursive: true, force: true });
   await mkdir(publishedArtifactDir, { recursive: true });
   await mkdir(dirname(publishedSpecPath), { recursive: true });
 
-  await copyFile(publishSourcePath, publishedSpecPath);
-  await copyFile(snapshotSourcePath, publishedSnapshotPath);
-
-  const specBytes = await readFile(publishedSpecPath);
-  const sourceHash = `sha256:${createHash('sha256').update(specBytes).digest('hex')}`;
+  await writeFile(publishedSpecPath, sourceBytes);
+  await writeFile(publishedSnapshotPath, normalizedSnapshotBytes);
 
   const manifest: PublishCurrentManifest = {
-    channel: config.channel,
-    sourceHash,
-    upstreamRef: config.upstreamRef,
+    ...manifestWithoutTimestamp,
     publishedAt: new Date().toISOString(),
-    specPath: config.publishedSpecPath ?? PUBLISHED_SPEC_PATH,
-    snapshotPath: `${config.publishedArtifactDir ?? PUBLISHED_ARTIFACT_DIR}/${ARTIFACT_FILENAMES.snapshot}`,
-    specBytes: specBytes.byteLength,
   };
 
   await writeFile(publishedManifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
   return manifest;
+}
+
+async function readExistingManifest(
+  manifestPath: string,
+): Promise<PublishCurrentManifest | undefined> {
+  try {
+    const text = await readFile(manifestPath, 'utf8');
+    const parsed = JSON.parse(text);
+    const result = publishCurrentManifestSchema.safeParse(parsed);
+    return result.success ? result.data : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function isSamePublicationManifest(
+  existingManifest: PublishCurrentManifest,
+  manifestWithoutTimestamp: Omit<PublishCurrentManifest, 'publishedAt'>,
+): boolean {
+  return existingManifest.channel === manifestWithoutTimestamp.channel
+    && existingManifest.sourceHash === manifestWithoutTimestamp.sourceHash
+    && existingManifest.upstreamRef === manifestWithoutTimestamp.upstreamRef
+    && existingManifest.specPath === manifestWithoutTimestamp.specPath
+    && existingManifest.snapshotPath === manifestWithoutTimestamp.snapshotPath
+    && existingManifest.specBytes === manifestWithoutTimestamp.specBytes;
+}
+
+async function filesMatch(filePath: string, expectedBytes: Buffer): Promise<boolean> {
+  try {
+    const actualBytes = await readFile(filePath);
+    return actualBytes.equals(expectedBytes);
+  } catch {
+    return false;
+  }
+}
+
+async function normalizeSnapshotForPublication(
+  snapshotBytes: Buffer,
+  publishedSpecPath: string,
+  publishedSnapshotPath: string,
+): Promise<Buffer> {
+  const currentSnapshot = parsePublicationSnapshot(snapshotBytes);
+  if (!currentSnapshot) {
+    return snapshotBytes;
+  }
+
+  const existingSnapshotBytes = await readFileIfExists(publishedSnapshotPath);
+  const existingSnapshot = existingSnapshotBytes
+    ? parsePublicationSnapshot(existingSnapshotBytes)
+    : undefined;
+  const normalizedCurrent = {
+    ...currentSnapshot,
+    sourcePath: publishedSpecPath,
+  };
+  const canPreserveBuiltAt =
+    existingSnapshot
+    && comparableSnapshotShape(existingSnapshot, publishedSpecPath)
+      === comparableSnapshotShape(normalizedCurrent, publishedSpecPath);
+  const normalizedSnapshot = {
+    ...normalizedCurrent,
+    builtAt: canPreserveBuiltAt ? existingSnapshot.builtAt : currentSnapshot.builtAt,
+  };
+
+  return Buffer.from(`${JSON.stringify(normalizedSnapshot, null, 2)}\n`);
+}
+
+function parsePublicationSnapshot(bytes: Buffer) {
+  try {
+    const parsed = JSON.parse(bytes.toString('utf8'));
+    const result = publicationSnapshotSchema.safeParse(parsed);
+    return result.success ? result.data : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function comparableSnapshotShape(
+  snapshot: z.infer<typeof publicationSnapshotSchema>,
+  publishedSpecPath: string,
+): string {
+  const comparable = {
+    ...snapshot,
+    sourcePath: publishedSpecPath,
+  };
+  const { builtAt: _builtAt, ...withoutBuiltAt } = comparable;
+  return JSON.stringify(withoutBuiltAt);
+}
+
+async function readFileIfExists(filePath: string): Promise<Buffer | undefined> {
+  try {
+    return await readFile(filePath);
+  } catch {
+    return undefined;
+  }
 }

@@ -20,7 +20,16 @@ import type { Snapshot } from '../src/runtime/types.js';
 const execFileAsync = promisify(execFile);
 
 async function copyNonGeneratedDocs(srcRoot: string, dstRoot: string) {
-  const entries = await readdir(srcRoot, { withFileTypes: true, recursive: true });
+  let entries;
+  try {
+    entries = await readdir(srcRoot, { withFileTypes: true, recursive: true });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return;
+    }
+    throw error;
+  }
+
   for (const entry of entries) {
     if (!entry.isFile()) continue;
     if (!/\.(md|mdx)$/.test(entry.name)) continue;

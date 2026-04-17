@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
+import { z } from 'zod';
+
 import {
   DEFAULT_SOURCE_PATH,
   PUBLISHED_MANIFEST_PATH,
@@ -32,6 +34,13 @@ export interface GenerateDocsResult {
   generatedFiles: number;
   snapshot: Snapshot;
 }
+
+const publicationManifestSummarySchema = z.object({
+  channel: z.string(),
+  sourceHash: z.string(),
+  upstreamRef: z.string(),
+  publishedAt: z.string(),
+});
 
 export async function generateDocsSite(
   options: GenerateDocsOptions = {},
@@ -81,21 +90,9 @@ async function readPublicationManifest(
 ): Promise<PublicationManifestSummary | undefined> {
   try {
     const text = await readFile(manifestPath, 'utf8');
-    const parsed = JSON.parse(text) as Partial<PublicationManifestSummary>;
-    if (
-      typeof parsed.channel === 'string'
-      && typeof parsed.sourceHash === 'string'
-      && typeof parsed.upstreamRef === 'string'
-      && typeof parsed.publishedAt === 'string'
-    ) {
-      return {
-        channel: parsed.channel,
-        sourceHash: parsed.sourceHash,
-        upstreamRef: parsed.upstreamRef,
-        publishedAt: parsed.publishedAt,
-      };
-    }
-    return undefined;
+    const parsed = JSON.parse(text);
+    const result = publicationManifestSummarySchema.safeParse(parsed);
+    return result.success ? result.data : undefined;
   } catch {
     return undefined;
   }

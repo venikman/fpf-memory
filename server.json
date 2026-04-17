@@ -7,7 +7,7 @@
   "cwd": ".",
   "args": ["src/mastra/stdio.ts"],
   "env": {
-    "FPF_SPEC_SOURCE_PATH": ".fpf-upstream/FPF-Spec.md",
+    "FPF_SPEC_SOURCE_PATH": "published/current/FPF-Spec.md",
     "FPF_RUNTIME_ARTIFACT_DIR": ".runtime/fpf-index",
     "FPF_MCP_SURFACE": "full"
   }

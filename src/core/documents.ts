@@ -210,9 +210,7 @@ function buildPrefacePages(snapshot: Snapshot): GeneratedDocPage[] {
 
 /**
  * Shared renderer for the pattern catalog markdown body. Consumed by
- * both `buildPatternIndexPage` (deep-link at `/generated/patterns/`)
- * and `buildRootIndexPage` (the site home at `/`). Keeping one
- * renderer guarantees the two surfaces never drift.
+ * `buildPatternIndexPage` (deep-link at `/generated/patterns/`).
  */
 function renderPatternCatalogMarkdown(
   snapshot: Snapshot,

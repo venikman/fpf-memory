@@ -1,47 +1,92 @@
-import { describe, expect, it } from '@rstest/core';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
 
+import { afterEach, beforeEach, describe, expect, it } from '@rstest/core';
+
+import { parseRuntimeCoreConfig } from '../src/adapters/infra/config/env.js';
 import {
+  DEFAULT_ARTIFACT_DIR,
+  DEFAULT_SOURCE_PATH,
   HOSTED_STAGED_ARTIFACT_DIR,
   HOSTED_STAGED_SOURCE_PATH,
 } from '../src/core/constants.js';
 import { applyHostedEnvDefaults } from '../src/composition/hosted-env.js';
 
 /**
- * Hosted deploys run inside Mastra Cloud's container. After
- * `bunx mastra build` + `bunx mastra server deploy`, the files staged
- * by `stage-from-published.ts` land at `/app/.mastra/output/hosted/…`.
- * `applyHostedEnvDefaults` wires the runtime to those locations unless
- * the operator has opted in to an explicit override via env.
+ * Hosted deploys run from a Mastra bundle whose working directory contains
+ * `hosted/FPF-Spec.md` and `hosted/fpf-index/snapshot.json`. Local repo runs
+ * do not. `applyHostedEnvDefaults` should only redirect to the hosted staged
+ * paths when those files are actually present relative to the runtime root.
  */
 describe('applyHostedEnvDefaults', () => {
-  it('defaults both runtime path env vars to the hosted staged locations', () => {
-    const env = applyHostedEnvDefaults({} as NodeJS.ProcessEnv);
-    expect(env.FPF_SPEC_SOURCE_PATH).toBe(HOSTED_STAGED_SOURCE_PATH);
-    expect(env.FPF_RUNTIME_ARTIFACT_DIR).toBe(HOSTED_STAGED_ARTIFACT_DIR);
+  let tempRoot: string;
+
+  beforeEach(async () => {
+    tempRoot = await mkdtemp(resolve(tmpdir(), 'fpf-hosted-env-'));
   });
 
-  it('leaves explicit env vars untouched', () => {
+  afterEach(async () => {
+    await rm(tempRoot, { recursive: true, force: true });
+  });
+
+  async function writeHostedStage(root: string) {
+    await mkdir(resolve(root, HOSTED_STAGED_ARTIFACT_DIR), { recursive: true });
+    await writeFile(resolve(root, HOSTED_STAGED_SOURCE_PATH), '# staged spec\n');
+    await writeFile(
+      resolve(root, HOSTED_STAGED_ARTIFACT_DIR, 'snapshot.json'),
+      '{"sourceHash":"sha256:deadbeef"}\n',
+    );
+  }
+
+  it('falls back to the repo runtime defaults when hosted staged files are absent', () => {
+    const runtime = parseRuntimeCoreConfig(
+      applyHostedEnvDefaults({} as NodeJS.ProcessEnv, { cwd: tempRoot }),
+    );
+
+    expect(runtime.sourcePath).toBe(DEFAULT_SOURCE_PATH);
+    expect(runtime.artifactDir).toBe(DEFAULT_ARTIFACT_DIR);
+  });
+
+  it('defaults both runtime path env vars to the hosted staged locations when hosted files exist', async () => {
+    await writeHostedStage(tempRoot);
+
+    const runtime = parseRuntimeCoreConfig(
+      applyHostedEnvDefaults({} as NodeJS.ProcessEnv, { cwd: tempRoot }),
+    );
+
+    expect(runtime.sourcePath).toBe(HOSTED_STAGED_SOURCE_PATH);
+    expect(runtime.artifactDir).toBe(HOSTED_STAGED_ARTIFACT_DIR);
+  });
+
+  it('leaves explicit env vars untouched when hosted files exist', async () => {
+    await writeHostedStage(tempRoot);
+
     const env = applyHostedEnvDefaults({
       FPF_SPEC_SOURCE_PATH: '/custom/path/to/FPF-Spec.md',
       FPF_RUNTIME_ARTIFACT_DIR: '/custom/artifact/dir',
-    } as NodeJS.ProcessEnv);
+    } as NodeJS.ProcessEnv, { cwd: tempRoot });
     expect(env.FPF_SPEC_SOURCE_PATH).toBe('/custom/path/to/FPF-Spec.md');
     expect(env.FPF_RUNTIME_ARTIFACT_DIR).toBe('/custom/artifact/dir');
   });
 
-  it('fills only the missing half when the caller sets one of the two vars', () => {
+  it('fills only the missing half when hosted files exist and the caller sets one of the vars', async () => {
+    await writeHostedStage(tempRoot);
+
     const env = applyHostedEnvDefaults({
       FPF_SPEC_SOURCE_PATH: '/custom/spec.md',
-    } as NodeJS.ProcessEnv);
+    } as NodeJS.ProcessEnv, { cwd: tempRoot });
     expect(env.FPF_SPEC_SOURCE_PATH).toBe('/custom/spec.md');
     expect(env.FPF_RUNTIME_ARTIFACT_DIR).toBe(HOSTED_STAGED_ARTIFACT_DIR);
   });
 
-  it('treats whitespace-only values as unset', () => {
+  it('treats whitespace-only values as unset when hosted files exist', async () => {
+    await writeHostedStage(tempRoot);
+
     const env = applyHostedEnvDefaults({
       FPF_SPEC_SOURCE_PATH: '   ',
       FPF_RUNTIME_ARTIFACT_DIR: '',
-    } as NodeJS.ProcessEnv);
+    } as NodeJS.ProcessEnv, { cwd: tempRoot });
     expect(env.FPF_SPEC_SOURCE_PATH).toBe(HOSTED_STAGED_SOURCE_PATH);
     expect(env.FPF_RUNTIME_ARTIFACT_DIR).toBe(HOSTED_STAGED_ARTIFACT_DIR);
   });
@@ -50,7 +95,7 @@ describe('applyHostedEnvDefaults', () => {
     const env = applyHostedEnvDefaults({
       SOMETHING_ELSE: 'keep-me',
       FPF_MCP_SURFACE: 'full',
-    } as NodeJS.ProcessEnv);
+    } as NodeJS.ProcessEnv, { cwd: tempRoot });
     expect(env.SOMETHING_ELSE).toBe('keep-me');
     expect(env.FPF_MCP_SURFACE).toBe('full');
   });
