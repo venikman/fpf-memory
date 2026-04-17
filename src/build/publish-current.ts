@@ -13,6 +13,11 @@ import {
   PUBLISHED_SPEC_PATH,
 } from '../core/constants.js';
 import { resolveRuntimePath } from '../runtime/path-resolution.js';
+import {
+  publicationSnapshotSchema,
+  publishCurrentManifestSchema,
+  type PublishCurrentManifest,
+} from './published-surface.js';
 
 export interface PublishCurrentConfig {
   /** The working-copy spec path that feeds the publish run. Gitignored. */
@@ -26,31 +31,6 @@ export interface PublishCurrentConfig {
   publishedArtifactDir?: string;
   publishedManifestPath?: string;
 }
-
-export interface PublishCurrentManifest {
-  channel: string;
-  sourceHash: string;
-  upstreamRef: string;
-  publishedAt: string;
-  specPath: string;
-  snapshotPath: string;
-  specBytes: number;
-}
-
-const publishCurrentManifestSchema = z.object({
-  channel: z.string(),
-  sourceHash: z.string(),
-  upstreamRef: z.string(),
-  publishedAt: z.string(),
-  specPath: z.string(),
-  snapshotPath: z.string(),
-  specBytes: z.number(),
-});
-
-const publicationSnapshotSchema = z.object({
-  sourcePath: z.string(),
-  builtAt: z.string(),
-}).passthrough();
 
 /**
  * Compile the runtime snapshot for the given working-copy spec and write

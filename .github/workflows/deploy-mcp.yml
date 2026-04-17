@@ -16,16 +16,64 @@ permissions:
   contents: read
 
 jobs:
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.guard.outputs.should_deploy }}
+      deploy_sha: ${{ steps.guard.outputs.deploy_sha }}
+    steps:
+      - id: guard
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          WORKFLOW_RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          WORKFLOW_RUN_EVENT: ${{ github.event.workflow_run.event }}
+          WORKFLOW_RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          WORKFLOW_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          CURRENT_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            echo "deploy_sha=$CURRENT_SHA" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$WORKFLOW_RUN_CONCLUSION" != "success" ] || [ "$WORKFLOW_RUN_EVENT" != "push" ] || [ "$WORKFLOW_RUN_HEAD_BRANCH" != "main" ]; then
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+            echo "deploy_sha=$WORKFLOW_RUN_HEAD_SHA" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          latest_main_sha="$(curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/git/ref/heads/main" \
+            | jq -r '.object.sha')"
+
+          echo "Latest main SHA: $latest_main_sha"
+          echo "CI head SHA: $WORKFLOW_RUN_HEAD_SHA"
+
+          if [ "$WORKFLOW_RUN_HEAD_SHA" != "$latest_main_sha" ]; then
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+            echo "deploy_sha=$WORKFLOW_RUN_HEAD_SHA" >> "$GITHUB_OUTPUT"
+            echo "Skipping deploy because CI succeeded on a stale main SHA."
+            exit 0
+          fi
+
+          echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          echo "deploy_sha=$WORKFLOW_RUN_HEAD_SHA" >> "$GITHUB_OUTPUT"
+
   deploy:
+    needs: guard
     runs-on: ubuntu-latest
     # Automatic deploys only run after the `CI` workflow succeeds on a
     # push to `main`. `workflow_dispatch` remains available as an explicit
     # maintainer override.
-    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main')
+    if: needs.guard.outputs.should_deploy == 'true'
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ needs.guard.outputs.deploy_sha }}
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -33,11 +81,8 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - name: Assert published/current is populated
-        run: |
-          test -f published/current/FPF-Spec.md
-          test -f published/current/fpf-index/snapshot.json
-          test -f published/current/manifest.json
+      - name: Validate published/current coherence
+        run: bun run validate:published
 
       - name: Stage hosted bundle from published/current
         run: bun run stage:from-published

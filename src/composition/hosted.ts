@@ -7,7 +7,7 @@ import { applyHostedEnvDefaults } from './hosted-env.js';
 import { getSharedMcpComposition } from './mcp.js';
 
 export function createHostedComposition(env: NodeJS.ProcessEnv) {
-  const hostedEnv = applyHostedEnvDefaults(env);
+  const hostedEnv = applyHostedEnvDefaults(env, { moduleUrl: import.meta.url });
   const hostedConfig = parseHostedConfig(hostedEnv);
   const mcpComposition = getSharedMcpComposition(hostedEnv);
   const mcpServer =

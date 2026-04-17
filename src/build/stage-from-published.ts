@@ -1,4 +1,4 @@
-import { access, copyFile, mkdir, rm } from 'node:fs/promises';
+import { copyFile, mkdir, rm } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 import type { BuildConfig } from '../adapters/infra/config/types.js';
@@ -12,6 +12,7 @@ import {
   PUBLISHED_SPEC_PATH,
 } from '../core/constants.js';
 import type { BuildArtifactManifest } from './artifact-manifest.js';
+import { validatePublishedSurface } from './published-surface.js';
 
 export interface StageFromPublishedOverrides {
   /** Override for tests. Defaults to `published/current/FPF-Spec.md`. */
@@ -41,20 +42,13 @@ export async function stageFromPublished(
   const stagedSourcePath = resolve(hostedPublicDir, HOSTED_STAGED_SOURCE_PATH);
   const stagedSnapshotPath = resolve(hostedRuntimeDir, ARTIFACT_FILENAMES.snapshot);
 
-  const publishedSpecPath = resolve(cwd, overrides.publishedSpecPath ?? PUBLISHED_SPEC_PATH);
-  const publishedSnapshotPath = resolve(
+  const publishedSurface = await validatePublishedSurface({
     cwd,
-    overrides.publishedArtifactDir ?? PUBLISHED_ARTIFACT_DIR,
-    ARTIFACT_FILENAMES.snapshot,
-  );
-  const publishedManifestPath = resolve(
-    cwd,
-    overrides.publishedManifestPath ?? PUBLISHED_MANIFEST_PATH,
-  );
-
-  await assertPresent(publishedSpecPath, 'published spec');
-  await assertPresent(publishedSnapshotPath, 'published snapshot');
-  await assertPresent(publishedManifestPath, 'published manifest');
+    publishedSpecPath: overrides.publishedSpecPath ?? PUBLISHED_SPEC_PATH,
+    publishedArtifactDir: overrides.publishedArtifactDir ?? PUBLISHED_ARTIFACT_DIR,
+    publishedManifestPath: overrides.publishedManifestPath ?? PUBLISHED_MANIFEST_PATH,
+  });
+  const { publishedSpecPath, publishedSnapshotPath } = publishedSurface.paths;
 
   // Scrub legacy dotfile staging paths so a stale local checkout can't mask
   // a broken staging pipeline. Harmless on a clean tree.
@@ -89,14 +83,4 @@ export async function stageFromPublished(
 
 export function parseBuildConfigFromEnv(env: NodeJS.ProcessEnv): BuildConfig {
   return parseBuildConfig(env);
-}
-
-async function assertPresent(filePath: string, label: string): Promise<void> {
-  try {
-    await access(filePath);
-  } catch {
-    throw new Error(
-      `stage-from-published: ${label} missing at ${filePath}. Run \`bun run publish:current\` locally before pushing.`,
-    );
-  }
 }

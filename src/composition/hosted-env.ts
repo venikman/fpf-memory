@@ -1,11 +1,14 @@
-import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
-
 import {
   ARTIFACT_FILENAMES,
   HOSTED_STAGED_ARTIFACT_DIR,
   HOSTED_STAGED_SOURCE_PATH,
 } from '../core/constants.js';
+import { resolveRuntimePath } from '../runtime/path-resolution.js';
+
+export interface HostedEnvDefaultsOptions {
+  cwd?: string;
+  moduleUrl?: string;
+}
 
 /**
  * Layer hosted defaults on top of the caller env only when the runtime
@@ -19,9 +22,9 @@ import {
  */
 export function applyHostedEnvDefaults(
   env: NodeJS.ProcessEnv,
-  options: { cwd?: string } = {},
+  options: HostedEnvDefaultsOptions = {},
 ): NodeJS.ProcessEnv {
-  if (!hasHostedStage(options.cwd ?? process.cwd())) {
+  if (!hasHostedStage(options)) {
     return env;
   }
 
@@ -38,7 +41,20 @@ export function applyHostedEnvDefaults(
   return { ...env, ...overrides };
 }
 
-function hasHostedStage(cwd: string): boolean {
-  return existsSync(resolve(cwd, HOSTED_STAGED_SOURCE_PATH))
-    && existsSync(resolve(cwd, HOSTED_STAGED_ARTIFACT_DIR, ARTIFACT_FILENAMES.snapshot));
+function hasHostedStage(options: HostedEnvDefaultsOptions): boolean {
+  const specResolution = resolveRuntimePath(HOSTED_STAGED_SOURCE_PATH, {
+    cwd: options.cwd,
+    moduleUrl: options.moduleUrl,
+    kind: 'file',
+  });
+  const snapshotResolution = resolveRuntimePath(
+    `${HOSTED_STAGED_ARTIFACT_DIR}/${ARTIFACT_FILENAMES.snapshot}`,
+    {
+      cwd: options.cwd,
+      moduleUrl: options.moduleUrl,
+      kind: 'file',
+    },
+  );
+
+  return specResolution.existed && snapshotResolution.existed;
 }

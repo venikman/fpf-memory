@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { afterEach, beforeEach, describe, expect, it } from '@rstest/core';
 
@@ -53,6 +54,28 @@ describe('applyHostedEnvDefaults', () => {
 
     const runtime = parseRuntimeCoreConfig(
       applyHostedEnvDefaults({} as NodeJS.ProcessEnv, { cwd: tempRoot }),
+    );
+
+    expect(runtime.sourcePath).toBe(HOSTED_STAGED_SOURCE_PATH);
+    expect(runtime.artifactDir).toBe(HOSTED_STAGED_ARTIFACT_DIR);
+  });
+
+  it('discovers hosted staged files from the bundle module root when cwd lacks them', async () => {
+    const bundleRoot = resolve(tempRoot, '.mastra/output');
+    const bundleModulePath = resolve(bundleRoot, 'chunks/runtime.mjs');
+
+    await writeHostedStage(bundleRoot);
+    await mkdir(dirname(bundleModulePath), { recursive: true });
+    await writeFile(bundleModulePath, '// bundle stub\n');
+
+    const runtime = parseRuntimeCoreConfig(
+      applyHostedEnvDefaults(
+        {} as NodeJS.ProcessEnv,
+        {
+          cwd: tempRoot,
+          moduleUrl: pathToFileURL(bundleModulePath).href,
+        },
+      ),
     );
 
     expect(runtime.sourcePath).toBe(HOSTED_STAGED_SOURCE_PATH);

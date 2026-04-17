@@ -21,7 +21,7 @@ export function createMastraRuntime(env: NodeJS.ProcessEnv = process.env) {
 export function resolveMastraRuntimeDependencies(
   env: NodeJS.ProcessEnv = process.env,
 ): HostedMastraRuntimeDependencies {
-  const hostedEnv = applyHostedEnvDefaults(env);
+  const hostedEnv = applyHostedEnvDefaults(env, { moduleUrl: import.meta.url });
   const hostedConfig = parseHostedConfig(hostedEnv);
   const mcpComposition = getSharedMcpComposition(hostedEnv);
 

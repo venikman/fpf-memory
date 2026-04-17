@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
@@ -20,12 +21,20 @@ describe('stageFromPublished', () => {
   let hostedPublicDir: string;
 
   const SPEC_TEXT = '# Fake FPF\n\nMinimal spec body for stage tests.\n';
-  const SNAPSHOT_TEXT = JSON.stringify({ sourceHash: 'sha256:deadbeef' }) + '\n';
+  const SOURCE_HASH = `sha256:${createHash('sha256').update(SPEC_TEXT).digest('hex')}`;
+  const SNAPSHOT_TEXT = `${JSON.stringify({
+    sourceHash: SOURCE_HASH,
+    sourcePath: 'published/current/FPF-Spec.md',
+    builtAt: '2026-04-16T00:00:00.000Z',
+  })}\n`;
   const MANIFEST_TEXT = `${JSON.stringify({
     channel: 'latest-published',
-    sourceHash: 'sha256:deadbeef',
+    sourceHash: SOURCE_HASH,
     upstreamRef: 'test-ref',
     publishedAt: '2026-04-16T00:00:00.000Z',
+    specPath: 'published/current/FPF-Spec.md',
+    snapshotPath: 'published/current/fpf-index/snapshot.json',
+    specBytes: Buffer.byteLength(SPEC_TEXT),
   })}\n`;
 
   beforeEach(async () => {
@@ -126,5 +135,79 @@ describe('stageFromPublished', () => {
         },
       ),
     ).rejects.toThrow(/Run `bun run publish:current`/);
+  });
+
+  it('fails fast when the committed publication spec is missing', async () => {
+    await rm(publishedSpecPath);
+
+    await expect(
+      stageFromPublished(
+        {
+          sourcePath: publishedSpecPath,
+          runtimeArtifactDir: publishedArtifactDir,
+          distDir: resolve(tempRoot, 'dist'),
+          hostedPublicDir,
+          docsRoot: resolve(tempRoot, 'docs'),
+        },
+        {
+          publishedSpecPath,
+          publishedArtifactDir,
+          publishedManifestPath,
+        },
+      ),
+    ).rejects.toThrow(/published spec missing/);
+  });
+
+  it('fails fast when the committed publication snapshot is missing', async () => {
+    await rm(resolve(publishedArtifactDir, ARTIFACT_FILENAMES.snapshot));
+
+    await expect(
+      stageFromPublished(
+        {
+          sourcePath: publishedSpecPath,
+          runtimeArtifactDir: publishedArtifactDir,
+          distDir: resolve(tempRoot, 'dist'),
+          hostedPublicDir,
+          docsRoot: resolve(tempRoot, 'docs'),
+        },
+        {
+          publishedSpecPath,
+          publishedArtifactDir,
+          publishedManifestPath,
+        },
+      ),
+    ).rejects.toThrow(/published snapshot missing/);
+  });
+
+  it('fails fast when the committed publication surface is incoherent', async () => {
+    await writeFile(
+      publishedManifestPath,
+      `${JSON.stringify({
+        channel: 'latest-published',
+        sourceHash: 'sha256:not-the-spec',
+        upstreamRef: 'test-ref',
+        publishedAt: '2026-04-16T00:00:00.000Z',
+        specPath: 'published/current/FPF-Spec.md',
+        snapshotPath: 'published/current/fpf-index/snapshot.json',
+        specBytes: Buffer.byteLength(SPEC_TEXT),
+      })}\n`,
+    );
+
+    await expect(
+      stageFromPublished(
+        {
+          sourcePath: publishedSpecPath,
+          runtimeArtifactDir: publishedArtifactDir,
+          distDir: resolve(tempRoot, 'dist'),
+          hostedPublicDir,
+          docsRoot: resolve(tempRoot, 'docs'),
+        },
+        {
+          publishedSpecPath,
+          publishedArtifactDir,
+          publishedManifestPath,
+        },
+      ),
+    ).rejects.toThrow(/sourceHash/);
   });
 });

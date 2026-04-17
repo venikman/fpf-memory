@@ -25,17 +25,13 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - name: Assert published/current is populated
+      - name: Validate published/current coherence
         # The publication surface is owned by the local pre-push hook
         # (`bun run publish:current`). CI never regenerates it. If the
-        # committed tree is missing the spec, snapshot, or manifest, the
-        # commit skipped the publish step — fail here so the broken push
-        # doesn't reach the deploy job.
-        run: |
-          test -f published/current/FPF-Spec.md
-          test -f published/current/fpf-index/snapshot.json
-          test -f published/current/manifest.json
-          echo "Published from: $(jq -r '.sourceHash, .upstreamRef, .publishedAt' published/current/manifest.json)"
+        # committed tree is missing or internally inconsistent, the
+        # commit skipped or corrupted the publish step — fail here so the
+        # broken push doesn't reach the deploy job.
+        run: bun run validate:published
 
       - name: Lint
         run: bun run lint
