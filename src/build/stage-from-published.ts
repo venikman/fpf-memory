@@ -25,7 +25,7 @@ export interface StageFromPublishedOverrides {
 /**
  * Copy the committed `published/current/**` publication surface into the
  * Mastra-visible staging tree at `src/mastra/public/hosted/…`. This is
- * the surface `bunx mastra build` zips into `.mastra/output/hosted/…`.
+ * the surface `bun run mastra:build` zips into `.mastra/output/hosted/…`.
  *
  * No runtime compile, no spec download — if `published/current/` is
  * missing or incomplete, fail fast so CI catches an un-prepared push

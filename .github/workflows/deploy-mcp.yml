@@ -43,7 +43,7 @@ jobs:
         run: bun run stage:from-published
 
       - name: Build Mastra bundle
-        run: bunx mastra build
+        run: bun run mastra:build
 
       - name: Write .mastra-project.json for headless deploy
         # `mastra server deploy` needs an org + project binding. Local

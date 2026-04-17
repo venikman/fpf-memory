@@ -78,6 +78,7 @@ bun install
 bun run spec:download
 bun run publish:current
 bun run stage:from-published
+bun run mastra:build
 bun run hooks:install
 bun run docs:generate
 bun run lint
@@ -215,7 +216,7 @@ Call trace_fpf_path with:
 - `src/composition/`: canonical bridge layer for runtime/bootstrap composition
 - `src/compat/mastra/`: governed Mastra compatibility bootstrap layer
 - `src/mastra/mcp/server.ts`: compatibility shim for the legacy MCP server import path
-- `src/mastra/index.ts`: compatibility shim for direct `mastra build` / `mastra deploy`
+- `src/mastra/index.ts`: compatibility shim consumed by `bun run mastra:build` and Mastra deploy tooling
 - `src/mastra/stdio.ts`: stdio entry point for MCP clients
 - `src/server.ts`: Hono HTTP server bootstrap for Bun
 - `src/runtime/`: compiler, retrieval, trace, inspect, and synthesis logic

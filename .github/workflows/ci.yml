@@ -58,7 +58,7 @@ jobs:
         # every PR without requiring deploy credentials.
         run: |
           bun run stage:from-published
-          bunx mastra build
+          bun run mastra:build
           test -f .mastra/output/index.mjs
           test -f .mastra/output/hosted/FPF-Spec.md
           test -f .mastra/output/hosted/fpf-index/snapshot.json
