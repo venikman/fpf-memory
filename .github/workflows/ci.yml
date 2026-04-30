@@ -45,6 +45,9 @@ jobs:
       - name: Test
         run: bun run test
 
+      - name: Build docs
+        run: bun run docs:build
+
       - name: Build MCP bundle
         run: bun run build:mcp
 

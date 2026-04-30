@@ -147,6 +147,59 @@ describe('publishCurrent', () => {
     expect(snapshot.compilerFingerprint).toBe(manifest.compilerFingerprint);
   }, 30_000);
 
+  it('rebuilds the runtime snapshot when the published compiler fingerprint is stale', async () => {
+    await publishCurrent(
+      {
+        publishSourcePath,
+        upstreamRef: 'test-ref',
+        channel: 'latest-published',
+        publishedSpecPath,
+        publishedArtifactDir,
+        publishedManifestPath,
+      },
+      {
+        ...process.env,
+        FPF_RUNTIME_ARTIFACT_DIR: runtimeArtifactDir,
+      } as NodeJS.ProcessEnv,
+    );
+
+    const publishedManifest = JSON.parse(await readFile(publishedManifestPath, 'utf8')) as Record<
+      string,
+      unknown
+    >;
+    publishedManifest.compilerFingerprint = 'sha256:previous-compiler';
+    await writeFile(publishedManifestPath, `${JSON.stringify(publishedManifest, null, 2)}\n`);
+
+    const runtimeSnapshotPath = resolve(runtimeArtifactDir, 'snapshot.json');
+    const staleRuntimeSnapshot = JSON.parse(await readFile(runtimeSnapshotPath, 'utf8')) as Record<
+      string,
+      unknown
+    >;
+    staleRuntimeSnapshot.staleCompilerOnlyMarker = true;
+    await writeFile(runtimeSnapshotPath, `${JSON.stringify(staleRuntimeSnapshot, null, 2)}\n`);
+
+    await publishCurrent(
+      {
+        publishSourcePath,
+        upstreamRef: 'test-ref',
+        channel: 'latest-published',
+        publishedSpecPath,
+        publishedArtifactDir,
+        publishedManifestPath,
+      },
+      {
+        ...process.env,
+        FPF_RUNTIME_ARTIFACT_DIR: runtimeArtifactDir,
+      } as NodeJS.ProcessEnv,
+    );
+
+    const republishedSnapshot = JSON.parse(
+      await readFile(resolve(publishedArtifactDir, 'snapshot.json'), 'utf8'),
+    ) as Record<string, unknown>;
+
+    expect(republishedSnapshot.staleCompilerOnlyMarker).toBeUndefined();
+  }, 30_000);
+
   it('rejects a published surface whose compiler fingerprint drifted', async () => {
     await publishCurrent(
       {

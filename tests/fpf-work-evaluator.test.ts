@@ -1,5 +1,6 @@
+import { execFileSync } from 'node:child_process';
 import { mkdtempSync } from 'node:fs';
-import { rm } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
@@ -89,6 +90,42 @@ describe('FPF work evaluator', () => {
         env: {},
       }),
     ).toThrow(/does not fall back to \.fpf-upstream/u);
+  });
+
+  it('collects working-tree facts without requiring the requested base ref', async () => {
+    tempRoot = mkdtempSync(resolve(tmpdir(), 'fpf-work-evaluator-'));
+    execFileSync('git', ['init'], { cwd: tempRoot, stdio: 'ignore' });
+    execFileSync('git', ['config', 'user.email', 'test@example.com'], {
+      cwd: tempRoot,
+      stdio: 'ignore',
+    });
+    execFileSync('git', ['config', 'user.name', 'Test User'], {
+      cwd: tempRoot,
+      stdio: 'ignore',
+    });
+    await writeFile(
+      resolve(tempRoot, 'README.md'),
+      'Default runtime path: published/current/FPF-Spec.md',
+    );
+    await mkdir(resolve(tempRoot, 'published/current'), { recursive: true });
+    await writeFile(
+      resolve(tempRoot, 'published/current/FPF-Spec.md'),
+      FPF_WORK_EVALUATION_ANCHORS.map((anchor) => `${anchor.id} ${anchor.title}`).join('\n'),
+    );
+    execFileSync('git', ['add', '.'], { cwd: tempRoot, stdio: 'ignore' });
+    execFileSync('git', ['commit', '-m', 'baseline'], { cwd: tempRoot, stdio: 'ignore' });
+    await writeFile(resolve(tempRoot, 'README.md'), 'changed working tree');
+
+    const facts = collectFpfWorkFacts({
+      target: 'working-tree',
+      baseRef: 'origin/trunk',
+      cwd: tempRoot,
+      env: {},
+    });
+
+    expect(facts.baseRef).toBe('origin/trunk');
+    expect(facts.changedFiles).toEqual([{ status: 'M', path: 'README.md' }]);
+    expect(facts.commitSubjects).toEqual([]);
   });
 });
 

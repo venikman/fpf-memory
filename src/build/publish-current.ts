@@ -49,27 +49,7 @@ export async function publishCurrent(
 ): Promise<PublishCurrentManifest> {
   const cwd = process.cwd();
   const publishSourcePath = resolve(cwd, config.publishSourcePath);
-
-  // Compile against the publish source (the user's upstream working copy),
-  // not whatever FPF_SPEC_SOURCE_PATH points at — that typically resolves to
-  // the committed publication surface, i.e. the file we're about to rewrite.
-  const runtimeEnv: NodeJS.ProcessEnv = {
-    ...env,
-    FPF_SPEC_SOURCE_PATH: publishSourcePath,
-  };
-  const runtimeConfig = parseRuntimeCoreConfig(runtimeEnv);
-  const { runtime } = createConfiguredRuntime(runtimeEnv);
-  await runtime.refresh(false);
-
-  const sourceResolution = resolveRuntimePath(publishSourcePath, { kind: 'file' });
-  const runtimeArtifactDir = resolveRuntimePath(
-    resolve(sourceResolution.root, runtimeConfig.artifactDir),
-    { kind: 'directory' },
-  ).path;
-  const snapshotSourcePath = resolve(runtimeArtifactDir, ARTIFACT_FILENAMES.snapshot);
   const sourceBytes = await readFile(publishSourcePath);
-  const snapshotBytes = await readFile(snapshotSourcePath);
-
   const publishedSpecPath = resolve(cwd, config.publishedSpecPath ?? PUBLISHED_SPEC_PATH);
   const publishedArtifactDir = resolve(
     cwd,
@@ -83,6 +63,28 @@ export async function publishCurrent(
   const specBytes = sourceBytes.byteLength;
   const sourceHash = `sha256:${createHash('sha256').update(sourceBytes).digest('hex')}`;
   const compilerFingerprint = await computeCompilerFingerprint();
+  const existingManifest = await readExistingManifest(publishedManifestPath);
+
+  // Compile against the publish source (the user's upstream working copy),
+  // not whatever FPF_SPEC_SOURCE_PATH points at — that typically resolves to
+  // the committed publication surface, i.e. the file we're about to rewrite.
+  const runtimeEnv: NodeJS.ProcessEnv = {
+    ...env,
+    FPF_SPEC_SOURCE_PATH: publishSourcePath,
+  };
+  const runtimeConfig = parseRuntimeCoreConfig(runtimeEnv);
+  const { runtime } = createConfiguredRuntime(runtimeEnv);
+  await runtime.refresh(
+    shouldRebuildForCompilerFingerprint(existingManifest, compilerFingerprint),
+  );
+
+  const sourceResolution = resolveRuntimePath(publishSourcePath, { kind: 'file' });
+  const runtimeArtifactDir = resolveRuntimePath(
+    resolve(sourceResolution.root, runtimeConfig.artifactDir),
+    { kind: 'directory' },
+  ).path;
+  const snapshotSourcePath = resolve(runtimeArtifactDir, ARTIFACT_FILENAMES.snapshot);
+  const snapshotBytes = await readFile(snapshotSourcePath);
   const normalizedSnapshotBytes = await normalizeSnapshotForPublication(
     snapshotBytes,
     config.publishedSpecPath ?? PUBLISHED_SPEC_PATH,
@@ -98,7 +100,6 @@ export async function publishCurrent(
     snapshotPath: `${config.publishedArtifactDir ?? PUBLISHED_ARTIFACT_DIR}/${ARTIFACT_FILENAMES.snapshot}`,
     specBytes,
   };
-  const existingManifest = await readExistingManifest(publishedManifestPath);
 
   if (
     existingManifest
@@ -123,6 +124,13 @@ export async function publishCurrent(
 
   await writeFile(publishedManifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
   return manifest;
+}
+
+function shouldRebuildForCompilerFingerprint(
+  existingManifest: PublishCurrentManifest | undefined,
+  compilerFingerprint: string,
+): boolean {
+  return existingManifest?.compilerFingerprint !== compilerFingerprint;
 }
 
 async function readExistingManifest(

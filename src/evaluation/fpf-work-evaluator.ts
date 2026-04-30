@@ -180,7 +180,8 @@ export function collectFpfWorkFacts(options: EvaluateFpfWorkOptions): FpfWorkFac
   }
 
   const specText = readFileSync(specPath, 'utf8');
-  const baseRef = resolveBaseRef(cwd, options.baseRef);
+  const baseRef =
+    options.target === 'current-pr' ? resolveBaseRef(cwd, options.baseRef) : options.baseRef;
   const fileTexts = readKnownFileTexts(cwd);
   const branch = readGitValue(cwd, ['rev-parse', '--abbrev-ref', 'HEAD']) ?? 'unknown';
   const headSha = readGitValue(cwd, ['rev-parse', 'HEAD']) ?? 'unknown';
@@ -706,7 +707,7 @@ function readWorkingTreeChangedFiles(cwd: string): FpfChangedFile[] {
     return [];
   }
   return output.split('\n').filter(Boolean).map((line) => {
-    const rawPath = line.slice(3).trim();
+    const rawPath = (line[2] === ' ' ? line.slice(3) : line.slice(2)).trim();
     return {
       status: line.slice(0, 2).trim() || 'changed',
       path: rawPath.includes(' -> ') ? rawPath.split(' -> ').at(-1)! : rawPath,
