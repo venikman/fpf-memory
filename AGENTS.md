@@ -30,10 +30,12 @@ FPF work-evaluation surface:
 
 For every non-trivial Codex implementation or review-fix task, run the closest real end-to-end (E2E) verification path, record that run as video, and share the recording path or link with the user before calling the work complete.
 
-- Choose the E2E path that matches the change: browser/docs preview for human-facing surfaces, MCP/CLI smoke flow for runtime surfaces, and deploy dry-run for packaging or deploy changes.
-- Store recordings under `.runtime/e2e-recordings/<date>-<task>/`; this path is gitignored and videos must not be committed.
-- Include the E2E command/run, recording path or uploaded video link, and visible caveats in the final response.
-- If video recording cannot be produced, stop and report the blocker instead of silently substituting logs, screenshots, or command output.
+- Use `bun run e2e:report -- docs` for human-facing docs/wiki changes.
+- Use `bun run e2e:report -- cli` for CLI, MCP, retrieval, or evaluator changes.
+- Use `bun run e2e:report -- deploy-dry-run` for packaging or deploy changes.
+- Use `bun run e2e:report -- --name <task-slug> --command "<command>"` when none of the presets matches the change.
+- Share the generated `.runtime/e2e-recordings/<timestamp>-<task>/e2e-report.webm` path, plus the `report.md` path and any visible caveats, in the final response.
+- If video recording cannot be produced, stop and report the blocker instead of silently substituting logs, screenshots, or command output. If Chromium is missing, run `bunx playwright install chromium` and retry.
 - Pure planning or explanation-only turns with no repo mutation do not require an E2E recording.
 
 ## Learned User Preferences

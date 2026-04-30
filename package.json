@@ -16,6 +16,7 @@
     "publish:current": "bun scripts/publish-current.ts",
     "validate:published": "bun scripts/validate-published-current.ts",
     "evaluate:work": "bun src/cli.ts evaluate-work --target current-pr --base origin/main --format markdown",
+    "e2e:report": "bun scripts/e2e-report.ts",
     "stage:from-published": "bun scripts/stage-from-published.ts",
     "mastra:build": "bun scripts/mastra-build.ts",
     "build": "bun run build:runtime && bun run build:mcp",
@@ -55,6 +56,7 @@
     "@types/node": "^25.6.0",
     "bun-types": "^1.3.12",
     "mastra": "^1.5.0",
+    "playwright": "^1.59.1",
     "tsup": "^8.5.1",
     "typescript": "^6.0.2"
   }
