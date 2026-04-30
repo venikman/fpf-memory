@@ -77,6 +77,7 @@ The synthesizer posts to `{FPF_LOCAL_LLM_BASE_URL}/messages` with the Anthropic 
 bun install
 bun run spec:download
 bun run publish:current
+bun run evaluate:work
 bun run stage:from-published
 bun run mastra:build
 bun run hooks:install
@@ -96,10 +97,25 @@ bun run cli -- query --question "How does it connect to role assignment?" --sess
 bun run cli -- inspect --selector "A.1.1"
 bun run cli -- read-doc --selector "A.1.1"
 bun run cli -- trace --question "How do U.RoleAssignment and U.BoundedContext connect?" --mode proof --session s1
+bun run cli -- evaluate-work --target current-pr --base origin/main --format markdown
+bun run cli -- evaluate-work --target current-pr --base origin/main --format json
 bun run cli -- lm-check --timeout-ms 60000
 bun run cli -- lm-check --base-url http://localhost:1234/v1 --api-key "$FPF_LOCAL_LLM_API_KEY" --timeout-ms 60000
 bun run mcp
 ```
+
+## FPF Work Evaluation
+
+Use the deterministic local evaluator when you want an FPF-grounded review of the current branch or worktree:
+
+```bash
+bun run evaluate:work
+bun run cli -- evaluate-work --target current-pr --base origin/main --format markdown
+bun run cli -- evaluate-work --target working-tree --base origin/main --format json
+bun run cli -- evaluate-work --spec ~/Downloads/FPF-Spec\(12\).md --out reports/fpf-work.md
+```
+
+The evaluator reads local git facts, the committed `published/current/**` surface, and the configured FPF spec. It does not call an LLM, fetch GitHub, or regenerate artifacts. By default it reads `FPF_SPEC_SOURCE_PATH` if set, otherwise `published/current/FPF-Spec.md`; it does not fall back to `.fpf-upstream/`.
 
 ## Run And Test MCP
 

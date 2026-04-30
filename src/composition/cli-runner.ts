@@ -1,8 +1,15 @@
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+
 import { ZodError } from 'zod';
 
 import { asSessionId } from '../core/types.js';
 import { parseCliCommand } from '../adapters/cli/command-contracts.js';
 import { unwrapOutcome } from '../app/commands/index.js';
+import {
+  evaluateFpfWork,
+  formatFpfWorkEvaluationReport,
+} from '../evaluation/fpf-work-evaluator.js';
 import { runLmStudioHealthCheck } from '../runtime/lm-studio-synthesizer.js';
 import { createCliComposition } from './cli.js';
 
@@ -41,6 +48,26 @@ export async function runCli(argv = process.argv.slice(2)): Promise<void> {
   if (command.kind === 'unknown_command') {
     printHelp();
     process.exitCode = 1;
+    return;
+  }
+
+  if (command.kind === 'evaluate-work') {
+    const report = await evaluateFpfWork({
+      target: command.target,
+      baseRef: command.baseRef,
+      specPath: command.specPath,
+      cwd: process.cwd(),
+      env: process.env,
+    });
+    const output = formatFpfWorkEvaluationReport(report, command.format);
+    if (command.out) {
+      const outputPath = resolve(process.cwd(), command.out);
+      await mkdir(dirname(outputPath), { recursive: true });
+      await writeFile(outputPath, output, 'utf8');
+    } else {
+      process.stdout.write(output);
+    }
+    process.exitCode = 0;
     return;
   }
 
@@ -179,5 +206,6 @@ function printHelp(): void {
   bun run cli -- read-doc --selector "A.1.1" [--kind auto|id|route|lexeme] [--force]
   bun run cli -- trace --question "How do routes work?" [--mode compact|verbose|proof] [--session s1] [--force]
   bun run cli -- lm-check [--base-url http://localhost:1234/v1] [--model google/gemma-4-31b] [--api-key <token>] [--timeout-ms 60000]
+  bun run cli -- evaluate-work [--target current-pr|working-tree] [--base origin/main] [--format markdown|json] [--spec path/to/FPF-Spec.md] [--out reports/fpf-work.md]
 `);
 }

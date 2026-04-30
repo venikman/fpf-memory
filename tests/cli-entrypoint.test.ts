@@ -15,6 +15,7 @@ describe('CLI entrypoint', () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('Usage:');
+    expect(result.stdout).toContain('evaluate-work');
   });
 
   it('prints help and exits nonzero for an unknown subcommand', () => {

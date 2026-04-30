@@ -45,4 +45,53 @@ describe('CLI command contracts', () => {
 
     expect(thrown).toBeDefined();
   });
+
+  it('parses evaluate-work defaults', () => {
+    const command = parseCliCommand(['evaluate-work']);
+
+    expect(command).toEqual({
+      kind: 'evaluate-work',
+      target: 'current-pr',
+      baseRef: 'origin/main',
+      format: 'markdown',
+      out: undefined,
+      specPath: undefined,
+    });
+  });
+
+  it('parses evaluate-work options', () => {
+    const command = parseCliCommand([
+      'evaluate-work',
+      '--target',
+      'working-tree',
+      '--base',
+      'main',
+      '--format',
+      'json',
+      '--spec',
+      '/tmp/FPF-Spec.md',
+      '--out',
+      'reports/fpf-work.json',
+    ]);
+
+    expect(command).toEqual({
+      kind: 'evaluate-work',
+      target: 'working-tree',
+      baseRef: 'main',
+      format: 'json',
+      specPath: '/tmp/FPF-Spec.md',
+      out: 'reports/fpf-work.json',
+    });
+  });
+
+  it('rejects invalid evaluate-work formats', () => {
+    let thrown: unknown;
+    try {
+      parseCliCommand(['evaluate-work', '--format', 'html']);
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeDefined();
+  });
 });

@@ -1,8 +1,14 @@
 import { z } from 'zod';
 
+import {
+  fpfWorkEvaluationFormats,
+  fpfWorkEvaluationTargets,
+} from '../../evaluation/types.js';
 import { answerModeSchema } from '../../mcp/tool-contracts.js';
 
 const selectorKindSchema = z.enum(['auto', 'id', 'route', 'lexeme']);
+const fpfWorkEvaluationTargetSchema = z.enum(fpfWorkEvaluationTargets);
+const fpfWorkEvaluationFormatSchema = z.enum(fpfWorkEvaluationFormats);
 
 const statusCommandSchema = z.object({
   kind: z.literal('status'),
@@ -53,6 +59,15 @@ const lmCheckCommandSchema = z.object({
   input: z.string().min(1).optional(),
 });
 
+const evaluateWorkCommandSchema = z.object({
+  kind: z.literal('evaluate-work'),
+  target: fpfWorkEvaluationTargetSchema,
+  baseRef: z.string().min(1),
+  format: fpfWorkEvaluationFormatSchema,
+  out: z.string().min(1).optional(),
+  specPath: z.string().min(1).optional(),
+});
+
 export const cliCommandSchema = z.discriminatedUnion('kind', [
   statusCommandSchema,
   refreshCommandSchema,
@@ -61,6 +76,7 @@ export const cliCommandSchema = z.discriminatedUnion('kind', [
   readDocCommandSchema,
   traceCommandSchema,
   lmCheckCommandSchema,
+  evaluateWorkCommandSchema,
 ]);
 
 export type CliCommand = z.infer<typeof cliCommandSchema>;
@@ -147,6 +163,23 @@ export function parseCliCommand(args: string[]): ParsedCliCommand {
         timeoutMs: timeoutRaw ? Number(timeoutRaw) : undefined,
         systemPrompt: value(parsed, '--system-prompt'),
         input: value(parsed, '--input'),
+      });
+    }
+    case 'evaluate-work': {
+      const parsed = scanArgs(commandArgs, [
+        '--target',
+        '--base',
+        '--format',
+        '--out',
+        '--spec',
+      ]);
+      return cliCommandSchema.parse({
+        kind: 'evaluate-work',
+        target: value(parsed, '--target') ?? 'current-pr',
+        baseRef: value(parsed, '--base') ?? 'origin/main',
+        format: value(parsed, '--format') ?? 'markdown',
+        out: value(parsed, '--out'),
+        specPath: value(parsed, '--spec'),
       });
     }
     default:
