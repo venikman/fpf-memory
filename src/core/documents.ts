@@ -262,9 +262,9 @@ function buildPatternIndexPage(snapshot: Snapshot): GeneratedDocPage {
 /**
  * The site home. Intentionally short: one-sentence framing, a manifest
  * block so readers can tell which FPF snapshot this build is projected
- * from, a pointer to the hosted MCP endpoint, and links to the four
- * navigable surfaces (Patterns, Routes, Glossary, Change log). The
- * pattern catalog itself still lives at `/generated/patterns/index`.
+ * from, a pointer to the hosted MCP endpoint, and links to adoption,
+ * demonstration, and reference surfaces. The pattern catalog itself
+ * still lives at `/generated/patterns/index`.
  */
 function buildRootIndexPage(
   snapshot: Snapshot,
@@ -305,6 +305,7 @@ function renderHomeMarkdown(
     '- [Adoption guide](/start-here) — choose the first FPF path for a person, team, or agent.',
     '- [Work packets](/work-packets) — use FPF in project review, PR review, specification work, role/promise/capability analysis, and agent workflows.',
     '- [MCP recipes](/mcp-recipes) — retrieve compact grounded slices from the hosted or local MCP server.',
+    '- [Demo videos](/use-case-videos) — record CSS-rendered walkthroughs that show how people and agents use FPF without a full-spec paste.',
     '',
     '## Navigate',
     '',
