@@ -1,3 +1,7 @@
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+
 import { describe, expect, it } from '@rstest/core';
 
 import {
@@ -6,8 +10,13 @@ import {
   renderE2EReportHtml,
   renderE2EReportMarkdown,
   resolveE2EReportConfig,
+  resolveStaticPath,
   type CommandRunResult,
 } from '../scripts/e2e-report.js';
+import {
+  buildUseCaseVideoArtifactDirName,
+  parseRecordUseCaseVideoArgs,
+} from '../scripts/record-use-case-videos.js';
 
 describe('E2E report tooling', () => {
   it('defaults to the CLI smoke preset', () => {
@@ -55,6 +64,39 @@ describe('E2E report tooling', () => {
   it('builds stable artifact directory names', () => {
     expect(buildE2EArtifactDirName(new Date('2026-04-30T16:00:01.123Z'), 'PR Review')).toBe(
       '2026-04-30T16-00-01-123Z-pr-review',
+    );
+  });
+
+  it('resolves Rspress base-path assets for local docs recordings', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'fpf-static-'));
+    await mkdir(join(root, 'static/css'), { recursive: true });
+    await writeFile(join(root, 'static/css/styles.css'), 'body{}');
+    await writeFile(join(root, 'start-here.html'), '<html></html>');
+
+    expect(resolveStaticPath(root, '/fpf-memory/static/css/styles.css', '/fpf-memory')).toBe(
+      join(root, 'static/css/styles.css'),
+    );
+    expect(resolveStaticPath(root, '/fpf-memory/start-here', '/fpf-memory')).toBe(
+      join(root, 'start-here.html'),
+    );
+  });
+
+  it('parses use-case video recording options', () => {
+    const args = parseRecordUseCaseVideoArgs([
+      '--skip-build',
+      '--artifact-root',
+      '.runtime/demo-videos',
+      '--duration-ms',
+      '2000',
+    ]);
+
+    expect(args).toEqual({
+      skipBuild: true,
+      artifactRoot: '.runtime/demo-videos',
+      durationMs: 2_000,
+    });
+    expect(buildUseCaseVideoArtifactDirName(new Date('2026-05-02T12:00:00.000Z'))).toBe(
+      '2026-05-02T12-00-00-000Z-fpf-use-cases',
     );
   });
 

@@ -70,6 +70,7 @@ export interface E2EReportResult {
 const DEFAULT_TIMEOUT_MS = 120_000;
 const DEFAULT_VIDEO_DURATION_MS = 5_000;
 const VIDEO_VIEWPORT = { width: 1280, height: 720 };
+export const DOCS_BASE_PATH = '/fpf-memory';
 
 export const E2E_PRESETS = {
   cli: {
@@ -505,8 +506,13 @@ async function recordReportVideo(input: {
     const video = page.video();
 
     if (input.recordTarget === 'docs') {
-      staticServer = await startStaticServer(resolve(input.cwd, 'doc_build'));
-      await page.goto(staticServer.url, { waitUntil: 'networkidle', timeout: 30_000 });
+      staticServer = await startStaticServer(resolve(input.cwd, 'doc_build'), {
+        basePath: DOCS_BASE_PATH,
+      });
+      await page.goto(new URL(`${DOCS_BASE_PATH}/`, staticServer.url).href, {
+        waitUntil: 'networkidle',
+        timeout: 30_000,
+      });
       await page.waitForTimeout(700);
       await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight / 2 }));
       await page.waitForTimeout(700);
@@ -542,7 +548,10 @@ interface StaticServer {
   close: () => Promise<void>;
 }
 
-async function startStaticServer(rootDir: string): Promise<StaticServer> {
+export async function startStaticServer(
+  rootDir: string,
+  options: { basePath?: string } = {},
+): Promise<StaticServer> {
   if (!existsSync(resolve(rootDir, 'index.html'))) {
     throw new Error(`docs recording target missing at ${rootDir}; run the docs E2E command first.`);
   }
@@ -550,7 +559,7 @@ async function startStaticServer(rootDir: string): Promise<StaticServer> {
   const server = createServer(async (request, response) => {
     try {
       const requestUrl = new URL(request.url ?? '/', 'http://127.0.0.1');
-      const filePath = resolveStaticPath(rootDir, requestUrl.pathname);
+      const filePath = resolveStaticPath(rootDir, requestUrl.pathname, options.basePath);
       response.setHeader('Content-Type', contentTypeFor(filePath));
       response.end(await readFile(filePath));
     } catch (error) {
@@ -573,8 +582,20 @@ async function startStaticServer(rootDir: string): Promise<StaticServer> {
   };
 }
 
-function resolveStaticPath(rootDir: string, pathname: string): string {
-  const decoded = decodeURIComponent(pathname);
+export function resolveStaticPath(
+  rootDir: string,
+  pathname: string,
+  basePath = '',
+): string {
+  let decoded = decodeURIComponent(pathname);
+  const normalizedBasePath = normalizeBasePath(basePath);
+  if (normalizedBasePath) {
+    if (decoded === normalizedBasePath) {
+      decoded = '/';
+    } else if (decoded.startsWith(`${normalizedBasePath}/`)) {
+      decoded = decoded.slice(normalizedBasePath.length);
+    }
+  }
   const safePath = decoded === '/' ? '/index.html' : decoded;
   let candidate = resolve(rootDir, `.${safePath}`);
   const normalizedRoot = rootDir.endsWith(sep) ? rootDir : `${rootDir}${sep}`;
@@ -591,6 +612,14 @@ function resolveStaticPath(rootDir: string, pathname: string): string {
     throw new Error(`Static file not found: ${relative(rootDir, candidate)}`);
   }
   return candidate;
+}
+
+function normalizeBasePath(basePath: string): string {
+  const trimmed = basePath.trim().replace(/\/+$/u, '');
+  if (!trimmed || trimmed === '/') {
+    return '';
+  }
+  return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
 }
 
 function closeServer(server: Server): Promise<void> {
