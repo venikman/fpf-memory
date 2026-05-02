@@ -605,6 +605,12 @@ export function resolveStaticPath(
   if (existsSync(candidate) && statSync(candidate).isDirectory()) {
     candidate = resolve(candidate, 'index.html');
   }
+  if (!existsSync(candidate)) {
+    const htmlCandidate = `${candidate}.html`;
+    if (existsSync(htmlCandidate)) {
+      candidate = htmlCandidate;
+    }
+  }
   if (!existsSync(candidate) && !extname(candidate)) {
     candidate = `${candidate}.html`;
   }

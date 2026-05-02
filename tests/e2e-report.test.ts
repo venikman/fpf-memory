@@ -15,7 +15,12 @@ import {
 } from '../scripts/e2e-report.js';
 import {
   buildUseCaseVideoArtifactDirName,
+  groupUseCaseScenariosByProduct,
   parseRecordUseCaseVideoArgs,
+  PRODUCT_SURFACES,
+  renderUseCaseVideoReadme,
+  USE_CASE_SCENARIOS,
+  type RecordedUseCase,
 } from '../scripts/record-use-case-videos.js';
 
 describe('E2E report tooling', () => {
@@ -70,14 +75,19 @@ describe('E2E report tooling', () => {
   it('resolves Rspress base-path assets for local docs recordings', async () => {
     const root = await mkdtemp(join(tmpdir(), 'fpf-static-'));
     await mkdir(join(root, 'static/css'), { recursive: true });
+    await mkdir(join(root, 'generated/patterns'), { recursive: true });
     await writeFile(join(root, 'static/css/styles.css'), 'body{}');
     await writeFile(join(root, 'start-here.html'), '<html></html>');
+    await writeFile(join(root, 'generated/patterns/A.1.1.html'), '<html></html>');
 
     expect(resolveStaticPath(root, '/fpf-memory/static/css/styles.css', '/fpf-memory')).toBe(
       join(root, 'static/css/styles.css'),
     );
     expect(resolveStaticPath(root, '/fpf-memory/start-here', '/fpf-memory')).toBe(
       join(root, 'start-here.html'),
+    );
+    expect(resolveStaticPath(root, '/fpf-memory/generated/patterns/A.1.1', '/fpf-memory')).toBe(
+      join(root, 'generated/patterns/A.1.1.html'),
     );
   });
 
@@ -96,8 +106,58 @@ describe('E2E report tooling', () => {
       durationMs: 2_000,
     });
     expect(buildUseCaseVideoArtifactDirName(new Date('2026-05-02T12:00:00.000Z'))).toBe(
-      '2026-05-02T12-00-00-000Z-fpf-use-cases',
+      '2026-05-02T12-00-00-000Z-fpf-product-use-cases',
     );
+  });
+
+  it('defines two use-case video scenarios for each product surface', () => {
+    const grouped = groupUseCaseScenariosByProduct(USE_CASE_SCENARIOS);
+
+    expect(PRODUCT_SURFACES).toEqual([
+      'Docs/wiki',
+      'MCP runtime',
+      'CLI runtime',
+      'Work evaluator',
+    ]);
+    for (const product of PRODUCT_SURFACES) {
+      expect(grouped[product].map((scenario) => scenario.slug)).toHaveLength(2);
+    }
+  });
+
+  it('keeps each use-case scenario narration complete', () => {
+    for (const scenario of USE_CASE_SCENARIOS) {
+      expect(scenario.slug).toMatch(/^[a-z0-9-]+$/u);
+      expect(scenario.title.length).toBeGreaterThan(0);
+      expect(scenario.initialState.length).toBeGreaterThan(0);
+      expect(scenario.problem.length).toBeGreaterThan(0);
+      expect(scenario.tools.length).toBeGreaterThan(0);
+      expect(scenario.outcome.length).toBeGreaterThan(0);
+      expect(scenario.recordingSteps.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('renders use-case video README grouped by product', () => {
+    const videos: RecordedUseCase[] = USE_CASE_SCENARIOS.map((scenario) => ({
+      slug: scenario.slug,
+      product: scenario.product,
+      title: scenario.title,
+      initialState: scenario.initialState,
+      problem: scenario.problem,
+      tools: scenario.tools,
+      outcome: scenario.outcome,
+      recordingSteps: scenario.recordingSteps,
+      kind: scenario.kind,
+      transcriptPath: `/tmp/${scenario.slug}.html`,
+      videoPath: `/tmp/${scenario.slug}.webm`,
+    }));
+
+    const readme = renderUseCaseVideoReadme(videos);
+
+    expect(readme).toContain('# FPF Product Use-Case Videos');
+    for (const product of PRODUCT_SURFACES) {
+      expect(readme).toContain(`## ${product}`);
+    }
+    expect(readme.match(/\.webm/g)?.length).toBe(USE_CASE_SCENARIOS.length);
   });
 
   it('renders markdown and html reports with escaped command output', () => {
