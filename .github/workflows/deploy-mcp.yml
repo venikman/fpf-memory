@@ -66,6 +66,7 @@ jobs:
   deploy:
     needs: guard
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     # Automatic deploys only run after the `CI` workflow succeeds on a
     # push to `main`. `workflow_dispatch` remains available as an explicit
     # maintainer override.
@@ -116,6 +117,7 @@ jobs:
             > .mastra-project.json
 
       - name: Deploy to Mastra Cloud
+        timeout-minutes: 8
         env:
           # The Mastra CLI reads `MASTRA_API_TOKEN` in headless mode.
           # The existing repo secret is `MASTRA_KEY` — remap at the
