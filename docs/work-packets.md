@@ -1,6 +1,6 @@
 ---
 title: "Work Packets"
-description: "Task-sized FPF packets for project review, PR review, specs, role/promise analysis, and agent workflows."
+description: "Task-sized FPF packets for project review, PR review, product-role feedback, specs, role/promise analysis, and agent workflows."
 outline: false
 ---
 
@@ -10,7 +10,7 @@ A work packet is a small grounded slice of FPF for doing one job. It is not a re
 
 ## What this page is
 
-This is the task-sized operating surface for using FPF in real work. It turns the framework into bounded packets for project review, PR review, spec writing, role analysis, and agent workflows.
+This is the task-sized operating surface for using FPF in real work. It turns the framework into bounded packets for project review, PR review, product-role feedback, spec writing, role analysis, and agent workflows.
 
 ## Methodology
 
@@ -58,6 +58,30 @@ Packet:
 - Verdict: merge, fix first, or split scope.
 
 Done when: every finding points at a concrete behavior, file, or missing check.
+
+## Product-role feedback packet
+
+Goal: act as one concrete user role and turn product friction into evidence-backed adoption feedback.
+
+Use:
+
+- [E.12 Human Feedback Loop](/generated/patterns/E.12)
+- [route:project-alignment](/generated/routes/route_project-alignment)
+- [A.1.1 U.BoundedContext](/generated/patterns/A.1.1)
+- [A.15 Role / Method / Work stratification](/generated/patterns/A.15)
+- [A.2.2 U.Capability](/generated/patterns/A.2.2)
+- [A.2.3 U.PromiseContent](/generated/patterns/A.2.3)
+
+Packet:
+
+- Persona: which role is trying the product, and what job do they need done?
+- Surface: docs wiki, hosted MCP, CLI, evaluator, deploy evidence, or automation feedback.
+- Job: what concrete task should be possible without pasting the full FPF?
+- Friction: what explanation, route, affordance, evidence, or compact context was missing?
+- Evidence: URL, command, MCP call, screenshot, video, issue, discussion, or log path.
+- Feedback: one proposed improvement, severity, and validation path.
+
+Done when: the role/job can be replayed by another person, the feedback points at exact evidence, and the output is either a focused PR, issue, GitHub Discussion, or no-new-feedback checkpoint.
 
 ## Specification writing packet
 

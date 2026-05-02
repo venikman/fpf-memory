@@ -80,6 +80,7 @@ export interface ParsedRecordUseCaseVideoArgs {
   skipBuild: boolean;
   artifactRoot: string;
   durationMs: number;
+  scenarioSlugs: string[];
 }
 
 export interface RecordedUseCase {
@@ -202,6 +203,41 @@ export const USE_CASE_SCENARIOS: UseCaseVideoScenario[] = [
         heading: 'Relations',
         stage: 'Useful outcome',
         message: 'The reviewer can inspect relation context before accepting or challenging the citation.',
+      },
+    ],
+  },
+  {
+    kind: 'docs',
+    slug: 'docs-product-role-feedback',
+    product: 'Docs/wiki',
+    title: 'Dogfood product-role feedback',
+    initialState: 'A product maintainer wants real adoption feedback, not a generic opinion.',
+    problem: 'Feedback must come from one role doing one job with bounded FPF context and visible evidence.',
+    tools: ['/start-here', '/work-packets#product-role-feedback-packet', '/mcp-recipes#dogfood-a-product-role'],
+    outcome: 'The maintainer gets a replayable job, friction evidence, a proposed improvement, and a validation path.',
+    recordingSteps: [
+      'Open Start Here and select the product-role feedback doorway.',
+      'Open the product-role feedback packet and show the evidence fields.',
+      'Open the MCP recipe that turns the run into discussion-ready feedback.',
+    ],
+    docsSteps: [
+      {
+        path: '/start-here',
+        heading: 'Dogfood a product as a user role',
+        stage: 'Initial state',
+        message: 'The doorway frames feedback as one role doing one concrete product job.',
+      },
+      {
+        path: '/work-packets#product-role-feedback-packet',
+        heading: 'Product-role feedback packet',
+        stage: 'Tool in action',
+        message: 'The packet separates persona, surface, job, friction, evidence, and proposed improvement.',
+      },
+      {
+        path: '/mcp-recipes#dogfood-a-product-role',
+        heading: 'Dogfood a product role',
+        stage: 'Useful outcome',
+        message: 'The recipe produces discussion-ready feedback without loading the full FPF.',
       },
     ],
   },
@@ -447,11 +483,14 @@ export function parseRecordUseCaseVideoArgs(args: string[]): ParsedRecordUseCase
     skipBuild: false,
     artifactRoot: DEFAULT_ARTIFACT_ROOT,
     durationMs: DEFAULT_DURATION_MS,
+    scenarioSlugs: [],
   };
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index]!;
     switch (arg) {
+      case '--':
+        break;
       case '--skip-build':
         parsed.skipBuild = true;
         break;
@@ -463,12 +502,34 @@ export function parseRecordUseCaseVideoArgs(args: string[]): ParsedRecordUseCase
         parsed.durationMs = readPositiveInteger(args, index, arg);
         index += 1;
         break;
+      case '--scenario':
+        parsed.scenarioSlugs.push(readOptionValue(args, index, arg));
+        index += 1;
+        break;
       default:
         throw new Error(`Unknown record-use-case-videos option: ${arg}`);
     }
   }
 
   return parsed;
+}
+
+export function selectUseCaseScenarios(scenarioSlugs: string[]): UseCaseVideoScenario[] {
+  if (scenarioSlugs.length === 0) {
+    return USE_CASE_SCENARIOS;
+  }
+
+  const selected = scenarioSlugs.map((slug) => {
+    const scenario = USE_CASE_SCENARIOS.find((candidate) => candidate.slug === slug);
+    if (!scenario) {
+      throw new Error(
+        `Unknown use-case video scenario "${slug}". Expected one of: ${USE_CASE_SCENARIOS.map((candidate) => candidate.slug).join(', ')}`,
+      );
+    }
+    return scenario;
+  });
+
+  return selected;
 }
 
 export function buildUseCaseVideoArtifactDirName(now: Date): string {
@@ -542,7 +603,8 @@ export async function recordUseCaseVideos(
   const browser = await chromium.launch({ headless: true });
   try {
     const videos: RecordedUseCase[] = [];
-    for (const scenario of USE_CASE_SCENARIOS) {
+    const scenarios = selectUseCaseScenarios(args.scenarioSlugs);
+    for (const scenario of scenarios) {
       if (scenario.kind === 'docs') {
         videos.push(
           await recordDocsUseCase({

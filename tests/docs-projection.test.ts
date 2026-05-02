@@ -223,6 +223,7 @@ describe('docs projection', () => {
       expect(rootIndex).toContain('## Start here');
       expect(rootIndex).toContain('[Adoption guide](/start-here)');
       expect(rootIndex).toContain('[Work packets](/work-packets)');
+      expect(rootIndex).toContain('product-role feedback');
       expect(rootIndex).toContain('[MCP recipes](/mcp-recipes)');
       expect(rootIndex).toContain('[Demo videos](/use-case-videos)');
       expect(rootIndex).toContain('## Navigate');
@@ -298,11 +299,17 @@ describe('docs projection', () => {
       expect(await readFile(resolve(outDir, 'work-packets.html'), 'utf8')).toContain(
         'This is the task-sized operating surface',
       );
+      expect(await readFile(resolve(outDir, 'work-packets.html'), 'utf8')).toContain(
+        'Product-role feedback packet',
+      );
       expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
         'Use MCP instead of pasted context',
       );
       expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
         'This is the agent and tool-use guide for fpf-memory',
+      );
+      expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
+        'Dogfood a product role',
       );
       expect(await readFile(resolve(outDir, 'use-case-videos.html'), 'utf8')).toContain(
         'Product-level FPF use case recordings',

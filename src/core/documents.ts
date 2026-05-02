@@ -319,7 +319,7 @@ function renderHomeMarkdown(
     '## Start here',
     '',
     '- [Adoption guide](/start-here) — choose the first FPF path for a person, team, or agent.',
-    '- [Work packets](/work-packets) — use FPF in project review, PR review, specification work, role/promise/capability analysis, and agent workflows.',
+    '- [Work packets](/work-packets) — use FPF in project review, PR review, product-role feedback, specification work, role/promise/capability analysis, and agent workflows.',
     '- [MCP recipes](/mcp-recipes) — retrieve compact grounded slices from the hosted or local MCP server.',
     '- [Demo videos](/use-case-videos) — record CSS-rendered walkthroughs that show how people and agents use FPF without a full-spec paste.',
     '',

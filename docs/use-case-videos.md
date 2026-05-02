@@ -28,6 +28,12 @@ For a quicker local check:
 bun run videos:use-cases -- --skip-build --duration-ms 3000
 ```
 
+For one new adoption path:
+
+```bash
+bun run videos:use-cases -- --scenario docs-product-role-feedback --duration-ms 5000
+```
+
 Artifacts are written under `.runtime/use-case-videos/<timestamp>-fpf-product-use-cases/`. That folder includes a `README.md`, `manifest.json`, one `.webm` per scenario, and transcript pages for command and MCP recordings.
 
 ## Scenario set
@@ -35,6 +41,7 @@ Artifacts are written under `.runtime/use-case-videos/<timestamp>-fpf-product-us
 | Surface | Video | Shows |
 | --- | --- | --- |
 | Docs wiki | Pick the right doorway | Start from the adoption page, choose a work doorway, then open the matching route or packet. |
+| Docs wiki | Dogfood product-role feedback | Act as one product user role, capture friction, and turn it into discussion-ready evidence. |
 | Docs wiki | Audit exact source | Move from a route to the exact generated pattern page when wording matters. |
 | MCP runtime | Bounded agent context | Retrieve a compact project-alignment packet through MCP instead of pasting all FPF. |
 | MCP runtime | Retrieval provenance | Use the full local MCP surface when trace evidence matters. |

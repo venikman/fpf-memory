@@ -19,6 +19,7 @@ import {
   parseRecordUseCaseVideoArgs,
   PRODUCT_SURFACES,
   renderUseCaseVideoReadme,
+  selectUseCaseScenarios,
   USE_CASE_SCENARIOS,
   type RecordedUseCase,
 } from '../scripts/record-use-case-videos.js';
@@ -93,6 +94,7 @@ describe('E2E report tooling', () => {
 
   it('parses use-case video recording options', () => {
     const args = parseRecordUseCaseVideoArgs([
+      '--',
       '--skip-build',
       '--artifact-root',
       '.runtime/demo-videos',
@@ -104,13 +106,26 @@ describe('E2E report tooling', () => {
       skipBuild: true,
       artifactRoot: '.runtime/demo-videos',
       durationMs: 2_000,
+      scenarioSlugs: [],
     });
     expect(buildUseCaseVideoArtifactDirName(new Date('2026-05-02T12:00:00.000Z'))).toBe(
       '2026-05-02T12-00-00-000Z-fpf-product-use-cases',
     );
   });
 
-  it('defines two use-case video scenarios for each product surface', () => {
+  it('selects individual use-case video scenarios for incremental recordings', () => {
+    const args = parseRecordUseCaseVideoArgs(['--scenario', 'docs-product-role-feedback']);
+
+    expect(args.scenarioSlugs).toEqual(['docs-product-role-feedback']);
+    expect(selectUseCaseScenarios(args.scenarioSlugs).map((scenario) => scenario.slug)).toEqual([
+      'docs-product-role-feedback',
+    ]);
+    expect(() => selectUseCaseScenarios(['missing-scenario'])).toThrow(
+      /Unknown use-case video scenario/u,
+    );
+  });
+
+  it('defines at least two use-case video scenarios for each product surface', () => {
     const grouped = groupUseCaseScenariosByProduct(USE_CASE_SCENARIOS);
 
     expect(PRODUCT_SURFACES).toEqual([
@@ -120,8 +135,11 @@ describe('E2E report tooling', () => {
       'Work evaluator',
     ]);
     for (const product of PRODUCT_SURFACES) {
-      expect(grouped[product].map((scenario) => scenario.slug)).toHaveLength(2);
+      expect(grouped[product].map((scenario) => scenario.slug).length).toBeGreaterThanOrEqual(2);
     }
+    expect(grouped['Docs/wiki'].map((scenario) => scenario.slug)).toContain(
+      'docs-product-role-feedback',
+    );
   });
 
   it('keeps each use-case scenario narration complete', () => {

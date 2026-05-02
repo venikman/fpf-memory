@@ -66,6 +66,23 @@ Prompt:
 Use only the fpf_memory MCP server. Build an FPF work packet for <task>. Include goal, relevant route or IDs, operating questions, constraints, acceptance checks, risks, and one next move. Do not paste the whole FPF.
 ```
 
+## Dogfood a product role
+
+Prompt:
+
+```txt
+Use only bounded FPF retrieval plus direct product evidence. Act as <persona> trying to complete <job> with fpf-memory. Return Context | Persona/job | Surface | FPF IDs used | Evidence | Friction | Proposed improvement | Severity | Validation path. Keep the answer discussion-ready and do not paste the full FPF.
+```
+
+Good personas to rotate:
+
+- new adopter
+- project lead
+- PR/code reviewer
+- spec writer
+- agent integrator
+- product maintainer
+
 ## Review work with FPF
 
 Prompt:
