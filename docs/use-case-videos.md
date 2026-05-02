@@ -8,6 +8,14 @@ outline: false
 
 Use videos to show FPF as a working surface, not only as a reference document. Each recording should show a concrete job, the smallest FPF route or tool call needed, and the useful outcome.
 
+## What this page is
+
+This is the promotion and adoption evidence page for fpf-memory. It tracks recordings that show concrete FPF use cases for people and agents; it is not a general video library or a generated FPF reference page.
+
+## Methodology
+
+Record one repeatable job at a time. The video must show the initial problem, the FPF route, packet, MCP call, or CLI command used, and the outcome someone can copy into their own work.
+
 ## Record the current set
 
 ```bash

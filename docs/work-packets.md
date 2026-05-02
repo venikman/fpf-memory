@@ -8,6 +8,14 @@ outline: false
 
 A work packet is a small grounded slice of FPF for doing one job. It is not a replacement for the full specification.
 
+## What this page is
+
+This is the task-sized operating surface for using FPF in real work. It turns the framework into bounded packets for project review, PR review, spec writing, role analysis, and agent workflows.
+
+## Methodology
+
+Each packet keeps five things separate: the goal, the relevant route or pattern IDs, the operating questions, the constraints, and the acceptance checks. Start with the packet, retrieve exact source only when needed, and stop when the done condition is satisfied.
+
 ## Project review packet
 
 Goal: make a project legible enough to decide the next work move.

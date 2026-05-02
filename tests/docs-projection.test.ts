@@ -89,10 +89,33 @@ describe('docs projection', () => {
     const patternPage =
       projection.pagesByMarkdownPath['docs/generated/patterns/A.2.md']?.markdown ?? '';
 
+    expect(patternPage).toContain('## What this page is');
+    expect(patternPage).toContain('This is a generated FPF pattern page');
+    expect(patternPage).toContain('## Methodology');
     expect(patternPage).toContain('## Problem frame');
     expect(patternPage).not.toContain('## A.2:1 - Problem frame');
     expect(patternPage).toContain('> Pattern <span class="fpf-pid fpf-pid--a">A.2</span>');
     expect(patternPage).not.toContain('- **ID:** `A.2`');
+  });
+
+  it('explains generated glossary, changelog, and route pages by source and method', () => {
+    const projection = buildDocsProjection(snapshot);
+    const glossaryPage =
+      projection.pagesByMarkdownPath['docs/generated/patterns/H.1.md']?.markdown ?? '';
+    const changeLogPage =
+      projection.pagesByMarkdownPath['docs/generated/patterns/I.3.md']?.markdown ?? '';
+    const routeIndex =
+      projection.pagesByMarkdownPath['docs/generated/routes/index.md']?.markdown ?? '';
+    const routePage =
+      projection.pagesByMarkdownPath['docs/generated/routes/route_project-alignment.md']
+        ?.markdown ?? '';
+
+    expect(glossaryPage).toContain('This is the FPF glossary');
+    expect(glossaryPage).toContain('not a glossary of fpf-memory UI');
+    expect(changeLogPage).toContain('This is the FPF specification change log');
+    expect(changeLogPage).toContain('not the fpf-memory product changelog');
+    expect(routeIndex).toContain('They are not website routes');
+    expect(routePage).toContain('It is not a website route or application navigation route');
   });
 
   it('keeps hyphenated cluster names intact in breadcrumbs', () => {
@@ -207,6 +230,7 @@ describe('docs projection', () => {
       expect(rootIndex).toContain('[Routes](/generated/routes/index)');
       expect(rootIndex).toContain('[Glossary](/generated/patterns/H.1)');
       expect(rootIndex).toContain('[Change log](/generated/patterns/I.3)');
+      expect(rootIndex).toContain('FPF specification change log from the published source');
       expect(rootIndex).toContain('## MCP endpoint');
       expect(rootIndex).toContain('fpf-memory.server.mastra.cloud');
       expect(rootIndex).toContain('https://github.com/venikman/fpf-memory#run-and-test-mcp');
@@ -256,17 +280,35 @@ describe('docs projection', () => {
       expect(
         await readFile(resolve(outDir, 'generated/routes/route_project-alignment.html'), 'utf8'),
       ).toContain('project alignment');
+      expect(
+        await readFile(resolve(outDir, 'generated/patterns/I.3.html'), 'utf8'),
+      ).toContain('This is the FPF specification change log');
+      expect(
+        await readFile(resolve(outDir, 'generated/routes/index.html'), 'utf8'),
+      ).toContain('They are not website routes');
       expect(await readFile(resolve(outDir, 'start-here.html'), 'utf8')).toContain(
         'Pick a doorway',
+      );
+      expect(await readFile(resolve(outDir, 'start-here.html'), 'utf8')).toContain(
+        'This is the adoption entry surface',
       );
       expect(await readFile(resolve(outDir, 'work-packets.html'), 'utf8')).toContain(
         'Project review packet',
       );
+      expect(await readFile(resolve(outDir, 'work-packets.html'), 'utf8')).toContain(
+        'This is the task-sized operating surface',
+      );
       expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
         'Use MCP instead of pasted context',
       );
+      expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
+        'This is the agent and tool-use guide for fpf-memory',
+      );
       expect(await readFile(resolve(outDir, 'use-case-videos.html'), 'utf8')).toContain(
         'Product-level FPF use case recordings',
+      );
+      expect(await readFile(resolve(outDir, 'use-case-videos.html'), 'utf8')).toContain(
+        'This is the promotion and adoption evidence page',
       );
     } finally {
       await rm(tempRoot, { recursive: true, force: true });

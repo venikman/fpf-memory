@@ -8,6 +8,14 @@ outline: false
 
 Use MCP instead of pasted context when the work needs grounded FPF context, exact IDs, or deterministic retrieval provenance.
 
+## What this page is
+
+This is the agent and tool-use guide for fpf-memory's MCP surface. It explains how to retrieve compact grounded FPF context instead of pasting the full specification into a conversation.
+
+## Methodology
+
+Check runtime health first, find the right doorway with search or query tools, read exact generated docs only when wording matters, and keep answers cited to route or pattern IDs. Hosted MCP exposes the public work surface; local full mode is for deeper inspection and provenance.
+
 Hosted endpoint:
 
 ```txt

@@ -232,6 +232,14 @@ function renderPatternCatalogMarkdown(
     }),
     `# ${options.heading ?? options.title}`,
     '',
+    '## What this page is',
+    '',
+    'This is the full generated catalog of FPF pattern IDs from the published FPF snapshot. It is not the first adoption path and it is not a fpf-memory product feature list.',
+    '',
+    '## Methodology',
+    '',
+    'Start with [Start Here](/start-here), a route, or a work packet when the job is active. Use this catalog when you need to audit the full FPF reference, open an exact ID, or compare neighboring patterns by Part.',
+    '',
     `Generated pages: ${Object.keys(snapshot.patternGraph.nodes).length}`,
   ];
 
@@ -300,6 +308,14 @@ function renderHomeMarkdown(
     '',
     'Use the full First Principles Framework through small, grounded entry points instead of pasting the whole specification into every conversation.',
     '',
+    '## What this page is',
+    '',
+    'This is the fpf-memory adoption landing page for the published FPF reference. It explains how to enter FPF through small working surfaces; it is not the full specification, and it is not a product release page.',
+    '',
+    '## Methodology',
+    '',
+    'Name the work first, choose the smallest matching route or packet, then open generated pattern pages only when exact wording matters. Keep the full FPF intact as the canonical source while retrieving only the slice needed for the task.',
+    '',
     '## Start here',
     '',
     '- [Adoption guide](/start-here) — choose the first FPF path for a person, team, or agent.',
@@ -309,10 +325,10 @@ function renderHomeMarkdown(
     '',
     '## Navigate',
     '',
-    `- [Patterns](/generated/patterns/index) — ${patternCount} patterns across parts A–K`,
-    `- [Routes](/generated/routes/index) — ${routeCount} routes`,
-    '- [Glossary](/generated/patterns/H.1)',
-    '- [Change log](/generated/patterns/I.3)',
+    `- [Patterns](/generated/patterns/index) — full generated FPF pattern catalog with ${patternCount} patterns across parts A-K.`,
+    `- [Routes](/generated/routes/index) — ${routeCount} generated FPF working paths through pattern IDs, not website routes.`,
+    '- [Glossary](/generated/patterns/H.1) — FPF term glossary from the published source, not fpf-memory UI vocabulary.',
+    '- [Change log](/generated/patterns/I.3) — FPF specification change log from the published source, not fpf-memory product release notes.',
     '',
     '## MCP endpoint',
     '',
@@ -347,6 +363,14 @@ function buildRouteIndexPage(snapshot: Snapshot): GeneratedDocPage {
       outline: false,
     }),
     '# Route Catalog',
+    '',
+    '## What this page is',
+    '',
+    'Routes are generated FPF working paths through pattern IDs. They are not website routes, app routes, or navigation implementation details.',
+    '',
+    '## Methodology',
+    '',
+    'Use a route when the work shape is known but the exact patterns are not. Follow ordered steps first, use optional and landing points only when the task needs them, then open individual pattern pages for exact wording or audit evidence.',
     '',
     `Generated pages: ${routes.length}`,
   ];
@@ -395,6 +419,14 @@ function buildPrefaceIndexPage(snapshot: Snapshot): GeneratedDocPage {
       outline: false,
     }),
     '# Preface Catalog',
+    '',
+    '## What this page is',
+    '',
+    'This catalog lists generated reference pages from FPF preface and supporting sections. These pages explain how to read the specification; they are not fpf-memory product documentation.',
+    '',
+    '## Methodology',
+    '',
+    'Use these pages when you need interpretation guidance before applying a route or pattern. For active work, return to Start Here, a route, or a work packet after the reading burden is clear.',
   ];
 
   for (const [group, items] of groups.entries()) {
@@ -449,6 +481,8 @@ function renderPatternPage(snapshot: Snapshot, pattern: PatternRecord): string {
     lines.push(`> ${pattern.cluster}`);
   }
 
+  appendPatternContext(lines, pattern);
+
   if (introText) {
     lines.push('', introText);
   }
@@ -490,6 +524,47 @@ function renderPatternPage(snapshot: Snapshot, pattern: PatternRecord): string {
   }
 
   return `${lines.join('\n')}\n`;
+}
+
+function appendPatternContext(lines: string[], pattern: PatternRecord): void {
+  const context = patternPageContext(pattern);
+  lines.push(
+    '',
+    '## What this page is',
+    '',
+    context.what,
+    '',
+    '## Methodology',
+    '',
+    context.methodology,
+  );
+}
+
+function patternPageContext(pattern: PatternRecord): { what: string; methodology: string } {
+  if (pattern.id === 'H.1') {
+    return {
+      what:
+        'This is the FPF glossary generated from the published FPF source. It defines framework terms; it is not a glossary of fpf-memory UI, repository, or deployment terms.',
+      methodology:
+        'Use it to normalize terms before route or pattern work. When a term changes a decision, follow its linked or cited pattern ID instead of treating the glossary entry as a whole-task answer.',
+    };
+  }
+
+  if (pattern.id === 'I.3') {
+    return {
+      what:
+        'This is the FPF specification change log generated from the published FPF source. It is not the fpf-memory product changelog, product release notes, or GitHub history.',
+      methodology:
+        'Use it to understand semantic changes inside FPF itself. Use repository PRs, commits, or releases for product changes, and cite I.3 only when the specification evolution matters to the work.',
+    };
+  }
+
+  return {
+    what:
+      'This is a generated FPF pattern page projected from the published FPF source. It is canonical FPF content for this ID; it is not a fpf-memory product feature page.',
+    methodology:
+      'Read the ID, status, type, and normativity first. Use the content for exact wording, the relations for adjacent concepts, and citations to keep active work grounded without pasting the whole specification.',
+  };
 }
 
 function normalizedCatalogReminder(
@@ -534,6 +609,14 @@ function renderRoutePage(snapshot: Snapshot, route: RouteRecord): string {
     '',
     `# ${route.name}`,
     `> Route ${inlineCode(route.id)}`,
+    '',
+    '## What this page is',
+    '',
+    'This is an FPF route: a curated working path through pattern IDs. It is not a website route or application navigation route.',
+    '',
+    '## Methodology',
+    '',
+    'Use the ordered steps as the first path through the framework. Treat optional steps, landing points, route surfaces, and reroutes as controls for scope, ownership, and common wrong turns. Open exact pattern pages only when the work depends on their wording.',
   ];
 
   if (route.firstHonestBurden) {
@@ -581,6 +664,14 @@ function renderPrefacePage(snapshot: Snapshot, sectionId: string): string {
     '',
     `# ${section.title}`,
     `> Preface node ${inlineCode(sectionId)}`,
+    '',
+    '## What this page is',
+    '',
+    'This is generated FPF reference text from the specification preface or supporting sections. It helps interpret FPF; it is not fpf-memory product documentation.',
+    '',
+    '## Methodology',
+    '',
+    'Use it to understand how the specification wants to be read, then return to a route, pattern, or work packet for active work. Cite generated IDs only when the wording changes the task decision.',
   ];
 
   if (anchor.text.trim() || section.childIds.length > 0) {

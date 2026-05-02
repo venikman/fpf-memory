@@ -10,6 +10,14 @@ FPF is meant to stay whole. Adoption should be small.
 
 Use this page to choose the first doorway, then move into the reference only when the work needs exact pattern text.
 
+## What this page is
+
+This is the adoption entry surface for fpf-memory's FPF wiki. It helps a person, team, or agent choose a first practical path; it is not the full FPF specification and it is not a product changelog.
+
+## Methodology
+
+Name the work shape first, pick the smallest matching doorway, and keep exact FPF IDs visible only where they change the work. The full catalog stays available for audit, but it should not be the first mental model.
+
 ## Pick a doorway
 
 | Work | Start with | Good output |
