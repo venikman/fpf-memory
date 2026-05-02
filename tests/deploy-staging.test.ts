@@ -65,6 +65,10 @@ describe('stageFromPublished', () => {
   });
 
   it('copies published spec + snapshot into the hosted staging tree', async () => {
+    await mkdir(resolve(hostedPublicDir, '.runtime/fpf-index'), { recursive: true });
+    await writeFile(resolve(hostedPublicDir, 'FPF-spec.md'), '# stale legacy spec\n');
+    await writeFile(resolve(hostedPublicDir, '.runtime/fpf-index/snapshot.json'), '{}\n');
+
     const manifest = await stageFromPublished(
       {
         sourcePath: publishedSpecPath,
@@ -117,6 +121,12 @@ describe('stageFromPublished', () => {
         compilerFingerprint,
       })}\n`,
     );
+    await expect(readFile(resolve(hostedPublicDir, 'FPF-spec.md'), 'utf8')).rejects.toThrow(
+      /ENOENT/,
+    );
+    await expect(
+      readFile(resolve(hostedPublicDir, '.runtime/fpf-index/snapshot.json'), 'utf8'),
+    ).rejects.toThrow(/ENOENT/);
 
     // Fix for #48: staged paths must live outside any dotfile directory so
     // `bunx mastra server deploy`'s zip step doesn't silently drop them.

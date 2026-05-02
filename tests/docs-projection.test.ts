@@ -36,11 +36,10 @@ async function copyNonGeneratedDocs(srcRoot: string, dstRoot: string) {
     const fullPath = resolve(entry.parentPath, entry.name);
     const relPath = relative(srcRoot, fullPath);
     if (relPath.startsWith('generated/') || relPath.startsWith('architecture/html/')) continue;
-    // `docs/index.md` is generator output (the site root now serves the
-    // pattern catalog). `generateDocsSite` writes it into the temp docsRoot
-    // directly, so copying the committed source tree's copy here would
-    // potentially overwrite freshly-generated content with a stale dev-
-    // machine copy.
+    // `docs/index.md` is generator output (the adoption landing). The
+    // generator writes it into the temp docsRoot directly, so copying the
+    // committed source tree's copy here would potentially overwrite freshly
+    // generated content with a stale dev-machine copy.
     if (relPath === 'index.md') continue;
     const target = resolve(dstRoot, relPath);
     await mkdir(dirname(target), { recursive: true });
@@ -192,12 +191,16 @@ describe('docs projection', () => {
       expect(
         await readFile(resolve(docsRoot, 'generated/patterns/index.md'), 'utf8'),
       ).toContain('# Pattern Catalog');
-      // The home page is a short landing, not a second copy of the catalog
-      // (the 237-link wall lives at `/generated/patterns/index`). It links
-      // into the four navigable surfaces and surfaces the hosted endpoint.
+      // The home page is an adoption landing, not a second copy of the
+      // catalog (the 237-link wall lives at `/generated/patterns/index`).
+      // It points readers to work packets before the full reference wall.
       const rootIndex = await readFile(resolve(docsRoot, 'index.md'), 'utf8');
       expect(rootIndex).toContain('title: "FPF Reference"');
       expect(rootIndex).toContain('# FPF Reference');
+      expect(rootIndex).toContain('## Start here');
+      expect(rootIndex).toContain('[Adoption guide](/start-here)');
+      expect(rootIndex).toContain('[Work packets](/work-packets)');
+      expect(rootIndex).toContain('[MCP recipes](/mcp-recipes)');
       expect(rootIndex).toContain('## Navigate');
       expect(rootIndex).toContain('[Patterns](/generated/patterns/index)');
       expect(rootIndex).toContain('[Routes](/generated/routes/index)');
@@ -252,6 +255,15 @@ describe('docs projection', () => {
       expect(
         await readFile(resolve(outDir, 'generated/routes/route_project-alignment.html'), 'utf8'),
       ).toContain('project alignment');
+      expect(await readFile(resolve(outDir, 'start-here.html'), 'utf8')).toContain(
+        'Pick a doorway',
+      );
+      expect(await readFile(resolve(outDir, 'work-packets.html'), 'utf8')).toContain(
+        'Project review packet',
+      );
+      expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
+        'Use MCP instead of pasted context',
+      );
     } finally {
       await rm(tempRoot, { recursive: true, force: true });
     }

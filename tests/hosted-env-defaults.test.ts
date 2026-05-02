@@ -82,24 +82,55 @@ describe('applyHostedEnvDefaults', () => {
     expect(runtime.artifactDir).toBe(HOSTED_STAGED_ARTIFACT_DIR);
   });
 
-  it('leaves explicit env vars untouched when hosted files exist', async () => {
+  it('leaves explicit env vars untouched when they resolve to real runtime inputs', async () => {
     await writeHostedStage(tempRoot);
+    const customSpecPath = resolve(tempRoot, 'custom/FPF-Spec.md');
+    const customArtifactDir = resolve(tempRoot, 'custom/fpf-index');
+    await mkdir(customArtifactDir, { recursive: true });
+    await writeFile(customSpecPath, '# custom spec\n');
 
     const env = applyHostedEnvDefaults({
-      FPF_SPEC_SOURCE_PATH: '/custom/path/to/FPF-Spec.md',
-      FPF_RUNTIME_ARTIFACT_DIR: '/custom/artifact/dir',
+      FPF_SPEC_SOURCE_PATH: customSpecPath,
+      FPF_RUNTIME_ARTIFACT_DIR: customArtifactDir,
     } as NodeJS.ProcessEnv, { cwd: tempRoot });
-    expect(env.FPF_SPEC_SOURCE_PATH).toBe('/custom/path/to/FPF-Spec.md');
-    expect(env.FPF_RUNTIME_ARTIFACT_DIR).toBe('/custom/artifact/dir');
+    expect(env.FPF_SPEC_SOURCE_PATH).toBe(customSpecPath);
+    expect(env.FPF_RUNTIME_ARTIFACT_DIR).toBe(customArtifactDir);
   });
 
-  it('fills only the missing half when hosted files exist and the caller sets one of the vars', async () => {
+  it('repairs stale explicit env vars when hosted files exist but configured paths are missing', async () => {
     await writeHostedStage(tempRoot);
 
     const env = applyHostedEnvDefaults({
-      FPF_SPEC_SOURCE_PATH: '/custom/spec.md',
+      FPF_SPEC_SOURCE_PATH: '/app/FPF-spec.md',
+      FPF_RUNTIME_ARTIFACT_DIR: '/app/.runtime/fpf-index',
     } as NodeJS.ProcessEnv, { cwd: tempRoot });
-    expect(env.FPF_SPEC_SOURCE_PATH).toBe('/custom/spec.md');
+    expect(env.FPF_SPEC_SOURCE_PATH).toBe(HOSTED_STAGED_SOURCE_PATH);
+    expect(env.FPF_RUNTIME_ARTIFACT_DIR).toBe(HOSTED_STAGED_ARTIFACT_DIR);
+  });
+
+  it('repairs known legacy hosted env vars even when legacy files exist', async () => {
+    await writeHostedStage(tempRoot);
+    await writeFile(resolve(tempRoot, 'FPF-spec.md'), '# legacy spec\n');
+    await mkdir(resolve(tempRoot, '.runtime/fpf-index'), { recursive: true });
+
+    const env = applyHostedEnvDefaults({
+      FPF_SPEC_SOURCE_PATH: 'FPF-spec.md',
+      FPF_RUNTIME_ARTIFACT_DIR: '.runtime/fpf-index',
+    } as NodeJS.ProcessEnv, { cwd: tempRoot });
+    expect(env.FPF_SPEC_SOURCE_PATH).toBe(HOSTED_STAGED_SOURCE_PATH);
+    expect(env.FPF_RUNTIME_ARTIFACT_DIR).toBe(HOSTED_STAGED_ARTIFACT_DIR);
+  });
+
+  it('fills only the missing half when hosted files exist and the caller sets a valid var', async () => {
+    await writeHostedStage(tempRoot);
+    const customSpecPath = resolve(tempRoot, 'custom/FPF-Spec.md');
+    await mkdir(dirname(customSpecPath), { recursive: true });
+    await writeFile(customSpecPath, '# custom spec\n');
+
+    const env = applyHostedEnvDefaults({
+      FPF_SPEC_SOURCE_PATH: customSpecPath,
+    } as NodeJS.ProcessEnv, { cwd: tempRoot });
+    expect(env.FPF_SPEC_SOURCE_PATH).toBe(customSpecPath);
     expect(env.FPF_RUNTIME_ARTIFACT_DIR).toBe(HOSTED_STAGED_ARTIFACT_DIR);
   });
 

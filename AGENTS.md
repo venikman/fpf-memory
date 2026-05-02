@@ -42,6 +42,7 @@ For every non-trivial Codex implementation or review-fix task, run the closest r
 
 - Prefer not treating a repo-root spec checkout as the source of truth; use `bun run spec:download` or set `FPF_PUBLISH_SOURCE_PATH` to a local checkout (for example `fpf-sync`) when refreshing the committed `published/current/**` surface.
 - Keep `FPF_SPEC_SOURCE_PATH` aligned across shell or project `.env`, MCP host configuration (`server.json` `env`), and any other entrypoints so CLI, MCP, and docs builds use the same spec file.
+- When strategy, architecture, adoption UX, or wording needs a real second opinion, prepare a focused external GPT-5.5 Pro critique prompt for the user to run manually; do not depend on that channel for repo facts, tests, deploy evidence, or automation.
 
 ## Learned Workspace Facts
 

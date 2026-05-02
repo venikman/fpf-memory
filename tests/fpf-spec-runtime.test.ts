@@ -126,6 +126,8 @@ describe('FpfRuntime', () => {
     }
   });
 
+  // Snapshot construction plus several downstream queries can cross the
+  // default 20s timeout on GitHub runners under parallel load.
   it('builds a snapshot and keeps the key use-case IDs queryable', async () => {
     const audit = await runtime.refresh();
     expect(audit.rebuilt).toBe(true);
@@ -147,6 +149,24 @@ describe('FpfRuntime', () => {
     expect(roleWorkflow.ids).toEqual(
       expect.arrayContaining(['A.2.1', 'A.1.1', 'A.2.5']),
     );
+
+    const projectReview = await runtime.query(
+      'Which FPF route or patterns should guide project review work?',
+      'compact',
+    );
+    expect(projectReview.status).toBe('ok');
+    expect(projectReview.ids).toEqual(expect.arrayContaining(['E.8', 'A.15', 'E.19']));
+    expect(projectReview.answer.length).toBeGreaterThan(0);
+    expect(projectReview.citations.length).toBeGreaterThan(0);
+
+    const agentWorkflow = await runtime.query(
+      'How should I use FPF for agent workflow adoption without pasting the whole spec?',
+      'compact',
+    );
+    expect(agentWorkflow.status).toBe('ok');
+    expect(agentWorkflow.ids).toEqual(expect.arrayContaining(['E.8', 'E.19']));
+    expect(agentWorkflow.answer.length).toBeGreaterThan(0);
+    expect(agentWorkflow.citations.length).toBeGreaterThan(0);
 
     const deterministicOnly = new FpfRuntime({
       artifactDir: resolve(tempRoot, 'deterministic-artifacts'),
@@ -176,7 +196,7 @@ describe('FpfRuntime', () => {
     const boundedContextTrace = await runtime.trace('What is U.BoundedContext?', 'compact');
     expect(boundedContextTrace.status).toBe('ok');
     expect(boundedContextTrace.selectedNodeIds[0]).toBe('A.1.1');
-  });
+  }, 40_000);
 
   it('returns the project-alignment route from the preface and J.4 route surfaces', async () => {
     await runtime.refresh();

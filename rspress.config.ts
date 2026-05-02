@@ -48,6 +48,18 @@ export default defineConfig({
   themeConfig: {
     nav: [
       {
+        text: 'Start Here',
+        link: '/start-here',
+      },
+      {
+        text: 'Work Packets',
+        link: '/work-packets',
+      },
+      {
+        text: 'MCP Recipes',
+        link: '/mcp-recipes',
+      },
+      {
         text: 'Patterns',
         link: '/generated/patterns/index',
       },

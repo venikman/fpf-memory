@@ -17,8 +17,9 @@ export interface HostedEnvDefaultsOptions {
  * normal repo checkout, where falling back to `published/current/…`
  * keeps local startup working.
  *
- * Explicit env vars still win — Mastra Cloud / local overrides pass
- * through untouched.
+ * Explicit env vars still win when they resolve to real runtime inputs.
+ * Stale hosted env vars from older deploys should not strand production
+ * when the bundle already contains the staged source and snapshot.
  */
 export function applyHostedEnvDefaults(
   env: NodeJS.ProcessEnv,
@@ -29,16 +30,46 @@ export function applyHostedEnvDefaults(
   }
 
   const overrides: NodeJS.ProcessEnv = {};
-  if (!env.FPF_SPEC_SOURCE_PATH || env.FPF_SPEC_SOURCE_PATH.trim() === '') {
+  if (shouldUseHostedDefault(env.FPF_SPEC_SOURCE_PATH, options, 'file')) {
     overrides.FPF_SPEC_SOURCE_PATH = HOSTED_STAGED_SOURCE_PATH;
   }
-  if (!env.FPF_RUNTIME_ARTIFACT_DIR || env.FPF_RUNTIME_ARTIFACT_DIR.trim() === '') {
+  if (shouldUseHostedDefault(env.FPF_RUNTIME_ARTIFACT_DIR, options, 'directory')) {
     overrides.FPF_RUNTIME_ARTIFACT_DIR = HOSTED_STAGED_ARTIFACT_DIR;
   }
   if (Object.keys(overrides).length === 0) {
     return env;
   }
   return { ...env, ...overrides };
+}
+
+function shouldUseHostedDefault(
+  value: string | undefined,
+  options: HostedEnvDefaultsOptions,
+  kind: 'file' | 'directory',
+): boolean {
+  const configured = value?.trim();
+  if (!configured) {
+    return true;
+  }
+  if (isKnownHostedLegacyPath(configured, kind)) {
+    return true;
+  }
+
+  return !resolveRuntimePath(configured, {
+    cwd: options.cwd,
+    moduleUrl: options.moduleUrl,
+    kind,
+  }).existed;
+}
+
+function isKnownHostedLegacyPath(value: string, kind: 'file' | 'directory'): boolean {
+  const normalized = value.replace(/\\/gu, '/').replace(/^\.\//u, '');
+
+  if (kind === 'file') {
+    return normalized === 'FPF-spec.md' || normalized === '/app/FPF-spec.md';
+  }
+
+  return normalized === '.runtime/fpf-index' || normalized === '/app/.runtime/fpf-index';
 }
 
 function hasHostedStage(options: HostedEnvDefaultsOptions): boolean {

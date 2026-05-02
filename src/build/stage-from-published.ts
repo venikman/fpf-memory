@@ -54,6 +54,7 @@ export async function stageFromPublished(
   // a broken staging pipeline. Harmless on a clean tree.
   await rm(resolve(hostedPublicDir, '.fpf-upstream'), { recursive: true, force: true });
   await rm(resolve(hostedPublicDir, '.runtime'), { recursive: true, force: true });
+  await rm(resolve(hostedPublicDir, 'FPF-spec.md'), { force: true });
 
   await mkdir(hostedRuntimeDir, { recursive: true });
   await mkdir(dirname(stagedSourcePath), { recursive: true });
