@@ -10,12 +10,19 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
-  # Cancel superseded PR runs, but keep main-branch runs so post-merge signal
-  # isn't lost if commits land back-to-back.
+  # PRs share a group per PR number so a follow-up commit cancels the prior
+  # run. Pushes to `main` use the SHA so every commit gets its own group —
+  # otherwise GitHub's per-group queue (only one pending run is kept) would
+  # silently discard intermediate `main` commits when they land faster than
+  # CI can start, even with `cancel-in-progress: false`.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
+  # Single source of truth for the bun toolchain version. Used by setup-bun
+  # in every job and baked into the cache key so a version bump invalidates
+  # incompatible node_modules caches.
+  BUN_VERSION: '1.3.5'
   # Opt into the Node.js 24 runtime for JavaScript actions ahead of the
   # June 2026 forced upgrade. Silences the actions/checkout@v4 deprecation
   # warning without changing pinned action versions.
@@ -33,10 +40,12 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.5
+          bun-version: ${{ env.BUN_VERSION }}
 
       - id: cache-key
-        run: echo "key=bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}" >> "$GITHUB_OUTPUT"
+        # Include the bun version + runner arch so toolchain bumps and
+        # cross-arch runners don't restore an incompatible node_modules.
+        run: echo "key=bun-${{ env.BUN_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bun.lock') }}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@v4
         with:
@@ -64,7 +73,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.5
+          bun-version: ${{ env.BUN_VERSION }}
       - uses: actions/cache@v4
         with:
           path: |
@@ -84,7 +93,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.5
+          bun-version: ${{ env.BUN_VERSION }}
       - uses: actions/cache@v4
         with:
           path: |
@@ -108,7 +117,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.5
+          bun-version: ${{ env.BUN_VERSION }}
       - uses: actions/cache@v4
         with:
           path: |
@@ -131,7 +140,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.5
+          bun-version: ${{ env.BUN_VERSION }}
       - uses: actions/cache@v4
         with:
           path: |
@@ -152,17 +161,26 @@ jobs:
           test -f .mastra/output/hosted/FPF-Spec.md
           test -f .mastra/output/hosted/fpf-index/snapshot.json
 
-  # Single green check for branch protection: required only this job, and
-  # it goes green iff every parallel job above succeeded.
+  # Single green check for branch protection: this is the only required
+  # status. It goes green iff every parallel job above succeeded. The job
+  # ID stays `ci` (no `name:` override) so the status-check context
+  # remains `CI / ci`, matching existing branch-protection rules.
   ci:
-    name: CI
     runs-on: ubuntu-latest
     needs: [setup, lint, typecheck, test, build]
     if: always()
     steps:
-      - name: Verify all jobs succeeded
+      - name: Verify all required jobs succeeded
+        # Require every dependency result to be exactly `success`. Checking
+        # only for `failure`/`cancelled` would let a `skipped` result slip
+        # through as green if a future change adds an `if:` to a job.
         run: |
-          if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "One or more required jobs failed or were cancelled."
-            exit 1
-          fi
+          results='${{ join(needs.*.result, ',') }}'
+          echo "Required job results: $results"
+          IFS=','
+          for r in $results; do
+            if [[ "$r" != "success" ]]; then
+              echo "::error::A required job did not succeed (got: '$r')."
+              exit 1
+            fi
+          done
