@@ -11,7 +11,10 @@
  * The public `compileFpfSource()` API is unchanged.
  */
 
-import { PROJECT_ALIGNMENT_ROUTE_NAME } from './constants.js';
+import {
+  BOUNDARY_BURDEN_ROUTE_NAME,
+  PROJECT_ALIGNMENT_ROUTE_NAME,
+} from './constants.js';
 import {
   buildExplicitReferenceRelations,
   buildLexiconRelations,
@@ -199,7 +202,7 @@ function buildHeuristicSeedRules(
   }
 
   const boundaryRoute = Object.values(routeNodes).find(
-    (r) => r.name.toLowerCase() === 'boundary burden',
+    (r) => r.name.toLowerCase() === BOUNDARY_BURDEN_ROUTE_NAME,
   );
   const boundaryNodeIds = ['A.6', 'A.6.B', 'A.6.C', 'A.6.P', 'A.6.Q', 'A.6.A'].filter(
     (id) => id in patternNodes || id in routeNodes,

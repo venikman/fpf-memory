@@ -95,10 +95,15 @@ export class FpfRuntime {
     });
   }
 
-  async refresh(force = false): Promise<BuildAudit> {
+  async refresh(
+    force = false,
+    options: { compilerFingerprint?: string } = {},
+  ): Promise<BuildAudit> {
     await mkdir(this.artifactDir, { recursive: true });
     const currentSourceHash = await hashFile(this.sourcePath);
-    const currentCompilerFingerprint = await readCurrentCompilerFingerprint();
+    const currentCompilerFingerprint = Object.hasOwn(options, 'compilerFingerprint')
+      ? options.compilerFingerprint
+      : await readCurrentCompilerFingerprint();
     await this.sessionCache.load(currentSourceHash);
     const existingSnapshot = await this.loadSnapshot();
     const staleSnapshotShape = existingSnapshot
@@ -227,10 +232,12 @@ export class FpfRuntime {
     let existingSnapshot = await this.loadSnapshot();
     const currentCompilerFingerprint = await readCurrentCompilerFingerprint();
     if (!existingSnapshot || snapshotNeedsRebuild(existingSnapshot, currentCompilerFingerprint)) {
-      await this.refresh(false).catch((error) => {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[FpfRuntime.status] refresh(false) failed: ${message}`);
-      });
+      await this.refresh(false, { compilerFingerprint: currentCompilerFingerprint }).catch(
+        (error) => {
+          const message = error instanceof Error ? error.message : String(error);
+          console.warn(`[FpfRuntime.status] refresh(false) failed: ${message}`);
+        },
+      );
       existingSnapshot = await this.loadSnapshot();
     }
 
