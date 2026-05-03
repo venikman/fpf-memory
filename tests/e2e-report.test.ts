@@ -13,16 +13,6 @@ import {
   resolveStaticPath,
   type CommandRunResult,
 } from '../scripts/e2e-report.js';
-import {
-  buildUseCaseVideoArtifactDirName,
-  groupUseCaseScenariosByProduct,
-  parseRecordUseCaseVideoArgs,
-  PRODUCT_SURFACES,
-  renderUseCaseVideoReadme,
-  selectUseCaseScenarios,
-  USE_CASE_SCENARIOS,
-  type RecordedUseCase,
-} from '../scripts/record-use-case-videos.js';
 
 describe('E2E report tooling', () => {
   it('defaults to the CLI smoke preset', () => {
@@ -90,95 +80,6 @@ describe('E2E report tooling', () => {
     expect(resolveStaticPath(root, '/fpf-memory/generated/patterns/A.1.1', '/fpf-memory')).toBe(
       join(root, 'generated/patterns/A.1.1.html'),
     );
-  });
-
-  it('parses use-case video recording options', () => {
-    const args = parseRecordUseCaseVideoArgs([
-      '--',
-      '--skip-build',
-      '--artifact-root',
-      '.runtime/demo-videos',
-      '--duration-ms',
-      '2000',
-    ]);
-
-    expect(args).toEqual({
-      skipBuild: true,
-      artifactRoot: '.runtime/demo-videos',
-      durationMs: 2_000,
-      scenarioSlugs: [],
-    });
-    expect(buildUseCaseVideoArtifactDirName(new Date('2026-05-02T12:00:00.000Z'))).toBe(
-      '2026-05-02T12-00-00-000Z-fpf-product-use-cases',
-    );
-  });
-
-  it('selects individual use-case video scenarios for incremental recordings', () => {
-    const args = parseRecordUseCaseVideoArgs(['--scenario', 'docs-product-role-feedback']);
-
-    expect(args.scenarioSlugs).toEqual(['docs-product-role-feedback']);
-    expect(selectUseCaseScenarios(args.scenarioSlugs).map((scenario) => scenario.slug)).toEqual([
-      'docs-product-role-feedback',
-    ]);
-    expect(() => selectUseCaseScenarios(['missing-scenario'])).toThrow(
-      /Unknown use-case video scenario/u,
-    );
-  });
-
-  it('defines at least two use-case video scenarios for each product surface', () => {
-    const grouped = groupUseCaseScenariosByProduct(USE_CASE_SCENARIOS);
-
-    expect(PRODUCT_SURFACES).toEqual([
-      'Docs/wiki',
-      'MCP runtime',
-      'CLI runtime',
-      'Work evaluator',
-    ]);
-    for (const product of PRODUCT_SURFACES) {
-      expect(grouped[product].map((scenario) => scenario.slug).length).toBeGreaterThanOrEqual(2);
-    }
-    expect(grouped['Docs/wiki'].map((scenario) => scenario.slug)).toContain(
-      'docs-product-role-feedback',
-    );
-    expect(grouped['Docs/wiki'].map((scenario) => scenario.slug)).toContain(
-      'docs-pr-review-without-full-spec',
-    );
-  });
-
-  it('keeps each use-case scenario narration complete', () => {
-    for (const scenario of USE_CASE_SCENARIOS) {
-      expect(scenario.slug).toMatch(/^[a-z0-9-]+$/u);
-      expect(scenario.title.length).toBeGreaterThan(0);
-      expect(scenario.initialState.length).toBeGreaterThan(0);
-      expect(scenario.problem.length).toBeGreaterThan(0);
-      expect(scenario.tools.length).toBeGreaterThan(0);
-      expect(scenario.outcome.length).toBeGreaterThan(0);
-      expect(scenario.recordingSteps.length).toBeGreaterThan(0);
-    }
-  });
-
-  it('renders use-case video README grouped by product', () => {
-    const videos: RecordedUseCase[] = USE_CASE_SCENARIOS.map((scenario) => ({
-      slug: scenario.slug,
-      product: scenario.product,
-      title: scenario.title,
-      initialState: scenario.initialState,
-      problem: scenario.problem,
-      tools: scenario.tools,
-      outcome: scenario.outcome,
-      recordingSteps: scenario.recordingSteps,
-      kind: scenario.kind,
-      transcriptPath: `/tmp/${scenario.slug}.html`,
-      videoPath: `/tmp/${scenario.slug}.webm`,
-    }));
-
-    const readme = renderUseCaseVideoReadme(videos);
-
-    expect(readme).toContain('# FPF Product Use-Case Videos');
-    for (const product of PRODUCT_SURFACES) {
-      expect(readme).toContain(`## ${product}`);
-    }
-    expect(readme.match(/\.webm/g)?.length).toBe(USE_CASE_SCENARIOS.length);
   });
 
   it('renders markdown and html reports with escaped command output', () => {

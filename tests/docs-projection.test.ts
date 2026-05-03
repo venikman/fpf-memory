@@ -214,27 +214,38 @@ describe('docs projection', () => {
       expect(
         await readFile(resolve(docsRoot, 'generated/patterns/index.md'), 'utf8'),
       ).toContain('# Pattern Catalog');
-      // The home page is an adoption landing, not a second copy of the
-      // catalog (the 237-link wall lives at `/generated/patterns/index`).
-      // It points readers to work packets before the full reference wall.
+      // The home page is an adoption landing rendered through Rspress's
+      // `pageType: home` layout (hero + feature grid). Hero actions point at
+      // the three primary adoption surfaces; feature cards expose the catalog.
+      // The body keeps Methodology, the hosted MCP endpoint, and the manifest.
       const rootIndex = await readFile(resolve(docsRoot, 'index.md'), 'utf8');
-      expect(rootIndex).toContain('title: "FPF Reference"');
-      expect(rootIndex).toContain('# FPF Reference');
-      expect(rootIndex).toContain('## Start here');
-      expect(rootIndex).toContain('[Adoption guide](/start-here)');
-      expect(rootIndex).toContain('[Work packets](/work-packets)');
-      expect(rootIndex).toContain('product-role feedback');
-      expect(rootIndex).toContain('[MCP recipes](/mcp-recipes)');
-      expect(rootIndex).toContain('[Demo videos](/use-case-videos)');
-      expect(rootIndex).toContain('## Navigate');
-      expect(rootIndex).toContain('[Patterns](/generated/patterns/index)');
-      expect(rootIndex).toContain('[Routes](/generated/routes/index)');
-      expect(rootIndex).toContain('[Glossary](/generated/patterns/H.1)');
-      expect(rootIndex).toContain('[Change log](/generated/patterns/I.3)');
+      expect(rootIndex).toContain('pageType: home');
+      expect(rootIndex).toContain('title: FPF Reference');
+      expect(rootIndex).toContain('  name: FPF Reference');
+      expect(rootIndex).toContain('Small, grounded entry points to the framework');
+      expect(rootIndex).toContain('text: Adoption guide');
+      expect(rootIndex).toContain('link: /start-here');
+      expect(rootIndex).toContain('text: Work packets');
+      expect(rootIndex).toContain('link: /work-packets');
+      expect(rootIndex).toContain('text: MCP recipes');
+      expect(rootIndex).toContain('link: /mcp-recipes');
+      expect(rootIndex).toContain('  - title: Patterns');
+      expect(rootIndex).toContain('link: /generated/patterns/index');
+      expect(rootIndex).toContain('  - title: Routes');
+      expect(rootIndex).toContain('link: /generated/routes/index');
+      expect(rootIndex).toContain('  - title: Glossary');
+      expect(rootIndex).toContain('link: /generated/patterns/H.1');
+      expect(rootIndex).toContain('  - title: Change log');
+      expect(rootIndex).toContain('link: /generated/patterns/I.3');
       expect(rootIndex).toContain('FPF specification change log from the published source');
+      expect(rootIndex).toContain('## Methodology');
       expect(rootIndex).toContain('## MCP endpoint');
       expect(rootIndex).toContain('fpf-memory.server.mastra.cloud');
       expect(rootIndex).toContain('https://github.com/venikman/fpf-memory#run-and-test-mcp');
+      // Demo videos surface was removed — verify the homepage no longer
+      // points at it and the page itself is no longer generated.
+      expect(rootIndex).not.toContain('use-case-videos');
+      expect(rootIndex).not.toContain('Demo videos');
     } finally {
       await rm(tempRoot, { recursive: true, force: true });
     }
@@ -313,15 +324,6 @@ describe('docs projection', () => {
       );
       expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
         'Review a PR without full-spec paste',
-      );
-      expect(await readFile(resolve(outDir, 'use-case-videos.html'), 'utf8')).toContain(
-        'Product-level FPF use case recordings',
-      );
-      expect(await readFile(resolve(outDir, 'use-case-videos.html'), 'utf8')).toContain(
-        'Review a PR without full-spec paste',
-      );
-      expect(await readFile(resolve(outDir, 'use-case-videos.html'), 'utf8')).toContain(
-        'This is the promotion and adoption evidence page',
       );
     } finally {
       await rm(tempRoot, { recursive: true, force: true });

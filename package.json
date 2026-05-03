@@ -17,7 +17,6 @@
     "validate:published": "bun scripts/validate-published-current.ts",
     "evaluate:work": "bun src/cli.ts evaluate-work --target current-pr --base origin/main --format markdown",
     "e2e:report": "bun scripts/e2e-report.ts",
-    "videos:use-cases": "bun scripts/record-use-case-videos.ts",
     "stage:from-published": "bun scripts/stage-from-published.ts",
     "mastra:build": "bun scripts/mastra-build.ts",
     "mastra:deploy": "bun scripts/mastra-deploy.ts",

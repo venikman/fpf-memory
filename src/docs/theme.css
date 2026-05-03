@@ -73,6 +73,12 @@
 
   /* Code size relative to body */
   --rp-code-font-size: 0.9375em;
+
+  /* Link colour — Rspress's default brand-dark (#0077ff) hits only 4.13:1 on
+     white, below WCAG AA for body-size text. Pin to brand-darker (#005fcc,
+     5.98:1) so prose links stay legible without changing the brand hue used
+     elsewhere. */
+  --rp-c-link: var(--rp-c-brand-darker);
 }
 
 @media (width >= 1280px) {
@@ -449,4 +455,238 @@ html.dark .fpf-pid {
 .fpf-breadcrumb-separator {
   opacity: 0.5;
   user-select: none;
+}
+
+/* ───────── 8. Home (pageType: home) ─────────
+ *
+ * Rspress's home layout emits the hero and feature grid under a `rp-home-*`
+ * BEM scale (verified against the rendered build). The block below tightens
+ * the default look so the homepage carries the same editorial weight as doc
+ * pages, and tints the four feature cards with the FPF Part hues used by
+ * pattern-ID chips. The home body markdown (Methodology, MCP endpoint,
+ * Published from) is rendered through a regular `.rspress-doc` container, so
+ * the typography rules from sections 4–5 already apply — selectors below only
+ * target the hero/feature region plus the body's max-width on the home.
+ */
+
+.rp-home-hero {
+  margin-inline: auto;
+  max-width: 980px;
+  padding-block: clamp(2.5rem, 4vw, 4.5rem);
+  padding-inline: var(--rp-content-padding-x);
+  text-align: center;
+}
+
+.rp-home-hero__container {
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.rp-home-hero__content {
+  text-align: center;
+  align-items: center;
+}
+
+.rp-home-hero__title {
+  margin: 0;
+}
+
+.rp-home-hero__title-brand {
+  font-size: clamp(2.25rem, 1.75rem + 2.6vw, 3.5rem);
+  line-height: 1.05;
+  font-weight: 660;
+  letter-spacing: -0.02em;
+  background: linear-gradient(
+    100deg,
+    hsl(var(--fpf-part-a)) 0%,
+    hsl(var(--fpf-part-b)) 55%,
+    hsl(var(--fpf-part-g)) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.rp-home-hero__subtitle {
+  font-size: clamp(1.125rem, 0.95rem + 0.7vw, 1.45rem);
+  line-height: 1.3;
+  font-weight: 540;
+  color: var(--rp-c-text-1);
+  margin-top: 0.6rem;
+  letter-spacing: -0.005em;
+}
+
+.rp-home-hero__tagline {
+  font-size: clamp(0.95rem, 0.9rem + 0.2vw, 1.0625rem);
+  line-height: 1.55;
+  color: var(--rp-c-text-2);
+  margin-top: 1.1rem;
+  max-width: 62ch;
+  margin-inline: auto;
+}
+
+.rp-home-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1.75rem;
+}
+
+.rp-home-hero__action {
+  border-radius: var(--fpf-radius-pill);
+  padding: 0.62rem 1.2rem;
+  font-weight: 540;
+  font-size: 0.95rem;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.rp-home-hero__action:hover {
+  transform: translateY(-1px);
+}
+
+/* Rspress's home layout flex-wraps the feature row and uses BEM `--span-N`
+   width hints. We keep the model and just (a) tighten the gap and (b) force
+   4-up at wide widths so a four-card grid lands as a clean single row instead
+   of 3+1. The body+html scope bumps specificity past the framework rule. */
+html body .rp-home-feature {
+  --rp-home-feature-gap: 1rem;
+
+  max-width: var(--rp-content-max-width);
+  margin-inline: auto;
+  padding-inline: var(--rp-content-padding-x);
+  padding-block: 1rem 3.5rem;
+}
+
+@media (width >= 1100px) {
+  html body .rp-home-feature__item--span-4 {
+    width: calc(25% - var(--rp-home-feature-gap));
+  }
+}
+
+.rp-home-feature__item-wrapper,
+.rp-home-feature__card {
+  height: 100%;
+}
+
+.rp-home-feature__card {
+  --fpf-card-h: var(--fpf-part-neutral);
+
+  position: relative;
+  border-radius: var(--fpf-radius-card);
+  border: 1px solid color-mix(in srgb, hsl(var(--fpf-card-h)) 22%, transparent);
+  background: color-mix(in srgb, hsl(var(--fpf-card-h)) 5%, var(--rp-c-bg));
+  padding: 1.25rem 1.35rem;
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+  overflow: hidden;
+}
+
+.rp-home-feature__card--clickable:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, hsl(var(--fpf-card-h)) 50%, transparent);
+  background: color-mix(in srgb, hsl(var(--fpf-card-h)) 9%, var(--rp-c-bg));
+  box-shadow:
+    0 6px 24px -12px color-mix(in srgb, hsl(var(--fpf-card-h)) 45%, transparent);
+}
+
+html.dark .rp-home-feature__card {
+  background: color-mix(in srgb, hsl(var(--fpf-card-h)) 9%, var(--rp-c-bg-soft));
+  border-color: color-mix(in srgb, hsl(var(--fpf-card-h)) 32%, transparent);
+}
+
+html.dark .rp-home-feature__card--clickable:hover {
+  background: color-mix(in srgb, hsl(var(--fpf-card-h)) 14%, var(--rp-c-bg-soft));
+  border-color: color-mix(in srgb, hsl(var(--fpf-card-h)) 55%, transparent);
+}
+
+/* Card hue is dealt to each feature in source order: Patterns / Routes /
+   Glossary / Change log. Selecting on .rp-home-feature__item lets the rule
+   reach the nested .rp-home-feature__card via descendant. */
+.rp-home-feature__item:nth-child(4n+1) .rp-home-feature__card {
+  --fpf-card-h: var(--fpf-part-a);
+}
+.rp-home-feature__item:nth-child(4n+2) .rp-home-feature__card {
+  --fpf-card-h: var(--fpf-part-f);
+}
+.rp-home-feature__item:nth-child(4n+3) .rp-home-feature__card {
+  --fpf-card-h: var(--fpf-part-d);
+}
+.rp-home-feature__item:nth-child(4n+4) .rp-home-feature__card {
+  --fpf-card-h: var(--fpf-part-e);
+}
+
+.rp-home-feature__title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.rp-home-feature__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fpf-font-mono);
+  font-weight: 560;
+  font-size: 0.78rem;
+  line-height: 1;
+  padding: 0.32em 0.55em;
+  border-radius: var(--fpf-radius-chip);
+  background: color-mix(in srgb, hsl(var(--fpf-card-h)) 14%, transparent);
+  border: 1px solid color-mix(in srgb, hsl(var(--fpf-card-h)) 32%, transparent);
+  color: hsl(var(--fpf-card-h));
+  letter-spacing: 0.02em;
+  width: fit-content;
+}
+
+html.dark .rp-home-feature__icon {
+  color: color-mix(in srgb, hsl(var(--fpf-card-h)) 75%, #ffffff 25%);
+  background: color-mix(in srgb, hsl(var(--fpf-card-h)) 22%, transparent);
+  border-color: color-mix(in srgb, hsl(var(--fpf-card-h)) 50%, transparent);
+}
+
+.rp-home-feature__title {
+  font-size: 1.05rem;
+  font-weight: 620;
+  line-height: 1.25;
+  margin: 0;
+  letter-spacing: -0.005em;
+  color: var(--rp-c-text-1);
+  border-top: none;
+  padding-top: 0;
+}
+
+.rp-home-feature__detail {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--rp-c-text-2);
+  margin: 0;
+}
+
+/* The card has a hover "shine" overlay layered on top — keep it subtle so the
+   hue tint stays the dominant signal. */
+.rp-home-feature__item__shine {
+  opacity: 0.55;
+}
+
+/* Body content beneath the hero — narrow the measure so Methodology / MCP
+   endpoint / Published from feel part of the landing page, not a doc page
+   wedged underneath. The section 4 H2 border-top still applies and gives a
+   gentle horizontal rule between content blocks; we only relax it for the
+   first body H2 so it doesn't sit too close to the feature grid. */
+.rspress-home-container .rspress-doc,
+[class*='rp-home-content'] .rspress-doc,
+.rp-home-feature ~ .rspress-doc,
+.rp-home-feature + * .rspress-doc {
+  max-width: 760px;
+  margin-inline: auto;
+  padding-inline: var(--rp-content-padding-x);
 }
