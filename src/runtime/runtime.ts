@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 import { computeCompilerFingerprint } from '../build/compiler-fingerprint.js';
@@ -47,6 +47,11 @@ export interface FpfRuntimeOptions {
   observability?: RuntimeStatus['observability'];
 }
 
+interface SourceFingerprint {
+  mtimeMs: number;
+  size: number;
+}
+
 export class FpfRuntime {
   private readonly sourcePath: string;
   private readonly artifactDir: string;
@@ -54,6 +59,10 @@ export class FpfRuntime {
   private readonly synthesizer?: LocalAnswerSynthesizer;
   private readonly sessionCache: SessionCache;
   private readonly observabilitySummary: RuntimeStatus['observability'];
+  private cachedSnapshot?: Snapshot;
+  private cachedAudit?: BuildAudit;
+  private cachedSourceFingerprint?: SourceFingerprint;
+  private sessionCacheLoadedForHash?: string;
 
   constructor(options: FpfRuntimeOptions = {}) {
     const sourcePath = options.sourcePath ?? DEFAULT_SOURCE_PATH;
@@ -97,14 +106,31 @@ export class FpfRuntime {
 
   async refresh(
     force = false,
-    options: { compilerFingerprint?: string } = {},
+    options: boolean | { compilerFingerprint?: string; allowMemoryCache?: boolean } = {},
   ): Promise<BuildAudit> {
+    const allowMemoryCache =
+      typeof options === 'boolean' ? options : options.allowMemoryCache ?? false;
     await mkdir(this.artifactDir, { recursive: true });
+    const sourceFingerprint = await fingerprintFile(this.sourcePath);
+    if (
+      allowMemoryCache &&
+      !force &&
+      this.cachedSnapshot &&
+      this.cachedAudit &&
+      this.cachedSourceFingerprint &&
+      sourceFingerprintEquals(sourceFingerprint, this.cachedSourceFingerprint) &&
+      !snapshotNeedsRebuild(this.cachedSnapshot)
+    ) {
+      await this.loadSessionCacheOnce(this.cachedSnapshot.sourceHash);
+      return this.cachedAudit;
+    }
+
     const currentSourceHash = await hashFile(this.sourcePath);
-    const currentCompilerFingerprint = Object.hasOwn(options, 'compilerFingerprint')
-      ? options.compilerFingerprint
-      : await readCurrentCompilerFingerprint();
-    await this.sessionCache.load(currentSourceHash);
+    const currentCompilerFingerprint =
+      typeof options === 'object' && Object.hasOwn(options, 'compilerFingerprint')
+        ? options.compilerFingerprint
+        : await readCurrentCompilerFingerprint();
+    await this.loadSessionCacheOnce(currentSourceHash);
     const existingSnapshot = await this.loadSnapshot();
     const staleSnapshotShape = existingSnapshot
       ? snapshotShapeNeedsRebuild(existingSnapshot)
@@ -132,6 +158,7 @@ export class FpfRuntime {
       }
       await this.writeArtifacts(existingSnapshot, true);
       await this.writeAudit(audit);
+      this.rememberSnapshot(existingSnapshot, audit, sourceFingerprint);
       return audit;
     }
 
@@ -174,6 +201,7 @@ export class FpfRuntime {
       artifacts: this.artifactPaths,
     };
     await this.writeAudit(audit);
+    this.rememberSnapshot(snapshot, audit, sourceFingerprint);
     return audit;
   }
 
@@ -242,6 +270,7 @@ export class FpfRuntime {
     }
 
     const currentSourceHash = await hashFile(this.sourcePath);
+    const synthesizer = await this.synthesizerStatus();
     return {
       sourcePath: this.sourcePath,
       sourceHash: existingSnapshot?.sourceHash,
@@ -254,15 +283,54 @@ export class FpfRuntime {
         existingSnapshot.sourceHash === currentSourceHash,
       compilerMode: 'local_vectorless',
       artifacts: await this.getArtifactPresence(),
-      synthesizer: this.synthesizer?.describe
-        ? {
-            configured: true,
-            ...this.synthesizer.describe(),
-          }
-        : { configured: false },
+      synthesizer,
       observability: this.observabilitySummary,
       sessionCache: this.sessionCache.summary(),
     };
+  }
+
+  private async synthesizerStatus(): Promise<RuntimeStatus['synthesizer']> {
+    if (!this.synthesizer) {
+      return {
+        configured: false,
+        availability: 'not_configured',
+      };
+    }
+
+    const base = this.synthesizer.describe
+      ? {
+          configured: true,
+          ...this.synthesizer.describe(),
+        }
+      : { configured: true };
+
+    if (!this.synthesizer.checkAvailability) {
+      const available = await this.synthesizer.isAvailable();
+      return {
+        ...base,
+        availability: available ? 'unknown' : 'unavailable',
+        checkedAt: new Date().toISOString(),
+      };
+    }
+
+    try {
+      return {
+        ...base,
+        ...(await this.synthesizer.checkAvailability()),
+      };
+    } catch (error) {
+      return {
+        ...base,
+        availability: 'unknown',
+        checkedAt: new Date().toISOString(),
+        failure: {
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Synthesizer availability check failed with an unknown error.',
+        },
+      };
+    }
   }
 
   async browse(
@@ -380,7 +448,7 @@ export class FpfRuntime {
   }
 
   private async createEngine(forceRefresh = false, sessionId?: string): Promise<QueryEngine> {
-    const audit = await this.refresh(forceRefresh);
+    const audit = await this.refresh(forceRefresh, true);
     return new QueryEngine(
       await this.requireSnapshot(),
       audit.rebuilt,
@@ -398,11 +466,33 @@ export class FpfRuntime {
   }
 
   private async requireSnapshot(): Promise<Snapshot> {
+    if (this.cachedSnapshot && !snapshotNeedsRebuild(this.cachedSnapshot)) {
+      return this.cachedSnapshot;
+    }
     const snapshot = await this.loadSnapshot();
     if (!snapshot) {
       throw new Error('Compiled snapshot is missing after refresh.');
     }
+    this.cachedSnapshot = snapshot;
     return snapshot;
+  }
+
+  private rememberSnapshot(
+    snapshot: Snapshot,
+    audit: BuildAudit,
+    sourceFingerprint: SourceFingerprint,
+  ): void {
+    this.cachedSnapshot = snapshot;
+    this.cachedAudit = audit;
+    this.cachedSourceFingerprint = sourceFingerprint;
+  }
+
+  private async loadSessionCacheOnce(sourceHash: string): Promise<void> {
+    if (this.sessionCacheLoadedForHash === sourceHash) {
+      return;
+    }
+    await this.sessionCache.load(sourceHash);
+    this.sessionCacheLoadedForHash = sourceHash;
   }
 
   private async writeArtifacts(snapshot: Snapshot, onlyMissing = false): Promise<void> {
@@ -468,6 +558,18 @@ export class FpfRuntime {
 async function hashFile(path: string): Promise<string> {
   const content = await readFile(path);
   return `sha256:${createHash('sha256').update(content).digest('hex')}`;
+}
+
+async function fingerprintFile(path: string): Promise<SourceFingerprint> {
+  const fileStat = await stat(path);
+  return {
+    mtimeMs: fileStat.mtimeMs,
+    size: fileStat.size,
+  };
+}
+
+function sourceFingerprintEquals(left: SourceFingerprint, right: SourceFingerprint): boolean {
+  return left.mtimeMs === right.mtimeMs && left.size === right.size;
 }
 
 function buildCompilerSummary(snapshot: Snapshot): BuildAudit['compiler'] {

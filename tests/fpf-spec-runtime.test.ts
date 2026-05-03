@@ -209,11 +209,13 @@ describe('FpfRuntime', () => {
     expect(route.ids[0]).toBe('route:project-alignment');
     expect(route.ids[1]).toBe('A.1.1');
     expect(route.ids[2]).toBe('A.15');
-    expect(route.ids.slice(0, 6)).toContain('B.5.1');
-    expect(route.ids.slice(0, 6).some((id) => id === 'A.15.2' || id === 'A.15.3')).toBe(
+    expect(route.ids.slice(1, 6)).toContain('B.5.1');
+    expect(route.ids.slice(1, 6).some((id) => id === 'A.15.2' || id === 'A.15.3')).toBe(
       true,
     );
     expect(route.ids).toContain('F.17');
+    expect(route.answer).toContain('Acceptance check:');
+    expect(route.answer).toContain('Next move:');
     expect(route.citations).toEqual(
       expect.arrayContaining(['Preface/Where to start', 'J.4']),
     );

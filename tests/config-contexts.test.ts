@@ -128,3 +128,24 @@ describe('context config parsing', () => {
     expect(parseLmStudioConfig(env).apiKey).toBeUndefined();
   });
 });
+
+describe('parseHostedConfig PORT handling', () => {
+  const portFor = (value: string | undefined): number =>
+    parseHostedConfig({ PORT: value } as NodeJS.ProcessEnv).port;
+
+  it('defaults to 4111 when PORT is missing, blank, or invalid', () => {
+    expect(parseHostedConfig({} as NodeJS.ProcessEnv).port).toBe(4111);
+    expect(portFor('')).toBe(4111);
+    expect(portFor('   ')).toBe(4111);
+    expect(portFor('nope')).toBe(4111);
+    expect(portFor('-1')).toBe(4111);
+    expect(portFor('3.5')).toBe(4111);
+  });
+
+  it('preserves port zero, accepts in-range ports, and clamps oversized ports', () => {
+    expect(portFor('0')).toBe(0);
+    expect(portFor('4111')).toBe(4111);
+    expect(portFor('8080')).toBe(8080);
+    expect(portFor('70000')).toBe(65535);
+  });
+});

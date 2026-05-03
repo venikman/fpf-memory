@@ -39,6 +39,9 @@ export const DEFAULT_PUBLISH_SOURCE_PATH = '.fpf-upstream/FPF-Spec.md';
 export const HOSTED_STAGED_SOURCE_PATH = 'hosted/FPF-Spec.md';
 export const HOSTED_STAGED_ARTIFACT_DIR = 'hosted/fpf-index';
 
+export const HOSTED_MCP_ENDPOINT =
+  'https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp';
+
 export const ARTIFACT_FILENAMES = {
   snapshot: 'snapshot.json',
   buildAudit: 'build-audit.json',

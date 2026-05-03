@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { defineConfig } from '@rspress/core';
 
 import { DEFAULT_SOURCE_PATH } from './src/core/constants.js';
-import { buildDocsNavigation } from './src/docs/projection.js';
+import { buildDocsNavigation } from './src/core/documents.js';
 import { compileFpfSource } from './src/runtime/compiler.js';
 
 const docsRoot = process.env.FPF_DOCS_ROOT ?? 'docs';
@@ -58,6 +58,10 @@ export default defineConfig({
       {
         text: 'MCP Recipes',
         link: '/mcp-recipes',
+      },
+      {
+        text: 'Connect MCP',
+        link: '/connect-mcp',
       },
       {
         text: 'Patterns',

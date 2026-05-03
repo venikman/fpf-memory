@@ -5,7 +5,7 @@ import {
   parseObservabilityConfig,
   parseRuntimeCoreConfig,
 } from '../adapters/infra/config/env.js';
-import { getRuntimeLogger } from '../logging/runtime-logger.js';
+import { getRuntimeLogger } from '../adapters/infra/logging/runtime-logger.js';
 import { DiscoveryAppService } from '../app/services/discovery-app-service.js';
 import { InspectAppService } from '../app/services/inspect-app-service.js';
 import { QueryAppService } from '../app/services/query-app-service.js';

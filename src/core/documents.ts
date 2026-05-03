@@ -7,6 +7,7 @@ import type {
   RouteRecord,
   Snapshot,
 } from './types.js';
+import { HOSTED_MCP_ENDPOINT } from './constants.js';
 import { normalizeForLookup, unique } from './text.js';
 
 export interface GeneratedDocPage {
@@ -287,9 +288,6 @@ function buildRootIndexPage(
   };
 }
 
-const HOSTED_MCP_ENDPOINT =
-  'https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp';
-
 function renderHomeMarkdown(
   snapshot: Snapshot,
   manifest?: PublicationManifestSummary,
@@ -320,6 +318,7 @@ function renderHomeMarkdown(
     '',
     '- [Adoption guide](/start-here) — choose the first FPF path for a person, team, or agent.',
     '- [Work packets](/work-packets) — use FPF in project review, PR review, product-role feedback, specification work, role/promise/capability analysis, and agent workflows.',
+    '- [Connect MCP](/connect-mcp) — plug the hosted MCP endpoint into chat clients, editors, and coding CLIs.',
     '- [MCP recipes](/mcp-recipes) — retrieve compact grounded slices from the hosted or local MCP server.',
     '',
     '## Navigate',

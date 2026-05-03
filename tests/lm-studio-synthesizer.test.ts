@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from '@rstest/core';
 
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
-import { resetRuntimeObservabilityForTests } from '../src/observability/runtime-observability.js';
+import { resetRuntimeObservabilityForTests } from '../src/adapters/infra/observability/runtime-observability.js';
 import {
   DEFAULT_LM_STUDIO_BASE_URL,
   DEFAULT_LM_STUDIO_MODEL,
@@ -301,6 +301,31 @@ describe('LmStudioSynthesizer', () => {
     expect(result.modelDiscovery.listed).toBe(false);
     expect(result.modelDiscovery.modelCount).toBe(0);
     expect(result.modelDiscovery.error).toContain('boom:http://localhost:1234/v1/models');
+  });
+
+  it('reports synthesizer availability separately from index freshness', async () => {
+    const runtime = new FpfRuntime({
+      sourcePath,
+      artifactDir,
+      synthesizer: new LmStudioSynthesizer({
+        baseUrl: 'http://localhost:1234/v1',
+        model: 'google/gemma-4-31b',
+        fetchImpl: async () =>
+          new Response('ngrok 404', {
+            status: 404,
+            headers: { 'Content-Type': 'text/plain' },
+          }),
+      }),
+    });
+
+    const status = await runtime.status();
+
+    expect(status.fresh).toBe(true);
+    expect(status.synthesizer.configured).toBe(true);
+    expect(status.synthesizer.availability).toBe('unavailable');
+    expect(status.synthesizer.checkedAt).toBeDefined();
+    expect(status.synthesizer.failure?.httpStatus).toBe(404);
+    expect(status.synthesizer.failure?.endpoint).toBe('http://localhost:1234/v1/messages');
   });
 
   it('falls back deterministically when LM Studio returns an error', async () => {

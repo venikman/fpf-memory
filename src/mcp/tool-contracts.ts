@@ -37,6 +37,13 @@ export const observabilityLogLevelSchema = z.enum([
 ]);
 export const resolvedAsSchema = z.enum(['id', 'route', 'lexeme', 'not_found']);
 export const inspectStatusSchema = z.enum(['ok', 'not_found']);
+export const synthesizerAvailabilitySchema = z.enum([
+  'not_configured',
+  'available',
+  'degraded',
+  'unavailable',
+  'unknown',
+]);
 export const frontierOriginSchema = z.enum([
   'exact_match',
   'reference_follow',
@@ -231,6 +238,16 @@ export const runtimeStatusSchema = z
         provider: z.string().optional(),
         model: z.string().optional(),
         baseUrl: z.string().optional(),
+        availability: synthesizerAvailabilitySchema.optional(),
+        checkedAt: z.string().optional(),
+        failure: z
+          .object({
+            message: z.string(),
+            httpStatus: z.number().optional(),
+            endpoint: z.string().optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict(),
     observability: z

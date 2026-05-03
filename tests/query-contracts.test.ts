@@ -10,8 +10,10 @@ import { normalizeQuery } from '../src/runtime/query-normalizer.js';
 import { seedCandidates } from '../src/runtime/candidate-seeder.js';
 import { isAmbiguous, rankCandidates } from '../src/runtime/candidate-ranker.js';
 import { expandGrounding } from '../src/runtime/frontier-expander.js';
+import { QueryEngine } from '../src/runtime/query-engine.js';
 import {
   buildPatternAnswer,
+  buildRouteAnswer,
   confidenceFromTrace,
   gapsFromTrace,
   prepareSynthesisSlices,
@@ -223,6 +225,18 @@ describe('Query / Seed coverage stage', () => {
     expect(routeCandidate?.reasons ?? []).not.toContain('burden:boundary-review');
   });
 
+  it('does not seed punctuation-wrapped stop words as lexeme candidates', async () => {
+    const snapshot = await getSnapshot();
+    const normalized = normalizeQuery(
+      'As a project lead, what route and questions should I use?',
+      snapshot,
+    );
+    const seeding = seedCandidates(normalized, snapshot);
+
+    expect(normalized.detected.lexemes).not.toContain(', and');
+    expect(seeding.candidateMap.has('lex:and')).toBe(false);
+  });
+
   it('produces few or low-scoring candidates for a completely unrelated question', async () => {
     const snapshot = await getSnapshot();
     const normalized = normalizeQuery('__FPFTEST_NONSENSE_999__', snapshot);
@@ -271,6 +285,41 @@ describe('Query / Ranker stage', () => {
       (id) => snapshot.compiledNodes[id]?.kind === 'route',
     );
     expect(routeNodes.length).toBeGreaterThan(0);
+  });
+
+  it('pins the project-alignment route when the route selector is explicit', async () => {
+    const snapshot = await getSnapshot();
+    const question =
+      'Using route:project-alignment, give a compact project kickoff work packet.';
+    const normalized = normalizeQuery(question, snapshot);
+    const seeding = seedCandidates(normalized, snapshot);
+    const ranking = rankCandidates(question, seeding.candidateMap, snapshot);
+
+    expect(ranking.routeWins).toBe(true);
+    expect(ranking.initialNodeIds).toEqual(['route:project-alignment']);
+  });
+
+  it('selects project alignment for project kickoff and information-system modeling', async () => {
+    const snapshot = await getSnapshot();
+    const question = 'Give me a checklist for how to model my project information system.';
+    const normalized = normalizeQuery(question, snapshot);
+    const seeding = seedCandidates(normalized, snapshot);
+    const ranking = rankCandidates(question, seeding.candidateMap, snapshot);
+
+    expect(ranking.routeWins).toBe(true);
+    expect(ranking.initialNodeIds).toEqual(['route:project-alignment']);
+  });
+
+  it('selects boundary burden for API boundary kickoff questions', async () => {
+    const snapshot = await getSnapshot();
+    const question =
+      'As a project lead, what small FPF route should I use to run a 30-minute project kickoff about an API boundary decision?';
+    const normalized = normalizeQuery(question, snapshot);
+    const seeding = seedCandidates(normalized, snapshot);
+    const ranking = rankCandidates(question, seeding.candidateMap, snapshot);
+
+    expect(ranking.routeWins).toBe(true);
+    expect(ranking.initialNodeIds).toEqual(['route:boundary-burden']);
   });
 
   it('selects the boundary route for PR reviewer API contract prompts', async () => {
@@ -420,6 +469,50 @@ describe('Query / Projection stability stage', () => {
     expect(result.groundingChain!.length).toBeGreaterThan(0);
   });
 
+  it('projects route answers with route ID, acceptance check, and next move', async () => {
+    const snapshot = await getSnapshot();
+    const question = 'Give me a checklist for how to model my project information system.';
+    const trace = assembleTrace(question, 'compact', snapshot);
+
+    expect(trace.routeWins).toBe(true);
+    expect(trace.selectedNodeIds[0]).toBe('route:project-alignment');
+
+    const result = buildRouteAnswer(
+      question,
+      'compact',
+      'route:project-alignment',
+      trace,
+      snapshot,
+      false,
+    );
+
+    expect(result.ids[0]).toBe('route:project-alignment');
+    expect(result.ids).toContain('A.1.1');
+    expect(result.answer).toContain('Acceptance check:');
+    expect(result.answer).toContain('Next move:');
+  });
+
+  it('uses a compact route trace shortcut for adoption kickoff queries', async () => {
+    const snapshot = await getSnapshot();
+    const engine = new QueryEngine(snapshot, false);
+    const trace = engine.trace(
+      'Project kickoff: align a project information system with roles and adoption next steps',
+      'compact',
+    );
+
+    expect(trace.routeWins).toBe(true);
+    expect(trace.selectedNodeIds[0]).toBe('route:project-alignment');
+    expect(trace.candidateScores).toEqual([
+      expect.objectContaining({
+        nodeId: 'route:project-alignment',
+        kind: 'route',
+      }),
+    ]);
+    expect(trace.frontierCandidates.every((candidate) => candidate.origin === 'route_expansion'))
+      .toBe(true);
+    expect(trace.retrievalHops).toHaveLength(1);
+  });
+
   it('returns low confidence for completely unresolvable questions', async () => {
     const snapshot = await getSnapshot();
     const trace = assembleTrace('__FPFTEST_NONSENSE_999__', 'compact', snapshot);
@@ -552,6 +645,64 @@ describe('Query / Synthesis isolation stage', () => {
     );
 
     expect(synthesizeCalled).toBe(false);
+  });
+
+  it('skips synthesis for compact route answers even when a synthesizer is available', async () => {
+    const snapshot = await getSnapshot();
+    const question =
+      'Using route:project-alignment, give a compact project kickoff work packet.';
+    const trace = assembleTrace(question, 'compact', snapshot);
+    let isAvailableCalled = false;
+    let synthesizeCalled = false;
+    const synthesizer: LocalAnswerSynthesizer = {
+      isAvailable: async () => {
+        isAvailableCalled = true;
+        return true;
+      },
+      synthesize: async () => {
+        synthesizeCalled = true;
+        return { answer: 'unexpected synthesized route answer' };
+      },
+    };
+    const engine = new QueryEngine(snapshot, false, synthesizer);
+
+    const result = await engine.answerFromTrace(question, 'compact', trace);
+
+    expect(trace.routeWins).toBe(true);
+    expect(result.ids[0]).toBe('route:project-alignment');
+    expect(result.answer).toContain(
+      'route:project-alignment (project alignment) is the matched first-practical route',
+    );
+    expect(result.answer).toContain('Acceptance check:');
+    expect(isAvailableCalled).toBe(false);
+    expect(synthesizeCalled).toBe(false);
+  });
+
+  it('still allows synthesis for non-compact route answers', async () => {
+    const snapshot = await getSnapshot();
+    const question =
+      'Using route:project-alignment, explain the project kickoff work packet.';
+    const trace = assembleTrace(question, 'verbose', snapshot);
+    let synthesizeCalled = false;
+    const synthesizer: LocalAnswerSynthesizer = {
+      isAvailable: async () => true,
+      synthesize: async () => {
+        synthesizeCalled = true;
+        return {
+          answer: 'synthesized verbose route answer',
+          confidence: 1,
+          gaps: [],
+        };
+      },
+    };
+    const engine = new QueryEngine(snapshot, false, synthesizer);
+
+    const result = await engine.answerFromTrace(question, 'verbose', trace);
+
+    expect(trace.routeWins).toBe(true);
+    expect(synthesizeCalled).toBe(true);
+    expect(result.ids[0]).toBe('route:project-alignment');
+    expect(result.answer).toBe('synthesized verbose route answer');
   });
 });
 

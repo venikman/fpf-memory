@@ -517,6 +517,9 @@ export interface RuntimeStatus {
     provider?: string;
     model?: string;
     baseUrl?: string;
+    availability?: SynthesizerAvailabilityState;
+    checkedAt?: string;
+    failure?: SynthesizerAvailabilityFailure;
   };
   observability: {
     configured: boolean;
@@ -532,6 +535,19 @@ export interface RuntimeStatus {
     activeSessions: number;
     persistent: boolean;
   };
+}
+
+export type SynthesizerAvailabilityState =
+  | 'not_configured'
+  | 'available'
+  | 'degraded'
+  | 'unavailable'
+  | 'unknown';
+
+export interface SynthesizerAvailabilityFailure {
+  message: string;
+  httpStatus?: number;
+  endpoint?: string;
 }
 
 export interface AnswerSlice {
@@ -568,12 +584,21 @@ export interface LocalAnswerSynthesizerInfo {
   baseUrl?: string;
 }
 
+export interface LocalAnswerSynthesizerAvailability {
+  availability: Exclude<SynthesizerAvailabilityState, 'not_configured'>;
+  checkedAt: string;
+  failure?: SynthesizerAvailabilityFailure;
+}
+
 export interface LocalAnswerSynthesizer {
   isAvailable(): Promise<boolean> | boolean;
   synthesize(
     input: AnswerSynthesizerInput,
   ): Promise<AnswerSynthesizerOutput> | AnswerSynthesizerOutput;
   describe?(): LocalAnswerSynthesizerInfo;
+  checkAvailability?():
+    | Promise<LocalAnswerSynthesizerAvailability>
+    | LocalAnswerSynthesizerAvailability;
 }
 
 // ---------------------------------------------------------------------------

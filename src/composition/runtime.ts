@@ -11,7 +11,7 @@ import {
 import {
   getRuntimeObservability,
   getRuntimeObservabilitySummary,
-} from '../observability/runtime-observability.js';
+} from '../adapters/infra/observability/runtime-observability.js';
 
 export interface RuntimeComposition {
   runtime: FpfRuntime;

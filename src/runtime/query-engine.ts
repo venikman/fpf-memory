@@ -15,9 +15,11 @@
 
 import {
   isPartCDraftQuery,
+  selectFastRouteMatch,
 } from './compiler.js';
 import {
   MAX_EXCLUDED,
+  MAX_SELECTED_ANCHORS,
   MAX_SYNTHESIS_SLICES,
 } from './constants.js';
 import {
@@ -37,7 +39,9 @@ import {
 import { synthesizeAnswer } from './synthesis-adapter.js';
 import { type RetrievalSessionState } from './session-cache.js';
 import {
+  extractIds,
   normalizeForLookup,
+  unique,
 } from './text.js';
 import type {
   AnswerMode,
@@ -112,6 +116,10 @@ export class QueryEngine {
       ? buildRouteAnswer(question, mode, routeNodeId, trace, this.snapshot, this.rebuilt)
       : buildPatternAnswer(question, mode, trace, this.snapshot, this.rebuilt);
 
+    if (routeNodeId && shouldUseDeterministicRouteFastPath(mode, trace)) {
+      return deterministic;
+    }
+
     if (!this.synthesizer) {
       return deterministic;
     }
@@ -126,6 +134,11 @@ export class QueryEngine {
   }
 
   trace(question: string, mode: AnswerMode = 'compact'): TraceResult {
+    const fastRouteTrace = mode === 'compact' ? this.fastRouteTrace(question, mode) : undefined;
+    if (fastRouteTrace) {
+      return fastRouteTrace;
+    }
+
     const normalized = normalizeQuery(question, this.snapshot);
     if (!question.trim()) {
       return {
@@ -216,6 +229,95 @@ export class QueryEngine {
       sufficient: grounding.sufficient,
       routeWins: ranking.routeWins,
       status,
+      snapshot: {
+        sourceHash: this.snapshot.sourceHash,
+        builtAt: this.snapshot.builtAt,
+        rebuilt: this.rebuilt,
+      },
+    };
+  }
+
+  private fastRouteTrace(question: string, mode: AnswerMode): TraceResult | undefined {
+    if (!question.trim()) {
+      return undefined;
+    }
+
+    const match = selectFastRouteMatch(question, this.snapshot.routeGraph.nodes);
+    if (!match) {
+      return undefined;
+    }
+
+    const route = this.snapshot.routeGraph.nodes[match.routeId];
+    if (!route) {
+      return undefined;
+    }
+
+    const selectedNodeIds = unique([
+      route.id,
+      ...route.orderedIds,
+      ...route.landingIds,
+    ]).filter((nodeId) => Boolean(this.snapshot.compiledNodes[nodeId]));
+    const selectedNodeSet = new Set(selectedNodeIds);
+    const selectedAnchorIds = unique(route.anchorIds).slice(0, MAX_SELECTED_ANCHORS);
+    const graphExpansions = (this.snapshot.compiledNodes[route.id]?.neighborEdges ?? [])
+      .filter((edge) => selectedNodeSet.has(edge.to))
+      .map((edge) => ({
+        from: edge.from,
+        relation: edge.relation,
+        to: edge.to,
+        reason: match.reason,
+      }));
+    const frontierCandidates = selectedNodeIds.map((nodeId, index) => {
+      const node = this.snapshot.compiledNodes[nodeId]!;
+      return {
+        targetId: nodeId,
+        kind: node.kind,
+        reason: index === 0 ? match.reason : `fast route expansion from ${route.id}`,
+        score: index === 0 ? match.score : Math.max(1, match.score - index),
+        origin: 'route_expansion' as const,
+      };
+    });
+
+    return {
+      mode,
+      question,
+      normalizedQuestion: normalizeForLookup(question),
+      detected: {
+        ids: extractIds(question),
+        lexemes: [],
+        routeNames: [route.name],
+        familyTerms: [],
+        statusTerms: [],
+      },
+      candidateScores: [
+        {
+          nodeId: route.id,
+          kind: 'route',
+          score: match.score,
+          reasons: [match.reason],
+        },
+      ],
+      frontierCandidates,
+      graphExpansions,
+      selectedNodeIds,
+      selectedAnchorIds,
+      excludedNodeIds: [],
+      followedReferences: [],
+      retrievalHops: [
+        {
+          iteration: 1,
+          reason: match.reason,
+          addedNodeIds: selectedNodeIds.slice(1),
+          addedAnchorIds: selectedAnchorIds,
+          sufficientAfter: true,
+        },
+      ],
+      sessionApplied: false,
+      sessionReusedNodeIds: [],
+      sessionMateriallyChanged: false,
+      sufficient: true,
+      routeWins: true,
+      status: 'ok',
       snapshot: {
         sourceHash: this.snapshot.sourceHash,
         builtAt: this.snapshot.builtAt,
@@ -523,4 +625,11 @@ export class QueryEngine {
       snapshot: { ...this.snapshotRef(), rebuilt: this.rebuilt },
     };
   }
+}
+
+function shouldUseDeterministicRouteFastPath(
+  mode: AnswerMode,
+  trace: TraceResult,
+): boolean {
+  return mode === 'compact' && trace.routeWins && trace.status === 'ok';
 }

@@ -8,12 +8,12 @@ import { promisify } from 'node:util';
 import { beforeAll, describe, expect, it } from '@rstest/core';
 
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
-import { generateDocsSite } from '../src/docs/generate.js';
+import { generateDocsSite } from '../src/adapters/docs/generate.js';
 import {
   buildDocsNavigation,
   buildDocsProjection,
   resolveDocTarget,
-} from '../src/docs/projection.js';
+} from '../src/core/documents.js';
 import { compileFpfSource } from '../src/runtime/compiler.js';
 import type { Snapshot } from '../src/runtime/types.js';
 
@@ -225,6 +225,7 @@ describe('docs projection', () => {
       expect(rootIndex).toContain('[Work packets](/work-packets)');
       expect(rootIndex).toContain('product-role feedback');
       expect(rootIndex).toContain('[MCP recipes](/mcp-recipes)');
+      expect(rootIndex).toContain('[Connect MCP](/connect-mcp)');
       expect(rootIndex).toContain('## Navigate');
       expect(rootIndex).toContain('[Patterns](/generated/patterns/index)');
       expect(rootIndex).toContain('[Routes](/generated/routes/index)');
@@ -312,6 +313,21 @@ describe('docs projection', () => {
       );
       expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
         'Review a PR without full-spec paste',
+      );
+      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
+        'Connect fpf-memory MCP',
+      );
+      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
+        'https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp',
+      );
+      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
+        'Codex CLI',
+      );
+      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
+        'Claude Code',
+      );
+      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
+        'Pi MCP extension',
       );
     } finally {
       await rm(tempRoot, { recursive: true, force: true });
