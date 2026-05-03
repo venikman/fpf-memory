@@ -180,8 +180,15 @@ function addIndexDescriptionCandidates(
 }
 
 function matchesSeedRule(normalizedQuestion: string, rule: HeuristicSeedRule): boolean {
-  const matchesGroup = (alternatives: string[]): boolean =>
-    alternatives.some((term) => term.length > 0 && normalizedQuestion.includes(term));
+  const queryTokens = new Set(tokenize(normalizedQuestion));
+  const matchesTerm = (term: string): boolean => {
+    const termTokens = tokenize(term);
+    if (termTokens.length > 0) {
+      return termTokens.every((token) => queryTokens.has(token));
+    }
+    return term.length > 0 && normalizedQuestion.includes(term);
+  };
+  const matchesGroup = (alternatives: string[]): boolean => alternatives.some(matchesTerm);
   return (
     rule.allOf.every(matchesGroup) &&
     rule.anyOf.some(matchesGroup)

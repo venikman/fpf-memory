@@ -501,7 +501,7 @@ function refreshReasonForRebuild(params: {
   if (params.staleCompilerFingerprint) {
     return 'compiler_changed';
   }
-  return 'missing_snapshot';
+  throw new Error('refreshReasonForRebuild called without a rebuild reason');
 }
 
 async function readCurrentCompilerFingerprint(): Promise<string | undefined> {

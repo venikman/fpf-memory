@@ -211,6 +211,18 @@ describe('Query / Seed coverage stage', () => {
     expect(routeCandidate!.score).toBeGreaterThanOrEqual(90);
   });
 
+  it('does not seed the boundary route from substring-only change or ci matches', async () => {
+    const snapshot = await getSnapshot();
+    const normalized = normalizeQuery(
+      'What practices should change for specification compliance?',
+      snapshot,
+    );
+    const seeding = seedCandidates(normalized, snapshot);
+
+    const routeCandidate = seeding.candidateMap.get('route:boundary-burden');
+    expect(routeCandidate?.reasons ?? []).not.toContain('burden:boundary-review');
+  });
+
   it('produces few or low-scoring candidates for a completely unrelated question', async () => {
     const snapshot = await getSnapshot();
     const normalized = normalizeQuery('__FPFTEST_NONSENSE_999__', snapshot);

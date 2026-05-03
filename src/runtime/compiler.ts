@@ -215,13 +215,16 @@ function buildHeuristicSeedRules(
     ];
     rules.push({
       name: 'boundary-review',
-      allOf: [['review', 'reviewer', 'checking', 'check', 'change', 'gate']],
+      allOf: [['review', 'reviewer', 'reviewing', 'checking', 'check']],
       anyOf: [
         [
           'api',
           'contract',
           'protocol',
-          'ci',
+          'ci/cd',
+          'ci gate',
+          'ci pipeline',
+          'continuous integration',
           'deploy',
           'deploy gate',
           'acceptance',

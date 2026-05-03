@@ -1,12 +1,18 @@
+import { execFile } from 'node:child_process';
 import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { promisify } from 'node:util';
 
 import { afterEach, beforeEach, describe, expect, it } from '@rstest/core';
 
+import { computeCompilerFingerprint } from '../src/build/compiler-fingerprint.js';
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
 import { ARTIFACT_FILENAMES } from '../src/runtime/constants.js';
 import { FpfRuntime } from '../src/runtime/runtime.js';
+
+const execFileAsync = promisify(execFile);
 
 /**
  * Regression tests for the artefact cache-freshness logic.
@@ -145,5 +151,29 @@ describe('FpfRuntime cache-freshness regressions', () => {
     const recovered = await readSnapshot();
     expect(recovered.compilerFingerprint).toMatch(/^sha256:/);
     expect(recovered.compilerFingerprint).not.toBe('sha256:previous-compiler');
+  });
+
+  it('computes the default compiler fingerprint outside the repo cwd', async () => {
+    const expected = await computeCompilerFingerprint({ cwd: process.cwd() });
+    const outsideCwd = await mkdtemp(resolve(tmpdir(), 'fpf-fingerprint-cwd-'));
+    const moduleUrl = pathToFileURL(
+      resolve(process.cwd(), 'src/build/compiler-fingerprint.ts'),
+    ).href;
+
+    try {
+      const { stdout } = await execFileAsync(
+        'bun',
+        [
+          '--cwd',
+          outsideCwd,
+          '--eval',
+          `import { computeCompilerFingerprint } from ${JSON.stringify(moduleUrl)}; console.log(await computeCompilerFingerprint());`,
+        ],
+        { maxBuffer: 1024 * 1024 },
+      );
+      expect(stdout.trim()).toBe(expected);
+    } finally {
+      await rm(outsideCwd, { recursive: true, force: true });
+    }
   });
 });
