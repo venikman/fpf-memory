@@ -20,6 +20,7 @@
     "videos:use-cases": "bun scripts/record-use-case-videos.ts",
     "stage:from-published": "bun scripts/stage-from-published.ts",
     "mastra:build": "bun scripts/mastra-build.ts",
+    "mastra:deploy": "bun scripts/mastra-deploy.ts",
     "build": "bun run build:runtime && bun run build:mcp",
     "build:runtime": "bun build ./src/cli.ts ./src/server.ts --outdir dist --target bun",
     "build:mcp": "tsup src/mastra/stdio.ts --format esm --out-dir dist --no-splitting && bun scripts/fixup-stdio-build.ts",
@@ -34,7 +35,7 @@
     "check:boundaries": "bun scripts/check-boundaries.ts",
     "test": "rstest run",
     "predeploy": "bun run stage:from-published",
-    "deploy": "bun run predeploy && bun run mastra:build && bunx mastra server deploy --yes"
+    "deploy": "bun run predeploy && bun run mastra:build && bun run mastra:deploy -- --yes"
   },
   "license": "ISC",
   "type": "module",

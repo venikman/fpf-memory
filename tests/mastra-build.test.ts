@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it } from '@rstest/core';
 
 import {
   runMastraBuild,
+  runMastraServerDeploy,
   withTemporaryMastraPackageLock,
 } from '../src/build/mastra-build.js';
 
@@ -56,7 +57,7 @@ describe('withTemporaryMastraPackageLock', () => {
   });
 });
 
-describe('runMastraBuild', () => {
+describe('Mastra CLI wrappers', () => {
   let tempRoot: string;
 
   beforeEach(async () => {
@@ -81,6 +82,24 @@ describe('runMastraBuild', () => {
     });
 
     expect(seenArgs).toEqual(['bunx', 'mastra', 'build', '--debug']);
+    expect(sawTemporaryLock).toBe(true);
+    expect(await pathExists(resolve(tempRoot, 'package-lock.json'))).toBe(false);
+  });
+
+  it('runs mastra server deploy while the temporary package-lock.json exists', async () => {
+    let sawTemporaryLock = false;
+    let seenArgs: string[] | undefined;
+
+    await runMastraServerDeploy({
+      rootDir: tempRoot,
+      args: ['--yes'],
+      runCommand: async (command, args, options) => {
+        seenArgs = [command, ...args];
+        sawTemporaryLock = await pathExists(resolve(options.cwd, 'package-lock.json'));
+      },
+    });
+
+    expect(seenArgs).toEqual(['bunx', 'mastra', 'server', 'deploy', '--yes']);
     expect(sawTemporaryLock).toBe(true);
     expect(await pathExists(resolve(tempRoot, 'package-lock.json'))).toBe(false);
   });
