@@ -47,6 +47,27 @@ describe('source-parser', () => {
     });
   });
 
+  it('accepts copy-pasted whitespace around structured headings and part labels', () => {
+    const sourceText = [
+      '**Part  A — Foundations**',
+      '| ID | Title | Status | Keywords | Dependencies |',
+      '| --- | --- | --- | --- | --- |',
+      '| A.1 | Example Pattern | Draft | short description | |',
+      '',
+      '#\u00a0A.1\u00a0-\u2003Example Pattern',
+      'Body paragraph',
+    ].join('\n');
+
+    const ir = parseSource(sourceText);
+
+    expect(ir.metadata['A.1']?.part).toBe('Part A - Foundations');
+    expect(ir.sections[0]).toMatchObject({
+      id: 'A.1',
+      fullId: 'A.1',
+      patternId: 'A.1',
+    });
+  });
+
   it('parses heading metadata from labeled blockquote lines', () => {
     const lines = [
       '# A.1 - Example Pattern',
@@ -103,5 +124,22 @@ describe('source-parser', () => {
         },
       ]),
     );
+  });
+
+  it('does not match relation labels inside larger words', () => {
+    const relations = parseLabeledRelations(
+      'X.1',
+      'precoordinates with: A.1\nCoordinates with: B.1',
+      'X.1:test',
+    );
+
+    expect(relations).toEqual([
+      {
+        from: 'X.1',
+        relation: 'coordinates_with',
+        to: 'B.1',
+        source: 'X.1:test',
+      },
+    ]);
   });
 });

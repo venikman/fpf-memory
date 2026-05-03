@@ -17,6 +17,10 @@ import {
   SessionCache,
   type RetrievalSessionState,
 } from './session-cache.js';
+import {
+  collapseWhitespace,
+  findTokenPosition,
+} from './text-scan.js';
 import type {
   AnswerMode,
   BrowseCatalogResult,
@@ -723,103 +727,13 @@ function nodeToCatalogEntry(
 
 const SNIPPET_RADIUS = 80;
 
-function isAsciiAlphaNumeric(character: string | undefined): boolean {
-  return (
-    character !== undefined &&
-    ((character >= 'a' && character <= 'z') ||
-      (character >= '0' && character <= '9') ||
-      (character >= 'A' && character <= 'Z'))
-  );
-}
-
-function isInlineWhitespace(character: string | undefined): boolean {
-  return (
-    character === ' ' ||
-    character === '\t' ||
-    character === '\n' ||
-    character === '\r' ||
-    character === '\f'
-  );
-}
-
-function findCollapsedTokenPosition(
-  lower: string,
-  token: string,
-): { pos: number; len: number } | undefined {
-  for (let start = 0; start < lower.length; start += 1) {
-    if (lower[start] !== token[0]) {
-      continue;
-    }
-
-    let cursor = start + 1;
-    let tokenIndex = 1;
-    while (tokenIndex < token.length) {
-      while (cursor < lower.length && !isAsciiAlphaNumeric(lower[cursor])) {
-        cursor += 1;
-      }
-      if (cursor >= lower.length || lower[cursor] !== token[tokenIndex]) {
-        tokenIndex = -1;
-        break;
-      }
-      cursor += 1;
-      tokenIndex += 1;
-    }
-
-    if (tokenIndex === token.length) {
-      return { pos: start, len: cursor - start };
-    }
-  }
-
-  return undefined;
-}
-
-function findTokenPosition(
-  lower: string,
-  token: string,
-): { pos: number; len: number } | undefined {
-  // Try literal substring match first.
-  const literalPos = lower.indexOf(token);
-  if (literalPos !== -1) {
-    return { pos: literalPos, len: token.length };
-  }
-
-  // For collapsed tokens (e.g. "a23" from "A.2.3"), match the same
-  // alphanumeric sequence while allowing only punctuation or spacing between
-  // characters.
-  if (token.length > 0) {
-    return findCollapsedTokenPosition(lower, token);
-  }
-
-  return undefined;
-}
-
-function collapseWhitespace(text: string): string {
-  let result = '';
-  let sawWhitespace = false;
-
-  for (const character of text) {
-    if (isInlineWhitespace(character)) {
-      sawWhitespace = result.length > 0;
-      continue;
-    }
-    if (sawWhitespace) {
-      result += ' ';
-      sawWhitespace = false;
-    }
-    result += character;
-  }
-
-  return result.trim();
-}
-
 function extractSnippet(searchableText: string, queryTokens: string[]): string {
-  const lower = searchableText.toLowerCase();
   let bestPos = 0;
   let bestLen = 0;
   let bestTokenLen = 0;
 
   for (const token of queryTokens) {
-    const hit = findTokenPosition(lower, token);
+    const hit = findTokenPosition(searchableText, token);
     if (hit && token.length > bestTokenLen) {
       bestPos = hit.pos;
       bestLen = hit.len;

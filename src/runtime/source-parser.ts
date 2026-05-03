@@ -14,6 +14,15 @@ import {
   stripMarkdownToText,
   unique,
 } from './text.js';
+import {
+  isAsciiAlphaNumeric,
+  isAsciiDigit,
+  isUppercaseAsciiLetter,
+  isWhitespaceCharacter,
+  skipWhitespace,
+  startsWithAsciiIgnoreCase,
+  toLowerAscii,
+} from './text-scan.js';
 import type { AnchorRef, RelationEdge, RelationKind, SectionRole } from './types.js';
 
 export interface HeadingSection extends AnchorRef {
@@ -68,6 +77,14 @@ const RELATION_LABELS: Record<string, RelationKind> = {
 const ORDERED_RELATION_LABELS = Object.keys(RELATION_LABELS).sort(
   (left, right) => right.length - left.length,
 );
+const RELATION_LABELS_BY_FIRST_CHARACTER = ORDERED_RELATION_LABELS.reduce<
+  Record<string, string[]>
+>((labelsByFirstCharacter, label) => {
+  const firstCharacter = label[0]!;
+  labelsByFirstCharacter[firstCharacter] ??= [];
+  labelsByFirstCharacter[firstCharacter]!.push(label);
+  return labelsByFirstCharacter;
+}, {});
 
 const PATTERN_ROW_ID = /^\**[A-Z]\.\d+(?:\.[A-Za-z0-9]+)*\**$/;
 
@@ -84,42 +101,13 @@ interface RelationLabelMatch {
   contentStart: number;
 }
 
-function isAsciiWhitespace(character: string | undefined): boolean {
-  return character === ' ' || character === '\t' || character === '\n' || character === '\r';
-}
-
-function skipWhitespace(text: string, startIndex: number): number {
-  let index = startIndex;
-  while (index < text.length && isAsciiWhitespace(text[index])) {
-    index += 1;
-  }
-  return index;
-}
-
-function isUppercaseLetter(character: string | undefined): boolean {
-  return character !== undefined && character >= 'A' && character <= 'Z';
-}
-
-function isAsciiDigit(character: string | undefined): boolean {
-  return character !== undefined && character >= '0' && character <= '9';
-}
-
-function isAsciiAlphaNumeric(character: string | undefined): boolean {
-  return (
-    character !== undefined &&
-    ((character >= 'A' && character <= 'Z') ||
-      (character >= 'a' && character <= 'z') ||
-      (character >= '0' && character <= '9'))
-  );
-}
-
 function parseHeadingLine(line: string): ParsedHeadingLine | undefined {
   let index = 0;
   while (index < line.length && line[index] === '#') {
     index += 1;
   }
 
-  if (index === 0 || index > 6 || !isAsciiWhitespace(line[index])) {
+  if (index === 0 || index > 6 || !isWhitespaceCharacter(line[index])) {
     return undefined;
   }
 
@@ -153,8 +141,8 @@ function findSpacedDashSeparator(text: string): number {
   for (let index = 1; index < text.length - 1; index += 1) {
     if (
       text[index] === '-' &&
-      isAsciiWhitespace(text[index - 1]) &&
-      isAsciiWhitespace(text[index + 1])
+      isWhitespaceCharacter(text[index - 1]) &&
+      isWhitespaceCharacter(text[index + 1])
     ) {
       return index;
     }
@@ -164,7 +152,7 @@ function findSpacedDashSeparator(text: string): number {
 
 function isStructuredHeadingId(value: string): boolean {
   let index = 0;
-  if (!isUppercaseLetter(value[index])) {
+  if (!isUppercaseAsciiLetter(value[index])) {
     return false;
   }
   index += 1;
@@ -241,7 +229,7 @@ function parseCatalogPartHeading(line: string): string | undefined {
 
   let index = 'Part '.length;
   const letter = normalized[index];
-  if (!isUppercaseLetter(letter)) {
+  if (!isUppercaseAsciiLetter(letter)) {
     return undefined;
   }
   index += 1;
@@ -285,11 +273,10 @@ function parseLabeledValue(line: string): { key: string; value: string } | undef
 
 function findNextRelationLabel(
   text: string,
-  lower: string,
   fromIndex: number,
 ): RelationLabelMatch | undefined {
   for (let index = fromIndex; index < text.length; index += 1) {
-    const match = parseRelationLabelAt(text, lower, index);
+    const match = parseRelationLabelAt(text, index);
     if (match) {
       return match;
     }
@@ -299,7 +286,6 @@ function findNextRelationLabel(
 
 function parseRelationLabelAt(
   text: string,
-  lower: string,
   startIndex: number,
 ): RelationLabelMatch | undefined {
   let index = skipWhitespace(text, startIndex);
@@ -314,8 +300,12 @@ function parseRelationLabelAt(
     index = skipWhitespace(text, index);
   }
 
-  for (const label of ORDERED_RELATION_LABELS) {
-    if (!lower.startsWith(label, index)) {
+  if (!isRelationLabelBoundaryBefore(text, index)) {
+    return undefined;
+  }
+
+  for (const label of RELATION_LABELS_BY_FIRST_CHARACTER[toLowerAscii(text[index]) ?? ''] ?? []) {
+    if (!startsWithAsciiIgnoreCase(text, label, index)) {
       continue;
     }
 
@@ -339,6 +329,10 @@ function parseRelationLabelAt(
   }
 
   return undefined;
+}
+
+function isRelationLabelBoundaryBefore(text: string, index: number): boolean {
+  return index === 0 || !isAsciiAlphaNumeric(text[index - 1]);
 }
 
 export function parseSource(sourceText: string): SourceIR {
@@ -628,11 +622,10 @@ export function parseLabeledRelations(
   sourceCitation: string,
 ): RelationEdge[] {
   const relationEdges: RelationEdge[] = [];
-  const lower = text.toLowerCase();
 
-  let current = findNextRelationLabel(text, lower, 0);
+  let current = findNextRelationLabel(text, 0);
   while (current) {
-    const next = findNextRelationLabel(text, lower, current.contentStart);
+    const next = findNextRelationLabel(text, current.contentStart);
     const rawTargets = text.slice(current.contentStart, next?.start ?? text.length);
     pushRelationEdges(relationEdges, sourceId, current.label, rawTargets, sourceCitation);
     current = next;
