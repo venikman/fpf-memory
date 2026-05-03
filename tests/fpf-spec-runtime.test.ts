@@ -270,6 +270,14 @@ describe('FpfRuntime', () => {
     );
     expect(readByRoute.markdown).toContain('# project alignment');
 
+    const readByRouteId = await runtime.readDoc('route:project-alignment', 'route');
+    expect(readByRouteId.status).toBe('ok');
+    expect(readByRouteId.resolvedAs).toBe('route');
+    expect(readByRouteId.nodeId).toBe('route:project-alignment');
+    expect(readByRouteId.docRef?.markdownPath).toBe(
+      'docs/generated/routes/route_project-alignment.md',
+    );
+
     const readByLexeme = await runtime.readDoc('U.BoundedContext', 'lexeme');
     expect(readByLexeme.status).toBe('ok');
     expect(readByLexeme.nodeId).toBe('A.1.1');

@@ -312,6 +312,11 @@ export class QueryEngine {
     }
 
     if (kind === 'route' || kind === 'auto') {
+      const routeIdMatch = this.routeIdSelectorMatch(selector, normalizedSelector);
+      if (routeIdMatch) {
+        return routeIdMatch;
+      }
+
       const routeMatch = this.snapshot.indexes.routeNameIndex[normalizedSelector]?.[0];
       if (routeMatch) {
         return routeMatch;
@@ -337,6 +342,20 @@ export class QueryEngine {
     }
 
     return undefined;
+  }
+
+  private routeIdSelectorMatch(
+    selector: string,
+    normalizedSelector: string,
+  ): string | undefined {
+    const exactNode = this.snapshot.compiledNodes[selector];
+    if (exactNode?.kind === 'route') {
+      return exactNode.id;
+    }
+
+    return this.snapshot.indexes.idIndex[normalizedSelector]?.find(
+      (nodeId) => this.snapshot.compiledNodes[nodeId]?.kind === 'route',
+    );
   }
 
   private bestLexemeSelectorMatch(normalizedSelector: string): string | undefined {

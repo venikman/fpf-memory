@@ -299,6 +299,18 @@ describe('Mastra MCP server', () => {
     expect(readDocPayload.nodeId).toBe('A.1.1');
     expect(readDocPayload.markdown).toContain('# U.BoundedContext: The Semantic Frame');
 
+    const readRouteDoc = await harness.request('tools/call', {
+      name: 'read_fpf_doc',
+      arguments: {
+        selector: 'route:project-alignment',
+        kind: 'route',
+      },
+    });
+    const readRouteDocPayload = asToolPayload(readRouteDoc);
+    expect(readRouteDocPayload.resolvedAs).toBe('route');
+    expect(readRouteDocPayload.nodeId).toBe('route:project-alignment');
+    expect(readRouteDocPayload.markdown).toContain('# project alignment');
+
     const ask = await harness.request('tools/call', {
       name: 'ask_fpf',
       arguments: {
