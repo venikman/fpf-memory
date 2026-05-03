@@ -29,7 +29,6 @@ Name the work shape first, pick the smallest matching doorway, and keep exact FP
 | Unpack an API, contract, or promise | [Boundary burden route](/generated/routes/route_boundary-burden) | Atomic claims, boundary duties, evidence needs |
 | Compare options | [Lawful comparison route](/generated/routes/route_lawful-comparison-or-portfolio-selection) | Governed shortlist or set result |
 | Use FPF inside an agent conversation | [MCP recipes](/mcp-recipes) | Compact cited context instead of a full-spec paste |
-| Show FPF to someone else | [Demo videos](/use-case-videos) | CSS-rendered walkthrough of one practical use case |
 
 ## Operating rule
 
@@ -42,7 +41,6 @@ Do not ask people to read all FPF before they can benefit from it. Ask for the w
 3. Capture the current claim, role, method, promise, evidence, and risk in ordinary language.
 4. Add exact FPF IDs only where they change the decision or the acceptance checks.
 5. Keep the full catalog available as the canonical reference, not as the first screen.
-6. Record a short use-case video when the path should be reusable by someone else.
 
 ## When to use the full catalog
 

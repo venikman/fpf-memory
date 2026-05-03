@@ -225,7 +225,6 @@ describe('docs projection', () => {
       expect(rootIndex).toContain('[Work packets](/work-packets)');
       expect(rootIndex).toContain('product-role feedback');
       expect(rootIndex).toContain('[MCP recipes](/mcp-recipes)');
-      expect(rootIndex).toContain('[Demo videos](/use-case-videos)');
       expect(rootIndex).toContain('## Navigate');
       expect(rootIndex).toContain('[Patterns](/generated/patterns/index)');
       expect(rootIndex).toContain('[Routes](/generated/routes/index)');
@@ -313,15 +312,6 @@ describe('docs projection', () => {
       );
       expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
         'Review a PR without full-spec paste',
-      );
-      expect(await readFile(resolve(outDir, 'use-case-videos.html'), 'utf8')).toContain(
-        'Product-level FPF use case recordings',
-      );
-      expect(await readFile(resolve(outDir, 'use-case-videos.html'), 'utf8')).toContain(
-        'Review a PR without full-spec paste',
-      );
-      expect(await readFile(resolve(outDir, 'use-case-videos.html'), 'utf8')).toContain(
-        'This is the promotion and adoption evidence page',
       );
     } finally {
       await rm(tempRoot, { recursive: true, force: true });

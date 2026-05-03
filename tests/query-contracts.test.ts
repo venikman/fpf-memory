@@ -197,6 +197,20 @@ describe('Query / Seed coverage stage', () => {
     expect(routeFrontier.length).toBeGreaterThan(0);
   });
 
+  it('seeds the boundary route for reviewer API contract prompts', async () => {
+    const snapshot = await getSnapshot();
+    const normalized = normalizeQuery(
+      'For a PR/code reviewer checking an API contract change, return exact route or pattern IDs and acceptance checks without pasting the full FPF.',
+      snapshot,
+    );
+    const seeding = seedCandidates(normalized, snapshot);
+
+    const routeCandidate = seeding.candidateMap.get('route:boundary-burden');
+    expect(routeCandidate).toBeDefined();
+    expect(routeCandidate!.reasons).toContain('burden:boundary-review');
+    expect(routeCandidate!.score).toBeGreaterThanOrEqual(90);
+  });
+
   it('produces few or low-scoring candidates for a completely unrelated question', async () => {
     const snapshot = await getSnapshot();
     const normalized = normalizeQuery('__FPFTEST_NONSENSE_999__', snapshot);
@@ -245,6 +259,18 @@ describe('Query / Ranker stage', () => {
       (id) => snapshot.compiledNodes[id]?.kind === 'route',
     );
     expect(routeNodes.length).toBeGreaterThan(0);
+  });
+
+  it('selects the boundary route for PR reviewer API contract prompts', async () => {
+    const snapshot = await getSnapshot();
+    const question =
+      'For a PR/code reviewer checking an API contract change, return exact route or pattern IDs and acceptance checks without pasting the full FPF.';
+    const normalized = normalizeQuery(question, snapshot);
+    const seeding = seedCandidates(normalized, snapshot);
+    const ranking = rankCandidates(question, seeding.candidateMap, snapshot);
+
+    expect(ranking.routeWins).toBe(true);
+    expect(ranking.initialNodeIds).toEqual(['route:boundary-burden']);
   });
 });
 

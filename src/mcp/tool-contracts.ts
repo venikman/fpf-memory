@@ -22,6 +22,7 @@ export const anchorRoleSchema = z.enum([
 ]);
 export const buildReasonSchema = z.enum([
   'forced',
+  'compiler_changed',
   'missing_snapshot',
   'source_hash_changed',
   'snapshot_current',

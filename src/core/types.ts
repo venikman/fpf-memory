@@ -213,6 +213,7 @@ export interface Snapshot {
   sourcePath: string;
   sourceHash: string;
   builtAt: string;
+  compilerFingerprint?: string;
   compilerMode: 'local_vectorless';
   indexRoots: string[];
   indexMap: Record<string, IndexMapNode>;
@@ -301,6 +302,7 @@ export interface BuildAudit {
   rebuilt: boolean;
   reason:
     | 'forced'
+    | 'compiler_changed'
     | 'missing_snapshot'
     | 'source_hash_changed'
     | 'snapshot_current';

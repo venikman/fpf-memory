@@ -126,4 +126,24 @@ describe('FpfRuntime cache-freshness regressions', () => {
     expect(rebuilt.previousSourceHash).toBeDefined();
     expect(rebuilt.previousSourceHash).not.toBe(rebuilt.sourceHash);
   });
+
+  it('rebuilds when the compiler fingerprint changes without spec edits', async () => {
+    await runtime.refresh();
+    const snapshot = await readSnapshot();
+    expect(snapshot.compilerFingerprint).toMatch(/^sha256:/);
+
+    snapshot.compilerFingerprint = 'sha256:previous-compiler';
+    await writeFile(
+      resolve(artifactDir, ARTIFACT_FILENAMES.snapshot),
+      JSON.stringify(snapshot, null, 2),
+    );
+
+    const rebuilt = await runtime.refresh();
+    expect(rebuilt.rebuilt).toBe(true);
+    expect(rebuilt.reason).toBe('compiler_changed');
+
+    const recovered = await readSnapshot();
+    expect(recovered.compilerFingerprint).toMatch(/^sha256:/);
+    expect(recovered.compilerFingerprint).not.toBe('sha256:previous-compiler');
+  });
 });

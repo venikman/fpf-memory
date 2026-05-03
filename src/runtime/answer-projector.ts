@@ -26,7 +26,12 @@ export function buildRouteAnswer(
   rebuilt: boolean,
 ): QueryResult {
   const route = snapshot.routeGraph.nodes[routeNodeId]!;
-  const ids = unique([...route.orderedIds, ...route.optionalIds, ...route.landingIds]);
+  const ids = unique([
+    routeNodeId,
+    ...route.orderedIds,
+    ...route.optionalIds,
+    ...route.landingIds,
+  ]);
   const idSet = new Set(ids);
   const relations = ids.flatMap((id) =>
     (snapshot.compiledNodes[id]?.neighborEdges ?? [])
@@ -40,7 +45,7 @@ export function buildRouteAnswer(
     ...(route.constraints ?? []),
   ];
   const answer = [
-    `${route.name} is the matched first-practical route.`,
+    `${route.id} (${route.name}) is the matched first-practical route.`,
     route.firstHonestBurden ? `Burden: ${route.firstHonestBurden}.` : '',
     route.orderedIds.length > 0
       ? `Ordered entry IDs: ${route.orderedIds.join(' -> ')}.`

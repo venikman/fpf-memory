@@ -26,18 +26,6 @@ FPF work-evaluation surface:
 - `bun run cli -- evaluate-work --target working-tree --format json` emits the same review as machine-readable JSON
 - `--spec <path>` may point at a local FPF markdown file for comparison; the default remains `FPF_SPEC_SOURCE_PATH` or `published/current/FPF-Spec.md`
 
-## Codex Verification Rule
-
-For every non-trivial Codex implementation or review-fix task, run the closest real end-to-end (E2E) verification path, record that run as video, and share the recording path or link with the user before calling the work complete.
-
-- Use `bun run e2e:report -- docs` for human-facing docs/wiki changes.
-- Use `bun run e2e:report -- cli` for CLI, MCP, retrieval, or evaluator changes.
-- Use `bun run e2e:report -- deploy-dry-run` for packaging or deploy changes.
-- Use `bun run e2e:report -- --name <task-slug> --command "<command>"` when none of the presets matches the change.
-- Share the generated `.runtime/e2e-recordings/<timestamp>-<task>/e2e-report.webm` path, plus the `report.md` path and any visible caveats, in the final response.
-- If video recording cannot be produced, stop and report the blocker instead of silently substituting logs, screenshots, or command output. If Chromium is missing, run `bunx playwright install chromium` and retry.
-- Pure planning or explanation-only turns with no repo mutation do not require an E2E recording.
-
 ## Learned User Preferences
 
 - Prefer not treating a repo-root spec checkout as the source of truth; use `bun run spec:download` or set `FPF_PUBLISH_SOURCE_PATH` to a local checkout (for example `fpf-sync`) when refreshing the committed `published/current/**` surface.
