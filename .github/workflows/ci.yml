@@ -43,7 +43,7 @@ jobs:
         run: bun run check
 
       - name: Test
-        # Run the CI suite in two fresh Rstest processes. The full FPF suite
+        # Run the CI suite in four fresh Rstest processes. The full FPF suite
         # can push a single long-lived worker over the GitHub runner memory
         # cliff even with `maxWorkers: 1`.
         run: bun run test:ci
