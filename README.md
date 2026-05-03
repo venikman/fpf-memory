@@ -242,7 +242,7 @@ Call trace_fpf_path with:
 
 ## Runtime surfaces
 
-- `src/adapters/mcp/tool-contracts.ts`: Zod-authored MCP input and output contracts
+- `src/mcp/tool-contracts.ts`: Zod-authored MCP input and output contracts
 - `src/adapters/mcp/tools.ts`: canonical snake_case MCP tools and `ask_fpf`
 - `src/adapters/mcp/server.ts`: canonical MCPServer definitions (public and full surfaces)
 - `src/composition/`: canonical bridge layer for runtime/bootstrap composition
@@ -252,8 +252,8 @@ Call trace_fpf_path with:
 - `src/mastra/stdio.ts`: stdio entry point for MCP clients
 - `src/server.ts`: Hono HTTP server bootstrap for Bun
 - `src/runtime/`: compiler, retrieval, trace, inspect, and synthesis logic
-- `src/logging/runtime-logger.ts`: Mastra-backed structured runtime/MCP log writer
-- `src/observability/runtime-observability.ts`: Mastra-backed observability wrapper for local synthesis
+- `src/adapters/infra/logging/runtime-logger.ts`: Mastra-backed structured runtime/MCP log writer
+- `src/adapters/infra/observability/runtime-observability.ts`: Mastra-backed observability wrapper for local synthesis
 
 ## Docs surface
 
