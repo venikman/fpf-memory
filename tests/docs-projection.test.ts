@@ -8,12 +8,12 @@ import { promisify } from 'node:util';
 import { beforeAll, describe, expect, it } from '@rstest/core';
 
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
-import { generateDocsSite } from '../src/docs/generate.js';
+import { generateDocsSite } from '../src/adapters/docs/generate.js';
 import {
   buildDocsNavigation,
   buildDocsProjection,
   resolveDocTarget,
-} from '../src/docs/projection.js';
+} from '../src/core/documents.js';
 import { compileFpfSource } from '../src/runtime/compiler.js';
 import type { Snapshot } from '../src/runtime/types.js';
 

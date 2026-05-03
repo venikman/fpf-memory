@@ -1,6 +1,6 @@
 import { SpanType } from '@mastra/core/observability';
 
-import { withRuntimeSpan } from '../observability/runtime-observability.js';
+import { withRuntimeSpan } from '../adapters/infra/observability/runtime-observability.js';
 import {
   parseLmStudioConfig,
   parseObservabilityConfig,

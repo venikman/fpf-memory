@@ -38,7 +38,7 @@
 - Runtime remains a single spec file via `FPF_SPEC_SOURCE_PATH` — no additional corpora added
 - No vector database or remote indexing introduced
 - No Python code added
-- MCP tool contracts are in `src/adapters/mcp/tool-contracts.ts`
+- MCP tool contracts are in `src/mcp/tool-contracts.ts`
 
 ## Agent metadata
 

@@ -1,8 +1,8 @@
 import { Mastra } from '@mastra/core/mastra';
 import type { MCPServerBase } from '@mastra/core/mcp';
 
-import type { getRuntimeLogger } from '../../logging/runtime-logger.js';
-import type { getRuntimeObservability } from '../../observability/runtime-observability.js';
+import type { getRuntimeLogger } from '../infra/logging/runtime-logger.js';
+import type { getRuntimeObservability } from '../infra/observability/runtime-observability.js';
 
 export interface HostedMastraRuntimeDependencies {
   logger: ReturnType<typeof getRuntimeLogger>;

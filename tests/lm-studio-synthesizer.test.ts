@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from '@rstest/core';
 
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
-import { resetRuntimeObservabilityForTests } from '../src/observability/runtime-observability.js';
+import { resetRuntimeObservabilityForTests } from '../src/adapters/infra/observability/runtime-observability.js';
 import {
   DEFAULT_LM_STUDIO_BASE_URL,
   DEFAULT_LM_STUDIO_MODEL,
