@@ -71,7 +71,8 @@ export function buildDocsProjection(
     buildPatternIndexPage(snapshot),
     buildRouteIndexPage(snapshot),
     buildPrefaceIndexPage(snapshot),
-    buildRootIndexPage(snapshot, manifest),
+    buildRootIndexPage(snapshot),
+    buildWelcomePage(snapshot, manifest),
   ];
 
   return {
@@ -214,7 +215,19 @@ function buildPrefacePages(snapshot: Snapshot): GeneratedDocPage[] {
  */
 function renderPatternCatalogMarkdown(
   snapshot: Snapshot,
-  options: { title: string; description: string; heading?: string },
+  options: {
+    title: string;
+    description: string;
+    heading?: string;
+    /**
+     * When true, surfaces a one-line pointer to `/welcome` at the top of
+     * the body so first-time visitors arriving on the FPF-index homepage
+     * have a guided entry point. The deep-link catalog page at
+     * `/generated/patterns/index` omits this since its readers already
+     * navigated past the front door.
+     */
+    showWelcomePointer?: boolean;
+  },
 ): string {
   const groups = new Map<string, PatternRecord[]>();
   for (const pattern of sortedPatterns(snapshot)) {
@@ -232,16 +245,26 @@ function renderPatternCatalogMarkdown(
     }),
     `# ${options.heading ?? options.title}`,
     '',
+  ];
+
+  if (options.showWelcomePointer) {
+    lines.push(
+      'New here? See [Welcome](/welcome) for adoption guidance, work packets, and MCP recipes.',
+      '',
+    );
+  }
+
+  lines.push(
     '## What this page is',
     '',
     'This is the full generated catalog of FPF pattern IDs from the published FPF snapshot. It is not the first adoption path and it is not a fpf-memory product feature list.',
     '',
     '## Methodology',
     '',
-    'Start with [Start Here](/start-here), a route, or a work packet when the job is active. Use this catalog when you need to audit the full FPF reference, open an exact ID, or compare neighboring patterns by Part.',
+    'Start with [Welcome](/welcome), a route, or a work packet when the job is active. Use this catalog when you need to audit the full FPF reference, open an exact ID, or compare neighboring patterns by Part.',
     '',
     `Generated pages: ${Object.keys(snapshot.patternGraph.nodes).length}`,
-  ];
+  );
 
   for (const [group, patterns] of groups.entries()) {
     lines.push('', `## ${group}`, '');
@@ -268,22 +291,45 @@ function buildPatternIndexPage(snapshot: Snapshot): GeneratedDocPage {
 }
 
 /**
- * The site home, rendered through Rspress's `pageType: home` layout so the
- * homepage stops sitting inside the doc layout's empty sidebar/outline
- * scaffolding. The hero owns the value prop and three primary actions; the
- * feature grid surfaces the catalog (Patterns / Routes / Glossary / Change
- * log) with FPF-part hue accents. Methodology, the hosted MCP endpoint, and
- * the publication manifest live in the body below the hero.
+ * The site root (`/`) IS the FPF index — visitors land directly in the
+ * pattern catalog rather than on a marketing landing. The adoption-landing
+ * hero/feature surface lives at `/welcome` (see `buildWelcomePage`).
+ *
+ * The catalog is rendered with the same generator as `/generated/patterns/`
+ * so deep links to the canonical catalog URL keep working unchanged.
  */
-function buildRootIndexPage(
-  snapshot: Snapshot,
-  manifest?: PublicationManifestSummary,
-): GeneratedDocPage {
+function buildRootIndexPage(snapshot: Snapshot): GeneratedDocPage {
   return {
     kind: 'index',
     title: 'FPF Reference',
     markdownPath: `${DOCS_ROOT}/index.md`,
     staticPath: '/',
+    markdown: renderPatternCatalogMarkdown(snapshot, {
+      title: 'FPF Reference',
+      description:
+        'Compiler-backed reference for the latest published FPF, projected as a slim wiki.',
+      heading: 'FPF Reference',
+      showWelcomePointer: true,
+    }),
+  };
+}
+
+/**
+ * The adoption landing — formerly at `/`, now `/welcome`. Rendered through
+ * Rspress's `pageType: home` layout (hero + 4-up feature grid) so first-time
+ * visitors get a guided entry point that points back into the reference at
+ * `/`. Linked from the top nav and from the homepage's "About this site"
+ * footer rule.
+ */
+function buildWelcomePage(
+  snapshot: Snapshot,
+  manifest?: PublicationManifestSummary,
+): GeneratedDocPage {
+  return {
+    kind: 'index',
+    title: 'Welcome',
+    markdownPath: `${DOCS_ROOT}/welcome.md`,
+    staticPath: '/welcome',
     markdown: renderHomeMarkdown(snapshot, manifest),
   };
 }
@@ -354,7 +400,7 @@ function renderHomeFrontMatter(patternCount: number, routeCount: number): string
     '  - title: Patterns',
     `    details: ${patternCount} patterns across parts A–K. Open an exact ID, audit the full reference, or compare neighboring patterns by Part.`,
     '    icon: A.1',
-    '    link: /generated/patterns/index',
+    '    link: /',
     '  - title: Routes',
     `    details: ${routeCount} working paths through pattern IDs. Use a route when the work shape is known but the exact patterns are not.`,
     '    icon: F.1',

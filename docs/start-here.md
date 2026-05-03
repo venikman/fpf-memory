@@ -44,4 +44,4 @@ Do not ask people to read all FPF before they can benefit from it. Ask for the w
 
 ## When to use the full catalog
 
-Use [Patterns](/generated/patterns/index) when the doorway is not enough, when an exact pattern clause matters, or when a reader needs to audit the source.
+Use [Patterns](/) when the doorway is not enough, when an exact pattern clause matters, or when a reader needs to audit the source.
