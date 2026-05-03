@@ -311,8 +311,14 @@ describe('docs projection', () => {
       expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
         'Dogfood a product role',
       );
+      expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
+        'Review a PR without full-spec paste',
+      );
       expect(await readFile(resolve(outDir, 'use-case-videos.html'), 'utf8')).toContain(
         'Product-level FPF use case recordings',
+      );
+      expect(await readFile(resolve(outDir, 'use-case-videos.html'), 'utf8')).toContain(
+        'Review a PR without full-spec paste',
       );
       expect(await readFile(resolve(outDir, 'use-case-videos.html'), 'utf8')).toContain(
         'This is the promotion and adoption evidence page',

@@ -140,6 +140,9 @@ describe('E2E report tooling', () => {
     expect(grouped['Docs/wiki'].map((scenario) => scenario.slug)).toContain(
       'docs-product-role-feedback',
     );
+    expect(grouped['Docs/wiki'].map((scenario) => scenario.slug)).toContain(
+      'docs-pr-review-without-full-spec',
+    );
   });
 
   it('keeps each use-case scenario narration complete', () => {

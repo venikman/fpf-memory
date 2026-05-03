@@ -42,6 +42,7 @@ Artifacts are written under `.runtime/use-case-videos/<timestamp>-fpf-product-us
 | --- | --- | --- |
 | Docs wiki | Pick the right doorway | Start from the adoption page, choose a work doorway, then open the matching route or packet. |
 | Docs wiki | Dogfood product-role feedback | Act as one product user role, capture friction, and turn it into discussion-ready evidence. |
+| Docs wiki | Review a PR without full-spec paste | Start from the review doorway, open the PR review packet, then use a compact MCP recipe for findings and verdict. |
 | Docs wiki | Audit exact source | Move from a route to the exact generated pattern page when wording matters. |
 | MCP runtime | Bounded agent context | Retrieve a compact project-alignment packet through MCP instead of pasting all FPF. |
 | MCP runtime | Retrieval provenance | Use the full local MCP surface when trace evidence matters. |

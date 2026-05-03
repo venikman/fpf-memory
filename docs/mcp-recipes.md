@@ -83,6 +83,21 @@ Good personas to rotate:
 - agent integrator
 - product maintainer
 
+## Review a PR without full-spec paste
+
+Prompt:
+
+```txt
+Use only the fpf_memory MCP server plus the PR diff, local files, and CI evidence. Review this PR through the PR or code review packet. Return Findings | FPF IDs | Evidence | Tests | Residual risk | Verdict. Lead with behavioral issues and cite exact files; do not paste the full FPF.
+```
+
+Good retrieval shape:
+
+- Start with `query_fpf_spec` for `route:writing-or-reviewing-patterns`.
+- Add `route:boundary-burden` only when the change touches an API, contract, workflow, protocol, CI gate, or deploy promise.
+- Read exact pattern pages only when a finding depends on the wording.
+- Keep the verdict tied to evidence: merge, fix first, or split scope.
+
 ## Review work with FPF
 
 Prompt:

@@ -242,6 +242,41 @@ export const USE_CASE_SCENARIOS: UseCaseVideoScenario[] = [
     ],
   },
   {
+    kind: 'docs',
+    slug: 'docs-pr-review-without-full-spec',
+    product: 'Docs/wiki',
+    title: 'Review a PR without full-spec paste',
+    initialState: 'A reviewer has a PR or design change and needs FPF discipline.',
+    problem: 'A generic review can miss claims, boundaries, and evidence, while a full-spec paste wastes context.',
+    tools: ['/start-here', '/work-packets#pr-or-code-review-packet', '/mcp-recipes#review-a-pr-without-full-spec-paste'],
+    outcome: 'The reviewer gets findings tied to behavior, FPF IDs, evidence, tests, residual risk, and verdict.',
+    recordingSteps: [
+      'Open Start Here and select the PR or design review doorway.',
+      'Open the PR or code review packet and show the claim, boundary, evidence, risk, and verdict fields.',
+      'Open the MCP recipe that keeps review context bounded to the needed route and evidence.',
+    ],
+    docsSteps: [
+      {
+        path: '/start-here',
+        heading: 'Review a PR or design change',
+        stage: 'Initial state',
+        message: 'The doorway starts from the work shape: one PR or design change that needs review.',
+      },
+      {
+        path: '/work-packets#pr-or-code-review-packet',
+        heading: 'PR or code review packet',
+        stage: 'Tool in action',
+        message: 'The packet separates claim, boundary, evidence, risk, and verdict before reading more FPF.',
+      },
+      {
+        path: '/mcp-recipes#review-a-pr-without-full-spec-paste',
+        heading: 'Review a PR without full-spec paste',
+        stage: 'Useful outcome',
+        message: 'The recipe keeps the review grounded in compact FPF IDs, local evidence, tests, and residual risk.',
+      },
+    ],
+  },
+  {
     kind: 'mcp',
     slug: 'mcp-bounded-agent-context',
     product: 'MCP runtime',
