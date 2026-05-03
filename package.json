@@ -34,6 +34,7 @@
     "check": "tsc --noEmit",
     "check:boundaries": "bun scripts/check-boundaries.ts",
     "test": "rstest run",
+    "test:ci": "rstest run --shard=1/2 && rstest run --shard=2/2",
     "predeploy": "bun run stage:from-published",
     "deploy": "bun run predeploy && bun run mastra:build && bun run mastra:deploy -- --yes"
   },
