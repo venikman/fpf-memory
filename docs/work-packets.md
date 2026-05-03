@@ -78,7 +78,7 @@ Packet:
 - Surface: docs wiki, hosted MCP, CLI, evaluator, deploy evidence, or automation feedback.
 - Job: what concrete task should be possible without pasting the full FPF?
 - Friction: what explanation, route, affordance, evidence, or compact context was missing?
-- Evidence: URL, command, MCP call, screenshot, video, issue, discussion, or log path.
+- Evidence: URL, command, MCP call, screenshot, issue, discussion, or log path.
 - Feedback: one proposed improvement, severity, and validation path.
 
 Done when: the role/job can be replayed by another person, the feedback points at exact evidence, and the output is either a focused PR, issue, GitHub Discussion, or no-new-feedback checkpoint.

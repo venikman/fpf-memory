@@ -27,11 +27,8 @@
 - `bun run build` succeeds (if runtime/server code touched)
 - `bun run docs:build` succeeds (if docs touched)
 - Relevant docs updated (README, docs/, inline JSDoc if applicable)
-- E2E report command:
-- E2E path exercised:
-- E2E video recording path/link:
-- E2E report path/link:
-- E2E caveats or blocker:
+- End-to-end verification command + output excerpt:
+- Caveats or blocker:
 
 ## Boundary check
 

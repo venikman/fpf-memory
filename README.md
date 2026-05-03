@@ -78,9 +78,6 @@ bun install
 bun run spec:download
 bun run publish:current
 bun run evaluate:work
-bun run e2e:report -- cli
-bun run e2e:report -- docs
-bun run e2e:report -- deploy-dry-run
 bun run stage:from-published
 bun run mastra:build
 bun run hooks:install
@@ -119,19 +116,6 @@ bun run cli -- evaluate-work --spec ~/Downloads/FPF-Spec\(12\).md --out reports/
 ```
 
 The evaluator reads local git facts, the committed `published/current/**` surface, and the configured FPF spec. It does not call an LLM, fetch GitHub, or regenerate artifacts. By default it reads `FPF_SPEC_SOURCE_PATH` if set, otherwise `published/current/FPF-Spec.md`; it does not fall back to `.fpf-upstream/`.
-
-## E2E Video Reports
-
-Use `bun run e2e:report` whenever Codex needs to share an end-to-end verification run as video:
-
-```bash
-bun run e2e:report -- cli
-bun run e2e:report -- docs
-bun run e2e:report -- deploy-dry-run
-bun run e2e:report -- --name pr-review --command "bun run evaluate:work"
-```
-
-Artifacts are written to `.runtime/e2e-recordings/<timestamp>-<task>/` and are intentionally gitignored. Each run writes `commands.log`, `metadata.json`, `report.md`, `report.html`, and `e2e-report.webm`. Share the `e2e-report.webm` path or uploaded video link in PRs and final Codex responses. If Chromium is not installed for Playwright, run `bunx playwright install chromium` once and retry.
 
 ## Run And Test MCP
 
