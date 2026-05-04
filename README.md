@@ -41,7 +41,7 @@ bun run docs:generate && bun run docs:dev
 On each refresh trigger the runtime:
 
 1. hashes the spec file at `FPF_SPEC_SOURCE_PATH` and reuses the snapshot if the hash matches
-2. otherwise recompiles a local vectorless index, writing `snapshot.json`, `build-audit.json`, `index-map.json`, `pattern-graph.json`, `route-graph.json`, `lexicon.json`, and `anchor-map.json` under `.runtime/fpf-index/`
+2. otherwise recompiles a local vectorless index, writing `snapshot.json`, `build-audit.json`, `index-map.json`, `indexing-view.json`, `pattern-graph.json`, `route-graph.json`, `lexicon.json`, and `anchor-map.json` under `.runtime/fpf-index/`
 3. enriches the index with deterministic section descriptions plus per-node metadata (role, route-bearing status, …)
 4. follows explicit references, route hints, and outline adjacency in a bounded frontier loop when the first anchor set is insufficient
 5. optionally reuses a short-lived in-memory session context when `query` or `trace` is called with `--session` / `sessionId`
@@ -99,7 +99,7 @@ Copy `.env.example` to `.env`. The most common settings:
 
 `FPF_LOCAL_LLM_*` is optional. If present, the runtime calls the local LM Studio Anthropic-compatible API (`POST /v1/messages` with model discovery at `GET /v1/models`) only after deterministic retrieval has selected a bounded slice set. If absent, the runtime stays fully deterministic. If you opt into the LM Studio path by setting either `FPF_LOCAL_LLM_BASE_URL` or `FPF_LOCAL_LLM_MODEL`, the missing half falls back to the defaults above. The synthesizer posts to `{FPF_LOCAL_LLM_BASE_URL}/messages` with the Anthropic Messages request shape (`system` + `messages` + `max_tokens`) and parses `content[].text` from the response.
 
-`FPF_MASTRA_OBSERVABILITY_*` configures the Mastra-backed observability snapshot file, which includes `model_generation` spans around the local LM Studio synthesis call. Additional knobs: `FPF_MASTRA_OBSERVABILITY_FORMAT=flat`, `FPF_MASTRA_OBSERVABILITY_INCLUDE_INTERNAL_SPANS=true`, `FPF_MASTRA_OBSERVABILITY_INCLUDE_MODEL_CHUNKS=false`, `FPF_MASTRA_OBSERVABILITY_LOG_LEVEL=info`.
+`FPF_MASTRA_OBSERVABILITY_*` configures the Mastra-backed observability snapshot file, which includes `model_generation` spans around the local LM Studio synthesis call. Additional knobs: `FPF_MASTRA_LOG_LEVEL=info`, `FPF_MASTRA_OBSERVABILITY_FORMAT=flat`, `FPF_MASTRA_OBSERVABILITY_INCLUDE_INTERNAL_SPANS=true`, `FPF_MASTRA_OBSERVABILITY_INCLUDE_MODEL_CHUNKS=false`, `FPF_MASTRA_OBSERVABILITY_LOG_LEVEL=info`.
 
 `FPF_AI_TRACE_LOG_PATH` writes bounded LM Studio synthesis traces as JSON lines. This is the actual local model call path in this project — the synthesizer uses a direct `fetch` to the LM Studio-compatible endpoint instead of a Mastra agent model wrapper.
 
