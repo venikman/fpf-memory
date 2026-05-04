@@ -47,6 +47,23 @@ export interface DocsNavigation {
 }
 
 /**
+ * Lookup payload for the docs search hook (`src/docs/search-hooks.ts`).
+ * Built from the same snapshot as the navigation so exact-ID and
+ * `route:<slug>` queries can resolve the canonical page even when
+ * FlexSearch's substring index doesn't return it (R4-P1-002, R4-P1-003).
+ *
+ * Generated at config-load time and written to
+ * `src/docs/generated-search-id-registry.ts`, which the bundled hook
+ * imports.
+ */
+export interface SearchIdRegistry {
+  /** Canonical pattern pages keyed by exact pattern ID. */
+  patterns: Array<{ id: string; title: string; staticPath: string }>;
+  /** Canonical route pages keyed by route slug (the `route:` part stripped). */
+  routes: Array<{ slug: string; title: string; staticPath: string }>;
+}
+
+/**
  * Publication manifest block surfaced on the wiki homepage so readers
  * can tell at a glance which FPF version this build was projected from.
  * Sourced from `published/current/manifest.json` at docs build time.
@@ -167,6 +184,28 @@ export function buildDocsNavigation(snapshot: Snapshot): DocsNavigation {
     ],
     preface: [...prefaceGroups.entries()].map(([text, items]) => ({ text, items })),
   };
+}
+
+/**
+ * Build the lookup registry consumed by the search hook for exact-ID
+ * and `route:<slug>` injection. Pattern IDs preserve case (FPF uses
+ * uppercase part letters and case-sensitive cluster suffixes), route
+ * slugs are stored lowercase to match the URL form.
+ */
+export function buildSearchIdRegistry(snapshot: Snapshot): SearchIdRegistry {
+  const patterns = sortedPatterns(snapshot).map((pattern) => ({
+    id: pattern.id,
+    title: pattern.title,
+    staticPath: patternDocRef(pattern.id).staticPath,
+  }));
+  const routes = Object.values(snapshot.routeGraph.nodes)
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .map((route) => ({
+      slug: route.id.replace(/^route:/, ''),
+      title: route.name,
+      staticPath: routeDocRef(route.id).staticPath,
+    }));
+  return { patterns, routes };
 }
 
 function buildPatternPages(snapshot: Snapshot): GeneratedDocPage[] {
