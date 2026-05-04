@@ -1041,12 +1041,29 @@ function formatNodeReference(snapshot: Snapshot, nodeId: string): string {
  * page. Slug rules then mirror GitHub-style slugification (lowercase,
  * keep alphanumerics + dashes, collapse whitespace to single dashes).
  */
-function headingSlug(text: string): string {
+export function headingSlug(text: string): string {
+  // Mirror rspress / rehype-slug / github-slugger behavior:
+  //   1. Lowercase.
+  //   2. Strip everything that isn't a Unicode letter, digit, hyphen,
+  //      underscore, or whitespace. Underscores are kept (titles like
+  //      "Γ_method" preserve `γ_` in the heading id) and \p{L} matches
+  //      letters from any script (Latin, Cyrillic, Greek, etc.) so
+  //      patterns with Γ-prefixed titles produce working anchor links.
+  //   3. Replace each whitespace char (NOT collapsed) with a hyphen.
+  //      rspress preserves consecutive spaces as consecutive hyphens —
+  //      e.g. " — " (em-dash flanked by spaces) becomes "--" because
+  //      the em-dash is stripped and the two surrounding spaces map to
+  //      two hyphens individually.
+  //
+  // The previous regex `[^a-z0-9À-ɏЀ-ӿ\s-]` covered Latin Extended
+  // and Cyrillic but had a gap for Greek (U+0370–U+03FF), producing
+  // broken `#anchor` links for any pattern whose title started with Γ
+  // (PR #72 review feedback).
   return displaySectionTitle(text)
     .toLowerCase()
-    .replace(/[^a-z0-9À-ɏЀ-ӿ\s-]/g, '')
+    .replace(/[^\p{L}\p{N}\s\-_]/gu, '')
     .trim()
-    .replace(/\s+/g, '-');
+    .replace(/\s/g, '-');
 }
 
 function patternDocRef(nodeId: string): DocRef {
