@@ -73,6 +73,10 @@ export default defineConfig({
     //   4. The closed mobile sidebar drawer keeps focusable links in the
     //      tab order at negative x positions (FU-P1-002). Set inert on the
     //      drawer element when its parent layout is in mobile-closed state.
+    //   5. Home feature cards are `<article>` with onClick but no role,
+    //      tabindex, or accessible name (R3-P2-001). Add role=link,
+    //      tabindex=0, aria-label from the card title, and Enter/Space
+    //      activation so they behave as first-class keyboard navigation.
     //
     //   The script runs at <head> evaluation (synchronous, no defer) so
     //   the initial paint already has correct semantics.
@@ -81,7 +85,8 @@ function fixTables(root){(root||document).querySelectorAll('.rp-table-scroll-con
 function fixMobileSearch(root){(root||document).querySelectorAll('.rp-search-button--mobile').forEach(function(el){if(el.dataset.fpfA11yPatched==='1')return;el.dataset.fpfA11yPatched='1';el.setAttribute('role','button');el.setAttribute('tabindex','0');el.setAttribute('aria-label','Search');el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});});}
 function fixSidebarGroups(root){(root||document).querySelectorAll('.rp-sidebar-group:not(a):not(button)').forEach(function(el){if(el.dataset.fpfA11yPatched==='1')return;if(el.tagName==='A'||el.tagName==='BUTTON')return;el.dataset.fpfA11yPatched='1';el.setAttribute('role','button');if(!el.hasAttribute('tabindex'))el.setAttribute('tabindex','0');function readExpanded(){var panel=el.nextElementSibling;if(!panel)return true;var rows=panel.style.gridTemplateRows||getComputedStyle(panel).gridTemplateRows;return !(rows==='0fr'||rows==='0px');}el.setAttribute('aria-expanded',String(readExpanded()));el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});var panel=el.nextElementSibling;if(panel){var observer=new MutationObserver(function(){el.setAttribute('aria-expanded',String(readExpanded()));});observer.observe(panel,{attributes:true,attributeFilter:['style']});}});}
 function fixSidebarInert(){var sidebar=document.querySelector('.rp-doc-layout__sidebar');if(!sidebar)return;var rect=sidebar.getBoundingClientRect();var hidden=rect.right<=0||rect.left>=window.innerWidth;if(hidden){if(!sidebar.hasAttribute('inert'))sidebar.setAttribute('inert','');}else{sidebar.removeAttribute('inert');}}
-function applyAll(){fixTables();fixMobileSearch();fixSidebarGroups();fixSidebarInert();}
+function fixHomeFeatureCards(root){(root||document).querySelectorAll('.rp-home-feature__card--clickable').forEach(function(el){if(el.dataset.fpfA11yPatched==='1')return;el.dataset.fpfA11yPatched='1';el.setAttribute('role','link');el.setAttribute('tabindex','0');var title=el.querySelector('.rp-home-feature__title');var detail=el.querySelector('.rp-home-feature__detail');var label=[title&&title.textContent.trim(),detail&&detail.textContent.trim()].filter(Boolean).join(' — ');if(label)el.setAttribute('aria-label',label);el.style.cursor='pointer';el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});});}
+function applyAll(){fixTables();fixMobileSearch();fixSidebarGroups();fixSidebarInert();fixHomeFeatureCards();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyAll);else applyAll();
 var observer=new MutationObserver(function(mutations){var needs=false;for(var i=0;i<mutations.length;i++){if(mutations[i].addedNodes.length){needs=true;break;}}if(needs)applyAll();});
 observer.observe(document.body||document.documentElement,{childList:true,subtree:true});
@@ -91,6 +96,14 @@ window.addEventListener('transitionend',fixSidebarInert);
   ],
   route: {
     cleanUrls: true,
+  },
+  // Custom search hooks — afterSearch reorders FlexSearch results so
+  // exact FPF-ID queries (`A.1`, `E.10.D2`, `route:project-alignment`)
+  // land on the canonical page first, instead of every descendant whose
+  // body mentions the parent ID (R3-P2-002).
+  search: {
+    mode: 'local',
+    searchHooks: resolve(process.cwd(), 'src/docs/search-hooks.ts'),
   },
   markdown: {
     link: {
@@ -129,7 +142,11 @@ window.addEventListener('transitionend',fixSidebarInert);
       {
         text: 'Reference',
         items: [
-          { text: 'Pattern catalog', link: '/patterns' },
+          // `activeMatch` anchors the regex so `/patterns` doesn't fire as
+          // active on every `/generated/patterns/*` pattern page (R3-P2-003).
+          // Rspress's matchNavbar uses `RegExp(activeMatch || link).test(path)`
+          // and a bare `/patterns` would substring-match `/generated/patterns/H.1`.
+          { text: 'Pattern catalog', link: '/patterns', activeMatch: '/patterns/?($|\\?|#)' },
           { text: 'Routes', link: '/generated/routes/index' },
           { text: 'Glossary', link: '/generated/patterns/H.1' },
           { text: 'Change log', link: '/generated/patterns/I.3' },

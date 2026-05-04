@@ -320,10 +320,9 @@ function renderHomeMarkdown(
   manifest?: PublicationManifestSummary,
 ): string {
   const patternCount = Object.keys(snapshot.patternGraph.nodes).length;
-  const routeCount = Object.keys(snapshot.routeGraph.nodes).length;
 
   const lines: string[] = [
-    renderHomeFrontMatter(patternCount, routeCount),
+    renderHomeFrontMatter(patternCount),
     '## Methodology',
     '',
     'Name the work first, choose the smallest matching route or packet, then open generated pattern pages only when exact wording matters. Keep the full FPF intact as the canonical source while retrieving only the slice needed for the task.',
@@ -354,7 +353,7 @@ function renderHomeMarkdown(
   return `${lines.join('\n')}\n`;
 }
 
-function renderHomeFrontMatter(patternCount: number, routeCount: number): string {
+function renderHomeFrontMatter(patternCount: number): string {
   return [
     '---',
     'pageType: home',
@@ -380,7 +379,7 @@ function renderHomeFrontMatter(patternCount: number, routeCount: number): string
     '    icon: A.1',
     '    link: /patterns',
     '  - title: Routes',
-    `    details: ${routeCount} working paths through pattern IDs. Use a route when the work shape is known but the exact patterns are not.`,
+    '    details: Generated working paths through pattern IDs. Use a route when the work shape is known but the exact patterns are not.',
     '    icon: F.1',
     '    link: /generated/routes/index',
     '  - title: Glossary anchor',

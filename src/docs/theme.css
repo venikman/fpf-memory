@@ -940,3 +940,21 @@ html.dark .rp-sidebar-item--active.rp-sidebar-item--active {
   outline-offset: 3px;
   text-decoration-thickness: 2px;
 }
+
+/* ───────── 11. Prompt code blocks on mobile (R3-P2-004) ─────────
+ *
+ * MCP-recipe and connect-mcp pages embed prompt text inside language-txt
+ * fenced blocks. On mobile (≤640px) these prompts can be 1610-2904px
+ * wide, forcing the user to horizontally scroll through prose. Real code
+ * (language-bash, language-ts, language-json, etc.) keeps horizontal
+ * scrolling — only `txt` blocks (used here for prose prompts and
+ * endpoint URLs that are scrolled-to-end frequently) wrap at narrow
+ * widths so the prompt is readable on a phone without panning. */
+
+@media (width <= 640px) {
+  .rspress-doc pre code.language-txt,
+  .rspress-doc pre.language-txt code {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}
