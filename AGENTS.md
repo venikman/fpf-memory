@@ -26,6 +26,10 @@ FPF work-evaluation surface:
 - `bun run cli -- evaluate-work --target working-tree --format json` emits the same review as machine-readable JSON
 - `--spec <path>` may point at a local FPF markdown file for comparison; the default remains `FPF_SPEC_SOURCE_PATH` or `published/current/FPF-Spec.md`
 
+## Codex Verification Rule
+
+For every non-trivial Codex implementation or review-fix task, run the closest real end-to-end verification command for the surface that changed (docs build for docs, CLI invocation for CLI/MCP/evaluator changes, deploy dry-run for packaging) and share the command, the relevant output excerpt, and any caveats with the user before calling the work complete. Pure planning or explanation-only turns with no repo mutation do not require this.
+
 ## Learned User Preferences
 
 - Prefer not treating a repo-root spec checkout as the source of truth; use `bun run spec:download` or set `FPF_PUBLISH_SOURCE_PATH` to a local checkout (for example `fpf-sync`) when refreshing the committed `published/current/**` surface.

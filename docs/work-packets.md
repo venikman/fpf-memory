@@ -1,7 +1,7 @@
 ---
 title: "Work Packets"
 description: "Task-sized FPF packets for project review, PR review, product-role feedback, specs, role/promise analysis, and agent workflows."
-outline: false
+outline: deep
 ---
 
 # Work Packets
@@ -24,7 +24,7 @@ Use:
 
 - [route:project-alignment](/generated/routes/route_project-alignment)
 - [A.1.1 U.BoundedContext](/generated/patterns/A.1.1)
-- [A.15 Role / Method / Work stratification](/generated/patterns/A.15)
+- [A.15 — Role-Method-Work Alignment](/generated/patterns/A.15) — use as the role / method / work stratification packet
 - [F.11 Method Quartet Harmonisation](/generated/patterns/F.11)
 - [F.17 Unified Term Sheet](/generated/patterns/F.17)
 
@@ -46,7 +46,7 @@ Use:
 
 - [route:writing-or-reviewing-patterns](/generated/routes/route_writing-or-reviewing-patterns)
 - [E.8 Authoring conventions](/generated/patterns/E.8)
-- [E.19 Pattern change record](/generated/patterns/E.19)
+- [E.19 — Pattern Quality Gates: Review & Refresh Profiles](/generated/patterns/E.19) — use as the pattern change-record gate
 - [route:boundary-burden](/generated/routes/route_boundary-burden) for APIs, contracts, protocols, or CI/deploy gates
 
 Packet:
@@ -65,10 +65,10 @@ Goal: act as one concrete user role and turn product friction into evidence-back
 
 Use:
 
-- [E.12 Human Feedback Loop](/generated/patterns/E.12)
+- [E.12 — Didactic Primacy & Cognitive Ergonomics](/generated/patterns/E.12) — use as the human feedback-loop packet
 - [route:project-alignment](/generated/routes/route_project-alignment)
 - [A.1.1 U.BoundedContext](/generated/patterns/A.1.1)
-- [A.15 Role / Method / Work stratification](/generated/patterns/A.15)
+- [A.15 — Role-Method-Work Alignment](/generated/patterns/A.15) — use as the role / method / work stratification packet
 - [A.2.2 U.Capability](/generated/patterns/A.2.2)
 - [A.2.3 U.PromiseContent](/generated/patterns/A.2.3)
 
@@ -78,7 +78,7 @@ Packet:
 - Surface: docs wiki, hosted MCP, CLI, evaluator, deploy evidence, or automation feedback.
 - Job: what concrete task should be possible without pasting the full FPF?
 - Friction: what explanation, route, affordance, evidence, or compact context was missing?
-- Evidence: URL, command, MCP call, screenshot, video, issue, discussion, or log path.
+- Evidence: URL, command, MCP call, screenshot, issue, discussion, or log path.
 - Feedback: one proposed improvement, severity, and validation path.
 
 Done when: the role/job can be replayed by another person, the feedback points at exact evidence, and the output is either a focused PR, issue, GitHub Discussion, or no-new-feedback checkpoint.
@@ -90,9 +90,9 @@ Goal: write a spec that can be checked and evolved.
 Use:
 
 - [E.8 Authoring conventions](/generated/patterns/E.8)
-- [E.10.D2 Part C Extension Patterns](/generated/patterns/E.10.D2)
-- [E.14 Architectural pattern discipline](/generated/patterns/E.14)
-- [E.19 Pattern change record](/generated/patterns/E.19)
+- [E.10.D2 — Intension-Description-Specification Discipline (I/D/S)](/generated/patterns/E.10.D2) — use as the Part-C extension-pattern discipline
+- [E.14 — Human-Centric Working-Model](/generated/patterns/E.14) — use as the architectural pattern-discipline check
+- [E.19 — Pattern Quality Gates: Review & Refresh Profiles](/generated/patterns/E.19) — use as the pattern change-record gate
 
 Packet:
 
@@ -115,7 +115,7 @@ Use:
 - [A.2.2 U.Capability](/generated/patterns/A.2.2)
 - [A.2.3 U.PromiseContent](/generated/patterns/A.2.3)
 - [A.2.8 U.Commitment](/generated/patterns/A.2.8)
-- [A.15 Role / Method / Work stratification](/generated/patterns/A.15)
+- [A.15 — Role-Method-Work Alignment](/generated/patterns/A.15) — use as the role / method / work stratification packet
 
 Packet:
 
@@ -136,7 +136,7 @@ Use:
 - [MCP recipes](/mcp-recipes)
 - [route:project-alignment](/generated/routes/route_project-alignment)
 - [E.8 Authoring conventions](/generated/patterns/E.8)
-- [E.19 Pattern change record](/generated/patterns/E.19)
+- [E.19 — Pattern Quality Gates: Review & Refresh Profiles](/generated/patterns/E.19) — use as the pattern change-record gate
 
 Packet:
 

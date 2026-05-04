@@ -22,10 +22,10 @@ Legacy Mastra origin:
 https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp
 ```
 
-Vercel proxy project root:
+Vercel proxy config:
 
 ```txt
-deploy/vercel-proxy
+deploy/vercel-proxy/vercel.json
 ```
 
 Direct Vercel-origin candidate:

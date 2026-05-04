@@ -1,7 +1,7 @@
 ---
 title: "MCP Recipes"
 description: "Prompt recipes for using the FPF MCP server as compact grounded context."
-outline: false
+outline: deep
 ---
 
 # MCP Recipes

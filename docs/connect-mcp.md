@@ -1,7 +1,7 @@
 ---
 title: "Connect MCP"
 description: "Client setup instructions for the hosted fpf-memory MCP server."
-outline: false
+outline: deep
 ---
 
 # Connect fpf-memory MCP

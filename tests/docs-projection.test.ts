@@ -36,11 +36,11 @@ async function copyNonGeneratedDocs(srcRoot: string, dstRoot: string) {
     const fullPath = resolve(entry.parentPath, entry.name);
     const relPath = relative(srcRoot, fullPath);
     if (relPath.startsWith('generated/') || relPath.startsWith('architecture/html/')) continue;
-    // `docs/index.md` is generator output (the adoption landing). The
-    // generator writes it into the temp docsRoot directly, so copying the
-    // committed source tree's copy here would potentially overwrite freshly
-    // generated content with a stale dev-machine copy.
-    if (relPath === 'index.md') continue;
+    // `docs/index.md` (orientation page at `/`) and `docs/patterns.md`
+    // (the short-URL Pattern Catalog at `/patterns`) are both generator
+    // output. Skip them in the copy pass so the freshly generated copies
+    // win over any stale dev-machine copies.
+    if (relPath === 'index.md' || relPath === 'patterns.md') continue;
     const target = resolve(dstRoot, relPath);
     await mkdir(dirname(target), { recursive: true });
     await copyFile(fullPath, target);
@@ -89,12 +89,26 @@ describe('docs projection', () => {
     const patternPage =
       projection.pagesByMarkdownPath['docs/generated/patterns/A.2.md']?.markdown ?? '';
 
-    expect(patternPage).toContain('## What this page is');
+    // Pattern pages now use "About this pattern" instead of the
+    // boilerplate "What this page is" (PR #72 design review).
+    expect(patternPage).toContain('## About this pattern');
     expect(patternPage).toContain('This is a generated FPF pattern page');
-    expect(patternPage).toContain('## Methodology');
+    // "Methodology" was renamed to "How to use this pattern" alongside
+    // "About this pattern" so the pattern page heading set says what
+    // it actually means (PR #72 design review).
+    expect(patternPage).toContain('## How to use this pattern');
     expect(patternPage).toContain('## Problem frame');
     expect(patternPage).not.toContain('## A.2:1 - Problem frame');
-    expect(patternPage).toContain('> Pattern <span class="fpf-pid fpf-pid--a">A.2</span>');
+    // The ID + status/type/normativity/cluster/part render as ONE
+    // inline mono byline directly under the H1 (was a boxed blockquote
+    // before PR #72 design review, then briefly an eyebrow above + a
+    // separate byline below — collapsed into one line per the design
+    // review screenshots).
+    expect(patternPage).toMatch(
+      /<p class="fpf-pattern-byline"><span class="fpf-pid fpf-pid--a">A\.2<\/span>/,
+    );
+    expect(patternPage).not.toContain('> Pattern <span class="fpf-pid');
+    expect(patternPage).not.toContain('class="fpf-pattern-eyebrow"');
     expect(patternPage).not.toContain('- **ID:** `A.2`');
   });
 
@@ -214,34 +228,71 @@ describe('docs projection', () => {
       expect(
         await readFile(resolve(docsRoot, 'generated/patterns/index.md'), 'utf8'),
       ).toContain('# Pattern Catalog');
-      // The home page is an adoption landing, not a second copy of the
-      // catalog (the 237-link wall lives at `/generated/patterns/index`).
-      // It points readers to work packets before the full reference wall.
+      // The site root `/` is the orientation/welcome page (Rspress
+      // pageType: home with hero + 4-up feature grid). The Pattern
+      // Catalog moved to `/patterns` per FU-P2-001 so first-time
+      // visitors get an adoption surface, not a 237-link reference wall.
       const rootIndex = await readFile(resolve(docsRoot, 'index.md'), 'utf8');
-      expect(rootIndex).toContain('title: "FPF Reference"');
-      expect(rootIndex).toContain('# FPF Reference');
-      expect(rootIndex).toContain('## Start here');
-      expect(rootIndex).toContain('[Adoption guide](/start-here)');
-      expect(rootIndex).toContain('[Work packets](/work-packets)');
-      expect(rootIndex).toContain('product-role feedback');
-      expect(rootIndex).toContain('[MCP recipes](/mcp-recipes)');
-      expect(rootIndex).toContain('[Connect MCP](/connect-mcp)');
-      expect(rootIndex).toContain('## Navigate');
-      expect(rootIndex).toContain('[Patterns](/generated/patterns/index)');
-      expect(rootIndex).toContain('[Routes](/generated/routes/index)');
-      expect(rootIndex).toContain('[Glossary](/generated/patterns/H.1)');
-      expect(rootIndex).toContain('[Change log](/generated/patterns/I.3)');
-      expect(rootIndex).toContain('FPF specification change log from the published source');
+      expect(rootIndex).toContain('pageType: home');
+      expect(rootIndex).toContain('title: FPF Reference');
+      // Kicker now carries brand + role per PR #72 design review.
+      expect(rootIndex).toContain('FPF Reference');
+      expect(rootIndex).toContain('Projection of the latest published spec');
+      expect(rootIndex).toContain('Small, grounded entry points to the framework');
+      // Primary CTA verb-prefixed; secondary actions stay as plain text.
+      expect(rootIndex).toContain('Open the adoption guide');
+      expect(rootIndex).toContain('link: /start-here');
+      expect(rootIndex).toContain('text: Work packets');
+      expect(rootIndex).toContain('link: /work-packets');
+      expect(rootIndex).toContain('text: MCP recipes');
+      expect(rootIndex).toContain('link: /mcp-recipes');
+      expect(rootIndex).toContain('  - title: Patterns');
+      // Patterns feature card now points at the short Pattern Catalog
+      // URL `/patterns`, not the deep-link `/generated/patterns/index`.
+      expect(rootIndex).toMatch(/- title: Patterns[\s\S]*?link: \/patterns/);
+      expect(rootIndex).toContain('  - title: Routes');
+      expect(rootIndex).toContain('link: /generated/routes/index');
+      // Card titles dropped the "anchor" suffix per PR #72 design
+      // review (the chip already telegraphs that the title is an FPF
+      // identifier — repeating "anchor" in the label was redundant).
+      expect(rootIndex).toContain('  - title: Glossary');
+      expect(rootIndex).toContain('link: /generated/patterns/H.1');
+      expect(rootIndex).toContain('  - title: Change log');
+      expect(rootIndex).toContain('link: /generated/patterns/I.3');
+      expect(rootIndex).toContain('## Methodology');
       expect(rootIndex).toContain('## MCP endpoint');
       expect(rootIndex).toContain('fpf-memory-mcp-proxy.vercel.app');
       expect(rootIndex).toContain('https://github.com/venikman/fpf-memory#run-and-test-mcp');
+      expect(rootIndex).toContain('[Connect MCP](/connect-mcp)');
+      expect(rootIndex).toContain('[MCP recipes](/mcp-recipes)');
+
+      // Pattern Catalog short-URL alias at /patterns — same content as
+      // /generated/patterns/index. Carries the orientation-page back-pointer
+      // and the FPF-index headline.
+      const patternsAlias = await readFile(resolve(docsRoot, 'patterns.md'), 'utf8');
+      expect(patternsAlias).toContain('title: "Pattern Catalog"');
+      expect(patternsAlias).toContain('# Pattern Catalog');
+      expect(patternsAlias).toContain('[orientation page](/)');
+      expect(patternsAlias).toContain('full generated catalog of FPF pattern IDs');
+
+      // Demo videos surface was removed — verify neither page references it.
+      expect(rootIndex).not.toContain('use-case-videos');
+      expect(rootIndex).not.toContain('Demo videos');
+      expect(patternsAlias).not.toContain('use-case-videos');
+      expect(patternsAlias).not.toContain('Demo videos');
     } finally {
       await rm(tempRoot, { recursive: true, force: true });
     }
   }, 20_000);
 
   it('builds rspress output into a disposable outDir', async () => {
-    const tempRoot = await mkdtemp(resolve(tmpdir(), 'fpf-docs-build-'));
+    // Rspress's `pageType: home` layout detection requires the docsRoot to
+    // sit inside `process.cwd()`. A `/tmp/...` mkdtemp would silently cause
+    // the welcome page to fall back to the doc layout, so the temp root is
+    // pinned under the project's `.runtime/` (gitignored).
+    const runtimeRoot = resolve(process.cwd(), '.runtime');
+    await mkdir(runtimeRoot, { recursive: true });
+    const tempRoot = await mkdtemp(resolve(runtimeRoot, 'fpf-docs-build-'));
 
     try {
       const docsRoot = resolve(tempRoot, 'docs');
@@ -272,9 +323,21 @@ describe('docs projection', () => {
         },
       );
 
-      expect(await readFile(resolve(outDir, 'index.html'), 'utf8')).toContain(
-        'FPF Reference',
-      );
+      // `/` is the orientation/welcome page (pageType: home with hero +
+      // feature grid). Hero copy + adoption-guide CTA should be present.
+      const indexHtml = await readFile(resolve(outDir, 'index.html'), 'utf8');
+      expect(indexHtml).toContain('FPF Reference');
+      // Primary CTA copy now reads "Open the adoption guide" with a
+      // leading arrow per PR #72 design review.
+      expect(indexHtml).toContain('Open the adoption guide');
+
+      // `/patterns` is the short-URL Pattern Catalog. Verify it lists Part A
+      // Role Taxonomy and points back at the orientation page.
+      const patternsHtml = await readFile(resolve(outDir, 'patterns.html'), 'utf8');
+      expect(patternsHtml).toContain('Pattern Catalog');
+      expect(patternsHtml).toContain('Role Taxonomy');
+      expect(patternsHtml).toContain('orientation page');
+
       expect(
         await readFile(resolve(outDir, 'generated/patterns/A.2.html'), 'utf8'),
       ).toContain('Role Taxonomy');

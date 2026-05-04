@@ -27,6 +27,8 @@
 - `bun run build` succeeds (if runtime/server code touched)
 - `bun run docs:build` succeeds (if docs touched)
 - Relevant docs updated (README, docs/, inline JSDoc if applicable)
+- End-to-end verification command + output excerpt:
+- Caveats or blocker:
 
 ## Boundary check
 

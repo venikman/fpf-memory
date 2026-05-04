@@ -6,6 +6,8 @@ import { describe, expect, it } from '@rstest/core';
 interface VercelConfig {
   buildCommand?: string | null;
   framework?: string | null;
+  installCommand?: string | null;
+  outputDirectory?: string | null;
   headers?: Array<{
     source: string;
     headers: Array<{ key: string; value: string }>;
@@ -46,6 +48,19 @@ describe('Vercel MCP proxy config', () => {
         destination: 'https://fpf-memory.server.mastra.cloud/',
       },
     ]);
+  });
+
+  it('disables Vercel build steps so the rewrite-only deploy does not need a public/ directory', async () => {
+    // The proxy project is just a rewrite-only edge proxy. Without these
+    // directives Vercel may auto-detect a build and then fail looking for
+    // a static output directory.
+    const config = JSON.parse(
+      await readFile(resolve(process.cwd(), 'deploy/vercel-proxy/vercel.json'), 'utf8'),
+    ) as VercelConfig;
+
+    expect(config.installCommand).toBe(null);
+    expect(config.buildCommand).toBe(null);
+    expect(config.outputDirectory).toBe('.');
   });
 
   it('marks the MCP route as non-cacheable at browser and CDN layers', async () => {

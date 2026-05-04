@@ -1,164 +1,462 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
 /*
- * FPF Reference — design system
+ * FPF Reference design system
  *
- * Single-file theme override layered on top of Rspress defaults.
- * Organised top-down:
- *   1. Design tokens
- *   2. Rspress variable overrides (light + dark)
- *   3. Global layout (nav / sidebar / TOC / content width)
- *   4. Typography scale
- *   5. Content primitives (blockquote meta-strip, lists, tables, code, callouts)
- *   6. Sidebar & TOC density
- *   7. Pattern-ID chip, relation-row, and breadcrumb primitives (emitted by the
- *      generator in `src/core/documents.ts`)
+ * Ported from the supplied FPF sync design bundle into the Rspress docs shell.
+ * The system keeps the report design's paper surface, rule-first layout,
+ * red accent, mono chrome, and serif reading floor while preserving generated
+ * FPF primitives emitted by `src/core/documents.ts`.
  */
 
-/* ───────── 1. Design tokens ───────── */
+/* 1. Design tokens */
 
 :root {
-  --fpf-font-body:
-    "Inter var experimental", "Inter var", -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-  --fpf-font-mono:
-    "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Monaco, Consolas,
-    "Liberation Mono", monospace;
+  --fpf-paper: oklch(0.97 0.012 75);
+  --fpf-paper-2: oklch(0.945 0.016 75);
+  --fpf-paper-3: oklch(0.92 0.02 75);
+  --fpf-ink: oklch(0.2 0.015 60);
+  --fpf-ink-2: oklch(0.36 0.015 60);
+  --fpf-ink-3: oklch(0.52 0.012 60);
+  --fpf-rule: oklch(0.85 0.018 70);
+  --fpf-rule-strong: oklch(0.65 0.02 70);
+  --fpf-accent: oklch(0.5 0.16 30);
+  --fpf-accent-soft: oklch(0.94 0.04 30);
+  --fpf-accent-ink: oklch(0.98 0.01 30);
 
-  --fpf-measure: 72ch;
+  --fpf-font-display: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --fpf-font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --fpf-font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
 
-  --fpf-space-1: 4px;
-  --fpf-space-2: 8px;
-  --fpf-space-3: 12px;
-  --fpf-space-4: 16px;
-  --fpf-space-5: 24px;
-  --fpf-space-6: 32px;
-  --fpf-space-7: 48px;
-  --fpf-space-8: 64px;
+  --fpf-fs-xs: 12px;
+  --fpf-fs-sm: 14px;
+  --fpf-fs-body: 18px;
+  --fpf-fs-md: 20px;
+  --fpf-fs-lg: 24px;
+  --fpf-fs-xl: 32px;
+  --fpf-fs-2xl: 44px;
+  --fpf-lh-body: 1.6;
+  --fpf-measure: 66ch;
 
-  --fpf-radius-chip: 6px;
-  --fpf-radius-card: 12px;
-  --fpf-radius-pill: 999px;
+  --fpf-gutter: 32px;
+  --fpf-col-gap: 32px;
+  --fpf-radius-chip: 0;
+  --fpf-radius-panel: 0;
 
-  /* Part palette — one hue per Part, used for pattern-ID chips.
-     Values are H S% L% triplets; opacity composition via color-mix. */
-  --fpf-part-a: 217 91% 55%;   /* blue       — Kernel Architecture */
-  --fpf-part-b: 262 80% 58%;   /* violet     — Trans-disciplinary Reasoning */
-  --fpf-part-c: 160 60% 38%;   /* emerald    — Kernel Extensions */
-  --fpf-part-d: 34  92% 46%;   /* amber      — Multi-scale Ethics */
-  --fpf-part-e: 340 78% 50%;   /* rose       — FPF Constitution */
-  --fpf-part-f: 174 60% 38%;   /* teal       — Unification Patterns */
-  --fpf-part-g: 199 87% 45%;   /* sky        — Discipline Standards */
-  --fpf-part-neutral: 220 12% 45%;
-
-  /* Default chip colour — overridden by .fpf-pid--a, --b, ... */
+  /* Part palette: one hue per part, used for generated pattern ID chips.
+     Lightness values were tuned to clear WCAG AA (≥4.5:1) on the chip's
+     8%-tinted paper-2 background — the original PR #76 lightnesses
+     produced 2.45–4.11:1 across parts and triggered axe-core
+     `color-contrast` violations on every chip-bearing page (FU
+     validation, follow-up axe on a pattern page). All L values now ≥
+     pass-AA on light mode; dark mode reads the same hues against an
+     ink canvas where they have no contrast issue. */
+  --fpf-part-a: 217 91% 40%;       /* blue       — 5.00:1 */
+  --fpf-part-b: 262 80% 40%;       /* violet     — 6.76:1 */
+  --fpf-part-c: 160 60% 26%;       /* emerald    — 4.62:1 */
+  --fpf-part-d: 34  92% 28%;       /* amber      — 4.63:1 */
+  --fpf-part-e: 340 78% 40%;       /* rose       — 4.57:1 */
+  --fpf-part-f: 174 60% 26%;       /* teal       — 4.53:1 */
+  --fpf-part-g: 199 87% 30%;       /* sky        — 4.56:1 */
+  --fpf-part-neutral: 18 60% 36%;
   --fpf-chip-h: var(--fpf-part-neutral);
 }
 
-/* ───────── 2. Rspress variable overrides ───────── */
-
-:root {
-  /* Nav / sidebar / TOC footprint */
-  --rp-nav-height: 56px;
-  --rp-sidebar-width: 292px;
-  --rp-aside-width: 240px;
-  --rp-outline-width: 240px;
-
-  /* Content frame */
-  --rp-content-padding-x: 24px;
-  --rp-content-padding-y: 32px;
-  --rp-content-max-width: 1120px;
-
-  /* Typography family */
-  --rp-font-family-base: var(--fpf-font-body);
-  --rp-font-family-mono: var(--fpf-font-mono);
-
-  /* Code size relative to body */
-  --rp-code-font-size: 0.9375em;
+html.dark {
+  --fpf-paper: oklch(0.13 0.008 80);
+  --fpf-paper-2: oklch(0.18 0.008 80);
+  --fpf-paper-3: oklch(0.22 0.008 80);
+  --fpf-ink: oklch(0.96 0.004 80);
+  --fpf-ink-2: oklch(0.78 0.006 80);
+  --fpf-ink-3: oklch(0.6 0.008 80);
+  --fpf-rule: oklch(0.28 0.008 80);
+  --fpf-rule-strong: oklch(0.42 0.01 80);
+  --fpf-accent: oklch(0.78 0.17 65);
+  --fpf-accent-soft: oklch(0.28 0.06 65);
+  --fpf-accent-ink: oklch(0.15 0.01 65);
 }
 
-@media (width >= 1280px) {
+@media (width <= 760px) {
   :root {
-    --rp-content-padding-x: 40px;
-    --rp-content-padding-y: 40px;
+    --fpf-fs-body: 17px;
+    --fpf-gutter: 20px;
+    --fpf-col-gap: 24px;
   }
 }
 
-/* Dark-mode surface depth — three elevations instead of one flat bg */
-html.dark {
-  --rp-c-bg: #0b0d10;           /* base canvas */
-  --rp-c-bg-soft: #13171c;      /* elevated surface (cards, sidebar) */
-  --rp-c-bg-mute: #1a1f26;      /* hovered / active surface */
-  --rp-c-bg-alt: #0f1216;       /* alternate blocks (code, meta-strip) */
-  --rp-c-divider: #252b33;
-  --rp-c-divider-light: #1b2028;
+/* 2. Rspress variable mapping */
 
-  --rp-c-text-1: #e6e8ec;
-  --rp-c-text-2: rgb(230 232 236 / 82%);
-  --rp-c-text-3: rgb(230 232 236 / 62%);
+html:root {
+  --rp-nav-height: 66px;
+  --rp-sidebar-width: 292px;
+  --rp-aside-width: 248px;
+  --rp-outline-width: 248px;
+  --rp-content-padding-x: var(--fpf-gutter);
+  --rp-content-padding-y: 40px;
+  --rp-content-max-width: 1120px;
 
-  --rp-code-block-bg: #0f1216;
-  --rp-code-block-color: #d7dae0;
-  --rp-code-title-bg: #13171c;
+  --rp-font-family-base: var(--fpf-font-display);
+  --rp-font-family-mono: var(--fpf-font-mono);
+  --rp-code-font-size: 0.9em;
+
+  --rp-c-bg: var(--fpf-paper);
+  --rp-c-bg-soft: var(--fpf-paper-2);
+  --rp-c-bg-mute: var(--fpf-paper-3);
+  --rp-c-bg-alt: var(--fpf-paper-2);
+  --rp-c-text-1: var(--fpf-ink);
+  --rp-c-text-2: var(--fpf-ink-2);
+  --rp-c-text-3: var(--fpf-ink-3);
+  --rp-c-divider: var(--fpf-rule-strong);
+  --rp-c-divider-light: var(--fpf-rule);
+  --rp-c-brand: var(--fpf-accent);
+  --rp-c-brand-light: var(--fpf-accent);
+  --rp-c-brand-dark: var(--fpf-accent);
+  --rp-code-block-bg: var(--fpf-paper-2);
+  --rp-code-block-color: var(--fpf-ink);
+  --rp-code-title-bg: var(--fpf-paper-3);
 }
 
-/* ───────── 3. Global layout ───────── */
-
-.rspress-nav {
-  backdrop-filter: saturate(180%) blur(8px);
-}
-
-.rspress-doc-container .rspress-doc,
-.rspress-doc-container .rspress-doc-footer {
-  max-width: min(100%, var(--rp-content-max-width));
-}
-
-.rspress-doc-container .rspress-doc {
-  /* Keep prose readable even in wide containers: paragraphs, blockquotes, and
-     top-level lists share the measure so bullet labels stay aligned with the
-     surrounding copy. Tables, code blocks, and admonitions are intentionally
-     excluded and keep the full container width. */
-  --prose-measure: var(--fpf-measure);
-}
-
-.rspress-doc-container .rspress-doc > p,
-.rspress-doc-container .rspress-doc > blockquote,
-.rspress-doc-container .rspress-doc > ul,
-.rspress-doc-container .rspress-doc > ol {
-  max-width: var(--prose-measure);
-}
-
-/* ───────── 4. Typography scale ───────── */
-
-.rspress-doc {
-  font-size: 16px;
-  line-height: 1.6;
-  font-feature-settings: "ss01", "cv11", "calt", "liga";
+html,
+body {
+  background: var(--fpf-paper);
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-feature-settings: "ss01", "calt", "liga";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
+::selection {
+  background: var(--fpf-accent);
+  color: var(--fpf-accent-ink);
+}
+
+/* 3. Site chrome */
+
+.rp-nav.rp-nav,
+.rspress-nav {
+  border-bottom: 1px solid var(--fpf-ink);
+  background: color-mix(in srgb, var(--fpf-paper) 94%, transparent);
+  backdrop-filter: saturate(140%) blur(8px);
+  box-shadow: none;
+}
+
+.rp-nav.rp-nav {
+  color: var(--fpf-ink);
+}
+
+.rp-nav__title__link.rp-nav__title__link {
+  font-family: var(--fpf-font-display);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Brand-mark accent dot (■) restored from the original mark per PR
+   #72 design review. The square is a pseudo-element so it doesn't
+   require touching rspress's brand-link DOM. Color matches the active
+   nav-state accent — same role as "active state". */
+.rp-nav__title__link.rp-nav__title__link::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  background: var(--fpf-accent);
+  flex-shrink: 0;
+}
+
+.rp-nav-menu.rp-nav-menu {
+  gap: 24px;
+}
+
+.rp-nav-menu__item__container.rp-nav-menu__item__container {
+  color: var(--fpf-ink-2);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* Hover/active: change colour only. Rspress's default rules set the
+   active container to 14px / 500, which reflowed the whole nav row on
+   hover (each item resized → adjacent items jumped). The doubled
+   `__container.__container` selector beats rspress's specificity so the
+   12px / 400 metrics stay constant; the colour change is the only
+   affordance. */
+.rp-nav-menu__item:hover .rp-nav-menu__item__container.rp-nav-menu__item__container,
+.rp-nav-menu__item--active .rp-nav-menu__item__container.rp-nav-menu__item__container {
+  color: var(--fpf-accent);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.rp-nav-menu__divider.rp-nav-menu__divider {
+  background: var(--fpf-rule-strong);
+}
+
+.rspress-nav * {
+  letter-spacing: 0;
+}
+
+.rspress-nav a,
+.rspress-nav button {
+  border-radius: 0;
+}
+
+.rspress-nav [class*="title"],
+.rspress-nav [class*="logo"],
+.rspress-nav [class*="brand"] {
+  font-family: var(--fpf-font-display);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.rspress-nav nav a,
+.rspress-nav [class*="nav"] a {
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  color: var(--fpf-ink-2);
+  text-decoration: none;
+}
+
+.rspress-nav nav a:hover,
+.rspress-nav [class*="nav"] a:hover,
+.rspress-nav nav a[aria-current="page"],
+.rspress-nav [class*="active"] {
+  color: var(--fpf-ink);
+}
+
+.rp-search-button.rp-search-button,
+.rspress-nav [class*="search"],
+.rspress-nav input[type="search"],
+.rspress-nav button[aria-label*="Search" i] {
+  border-radius: 0;
+  border: 1px solid var(--fpf-rule-strong);
+  background: var(--fpf-paper-2);
+  color: var(--fpf-ink-2);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  box-shadow: none;
+}
+
+.rp-search-button.rp-search-button {
+  min-width: 220px;
+  height: 32px;
+  padding: 0 10px;
+}
+
+.rp-search-button__content.rp-search-button__content {
+  gap: 8px;
+  font-size: 12px;
+}
+
+.rp-search-button__icon.rp-search-button__icon {
+  font-size: 14px;
+}
+
+.rp-search-button__word.rp-search-button__word {
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.rp-search-button__hotkey.rp-search-button__hotkey {
+  border: 1px solid var(--fpf-rule-strong);
+  border-radius: 0;
+  background: var(--fpf-paper);
+  color: var(--fpf-ink-2);
+  font-family: var(--fpf-font-mono);
+  font-size: 10px;
+  padding: 0 5px;
+  /* Always show ⌘K hint (PR #72 design review). Rspress applies
+     `style="opacity:0"` inline on first paint and only reveals after
+     hydration, so on slow loads the hint flickers. Force visible. */
+  opacity: 1 !important;
+}
+
+.rp-search-button.rp-search-button:hover {
+  border-color: var(--fpf-ink);
+}
+
+.rp-doc-layout__container {
+  background: var(--fpf-paper);
+}
+
+.rp-doc-layout__sidebar.rp-doc-layout__sidebar {
+  border-right: 1px solid var(--fpf-rule);
+  background: var(--fpf-paper);
+}
+
+.rp-doc-layout__sidebar:empty,
+.rp-doc-layout__outline-placeholder:empty {
+  display: none;
+}
+
+.rp-doc-layout__container:has(> .rp-doc-layout__sidebar:empty) {
+  justify-content: center;
+}
+
+body:has(.rp-doc-layout__sidebar:empty) .rp-doc-layout__menu {
+  display: none;
+}
+
+.rp-doc-layout__container:has(> .rp-doc-layout__sidebar:empty) .rp-doc-layout__doc {
+  max-width: min(100%, 1000px);
+}
+
+.rp-doc-layout__doc-container {
+  background: var(--fpf-paper);
+}
+
+.rspress-sidebar,
+.rspress-sidebar-section,
+[class*="sidebar"] {
+  background: var(--fpf-paper);
+}
+
+.rspress-sidebar {
+  border-right: 1px solid var(--fpf-rule);
+}
+
+.rspress-sidebar-section h2 {
+  margin-top: 1rem;
+  margin-bottom: 0.55rem;
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.rspress-sidebar-item,
+.rspress-sidebar-section {
+  font-family: var(--fpf-font-display);
+  font-size: 13px;
+  line-height: 1.38;
+}
+
+.rspress-sidebar-item [class*="menuItem"] {
+  border-radius: 0;
+  padding-top: 0.38rem !important;
+  padding-bottom: 0.38rem !important;
+}
+
+.rspress-sidebar-item [class*="menuItem"]:hover,
+.rspress-sidebar-item [class*="active"] {
+  background: var(--fpf-accent-soft);
+  color: var(--fpf-ink);
+}
+
+.rspress-toc-link,
+[class*="aside"] a {
+  font-family: var(--fpf-font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--fpf-ink-3);
+}
+
+.rspress-toc-link:hover,
+[class*="aside"] a:hover {
+  color: var(--fpf-accent);
+}
+
+/* Live rspress DOM uses `.rp-doc-layout__doc-container` (not the legacy
+   `.rspress-doc-container`). Both selectors are kept so the theme stays
+   compatible across rspress versions, but the live one is what actually
+   bites on the production build. Per FU-P2-007, prose measure was not
+   firing because the old selector matched nothing in the v2.0.x DOM. */
+.rspress-doc-container .rspress-doc,
+.rspress-doc-container .rspress-doc-footer,
+.rp-doc-layout__doc-container .rspress-doc,
+.rp-doc-layout__doc-container .rp-doc-footer {
+  max-width: min(100%, var(--rp-content-max-width));
+}
+
+.rspress-doc-container .rspress-doc,
+.rp-doc-layout__doc-container .rspress-doc {
+  --prose-measure: var(--fpf-measure);
+}
+
+/* Cap top-level prose at the readable measure so guidance pages
+   (start-here, work-packets, mcp-recipes, connect-mcp, vercel-proxy)
+   stop running 95–105 char lines on wide desktops. Tables, code blocks,
+   pre, and nested lists keep the full container width. */
+.rspress-doc-container .rspress-doc > p,
+.rspress-doc-container .rspress-doc > blockquote,
+.rspress-doc-container .rspress-doc > ul,
+.rspress-doc-container .rspress-doc > ol,
+.rp-doc-layout__doc-container .rspress-doc > p,
+.rp-doc-layout__doc-container .rspress-doc > blockquote,
+.rp-doc-layout__doc-container .rspress-doc > ul,
+.rp-doc-layout__doc-container .rspress-doc > ol {
+  max-width: var(--prose-measure);
+}
+
+.rspress-doc-container .rspress-doc-footer,
+.rp-doc-layout__doc-container .rp-doc-footer {
+  border-top: 1px solid var(--fpf-ink);
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+}
+
+/* 4. Typography */
+
+.rspress-doc {
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-serif);
+  font-size: var(--fpf-fs-body);
+  line-height: var(--fpf-lh-body);
+}
+
 .rspress-doc-container .rspress-doc-title,
 .rspress-doc h1 {
-  font-size: clamp(1.75rem, calc(1.5rem + 1.25vw), 2.5rem);
-  line-height: 1.15;
-  font-weight: 650;
-  letter-spacing: -0.012em;
+  max-width: 18ch;
   margin-top: 0;
-  margin-bottom: 1rem;
+  margin-bottom: 1.1rem;
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: clamp(2.25rem, 1.6rem + 2.8vw, var(--fpf-fs-2xl));
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+/* Generated reference pages have long compound titles like
+   "Γ_method — Order-Sensitive Method Composition & Work Enactment".
+   The 18ch cap + 44px display size renders these ~277px tall before
+   any content starts (DS-P2-006). Generated pattern/route pages emit
+   a `nav.fpf-breadcrumb` directly before the H1, so we use that
+   adjacent-sibling selector to scope a wider measure and smaller
+   display ramp without affecting authored pages. The selector is NOT
+   wrapped in `:where()` because that resets specificity to 0,0,1 and
+   loses to the base `.rspress-doc h1` rule (0,1,1). */
+.fpf-breadcrumb + h1,
+.rspress-doc .fpf-breadcrumb + h1 {
+  max-width: 42ch;
+  font-size: clamp(1.625rem, 1.2rem + 1.2vw, 2.125rem);
+  line-height: 1.15;
+  margin-bottom: 0.65rem;
 }
 
 .rspress-doc h2 {
-  font-size: clamp(1.375rem, calc(1.25rem + 0.55vw), 1.75rem);
-  line-height: 1.22;
-  font-weight: 650;
-  letter-spacing: -0.006em;
-  margin-top: 2.25rem;
-  margin-bottom: 0.6rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--rp-c-divider-light, rgb(0 0 0 / 6%));
-}
-
-html.dark .rspress-doc h2 {
-  border-top-color: var(--rp-c-divider-light);
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--fpf-ink);
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: clamp(1.45rem, 1.2rem + 0.7vw, var(--fpf-fs-xl));
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
 }
 
 .rspress-doc h2:first-of-type {
@@ -167,26 +465,30 @@ html.dark .rspress-doc h2 {
 }
 
 .rspress-doc h3 {
-  font-size: 1.25rem;
-  line-height: 1.3;
-  font-weight: 620;
-  letter-spacing: -0.003em;
-  margin-top: 1.6rem;
-  margin-bottom: 0.45rem;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: var(--fpf-fs-lg);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
 }
 
 .rspress-doc h4 {
-  font-size: 1.0625rem;
-  line-height: 1.4;
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: var(--fpf-fs-md);
   font-weight: 600;
-  margin-top: 1.15rem;
-  margin-bottom: 0.35rem;
+  line-height: 1.35;
 }
 
 .rspress-doc p,
 .rspress-doc li,
 .rspress-doc blockquote {
-  line-height: 1.6;
+  line-height: var(--fpf-lh-body);
 }
 
 .rspress-doc p,
@@ -194,198 +496,166 @@ html.dark .rspress-doc h2 {
 .rspress-doc ol,
 .rspress-doc table,
 .rspress-doc blockquote {
-  margin-top: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.rspress-doc li + li {
-  margin-top: 0.2rem;
+  margin-top: 0.85rem;
+  margin-bottom: 0.85rem;
 }
 
 .rspress-doc ul,
 .rspress-doc ol {
-  padding-left: 1.4rem;
+  padding-left: 1.35rem;
+}
+
+.rspress-doc li + li {
+  margin-top: 0.25rem;
 }
 
 .rspress-doc a {
+  color: inherit;
+  text-decoration-color: var(--fpf-rule-strong);
   text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
+  text-underline-offset: 4px;
 }
 
-/* ───────── 5. Content primitives ───────── */
+.rspress-doc a:hover {
+  color: var(--fpf-accent);
+  text-decoration-color: currentcolor;
+}
 
-/*  Meta-strip — the first blockquote on pattern/route pages, e.g.
- *   > Pattern <span class="fpf-pid fpf-pid--a">A.1</span> · Stable · Architectural (A) · Normative
- *   > Part A – Kernel Architecture Cluster
- *   > "Name the thing without smuggling in its parts."
- *  The pattern ID is emitted as a `.fpf-pid` chip (see section 7); older
- *  inline-code snapshots are kept working via the chip-coloured `code` rule
- *  below so migrated content keeps looking native. */
+/* 5. Content primitives */
+
 .rspress-doc > blockquote:first-of-type {
   margin-top: 0;
-  margin-bottom: 1.5rem;
-  padding: 0.85rem 1rem;
-  border-left: 3px solid
-    color-mix(in srgb, hsl(var(--fpf-chip-h)) 60%, transparent);
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 7%, transparent);
-  border-radius: 8px;
-  font-size: 0.95rem;
+  margin-bottom: 1.65rem;
+  padding: 0.95rem 1rem;
+  border: 0;
+  border-left: 2px solid var(--fpf-accent);
+  border-radius: var(--fpf-radius-panel);
+  background: var(--fpf-paper-2);
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: 16px;
   line-height: 1.55;
-  color: var(--rp-c-text-1);
-}
-
-html.dark .rspress-doc > blockquote:first-of-type {
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 14%, transparent);
 }
 
 .rspress-doc > blockquote:first-of-type p {
-  margin: 0.15rem 0;
+  margin: 0.18rem 0;
 }
 
 .rspress-doc > blockquote:first-of-type p:first-child {
-  font-weight: 520;
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  color: var(--fpf-ink-2);
 }
 
 .rspress-doc > blockquote:first-of-type em {
-  opacity: 0.78;
+  color: var(--fpf-ink-2);
+  font-family: var(--fpf-font-serif);
   font-style: italic;
 }
 
-/*  Inline code — treat as a muted chip. Pattern IDs in headings/meta-strip
- *   get elevated to the .fpf-pid chip style (see section 7). */
+.rspress-doc blockquote:not(:first-of-type) {
+  border-left: 2px solid var(--fpf-rule-strong);
+  color: var(--fpf-ink-2);
+  font-style: normal;
+}
+
 .rspress-doc :not(pre) > code {
+  border: 1px solid var(--fpf-rule-strong);
+  border-radius: 0;
+  background: var(--fpf-paper-2);
+  color: var(--fpf-accent);
   font-family: var(--fpf-font-mono);
-  font-size: 0.9em;
+  font-size: 0.82em;
+  font-weight: 500;
   padding: 0.12em 0.38em;
-  border-radius: 5px;
-  background: color-mix(in srgb, currentcolor 8%, transparent);
-  border: 1px solid color-mix(in srgb, currentcolor 12%, transparent);
   white-space: nowrap;
 }
 
-html.dark .rspress-doc :not(pre) > code {
-  background: color-mix(in srgb, #ffffff 8%, transparent);
-  border-color: color-mix(in srgb, #ffffff 10%, transparent);
-}
-
-/*  Pattern-id-like inline code inside the meta-strip gets the chip colour */
 .rspress-doc > blockquote:first-of-type :not(pre) > code {
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 16%, transparent);
-  border-color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 32%, transparent);
-  color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 100%, var(--rp-c-text-1) 0%);
-  font-weight: 560;
+  border-color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 42%, var(--fpf-rule));
+  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 10%, var(--fpf-paper-2));
+  color: hsl(var(--fpf-chip-h));
 }
 
-html.dark .rspress-doc > blockquote:first-of-type :not(pre) > code {
-  color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 80%, #ffffff 20%);
-}
-
-/*  Callouts / admonitions — keep Rspress defaults but soften edges */
 .rspress-doc [class*="rspress-directive"] {
-  border-radius: var(--fpf-radius-card);
+  margin: 1.35rem 0;
   padding: 1rem 1.1rem;
-  margin: 1.2rem 0;
+  border-radius: var(--fpf-radius-panel);
+  border: 1px solid var(--fpf-rule-strong);
+  background: var(--fpf-paper-2);
 }
 
 .rspress-doc [class*="rspress-directive"] p {
   margin: 0.25rem 0;
 }
 
-/*  Tables — tighter headers, wider gutters */
 .rspress-doc table {
-  border-collapse: separate;
-  border-spacing: 0;
-  border-radius: 8px;
+  width: 100%;
+  border: 1px solid var(--fpf-ink);
+  border-collapse: collapse;
+  border-radius: 0;
   overflow: hidden;
-  border: 1px solid var(--rp-c-divider-light);
+  font-family: var(--fpf-font-display);
+  font-size: 15px;
 }
 
 .rspress-doc th,
 .rspress-doc td {
-  padding: 0.55rem 0.75rem;
-  border: none;
-  border-bottom: 1px solid var(--rp-c-divider-light);
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--fpf-rule);
 }
 
 .rspress-doc th {
-  font-weight: 600;
-  background: color-mix(in srgb, currentcolor 4%, transparent);
+  background: var(--fpf-paper-2);
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  font-weight: 500;
   text-align: left;
-}
-
-.rspress-doc tr:last-child td {
-  border-bottom: none;
-}
-
-/*  Code blocks */
-.rspress-doc pre {
-  border-radius: 10px;
-}
-
-/* ───────── 6. Sidebar & TOC density ───────── */
-
-.rspress-sidebar-section h2 {
-  font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-weight: 600;
-  opacity: 0.7;
-  line-height: 1.2;
-  margin-top: 1rem;
-  margin-bottom: 0.35rem;
 }
 
-.rspress-sidebar-item,
-.rspress-sidebar-section {
-  font-size: 0.8125rem;
-  line-height: 1.45;
+.rspress-doc tr:hover td {
+  background: color-mix(in srgb, var(--fpf-accent-soft) 60%, transparent);
 }
 
-.rspress-sidebar-item [class*="menuItem"] {
-  padding-top: 0.32rem !important;
-  padding-bottom: 0.32rem !important;
-  border-radius: 6px;
+.rspress-doc pre {
+  border: 1px solid var(--fpf-rule-strong);
+  border-radius: 0;
+  background: var(--fpf-paper-2);
 }
 
-/* Right-side "On this page" TOC */
-.rspress-toc-link,
-[class*="aside"] a {
-  font-size: 0.8125rem;
-  line-height: 1.45;
+.rspress-doc pre code {
+  font-family: var(--fpf-font-mono);
 }
 
-.rspress-toc-link + .rspress-toc-link {
-  margin-top: 0.1rem;
-}
-
-/* ───────── 7. Pattern-ID chip primitive ─────────
- *
- * The generator (`src/core/documents.ts::patternIdChip`) emits
- * `<span class="fpf-pid fpf-pid--a">A.1</span>` in pattern titles, relations,
- * and node references. Part-specific hues come from the `.fpf-pid--{letter}`
- * modifiers below; unknown letters fall back to the neutral `.fpf-pid` base.
- */
+/* 6. Generated FPF primitives */
 
 .fpf-pid {
   display: inline-flex;
-  align-items: center;
-  font-family: var(--fpf-font-mono);
-  font-weight: 560;
-  font-size: 0.875em;
-  line-height: 1;
-  padding: 0.25em 0.5em;
+  align-items: baseline;
+  gap: 0.35em;
+  border: 1px solid color-mix(in srgb, hsl(var(--fpf-chip-h)) 35%, var(--fpf-rule-strong));
   border-radius: var(--fpf-radius-chip);
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 12%, transparent);
-  border: 1px solid color-mix(in srgb, hsl(var(--fpf-chip-h)) 28%, transparent);
+  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 8%, var(--fpf-paper-2));
   color: hsl(var(--fpf-chip-h));
+  font-family: var(--fpf-font-mono);
+  font-size: 0.72em;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  padding: 0.22em 0.55em;
   white-space: nowrap;
-  letter-spacing: 0.01em;
 }
 
 html.dark .fpf-pid {
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 18%, transparent);
-  border-color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 40%, transparent);
-  color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 75%, #ffffff 25%);
+  /* Light foreground against the warm-ink chip bg. The base hues were
+     darkened in light mode for AA on cream; in dark mode that same
+     darker hue would fail against the ink canvas, so blend more heavily
+     toward white (was 25% white → 4.17:1, now 50% white → ≥4.7:1). */
+  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 16%, var(--fpf-paper-2));
+  color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 50%, #ffffff 50%);
 }
 
 .fpf-pid--a { --fpf-chip-h: var(--fpf-part-a); }
@@ -396,43 +666,45 @@ html.dark .fpf-pid {
 .fpf-pid--f { --fpf-chip-h: var(--fpf-part-f); }
 .fpf-pid--g { --fpf-chip-h: var(--fpf-part-g); }
 
-/* Relation-row primitive — emitted by the generator
- * (`src/core/documents.ts::formatRelation`). Shape:
- *   <div class="fpf-relation">
- *     <span class="fpf-pid fpf-pid--a">A.1</span>
- *     <span class="fpf-relation-kind">prerequisite for</span>
- *     <a class="fpf-relation-target" href="...">Role Taxonomy</a>
- *   </div>
- */
+.fpf-relations {
+  max-width: var(--fpf-measure);
+  border-top: 1px dotted var(--fpf-rule-strong);
+}
+
 .fpf-relation {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.5rem 0;
   flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.7rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px dotted var(--fpf-rule);
+  font-family: var(--fpf-font-display);
 }
 
 .fpf-relation-kind {
-  font-size: 0.75rem;
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
-  opacity: 0.62;
 }
 
 .fpf-relation-target {
+  color: var(--fpf-ink);
   font-weight: 500;
 }
 
-/* Breadcrumb primitive — emitted by theme-layer wrapper */
 .fpf-breadcrumb {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8125rem;
-  color: var(--rp-c-text-3);
-  margin-bottom: 0.75rem;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 0.42rem;
+  margin-bottom: 1rem;
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .fpf-breadcrumb a {
@@ -441,12 +713,695 @@ html.dark .fpf-pid {
 }
 
 .fpf-breadcrumb a:hover {
-  color: var(--rp-c-text-1);
+  color: var(--fpf-accent);
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 4px;
 }
 
 .fpf-breadcrumb-separator {
-  opacity: 0.5;
+  opacity: 0.55;
   user-select: none;
+}
+
+/* 7. Responsive refinements */
+
+@media (width >= 1280px) {
+  :root {
+    --rp-content-padding-x: 40px;
+    --rp-content-padding-y: 44px;
+  }
+}
+
+@media (width <= 960px) {
+  .rspress-doc-container .rspress-doc-title,
+  .rspress-doc h1 {
+    max-width: 22ch;
+  }
+  /* Tables overflow on narrow viewports through rspress's outer
+     `.rp-table-scroll-container` wrapper (which carries tabindex="0" via
+     the head shim). Setting `display: block; overflow-x: auto` on the
+     `<table>` itself nested a second scroll container and tripped
+     axe-core's `scrollable-region-focusable` rule on three nodes per
+     pattern page. The wrapper does the right thing on its own. */
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rspress-doc a,
+  .rspress-nav a,
+  .rspress-sidebar-item [class*="menuItem"],
+  .fpf-breadcrumb a {
+    transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+  }
+}
+
+/* ───────── 8. Post-validation overrides ─────────
+ *
+ * Fixes from the Claude Preview MCP validation pass (axe-core + computed-
+ * style inspection on / and /welcome at desktop, mobile, and dark mode).
+ * Ordered by impact:
+ *   8.1  Body links invisible — same color as body text, no underline
+ *   8.2  Sidebar active-state inherits rspress's blue tint + 8px radius,
+ *        clashing with paper palette and brutalist 0px chip discipline
+ *   8.3  Heading anchor `#` glyphs are aria-hidden but focusable, failing
+ *        axe rule aria-hidden-focus (WCAG 2.4.3, 4.1.2). Hide them
+ *        visually since headings still expose `id` for #deep-links.
+ */
+
+/* 8.1 — Body links: clay accent + underline. Excludes the wordmark and
+   the (now-hidden) heading anchors so they don't get re-styled. */
+.rspress-doc a:not(.rp-header-anchor):not(.rp-nav__title__link) {
+  color: var(--fpf-accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentcolor 40%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.rspress-doc a:not(.rp-header-anchor):not(.rp-nav__title__link):hover {
+  text-decoration-color: currentcolor;
+}
+
+/* 8.2 — Sidebar active state: pin to accent-soft on the paper canvas,
+   drop the 8px radius so it matches the rest of the chrome (0px). The
+   doubled selector beats rspress's default specificity without !important. */
+.rp-sidebar-item--active.rp-sidebar-item--active {
+  background: var(--fpf-accent-soft);
+  border-radius: 0;
+  border-left: 2px solid var(--fpf-accent);
+  padding-left: 22px;       /* compensate for the 2px border so text aligns */
+}
+
+html.dark .rp-sidebar-item--active.rp-sidebar-item--active {
+  background: var(--fpf-accent-soft);
+  border-left-color: var(--fpf-accent);
+}
+
+/* 8.3 — Heading anchor links: hidden visually + from screen readers.
+   Headings retain their `id` so deep links (`#some-heading`) still work. */
+.rspress-doc .rp-header-anchor {
+  display: none;
+}
+
+/* 8.4 — Hero action buttons on /welcome. Rspress's default `rp-button--brand`
+   ships a clay→purple gradient and a 24px pill radius; `rp-button--alt`
+   ships a non-palette gray border. Both clash with the design system's
+   no-gradient discipline and 0px chip radius. Override to flat tokens. */
+.rp-home-hero__action.rp-button--brand,
+.rp-button--brand.rp-home-hero__action,
+.rp-home-hero__action.rp-button--brand.rp-button--brand {
+  background: var(--fpf-accent);
+  background-image: none;
+  color: var(--fpf-accent-ink);
+  border: 1px solid var(--fpf-accent);
+  border-radius: 0;
+}
+
+.rp-home-hero__action.rp-button--brand:hover,
+.rp-button--brand.rp-home-hero__action:hover {
+  background: var(--fpf-ink);
+  border-color: var(--fpf-ink);
+  color: var(--fpf-paper);
+}
+
+.rp-home-hero__action.rp-button--alt,
+.rp-button--alt.rp-home-hero__action,
+.rp-home-hero__action.rp-button--alt.rp-button--alt {
+  background: transparent;
+  background-image: none;
+  color: var(--fpf-ink);
+  border: 1px solid var(--fpf-ink);
+  border-radius: 0;
+}
+
+.rp-home-hero__action.rp-button--alt:hover,
+.rp-button--alt.rp-home-hero__action:hover {
+  background: var(--fpf-paper-2);
+  color: var(--fpf-ink);
+  border-color: var(--fpf-ink);
+}
+
+/* 8.5 — Hero typographic hierarchy (PR #72 design review).
+   Rspress paints both the brand line ("FPF Reference") and the subtitle
+   line ("Small, grounded entry points...") at near-display weight, so
+   the hero reads as a 4-line title with no clear H1. Invert: the brand
+   becomes a small mono eyebrow kicker and the value-prop subtitle
+   becomes the actual H1. The result reads as "what this is — what it
+   does — how to start." */
+.rp-home-hero__title.rp-home-hero__title {
+  margin-bottom: 12px;
+}
+.rp-home-hero__title-brand.rp-home-hero__title-brand {
+  background: none;
+  background-image: none;
+  background-clip: initial;
+  -webkit-background-clip: initial;
+  color: var(--fpf-ink-3);
+  -webkit-text-fill-color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  display: block;
+  line-height: 1;
+  /* CRITICAL: rspress hardcodes width:640px on this element. On any
+     viewport <640px the brand line overflows the right side AND drags
+     the sibling subtitle with it (the parent .rp-home-hero__title gets
+     a 640px implicit width too), clipping the H1 off-screen on mobile.
+     Override to 100% with auto wrapping. */
+  width: 100% !important;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.rp-home-hero__subtitle.rp-home-hero__subtitle {
+  font-family: var(--fpf-font-display);
+  font-size: clamp(2.25rem, 4vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-weight: 650;
+  color: var(--fpf-ink);
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+/* 8.5b — CTA reduction (PR #72 design review).
+   Three equal buttons = no CTA. Keep the first action (`Adoption guide`,
+   themed `brand`) as a real button; demote the rest (`Work packets`,
+   `MCP recipes`, themed `alt`) to text links with an arrow so the
+   primary path reads as primary. The selectors override the existing
+   8.4 button rules — both are scoped under `.rp-home-hero__action` so
+   only the home hero is affected; alt buttons elsewhere keep their
+   bordered style. */
+.rp-home-hero__action.rp-button--alt,
+.rp-button--alt.rp-home-hero__action,
+.rp-home-hero__action.rp-button--alt.rp-button--alt {
+  background: transparent;
+  background-image: none;
+  border: 0;
+  color: var(--fpf-ink);
+  padding: 12px 8px;
+  font-family: var(--fpf-font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--fpf-rule-strong);
+  border-radius: 0;
+}
+
+/* Secondary text links no longer carry their own arrow — the primary
+   CTA's leading "→" already telegraphs "click to do something" so
+   adding arrows on every link is redundant (PR #72 design review). */
+
+.rp-home-hero__action.rp-button--alt:hover,
+.rp-button--alt.rp-home-hero__action:hover {
+  background: transparent;
+  border: 0;
+  color: var(--fpf-accent);
+  text-decoration-color: var(--fpf-accent);
+  text-decoration-thickness: 2px;
+}
+
+/* 8.6 — Feature deck as a 4-row index list (PR #72 design review).
+   The previous treatment rendered four bordered+filled cards in a
+   3+1 grid that looked accidental at common widths. Reflow as a
+   single-column list of index rows: hairline top rule, mono ID chip
+   on the left, title + one-sentence detail on the right. Reads as
+   "Index energy" instead of "SaaS feature grid". */
+html body .rp-home-feature {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  margin: 0;
+}
+
+html body .rp-home-feature__item,
+html body .rp-home-feature__item.rp-home-feature__item--span-4 {
+  flex: 1 1 100%;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html body .rp-home-feature__item-wrapper {
+  padding: 0;
+}
+
+.rp-home-feature__card.rp-home-feature__card {
+  border-radius: 0;
+  border: 0;
+  border-top: 1px solid var(--fpf-rule);
+  background: transparent;
+  padding: 24px 8px;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  grid-template-areas:
+    'chip  title'
+    'chip  detail';
+  column-gap: 24px;
+  row-gap: 4px;
+  align-items: start;
+  transition: background 120ms ease, border-top-color 120ms ease;
+}
+
+/* Last row gets a closing bottom rule so the list visually closes. */
+.rp-home-feature__item:last-child .rp-home-feature__card {
+  border-bottom: 1px solid var(--fpf-rule);
+}
+
+.rp-home-feature__card.rp-home-feature__card--clickable:hover {
+  transform: none;
+  border-top-color: var(--fpf-ink);
+  background: var(--fpf-paper-2);
+  box-shadow: none;
+}
+
+/* Make the title-wrapper a transparent group so its children become
+   direct grid items of the card and we can place them by named area.
+   Rspress's component CSS sets `display: flex` here with single-class
+   specificity; we double up to win and add `!important` because some
+   chunked CSS bundles can land after our overrides. */
+html body .rp-home-feature__card .rp-home-feature__title-wrapper.rp-home-feature__title-wrapper {
+  display: contents !important;
+}
+
+/* The chip becomes a clean accent-bordered label, identical to the
+   pattern-page eyebrow chip — accent role: "FPF identifier". */
+.rp-home-feature__icon.rp-home-feature__icon {
+  border-radius: 0;
+  background: transparent;
+  color: var(--fpf-accent);
+  font-family: var(--fpf-font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--fpf-accent);
+  padding: 4px 10px;
+  width: fit-content;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  grid-area: chip;
+  margin-top: 4px;
+}
+
+.rp-home-feature__title.rp-home-feature__title {
+  font-family: var(--fpf-font-display);
+  font-size: 22px;
+  font-weight: 650;
+  color: var(--fpf-ink);
+  margin: 0;
+  grid-area: title;
+  line-height: 1.15;
+}
+
+.rp-home-feature__detail.rp-home-feature__detail {
+  font-family: var(--fpf-font-serif);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--fpf-ink-2);
+  grid-area: detail;
+  margin: 8px 0 0 0;
+}
+
+/* On narrow viewports stack the chip above the title so the row
+   doesn't break awkwardly. */
+@media (width <= 640px) {
+  .rp-home-feature__card.rp-home-feature__card {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'chip'
+      'title'
+      'detail';
+    padding: 20px 4px;
+  }
+  .rp-home-feature__icon.rp-home-feature__icon {
+    margin-bottom: 8px;
+  }
+}
+
+/* Kill rspress's home-page background blob and feature shine overlay. */
+.rp-home-background,
+.rp-home-feature__item__shine {
+  display: none;
+}
+
+/* ───────── 9. Responsive layout fixes ─────────
+ *
+ * 9.1  DS-P1-004: Right outline (`position: fixed`, 248px wide) overlapped
+ *      doc content by ~216px at 1100px viewport. Hide it below 1280px so
+ *      doc + sidebar can use the full width without collision. The page
+ *      H2/H3 hierarchy is enough wayfinding at narrow widths.
+ *
+ * 9.2  Sidebar drawer at mobile widths is hidden via the head-script `inert`
+ *      shim (FU-P1-002); the visual hide already exists via rspress
+ *      defaults. This rule belt-and-suspenders the visual hide so screen-
+ *      readers don't see drawer content during the slide animation.
+ */
+
+@media (width < 1280px) {
+  .rp-doc-layout__outline,
+  .rp-doc-layout__outline-placeholder {
+    display: none;
+  }
+  .rp-doc-layout__container:not(:has(> .rp-doc-layout__sidebar:empty)) .rp-doc-layout__doc {
+    max-width: none;
+  }
+}
+
+/* ───────── 10. Focus rings (DS-P2-012) ─────────
+ *
+ * Rspress's nav/search/menu/outline buttons strip the browser default
+ * focus ring (`outline: none`) without supplying a replacement, so
+ * keyboard users have no visible focus indicator. Add a high-contrast
+ * `:focus-visible` ring across all interactive chrome so the focus
+ * indicator is unambiguous in both light and dark mode.
+ */
+
+.rp-search-button:focus-visible,
+.rp-nav-hamburger:focus-visible,
+.rp-nav-hamburger__sm:focus-visible,
+.rp-nav-hamburger__md:focus-visible,
+.rp-search-button--mobile:focus-visible,
+.rp-sidebar-menu__left:focus-visible,
+.rp-sidebar-menu__right:focus-visible,
+.rp-switch-appearance:focus-visible,
+.rp-doc-layout__sidebar a:focus-visible,
+.rp-outline a:focus-visible,
+.rp-toc-item:focus-visible,
+.rp-nav-menu__item__container:focus-visible,
+.rp-nav__title__link:focus-visible {
+  outline: 2px solid var(--fpf-accent);
+  outline-offset: 2px;
+  border-radius: 0;
+}
+
+/* Sidebar groups are <div role="button"> after the head shim runs;
+   keep them in the same focus-ring family. */
+[role='button']:focus-visible {
+  outline: 2px solid var(--fpf-accent);
+  outline-offset: 2px;
+}
+
+/* Body links (already underlined for non-color affordance) get a more
+   pronounced underline thickness on focus to distinguish from hover. */
+.rspress-doc a:not(.rp-header-anchor):not(.rp-nav__title__link):focus-visible {
+  outline: 2px solid var(--fpf-accent);
+  outline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+
+/* ───────── 11. Code blocks on mobile (R3-P2-004, R4-P2-001, R5-P1-002) ─────────
+ *
+ * Setup, prompt, and config blocks (language-txt, language-json,
+ * language-sh, language-toml, language-bash) regularly produce 600-3000px
+ * lines that clip the actual command/URL on a 390px viewport. R5-P1-002
+ * called out that the previous rule only wrapped txt blocks; users still
+ * could not see the full setup commands or route selectors on phones.
+ *
+ * We now force-wrap ALL code blocks at narrow widths. The wrap toggle
+ * button stays available (rspress provides one in every codeblock) so
+ * power users who want strict line-by-line scrolling can flip it back.
+ * `word-break: break-word` keeps wrapping at safe boundaries (spaces,
+ * punctuation) and falls back to mid-token only when a single token
+ * exceeds the viewport (e.g., a long URL).
+ *
+ * Selector targets the actual rspress DOM: `.rp-codeblock` is the outer
+ * wrapper that carries the language class; `pre` and `code` inside
+ * have no language class. Rspress's user-toggled wrap rule uses
+ * `!important` on `.rp-codeblock__content--wrap-code code`, so we match
+ * that specificity to force-wrap by default on narrow viewports. */
+
+@media (width <= 640px) {
+  .rspress-doc .rp-codeblock code,
+  .rspress-doc .rp-codeblock pre {
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+  }
+  /* The shiki <pre> wraps each line in <span class="line">; that span
+     keeps `display: inline` by default and respects the parent's
+     wrapping. But Safari's `width: fit-content; min-width: 100%` on
+     the inner <code> can keep the block from shrinking past the
+     longest line. Override here so the code element fits the screen. */
+  .rspress-doc .rp-codeblock .rp-codeblock__content code {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+/* Inline route-selector chips also clip on narrow viewports — selectors
+ * like `route:we-know-something-is-there-but-it-is-still-only-partly-said`
+ * push past the viewport in the routes catalog (R5-P1-002). Allow inline
+ * `<code>` tags inside body text to wrap at any character so the chip
+ * stays inside the column. */
+@media (width <= 640px) {
+  .rspress-doc :not(pre) > code {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+/* ───────── 12. Mobile tap targets (PR #72 review, R5-P2-010) ─────────
+ *
+ * WCAG 2.2 AA requires a 24×24 minimum target size; Apple HIG and
+ * Material both recommend 44×44 for primary controls on touch devices.
+ * Rspress's mobile chrome ships several controls below that:
+ *   - `.rp-search-button--mobile` SVG-only (~16×16)
+ *   - `.rp-nav-hamburger*` (~37×37)
+ *   - `.rp-code-button-group__button` for copy/wrap (~20×20)
+ *   - sidebar menu row anchors (~36px tall)
+ *   - home CTA buttons (~42px tall — close, but bumping to 44 too)
+ *
+ * Bump all of them to 44×44 at narrow widths so primary nav, search,
+ * and copy controls are reliably tappable. The icon SVGs inside aren't
+ * resized — only the surrounding hit box expands. */
+
+@media (width <= 768px) {
+  .rp-search-button--mobile.rp-search-button--mobile {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  /* Hamburger menus (sm + md variants both rendered in the nav). */
+  .rp-nav-hamburger.rp-nav-hamburger,
+  .rp-nav-hamburger__sm.rp-nav-hamburger__sm,
+  .rp-nav-hamburger__md.rp-nav-hamburger__md {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  /* Theme switcher in the mobile nav. */
+  .rp-switch-appearance.rp-switch-appearance {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  /* Code copy + wrap buttons inside every codeblock. Default rspress
+     fades them via opacity until hover, but on touch they should be
+     persistently tappable (R5-P3-002 also flagged the opacity:0
+     discoverability gap). */
+  .rspress-doc .rp-code-button-group__button.rp-code-button-group__button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+  /* Keep the button group visible on touch instead of opacity:0 reveal. */
+  .rspress-doc .rp-code-button-group {
+    opacity: 1 !important;
+  }
+
+  /* Sidebar menu rows that ship as <a> with cramped vertical padding. */
+  .rp-doc-layout__sidebar a.rp-link,
+  .rp-sidebar-menu__left,
+  .rp-sidebar-menu__right {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Home CTA buttons — bump from ~42 to a clean 44. */
+  .rp-home-hero__action a,
+  .rp-home-hero__actions a {
+    min-height: 44px;
+  }
+}
+
+/* ───────── 12.3. Pattern sidebar item line-clamp (PR #72 design review) ─────────
+ *
+ * Pattern IDs in the left rail include the title in the link text
+ * ("A.1 Holonic Foundation: Entity → Holon"). At a 251px rail width
+ * many of these wrap to 3-4 lines, making the rail tall and hard to
+ * scan. Clamp to 2 lines with `text-overflow: ellipsis` and use the
+ * full text as the title= so users can hover for the full label. */
+.rp-doc-layout__sidebar a.rp-link {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+/* Restore the click-target height that the clamp can shrink. The
+   mobile-tap-target rule already enforces min-height:44px at <=768px;
+   on desktop 36-40px is enough for two compact lines. */
+@media (width > 768px) {
+  .rp-doc-layout__sidebar a.rp-link {
+    min-height: 32px;
+    line-height: 1.35;
+  }
+}
+
+/* ───────── 12.4. Right outline visual hierarchy (PR #72 design review) ─────────
+ *
+ * Rspress sets a 12px `padding-left` per depth level inline. The user
+ * complaint was that 18 outline items rendered with no visual sense
+ * of which were sections vs sub-sections. We do two things:
+ *  - Bump the per-depth indent (16px) and add a small left-rule for
+ *    depth >= 1 so nested entries read as nested at a glance.
+ *  - Drop the depth-0 entries to an uppercase mono cap (small) so the
+ *    section anchors visually anchor the outline.
+ *
+ * The inline `padding-left:0` and `padding-left:12px` rspress writes
+ * stay; we layer left-margin + border-left on top so we don't fight
+ * the framework. */
+.rp-outline .rp-toc-item[data-depth='1'] {
+  margin-left: 4px;
+  border-left: 1px solid var(--fpf-rule);
+  padding-left: 16px !important;
+}
+.rp-outline .rp-toc-item[data-depth='2'] {
+  margin-left: 12px;
+  border-left: 1px solid var(--fpf-rule);
+  padding-left: 16px !important;
+  font-size: 13px;
+}
+.rp-outline .rp-toc-item[data-depth='3'],
+.rp-outline .rp-toc-item[data-depth='4'] {
+  margin-left: 24px;
+  border-left: 1px solid var(--fpf-rule);
+  padding-left: 16px !important;
+  font-size: 13px;
+}
+
+/* ───────── 12.5. Pattern page byline (PR #72 design review) ─────────
+ *
+ * One inline mono byline under the H1 carrying:
+ *   [A.12]  ·  C-2  ·  stable  ·  normative  ·  Part A
+ *   (chip)  · cluster · status · normativity · part
+ *
+ * Chip first (accent-bordered, role "FPF identifier"), meta after in
+ * uppercase ink-3 mono. Replaces the previous boxed blockquote AND
+ * the separate-eyebrow-above-H1 treatment — one line, one signature.
+ *
+ * Accent role on this page: ID chip border + outline-active state.
+ * Nothing else gets accent. */
+.rspress-doc .fpf-pattern-byline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: -8px;
+  margin-bottom: 28px;
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+}
+.rspress-doc .fpf-pattern-byline .fpf-pid {
+  display: inline-block;
+  font-family: var(--fpf-font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border: 1px solid var(--fpf-accent);
+  color: var(--fpf-accent);
+  background: transparent;
+  border-radius: 0;
+}
+.rspress-doc .fpf-pattern-byline__meta {
+  color: var(--fpf-ink-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+/* ───────── 12.6. Header publication provenance (PR #72 design review) ─────────
+ *
+ * Tiny mono "as of <upstream-short-ref> · <date>" line in the nav left,
+ * right after the brand mark. Tells newcomers — at a glance, on every
+ * page — which spec snapshot they're reading. The full upstream ref
+ * and ISO date are exposed via title= for hover/copy. Hidden on narrow
+ * widths to keep the mobile nav clean. */
+.fpf-header-provenance {
+  font-family: var(--fpf-font-mono);
+  font-size: 11px;
+  color: var(--fpf-ink-3);
+  letter-spacing: 0;
+  margin-left: 16px;
+  padding-left: 16px;
+  border-left: 1px solid var(--fpf-rule);
+  white-space: nowrap;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.fpf-header-provenance__label {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--fpf-ink-3);
+}
+.fpf-header-provenance code {
+  font-family: var(--fpf-font-mono);
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--fpf-ink-2);
+  font-size: 11px;
+}
+@media (width <= 900px) {
+  .fpf-header-provenance {
+    display: none;
+  }
+}
+
+/* ───────── 13. Skip-to-content link (R5-P1-003) ─────────
+ *
+ * Visually hidden until the user focuses it (typically the first Tab
+ * after the URL bar). On focus it becomes visible at the top-left so
+ * keyboard users can jump straight past the long reference sidebar /
+ * dropdown nav into the article body. */
+
+.fpf-skip-link {
+  position: fixed;
+  top: -100px;
+  left: 8px;
+  z-index: 10000;
+  padding: 12px 18px;
+  background: var(--fpf-paper, #faf4ec);
+  color: var(--fpf-ink, #1f1812);
+  border: 2px solid var(--fpf-accent, #ac3225);
+  border-radius: 0;
+  font-family: var(--fpf-font-mono, ui-monospace, monospace);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  transition: top 120ms ease-out;
+}
+
+.fpf-skip-link:focus,
+.fpf-skip-link:focus-visible {
+  top: 8px;
+  outline: 2px solid var(--fpf-accent, #ac3225);
+  outline-offset: 2px;
 }

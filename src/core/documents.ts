@@ -47,6 +47,23 @@ export interface DocsNavigation {
 }
 
 /**
+ * Lookup payload for the docs search hook (`src/docs/search-hooks.ts`).
+ * Built from the same snapshot as the navigation so exact-ID and
+ * `route:<slug>` queries can resolve the canonical page even when
+ * FlexSearch's substring index doesn't return it (R4-P1-002, R4-P1-003).
+ *
+ * Generated at config-load time and written to
+ * `src/docs/generated-search-id-registry.ts`, which the bundled hook
+ * imports.
+ */
+export interface SearchIdRegistry {
+  /** Canonical pattern pages keyed by exact pattern ID. */
+  patterns: Array<{ id: string; title: string; staticPath: string }>;
+  /** Canonical route pages keyed by route slug (the `route:` part stripped). */
+  routes: Array<{ slug: string; title: string; staticPath: string }>;
+}
+
+/**
  * Publication manifest block surfaced on the wiki homepage so readers
  * can tell at a glance which FPF version this build was projected from.
  * Sourced from `published/current/manifest.json` at docs build time.
@@ -70,6 +87,7 @@ export function buildDocsProjection(
     ...buildRoutePages(snapshot),
     ...buildPrefacePages(snapshot),
     buildPatternIndexPage(snapshot),
+    buildPatternsAliasPage(snapshot),
     buildRouteIndexPage(snapshot),
     buildPrefaceIndexPage(snapshot),
     buildRootIndexPage(snapshot, manifest),
@@ -168,6 +186,56 @@ export function buildDocsNavigation(snapshot: Snapshot): DocsNavigation {
   };
 }
 
+/**
+ * Build the lookup registry consumed by the search hook for exact-ID
+ * and `route:<slug>` injection. Pattern IDs preserve case (FPF uses
+ * uppercase part letters and case-sensitive cluster suffixes), route
+ * slugs are stored lowercase to match the URL form.
+ *
+ * Both arrays are sorted by their stable identifier (pattern ID,
+ * route slug) — not by display title — so the serialized registry
+ * has a deterministic order independent of cosmetic title edits.
+ * That keeps the committed `generated-search-id-registry.ts` diff
+ * minimal across spec updates.
+ */
+export function buildSearchIdRegistry(snapshot: Snapshot): SearchIdRegistry {
+  const patterns = sortedPatterns(snapshot).map((pattern) => ({
+    id: pattern.id,
+    title: pattern.title,
+    staticPath: patternDocRef(pattern.id).staticPath,
+  }));
+  const routes = Object.values(snapshot.routeGraph.nodes)
+    .map((route) => ({
+      slug: route.id.replace(/^route:/, ''),
+      title: route.name,
+      staticPath: routeDocRef(route.id).staticPath,
+    }))
+    .sort((left, right) => left.slug.localeCompare(right.slug));
+  return { patterns, routes };
+}
+
+/**
+ * Render the search-ID registry as a TypeScript module string suitable
+ * for writing to `src/docs/generated-search-id-registry.ts`. Used by
+ * `rspress.config.ts` (config-load write) and `scripts/generate-docs.ts`
+ * (`bun run docs:generate`) so both entry points share an identical
+ * serializer and the drift test compares apples to apples.
+ */
+export function renderSearchIdRegistryModule(registry: SearchIdRegistry): string {
+  return `// Auto-generated from published/current/FPF-Spec.md — do not edit by hand.
+// Regeneration runs at rspress config load and at \`bun run docs:generate\`.
+// A drift test in tests/search-id-registry-drift.test.ts fails if the
+// committed file is stale.
+import type { SearchIdRegistry } from '../core/documents.js';
+
+export const SEARCH_ID_REGISTRY: SearchIdRegistry = ${JSON.stringify(
+    registry,
+    null,
+    2,
+  )};
+`;
+}
+
 function buildPatternPages(snapshot: Snapshot): GeneratedDocPage[] {
   return sortedPatterns(snapshot).map((pattern) => {
     const docRef = patternDocRef(pattern.id);
@@ -215,7 +283,11 @@ function buildPrefacePages(snapshot: Snapshot): GeneratedDocPage[] {
  */
 function renderPatternCatalogMarkdown(
   snapshot: Snapshot,
-  options: { title: string; description: string; heading?: string },
+  options: {
+    title: string;
+    description: string;
+    heading?: string;
+  },
 ): string {
   const groups = new Map<string, PatternRecord[]>();
   for (const pattern of sortedPatterns(snapshot)) {
@@ -233,13 +305,11 @@ function renderPatternCatalogMarkdown(
     }),
     `# ${options.heading ?? options.title}`,
     '',
+    'New here? Start at the [orientation page](/) — work packets, MCP recipes, and the right entry point per task. Use this catalog when you need to audit the full FPF reference, open an exact ID, or compare neighboring patterns by Part.',
+    '',
     '## What this page is',
     '',
     'This is the full generated catalog of FPF pattern IDs from the published FPF snapshot. It is not the first adoption path and it is not a fpf-memory product feature list.',
-    '',
-    '## Methodology',
-    '',
-    'Start with [Start Here](/start-here), a route, or a work packet when the job is active. Use this catalog when you need to audit the full FPF reference, open an exact ID, or compare neighboring patterns by Part.',
     '',
     `Generated pages: ${Object.keys(snapshot.patternGraph.nodes).length}`,
   ];
@@ -255,6 +325,12 @@ function renderPatternCatalogMarkdown(
   return `${lines.join('\n')}\n`;
 }
 
+/**
+ * The Pattern Catalog at `/generated/patterns/index` — the canonical
+ * deep-link URL inside the generated reference tree. Also surfaced at the
+ * shorter `/patterns` URL so it is discoverable from the top nav without
+ * exposing the `generated/` implementation detail.
+ */
 function buildPatternIndexPage(snapshot: Snapshot): GeneratedDocPage {
   return {
     kind: 'index',
@@ -269,11 +345,29 @@ function buildPatternIndexPage(snapshot: Snapshot): GeneratedDocPage {
 }
 
 /**
- * The site home. Intentionally short: one-sentence framing, a manifest
- * block so readers can tell which FPF snapshot this build is projected
- * from, a pointer to the hosted MCP endpoint, and links to adoption,
- * demonstration, and reference surfaces. The pattern catalog itself
- * still lives at `/generated/patterns/index`.
+ * The Pattern Catalog at the short URL `/patterns`. Same content as
+ * `/generated/patterns/index`; both URLs work so existing deep-links keep
+ * resolving while the top nav uses the cleaner short form.
+ */
+function buildPatternsAliasPage(snapshot: Snapshot): GeneratedDocPage {
+  return {
+    kind: 'index',
+    title: 'Pattern Catalog',
+    markdownPath: `${DOCS_ROOT}/patterns.md`,
+    staticPath: '/patterns',
+    markdown: renderPatternCatalogMarkdown(snapshot, {
+      title: 'Pattern Catalog',
+      description: 'Generated pattern pages from the compiler snapshot.',
+      heading: 'Pattern Catalog',
+    }),
+  };
+}
+
+/**
+ * The site root (`/`) is the orientation/welcome surface. First-time
+ * visitors land here and choose a path; the full Pattern Catalog lives one
+ * click away at `/patterns`. Rendered with Rspress's `pageType: home`
+ * layout (hero + 4-up feature grid).
  */
 function buildRootIndexPage(
   snapshot: Snapshot,
@@ -290,66 +384,101 @@ function buildRootIndexPage(
 
 function renderHomeMarkdown(
   snapshot: Snapshot,
-  manifest?: PublicationManifestSummary,
+  // The manifest parameter is intentionally unused since rspress's
+  // home layout drops body markdown — provenance now renders via
+  // the inline shim reading <meta> tags. Kept on the signature so
+  // call sites in `buildDocsProjection` don't need to change shape.
+  _manifest?: PublicationManifestSummary,
 ): string {
   const patternCount = Object.keys(snapshot.patternGraph.nodes).length;
-  const routeCount = Object.keys(snapshot.routeGraph.nodes).length;
 
-  const lines: string[] = [
-    renderFrontMatter({
-      title: 'FPF Reference',
-      description:
-        'Compiler-backed reference for the latest published FPF, projected as a slim wiki.',
-      outline: false,
-    }),
-    '# FPF Reference',
-    '',
-    'Use the full First Principles Framework through small, grounded entry points instead of pasting the whole specification into every conversation.',
-    '',
-    '## What this page is',
-    '',
-    'This is the fpf-memory adoption landing page for the published FPF reference. It explains how to enter FPF through small working surfaces; it is not the full specification, and it is not a product release page.',
+  const lines: string[] = [renderHomeFrontMatter(patternCount)];
+
+  // The "Published from" provenance line is injected client-side by the
+  // a11y shim in rspress.config.ts (PR #72 design review). We can't put
+  // it in this markdown body because rspress's `pageType: home` layout
+  // drops body content entirely — only the frontmatter (hero + features)
+  // renders. The shim reads `<meta name="fpf-source-hash">` etc. and
+  // injects a `.fpf-home-byline` element directly under the hero.
+  // The body markdown below is kept for non-home tooling that consumes
+  // the projection (search index, MCP, etc.) and harmless on the home
+  // page itself since the layout ignores it.
+
+  lines.push(
     '',
     '## Methodology',
     '',
     'Name the work first, choose the smallest matching route or packet, then open generated pattern pages only when exact wording matters. Keep the full FPF intact as the canonical source while retrieving only the slice needed for the task.',
     '',
-    '## Start here',
-    '',
-    '- [Adoption guide](/start-here) — choose the first FPF path for a person, team, or agent.',
-    '- [Work packets](/work-packets) — use FPF in project review, PR review, product-role feedback, specification work, role/promise/capability analysis, and agent workflows.',
-    '- [Connect MCP](/connect-mcp) — plug the hosted MCP endpoint into chat clients, editors, and coding CLIs.',
-    '- [MCP recipes](/mcp-recipes) — retrieve compact grounded slices from the hosted or local MCP server.',
-    '',
-    '## Navigate',
-    '',
-    `- [Patterns](/generated/patterns/index) — full generated FPF pattern catalog with ${patternCount} patterns across parts A-K.`,
-    `- [Routes](/generated/routes/index) — ${routeCount} generated FPF working paths through pattern IDs, not website routes.`,
-    '- [Glossary](/generated/patterns/H.1) — FPF term glossary from the published source, not fpf-memory UI vocabulary.',
-    '- [Change log](/generated/patterns/I.3) — FPF specification change log from the published source, not fpf-memory product release notes.',
-    '',
     '## MCP endpoint',
     '',
-    '```',
+    'Point an MCP-aware client at the hosted endpoint to retrieve compact grounded slices on demand. See [Connect MCP](/connect-mcp) for client-by-client setup, and [MCP recipes](/mcp-recipes) for ready-made retrieval patterns.',
+    '',
+    '```text',
     HOSTED_MCP_ENDPOINT,
     '```',
     '',
     'Tool catalog and local-surface setup: [README on GitHub](https://github.com/venikman/fpf-memory#run-and-test-mcp).',
-  ];
-
-  if (manifest) {
-    lines.push(
-      '',
-      '## Published from',
-      '',
-      `- **Channel:** \`${manifest.channel}\``,
-      `- **Source hash:** \`${manifest.sourceHash}\``,
-      `- **Upstream ref:** \`${manifest.upstreamRef}\``,
-      `- **Published at:** ${manifest.publishedAt}`,
-    );
-  }
+  );
 
   return `${lines.join('\n')}\n`;
+}
+
+function renderHomeFrontMatter(patternCount: number): string {
+  return [
+    '---',
+    'pageType: home',
+    'title: FPF Reference',
+    'description: Compiler-backed reference for the latest published FPF, projected as a slim wiki.',
+    'hero:',
+    // The "name" slot renders as the small mono kicker above the H1.
+    // Extended per PR #72 design review to carry the static framing
+    // ("projection of the latest published spec") so the kicker reads
+    // as both brand + role.
+    '  name: "FPF Reference · Projection of the latest published spec"',
+    '  text: Small, grounded entry points to the framework.',
+    // Tagline tightened per design review — closes with "the doorways"
+    // to forward-link to the index list of stable anchors below.
+    '  tagline: Use the full First Principles Framework instead of pasting the whole specification into every conversation. Not the spec, not a release page — the doorways.',
+    '  actions:',
+    // Primary CTA carries an inline arrow + verb ("Open the adoption
+    // guide") so it reads as the action it is. Secondary actions stay
+    // as plain text links — the arrow on those was redundant once the
+    // primary already had one.
+    '    - theme: brand',
+    '      text: "→ Open the adoption guide"',
+    '      link: /start-here',
+    '    - theme: alt',
+    '      text: Work packets',
+    '      link: /work-packets',
+    '    - theme: alt',
+    '      text: MCP recipes',
+    '      link: /mcp-recipes',
+    'features:',
+    '  - title: Patterns',
+    `    details: ${patternCount} patterns across parts A–K. Open an exact ID, audit the full reference, or compare neighboring patterns by Part.`,
+    // Patterns and Routes are categories — using a real ID like `A.1`
+    // or `F.1` as the chip (R5-P2-007) misleads users into thinking
+    // those IDs *are* "all patterns" or "all routes". Use a category
+    // badge instead. H.1 and I.3 chips stay because those IDs *are*
+    // the canonical glossary and change-log anchors.
+    '    icon: A–K',
+    '    link: /patterns',
+    '  - title: Routes',
+    '    details: Generated working paths through pattern IDs. Use a route when the work shape is known but the exact patterns are not.',
+    '    icon: "route:"',
+    '    link: /generated/routes/index',
+    '  - title: Glossary',
+    '    details: H.1 is the published glossary anchor — a stable selector for term lookups. Treat it as a starting point for vocabulary, not a complete A–Z list.',
+    '    icon: H.1',
+    '    link: /generated/patterns/H.1',
+    '  - title: Change log',
+    '    details: I.3 is the published change-log anchor — a stable selector for spec version history. Treat it as a starting point, not a release-note feed.',
+    '    icon: I.3',
+    '    link: /generated/patterns/I.3',
+    '---',
+    '',
+  ].join('\n');
 }
 
 function buildRouteIndexPage(snapshot: Snapshot): GeneratedDocPage {
@@ -462,22 +591,36 @@ function renderPatternPage(snapshot: Snapshot, pattern: PatternRecord): string {
     introText,
     leadExcerpt,
   );
+  // Title prefixes the pattern ID so rspress's search ranks exact-ID
+  // queries onto the canonical page. Without the ID in the title field,
+  // searching `A.1` matched bodies that mention `A.1` more often than
+  // the actual A.1 page (FU-P2-008). The H1 stays as the title alone.
+  //
+  // ONE byline directly under the H1 carries chip + status/type/
+  // normativity + cluster + part, all on one mono line. Replaces the
+  // previous double-take treatment (eyebrow chip ABOVE the H1 +
+  // separate status byline BELOW) per PR #72 design review — chip and
+  // status form a single identifying signature, not two stacked items.
+  const bylineMeta = [
+    pattern.cluster,
+    pattern.status,
+    pattern.type,
+    pattern.normativity,
+    pattern.part,
+  ].filter((part): part is string => Boolean(part));
+  const bylineMetaHtml = bylineMeta.length > 0
+    ? bylineMeta.map((part) => escapeHtml(part)).join(' · ')
+    : '';
   const lines = [
     renderFrontMatter({
-      title: pattern.title,
+      title: `${pattern.id} ${pattern.title}`,
       description: pattern.part ?? pattern.cluster ?? 'Generated pattern page from the compiler snapshot.',
     }),
     renderBreadcrumb(buildPatternBreadcrumb(pattern)),
     '',
     `# ${pattern.title}`,
-    `> Pattern ${patternIdChip(pattern.id)} · ${pattern.status}${pattern.type ? ` · ${pattern.type}` : ''}${pattern.normativity ? ` · ${pattern.normativity}` : ''}`,
+    `<p class="fpf-pattern-byline">${patternIdChip(pattern.id)}${bylineMetaHtml ? ` <span class="fpf-pattern-byline__meta">· ${bylineMetaHtml}</span>` : ''}</p>`,
   ];
-
-  if (pattern.part) {
-    lines.push(`> ${pattern.part}`);
-  } else if (pattern.cluster) {
-    lines.push(`> ${pattern.cluster}`);
-  }
 
   appendPatternContext(lines, pattern);
 
@@ -526,13 +669,17 @@ function renderPatternPage(snapshot: Snapshot, pattern: PatternRecord): string {
 
 function appendPatternContext(lines: string[], pattern: PatternRecord): void {
   const context = patternPageContext(pattern);
+  // Heading is "About this pattern" on pattern pages (PR #72 design
+  // review) — the "What this page is" wording felt boilerplate when
+  // it appeared on every page with identical phrasing. Pattern pages
+  // are visibly about a pattern, so the heading should say so.
   lines.push(
     '',
-    '## What this page is',
+    '## About this pattern',
     '',
     context.what,
     '',
-    '## Methodology',
+    '## How to use this pattern',
     '',
     context.methodology,
   );
@@ -865,7 +1012,58 @@ function formatNodeReference(snapshot: Snapshot, nodeId: string): string {
   if (docTarget) {
     return `[${docTarget.title}](${docTarget.docRef.staticPath})`;
   }
+
+  // No standalone compiled node — but the spec may have it as an anchor
+  // under a parent pattern (e.g. `A.19:0` lives inside `A.19`). Look it up
+  // in the index map and, if its parent resolves to a generated pattern
+  // page, emit a link to the parent + heading anchor instead of a dead
+  // inline code chip. This unbreaks ordered route steps that reference
+  // sub-anchors (FU-P2-004 / DS-P1-006).
+  const indexEntry = snapshot.indexMap[nodeId];
+  if (indexEntry && indexEntry.parentId) {
+    const parent = snapshot.compiledNodes[indexEntry.parentId];
+    if (parent && parent.kind === 'pattern') {
+      const ref = patternDocRef(parent.id);
+      const slug = headingSlug(indexEntry.title);
+      const title = indexEntry.title || nodeId;
+      return `[${title}](${ref.staticPath}#${slug})`;
+    }
+  }
+
   return inlineCode(nodeId);
+}
+
+/**
+ * Convert a heading text to the slug rspress emits for `<h*>` ids. The
+ * generator's `displaySectionTitle` strips the leading FPF-ID prefix
+ * (`A.19:0 - `) before rendering the H2, so the slug must be computed
+ * AFTER the same strip — otherwise the link target won't exist on the
+ * page. Slug rules then mirror GitHub-style slugification (lowercase,
+ * keep alphanumerics + dashes, collapse whitespace to single dashes).
+ */
+export function headingSlug(text: string): string {
+  // Mirror rspress / rehype-slug / github-slugger behavior:
+  //   1. Lowercase.
+  //   2. Strip everything that isn't a Unicode letter, digit, hyphen,
+  //      underscore, or whitespace. Underscores are kept (titles like
+  //      "Γ_method" preserve `γ_` in the heading id) and \p{L} matches
+  //      letters from any script (Latin, Cyrillic, Greek, etc.) so
+  //      patterns with Γ-prefixed titles produce working anchor links.
+  //   3. Replace each whitespace char (NOT collapsed) with a hyphen.
+  //      rspress preserves consecutive spaces as consecutive hyphens —
+  //      e.g. " — " (em-dash flanked by spaces) becomes "--" because
+  //      the em-dash is stripped and the two surrounding spaces map to
+  //      two hyphens individually.
+  //
+  // The previous regex `[^a-z0-9À-ɏЀ-ӿ\s-]` covered Latin Extended
+  // and Cyrillic but had a gap for Greek (U+0370–U+03FF), producing
+  // broken `#anchor` links for any pattern whose title started with Γ
+  // (PR #72 review feedback).
+  return displaySectionTitle(text)
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s\-_]/gu, '')
+    .trim()
+    .replace(/\s/g, '-');
 }
 
 function patternDocRef(nodeId: string): DocRef {

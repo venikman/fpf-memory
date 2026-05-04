@@ -17,6 +17,13 @@ export interface RunSelectedTestFilesOptions {
   cwd?: string;
   log?: Pick<Console, 'error' | 'log'>;
   runTestFile?: (file: string, cwd: string) => number | Promise<number>;
+  /**
+   * Maximum number of attempts per file. Defaults to 2 so transient bun
+   * worker crashes on CI ("Worker exited unexpectedly") get one retry
+   * before the shard fails. Real test failures fail both attempts, so
+   * the overall pass/fail signal is preserved while flakes self-heal.
+   */
+  maxAttempts?: number;
 }
 
 export async function discoverTestFiles(cwd = process.cwd()): Promise<string[]> {
@@ -62,12 +69,23 @@ export async function runSelectedTestFiles(
   const cwd = options.cwd ?? process.cwd();
   const log = options.log ?? console;
   const runTestFile = options.runTestFile ?? runRstestFile;
+  const maxAttempts = Math.max(1, options.maxAttempts ?? 2);
   let exitCode = 0;
 
   for (const file of options.files) {
     log.log(`::group::${file}`);
     try {
-      const fileExitCode = await runTestFile(file, cwd);
+      let fileExitCode = 0;
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        fileExitCode = await runTestFile(file, cwd);
+        if (fileExitCode === 0) break;
+        if (attempt < maxAttempts) {
+          // Bun's rstest worker occasionally exits non-zero on CI without
+          // an actual test failure ("Worker exited unexpectedly"). One
+          // retry absorbs the flake; real failures still fail both runs.
+          log.error(`::warning::Test file ${file} failed on attempt ${attempt}; retrying.`);
+        }
+      }
       if (fileExitCode !== 0 && exitCode === 0) {
         exitCode = fileExitCode;
       }
@@ -83,7 +101,12 @@ export async function runSelectedTestFiles(
 }
 
 function runRstestFile(file: string, cwd: string): number {
-  const result = spawnSync('bunx', ['rstest', 'run', file], {
+  // `--pool=forks` switches rstest from worker_threads to child_process
+  // forks. Bun's worker_threads implementation occasionally exits a
+  // worker mid-load on Linux x64 GH runners ("Worker exited
+  // unexpectedly") with no test failure — affects different files on
+  // different runs. Forks are heavier per file but immune to the bug.
+  const result = spawnSync('bunx', ['rstest', 'run', '--pool=forks', file], {
     cwd,
     stdio: 'inherit',
   });
