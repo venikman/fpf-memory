@@ -33,7 +33,7 @@ FPF_MCP_SURFACE=full bun run mcp
 To browse docs locally:
 
 ```bash
-bun run docs:generate && bun run docs:dev
+bun run docs:dev
 ```
 
 ## How it works
@@ -41,7 +41,7 @@ bun run docs:generate && bun run docs:dev
 On each refresh trigger the runtime:
 
 1. hashes the spec file at `FPF_SPEC_SOURCE_PATH` and reuses the snapshot if the hash matches
-2. otherwise recompiles a local vectorless index, writing `snapshot.json`, `build-audit.json`, `index-map.json`, `indexing-view.json`, `pattern-graph.json`, `route-graph.json`, `lexicon.json`, and `anchor-map.json` under `.runtime/fpf-index/`
+2. otherwise recompiles a local vectorless index, writing `snapshot.json`, `build-audit.json`, `index-map.json`, `indexing-view.json`, `pattern-graph.json`, `route-graph.json`, `lexicon.json`, and `anchor-map.json` under `FPF_RUNTIME_ARTIFACT_DIR` (default `.runtime/fpf-index/`)
 3. enriches the index with deterministic section descriptions plus per-node metadata (role, route-bearing status, …)
 4. follows explicit references, route hints, and outline adjacency in a bounded frontier loop when the first anchor set is insufficient
 5. optionally reuses a short-lived in-memory session context when `query` or `trace` is called with `--session` / `sessionId`
