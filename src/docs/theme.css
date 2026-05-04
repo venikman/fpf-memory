@@ -864,6 +864,14 @@ html.dark .rp-sidebar-item--active.rp-sidebar-item--active {
   text-transform: uppercase;
   display: block;
   line-height: 1;
+  /* CRITICAL: rspress hardcodes width:640px on this element. On any
+     viewport <640px the brand line overflows the right side AND drags
+     the sibling subtitle with it (the parent .rp-home-hero__title gets
+     a 640px implicit width too), clipping the H1 off-screen on mobile.
+     Override to 100% with auto wrapping. */
+  width: 100% !important;
+  max-width: 100%;
+  white-space: normal;
 }
 
 .rp-home-hero__subtitle.rp-home-hero__subtitle {
@@ -1226,6 +1234,31 @@ html body .rp-home-feature__card .rp-home-feature__title-wrapper.rp-home-feature
   .rp-home-hero__action a,
   .rp-home-hero__actions a {
     min-height: 44px;
+  }
+}
+
+/* ───────── 12.3. Pattern sidebar item line-clamp (PR #72 design review) ─────────
+ *
+ * Pattern IDs in the left rail include the title in the link text
+ * ("A.1 Holonic Foundation: Entity → Holon"). At a 251px rail width
+ * many of these wrap to 3-4 lines, making the rail tall and hard to
+ * scan. Clamp to 2 lines with `text-overflow: ellipsis` and use the
+ * full text as the title= so users can hover for the full label. */
+.rp-doc-layout__sidebar a.rp-link {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+/* Restore the click-target height that the clamp can shrink. The
+   mobile-tap-target rule already enforces min-height:44px at <=768px;
+   on desktop 36-40px is enough for two compact lines. */
+@media (width > 768px) {
+  .rp-doc-layout__sidebar a.rp-link {
+    min-height: 32px;
+    line-height: 1.35;
   }
 }
 
