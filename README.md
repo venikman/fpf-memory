@@ -172,6 +172,8 @@ bun run cli -- evaluate-work --spec ~/Downloads/FPF-Spec\(12\).md --out reports/
 
 The evaluator reads local git facts, the committed `published/current/**` surface, and the configured FPF spec. It does **not** call an LLM, fetch GitHub, or regenerate artifacts. By default it reads `FPF_SPEC_SOURCE_PATH` if set, otherwise `published/current/FPF-Spec.md`; it does not fall back to `.fpf-upstream/`.
 
+<a id="run-and-test-mcp"></a>
+
 ## Using it from Codex (and other MCP clients)
 
 The current Codex default is the hosted public MCP:
