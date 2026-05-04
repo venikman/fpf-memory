@@ -1,109 +1,335 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
 /*
- * FPF Reference — design system
+ * FPF Reference design system
  *
- * Single-file theme override layered on top of Rspress defaults.
- * Organised top-down:
- *   1. Design tokens
- *   2. Rspress variable overrides (light + dark)
- *   3. Global layout (nav / sidebar / TOC / content width)
- *   4. Typography scale
- *   5. Content primitives (blockquote meta-strip, lists, tables, code, callouts)
- *   6. Sidebar & TOC density
- *   7. Pattern-ID chip, relation-row, and breadcrumb primitives (emitted by the
- *      generator in `src/core/documents.ts`)
+ * Ported from the supplied FPF sync design bundle into the Rspress docs shell.
+ * The system keeps the report design's paper surface, rule-first layout,
+ * red accent, mono chrome, and serif reading floor while preserving generated
+ * FPF primitives emitted by `src/core/documents.ts`.
  */
 
-/* ───────── 1. Design tokens ───────── */
+/* 1. Design tokens */
 
 :root {
-  --fpf-font-body:
-    "Inter var experimental", "Inter var", -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-  --fpf-font-mono:
-    "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Monaco, Consolas,
-    "Liberation Mono", monospace;
+  --fpf-paper: oklch(0.97 0.012 75);
+  --fpf-paper-2: oklch(0.945 0.016 75);
+  --fpf-paper-3: oklch(0.92 0.02 75);
+  --fpf-ink: oklch(0.2 0.015 60);
+  --fpf-ink-2: oklch(0.36 0.015 60);
+  --fpf-ink-3: oklch(0.52 0.012 60);
+  --fpf-rule: oklch(0.85 0.018 70);
+  --fpf-rule-strong: oklch(0.65 0.02 70);
+  --fpf-accent: oklch(0.5 0.16 30);
+  --fpf-accent-soft: oklch(0.94 0.04 30);
+  --fpf-accent-ink: oklch(0.98 0.01 30);
 
-  --fpf-measure: 72ch;
+  --fpf-font-display: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --fpf-font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --fpf-font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
 
-  --fpf-space-1: 4px;
-  --fpf-space-2: 8px;
-  --fpf-space-3: 12px;
-  --fpf-space-4: 16px;
-  --fpf-space-5: 24px;
-  --fpf-space-6: 32px;
-  --fpf-space-7: 48px;
-  --fpf-space-8: 64px;
+  --fpf-fs-xs: 12px;
+  --fpf-fs-sm: 14px;
+  --fpf-fs-body: 18px;
+  --fpf-fs-md: 20px;
+  --fpf-fs-lg: 24px;
+  --fpf-fs-xl: 32px;
+  --fpf-fs-2xl: 44px;
+  --fpf-lh-body: 1.6;
+  --fpf-measure: 66ch;
 
-  --fpf-radius-chip: 6px;
-  --fpf-radius-card: 12px;
-  --fpf-radius-pill: 999px;
+  --fpf-gutter: 32px;
+  --fpf-col-gap: 32px;
+  --fpf-radius-chip: 0;
+  --fpf-radius-panel: 0;
 
-  /* Part palette — one hue per Part, used for pattern-ID chips.
-     Values are H S% L% triplets; opacity composition via color-mix. */
-  --fpf-part-a: 217 91% 55%;   /* blue       — Kernel Architecture */
-  --fpf-part-b: 262 80% 58%;   /* violet     — Trans-disciplinary Reasoning */
-  --fpf-part-c: 160 60% 38%;   /* emerald    — Kernel Extensions */
-  --fpf-part-d: 34  92% 46%;   /* amber      — Multi-scale Ethics */
-  --fpf-part-e: 340 78% 50%;   /* rose       — FPF Constitution */
-  --fpf-part-f: 174 60% 38%;   /* teal       — Unification Patterns */
-  --fpf-part-g: 199 87% 45%;   /* sky        — Discipline Standards */
-  --fpf-part-neutral: 220 12% 45%;
-
-  /* Default chip colour — overridden by .fpf-pid--a, --b, ... */
+  /* Part palette: one hue per part, used for generated pattern ID chips. */
+  --fpf-part-a: 217 91% 48%;
+  --fpf-part-b: 262 80% 52%;
+  --fpf-part-c: 160 60% 33%;
+  --fpf-part-d: 34 92% 42%;
+  --fpf-part-e: 340 78% 46%;
+  --fpf-part-f: 174 60% 34%;
+  --fpf-part-g: 199 87% 40%;
+  --fpf-part-neutral: 18 60% 42%;
   --fpf-chip-h: var(--fpf-part-neutral);
 }
 
-/* ───────── 2. Rspress variable overrides ───────── */
-
-:root {
-  /* Nav / sidebar / TOC footprint */
-  --rp-nav-height: 56px;
-  --rp-sidebar-width: 292px;
-  --rp-aside-width: 240px;
-  --rp-outline-width: 240px;
-
-  /* Content frame */
-  --rp-content-padding-x: 24px;
-  --rp-content-padding-y: 32px;
-  --rp-content-max-width: 1120px;
-
-  /* Typography family */
-  --rp-font-family-base: var(--fpf-font-body);
-  --rp-font-family-mono: var(--fpf-font-mono);
-
-  /* Code size relative to body */
-  --rp-code-font-size: 0.9375em;
+html.dark {
+  --fpf-paper: oklch(0.13 0.008 80);
+  --fpf-paper-2: oklch(0.18 0.008 80);
+  --fpf-paper-3: oklch(0.22 0.008 80);
+  --fpf-ink: oklch(0.96 0.004 80);
+  --fpf-ink-2: oklch(0.78 0.006 80);
+  --fpf-ink-3: oklch(0.6 0.008 80);
+  --fpf-rule: oklch(0.28 0.008 80);
+  --fpf-rule-strong: oklch(0.42 0.01 80);
+  --fpf-accent: oklch(0.78 0.17 65);
+  --fpf-accent-soft: oklch(0.28 0.06 65);
+  --fpf-accent-ink: oklch(0.15 0.01 65);
 }
 
-@media (width >= 1280px) {
+@media (width <= 760px) {
   :root {
-    --rp-content-padding-x: 40px;
-    --rp-content-padding-y: 40px;
+    --fpf-fs-body: 17px;
+    --fpf-gutter: 20px;
+    --fpf-col-gap: 24px;
   }
 }
 
-/* Dark-mode surface depth — three elevations instead of one flat bg */
-html.dark {
-  --rp-c-bg: #0b0d10;           /* base canvas */
-  --rp-c-bg-soft: #13171c;      /* elevated surface (cards, sidebar) */
-  --rp-c-bg-mute: #1a1f26;      /* hovered / active surface */
-  --rp-c-bg-alt: #0f1216;       /* alternate blocks (code, meta-strip) */
-  --rp-c-divider: #252b33;
-  --rp-c-divider-light: #1b2028;
+/* 2. Rspress variable mapping */
 
-  --rp-c-text-1: #e6e8ec;
-  --rp-c-text-2: rgb(230 232 236 / 82%);
-  --rp-c-text-3: rgb(230 232 236 / 62%);
+html:root {
+  --rp-nav-height: 66px;
+  --rp-sidebar-width: 292px;
+  --rp-aside-width: 248px;
+  --rp-outline-width: 248px;
+  --rp-content-padding-x: var(--fpf-gutter);
+  --rp-content-padding-y: 40px;
+  --rp-content-max-width: 1120px;
 
-  --rp-code-block-bg: #0f1216;
-  --rp-code-block-color: #d7dae0;
-  --rp-code-title-bg: #13171c;
+  --rp-font-family-base: var(--fpf-font-display);
+  --rp-font-family-mono: var(--fpf-font-mono);
+  --rp-code-font-size: 0.9em;
+
+  --rp-c-bg: var(--fpf-paper);
+  --rp-c-bg-soft: var(--fpf-paper-2);
+  --rp-c-bg-mute: var(--fpf-paper-3);
+  --rp-c-bg-alt: var(--fpf-paper-2);
+  --rp-c-text-1: var(--fpf-ink);
+  --rp-c-text-2: var(--fpf-ink-2);
+  --rp-c-text-3: var(--fpf-ink-3);
+  --rp-c-divider: var(--fpf-rule-strong);
+  --rp-c-divider-light: var(--fpf-rule);
+  --rp-c-brand: var(--fpf-accent);
+  --rp-c-brand-light: var(--fpf-accent);
+  --rp-c-brand-dark: var(--fpf-accent);
+  --rp-code-block-bg: var(--fpf-paper-2);
+  --rp-code-block-color: var(--fpf-ink);
+  --rp-code-title-bg: var(--fpf-paper-3);
 }
 
-/* ───────── 3. Global layout ───────── */
+html,
+body {
+  background: var(--fpf-paper);
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-feature-settings: "ss01", "calt", "liga";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
 
+::selection {
+  background: var(--fpf-accent);
+  color: var(--fpf-accent-ink);
+}
+
+/* 3. Site chrome */
+
+.rp-nav.rp-nav,
 .rspress-nav {
-  backdrop-filter: saturate(180%) blur(8px);
+  border-bottom: 1px solid var(--fpf-ink);
+  background: color-mix(in srgb, var(--fpf-paper) 94%, transparent);
+  backdrop-filter: saturate(140%) blur(8px);
+  box-shadow: none;
+}
+
+.rp-nav.rp-nav {
+  color: var(--fpf-ink);
+}
+
+.rp-nav__title__link.rp-nav__title__link {
+  font-family: var(--fpf-font-display);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.rp-nav-menu.rp-nav-menu {
+  gap: 24px;
+}
+
+.rp-nav-menu__item__container.rp-nav-menu__item__container {
+  color: var(--fpf-ink-2);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.rp-nav-menu__item:hover .rp-nav-menu__item__container,
+.rp-nav-menu__item--active .rp-nav-menu__item__container {
+  color: var(--fpf-accent);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.rp-nav-menu__divider.rp-nav-menu__divider {
+  background: var(--fpf-rule-strong);
+}
+
+.rspress-nav * {
+  letter-spacing: 0;
+}
+
+.rspress-nav a,
+.rspress-nav button {
+  border-radius: 0;
+}
+
+.rspress-nav [class*="title"],
+.rspress-nav [class*="logo"],
+.rspress-nav [class*="brand"] {
+  font-family: var(--fpf-font-display);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.rspress-nav nav a,
+.rspress-nav [class*="nav"] a {
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  color: var(--fpf-ink-2);
+  text-decoration: none;
+}
+
+.rspress-nav nav a:hover,
+.rspress-nav [class*="nav"] a:hover,
+.rspress-nav nav a[aria-current="page"],
+.rspress-nav [class*="active"] {
+  color: var(--fpf-ink);
+}
+
+.rp-search-button.rp-search-button,
+.rspress-nav [class*="search"],
+.rspress-nav input[type="search"],
+.rspress-nav button[aria-label*="Search" i] {
+  border-radius: 0;
+  border: 1px solid var(--fpf-rule-strong);
+  background: var(--fpf-paper-2);
+  color: var(--fpf-ink-2);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  box-shadow: none;
+}
+
+.rp-search-button.rp-search-button {
+  min-width: 220px;
+  height: 32px;
+  padding: 0 10px;
+}
+
+.rp-search-button__content.rp-search-button__content {
+  gap: 8px;
+  font-size: 12px;
+}
+
+.rp-search-button__icon.rp-search-button__icon {
+  font-size: 14px;
+}
+
+.rp-search-button__word.rp-search-button__word {
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.rp-search-button__hotkey.rp-search-button__hotkey {
+  border: 1px solid var(--fpf-rule-strong);
+  border-radius: 0;
+  background: var(--fpf-paper);
+  color: var(--fpf-ink-2);
+  font-family: var(--fpf-font-mono);
+  font-size: 10px;
+  padding: 0 5px;
+}
+
+.rp-search-button.rp-search-button:hover {
+  border-color: var(--fpf-ink);
+}
+
+.rp-doc-layout__container {
+  background: var(--fpf-paper);
+}
+
+.rp-doc-layout__sidebar.rp-doc-layout__sidebar {
+  border-right: 1px solid var(--fpf-rule);
+  background: var(--fpf-paper);
+}
+
+.rp-doc-layout__sidebar:empty,
+.rp-doc-layout__outline-placeholder:empty {
+  display: none;
+}
+
+.rp-doc-layout__container:has(> .rp-doc-layout__sidebar:empty) {
+  justify-content: center;
+}
+
+body:has(.rp-doc-layout__sidebar:empty) .rp-doc-layout__menu {
+  display: none;
+}
+
+.rp-doc-layout__container:has(> .rp-doc-layout__sidebar:empty) .rp-doc-layout__doc {
+  max-width: min(100%, 1000px);
+}
+
+.rp-doc-layout__doc-container {
+  background: var(--fpf-paper);
+}
+
+.rspress-sidebar,
+.rspress-sidebar-section,
+[class*="sidebar"] {
+  background: var(--fpf-paper);
+}
+
+.rspress-sidebar {
+  border-right: 1px solid var(--fpf-rule);
+}
+
+.rspress-sidebar-section h2 {
+  margin-top: 1rem;
+  margin-bottom: 0.55rem;
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.rspress-sidebar-item,
+.rspress-sidebar-section {
+  font-family: var(--fpf-font-display);
+  font-size: 13px;
+  line-height: 1.38;
+}
+
+.rspress-sidebar-item [class*="menuItem"] {
+  border-radius: 0;
+  padding-top: 0.38rem !important;
+  padding-bottom: 0.38rem !important;
+}
+
+.rspress-sidebar-item [class*="menuItem"]:hover,
+.rspress-sidebar-item [class*="active"] {
+  background: var(--fpf-accent-soft);
+  color: var(--fpf-ink);
+}
+
+.rspress-toc-link,
+[class*="aside"] a {
+  font-family: var(--fpf-font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--fpf-ink-3);
+}
+
+.rspress-toc-link:hover,
+[class*="aside"] a:hover {
+  color: var(--fpf-accent);
 }
 
 .rspress-doc-container .rspress-doc,
@@ -112,10 +338,6 @@ html.dark {
 }
 
 .rspress-doc-container .rspress-doc {
-  /* Keep prose readable even in wide containers: paragraphs, blockquotes, and
-     top-level lists share the measure so bullet labels stay aligned with the
-     surrounding copy. Tables, code blocks, and admonitions are intentionally
-     excluded and keep the full container width. */
   --prose-measure: var(--fpf-measure);
 }
 
@@ -126,39 +348,48 @@ html.dark {
   max-width: var(--prose-measure);
 }
 
-/* ───────── 4. Typography scale ───────── */
+.rspress-doc-container .rspress-doc-footer {
+  border-top: 1px solid var(--fpf-ink);
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+}
+
+/* 4. Typography */
 
 .rspress-doc {
-  font-size: 16px;
-  line-height: 1.6;
-  font-feature-settings: "ss01", "cv11", "calt", "liga";
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-serif);
+  font-size: var(--fpf-fs-body);
+  line-height: var(--fpf-lh-body);
 }
 
 .rspress-doc-container .rspress-doc-title,
 .rspress-doc h1 {
-  font-size: clamp(1.75rem, calc(1.5rem + 1.25vw), 2.5rem);
-  line-height: 1.15;
-  font-weight: 650;
-  letter-spacing: -0.012em;
+  max-width: 18ch;
   margin-top: 0;
-  margin-bottom: 1rem;
+  margin-bottom: 1.1rem;
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: clamp(2.25rem, 1.6rem + 2.8vw, var(--fpf-fs-2xl));
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 .rspress-doc h2 {
-  font-size: clamp(1.375rem, calc(1.25rem + 0.55vw), 1.75rem);
-  line-height: 1.22;
-  font-weight: 650;
-  letter-spacing: -0.006em;
-  margin-top: 2.25rem;
-  margin-bottom: 0.6rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--rp-c-divider-light, rgb(0 0 0 / 6%));
-}
-
-html.dark .rspress-doc h2 {
-  border-top-color: var(--rp-c-divider-light);
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--fpf-ink);
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: clamp(1.45rem, 1.2rem + 0.7vw, var(--fpf-fs-xl));
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
 }
 
 .rspress-doc h2:first-of-type {
@@ -167,26 +398,30 @@ html.dark .rspress-doc h2 {
 }
 
 .rspress-doc h3 {
-  font-size: 1.25rem;
-  line-height: 1.3;
-  font-weight: 620;
-  letter-spacing: -0.003em;
-  margin-top: 1.6rem;
-  margin-bottom: 0.45rem;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: var(--fpf-fs-lg);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
 }
 
 .rspress-doc h4 {
-  font-size: 1.0625rem;
-  line-height: 1.4;
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: var(--fpf-fs-md);
   font-weight: 600;
-  margin-top: 1.15rem;
-  margin-bottom: 0.35rem;
+  line-height: 1.35;
 }
 
 .rspress-doc p,
 .rspress-doc li,
 .rspress-doc blockquote {
-  line-height: 1.6;
+  line-height: var(--fpf-lh-body);
 }
 
 .rspress-doc p,
@@ -194,197 +429,161 @@ html.dark .rspress-doc h2 {
 .rspress-doc ol,
 .rspress-doc table,
 .rspress-doc blockquote {
-  margin-top: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.rspress-doc li + li {
-  margin-top: 0.2rem;
+  margin-top: 0.85rem;
+  margin-bottom: 0.85rem;
 }
 
 .rspress-doc ul,
 .rspress-doc ol {
-  padding-left: 1.4rem;
+  padding-left: 1.35rem;
+}
+
+.rspress-doc li + li {
+  margin-top: 0.25rem;
 }
 
 .rspress-doc a {
+  color: inherit;
+  text-decoration-color: var(--fpf-rule-strong);
   text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
+  text-underline-offset: 4px;
 }
 
-/* ───────── 5. Content primitives ───────── */
+.rspress-doc a:hover {
+  color: var(--fpf-accent);
+  text-decoration-color: currentcolor;
+}
 
-/*  Meta-strip — the first blockquote on pattern/route pages, e.g.
- *   > Pattern <span class="fpf-pid fpf-pid--a">A.1</span> · Stable · Architectural (A) · Normative
- *   > Part A – Kernel Architecture Cluster
- *   > "Name the thing without smuggling in its parts."
- *  The pattern ID is emitted as a `.fpf-pid` chip (see section 7); older
- *  inline-code snapshots are kept working via the chip-coloured `code` rule
- *  below so migrated content keeps looking native. */
+/* 5. Content primitives */
+
 .rspress-doc > blockquote:first-of-type {
   margin-top: 0;
-  margin-bottom: 1.5rem;
-  padding: 0.85rem 1rem;
-  border-left: 3px solid
-    color-mix(in srgb, hsl(var(--fpf-chip-h)) 60%, transparent);
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 7%, transparent);
-  border-radius: 8px;
-  font-size: 0.95rem;
+  margin-bottom: 1.65rem;
+  padding: 0.95rem 1rem;
+  border: 0;
+  border-left: 2px solid var(--fpf-accent);
+  border-radius: var(--fpf-radius-panel);
+  background: var(--fpf-paper-2);
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: 16px;
   line-height: 1.55;
-  color: var(--rp-c-text-1);
-}
-
-html.dark .rspress-doc > blockquote:first-of-type {
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 14%, transparent);
 }
 
 .rspress-doc > blockquote:first-of-type p {
-  margin: 0.15rem 0;
+  margin: 0.18rem 0;
 }
 
 .rspress-doc > blockquote:first-of-type p:first-child {
-  font-weight: 520;
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  color: var(--fpf-ink-2);
 }
 
 .rspress-doc > blockquote:first-of-type em {
-  opacity: 0.78;
+  color: var(--fpf-ink-2);
+  font-family: var(--fpf-font-serif);
   font-style: italic;
 }
 
-/*  Inline code — treat as a muted chip. Pattern IDs in headings/meta-strip
- *   get elevated to the .fpf-pid chip style (see section 7). */
+.rspress-doc blockquote:not(:first-of-type) {
+  border-left: 2px solid var(--fpf-rule-strong);
+  color: var(--fpf-ink-2);
+  font-style: normal;
+}
+
 .rspress-doc :not(pre) > code {
+  border: 1px solid var(--fpf-rule-strong);
+  border-radius: 0;
+  background: var(--fpf-paper-2);
+  color: var(--fpf-accent);
   font-family: var(--fpf-font-mono);
-  font-size: 0.9em;
+  font-size: 0.82em;
+  font-weight: 500;
   padding: 0.12em 0.38em;
-  border-radius: 5px;
-  background: color-mix(in srgb, currentcolor 8%, transparent);
-  border: 1px solid color-mix(in srgb, currentcolor 12%, transparent);
   white-space: nowrap;
 }
 
-html.dark .rspress-doc :not(pre) > code {
-  background: color-mix(in srgb, #ffffff 8%, transparent);
-  border-color: color-mix(in srgb, #ffffff 10%, transparent);
-}
-
-/*  Pattern-id-like inline code inside the meta-strip gets the chip colour */
 .rspress-doc > blockquote:first-of-type :not(pre) > code {
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 16%, transparent);
-  border-color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 32%, transparent);
-  color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 100%, var(--rp-c-text-1) 0%);
-  font-weight: 560;
+  border-color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 42%, var(--fpf-rule));
+  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 10%, var(--fpf-paper-2));
+  color: hsl(var(--fpf-chip-h));
 }
 
-html.dark .rspress-doc > blockquote:first-of-type :not(pre) > code {
-  color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 80%, #ffffff 20%);
-}
-
-/*  Callouts / admonitions — keep Rspress defaults but soften edges */
 .rspress-doc [class*="rspress-directive"] {
-  border-radius: var(--fpf-radius-card);
+  margin: 1.35rem 0;
   padding: 1rem 1.1rem;
-  margin: 1.2rem 0;
+  border-radius: var(--fpf-radius-panel);
+  border: 1px solid var(--fpf-rule-strong);
+  background: var(--fpf-paper-2);
 }
 
 .rspress-doc [class*="rspress-directive"] p {
   margin: 0.25rem 0;
 }
 
-/*  Tables — tighter headers, wider gutters */
 .rspress-doc table {
-  border-collapse: separate;
-  border-spacing: 0;
-  border-radius: 8px;
+  width: 100%;
+  border: 1px solid var(--fpf-ink);
+  border-collapse: collapse;
+  border-radius: 0;
   overflow: hidden;
-  border: 1px solid var(--rp-c-divider-light);
+  font-family: var(--fpf-font-display);
+  font-size: 15px;
 }
 
 .rspress-doc th,
 .rspress-doc td {
-  padding: 0.55rem 0.75rem;
-  border: none;
-  border-bottom: 1px solid var(--rp-c-divider-light);
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--fpf-rule);
 }
 
 .rspress-doc th {
-  font-weight: 600;
-  background: color-mix(in srgb, currentcolor 4%, transparent);
+  background: var(--fpf-paper-2);
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  font-weight: 500;
   text-align: left;
-}
-
-.rspress-doc tr:last-child td {
-  border-bottom: none;
-}
-
-/*  Code blocks */
-.rspress-doc pre {
-  border-radius: 10px;
-}
-
-/* ───────── 6. Sidebar & TOC density ───────── */
-
-.rspress-sidebar-section h2 {
-  font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-weight: 600;
-  opacity: 0.7;
-  line-height: 1.2;
-  margin-top: 1rem;
-  margin-bottom: 0.35rem;
 }
 
-.rspress-sidebar-item,
-.rspress-sidebar-section {
-  font-size: 0.8125rem;
-  line-height: 1.45;
+.rspress-doc tr:hover td {
+  background: color-mix(in srgb, var(--fpf-accent-soft) 60%, transparent);
 }
 
-.rspress-sidebar-item [class*="menuItem"] {
-  padding-top: 0.32rem !important;
-  padding-bottom: 0.32rem !important;
-  border-radius: 6px;
+.rspress-doc pre {
+  border: 1px solid var(--fpf-rule-strong);
+  border-radius: 0;
+  background: var(--fpf-paper-2);
 }
 
-/* Right-side "On this page" TOC */
-.rspress-toc-link,
-[class*="aside"] a {
-  font-size: 0.8125rem;
-  line-height: 1.45;
+.rspress-doc pre code {
+  font-family: var(--fpf-font-mono);
 }
 
-.rspress-toc-link + .rspress-toc-link {
-  margin-top: 0.1rem;
-}
-
-/* ───────── 7. Pattern-ID chip primitive ─────────
- *
- * The generator (`src/core/documents.ts::patternIdChip`) emits
- * `<span class="fpf-pid fpf-pid--a">A.1</span>` in pattern titles, relations,
- * and node references. Part-specific hues come from the `.fpf-pid--{letter}`
- * modifiers below; unknown letters fall back to the neutral `.fpf-pid` base.
- */
+/* 6. Generated FPF primitives */
 
 .fpf-pid {
   display: inline-flex;
-  align-items: center;
-  font-family: var(--fpf-font-mono);
-  font-weight: 560;
-  font-size: 0.875em;
-  line-height: 1;
-  padding: 0.25em 0.5em;
+  align-items: baseline;
+  gap: 0.35em;
+  border: 1px solid color-mix(in srgb, hsl(var(--fpf-chip-h)) 35%, var(--fpf-rule-strong));
   border-radius: var(--fpf-radius-chip);
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 12%, transparent);
-  border: 1px solid color-mix(in srgb, hsl(var(--fpf-chip-h)) 28%, transparent);
+  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 8%, var(--fpf-paper-2));
   color: hsl(var(--fpf-chip-h));
+  font-family: var(--fpf-font-mono);
+  font-size: 0.72em;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  padding: 0.22em 0.55em;
   white-space: nowrap;
-  letter-spacing: 0.01em;
 }
 
 html.dark .fpf-pid {
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 18%, transparent);
-  border-color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 40%, transparent);
+  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 16%, var(--fpf-paper-2));
   color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 75%, #ffffff 25%);
 }
 
@@ -396,43 +595,45 @@ html.dark .fpf-pid {
 .fpf-pid--f { --fpf-chip-h: var(--fpf-part-f); }
 .fpf-pid--g { --fpf-chip-h: var(--fpf-part-g); }
 
-/* Relation-row primitive — emitted by the generator
- * (`src/core/documents.ts::formatRelation`). Shape:
- *   <div class="fpf-relation">
- *     <span class="fpf-pid fpf-pid--a">A.1</span>
- *     <span class="fpf-relation-kind">prerequisite for</span>
- *     <a class="fpf-relation-target" href="...">Role Taxonomy</a>
- *   </div>
- */
+.fpf-relations {
+  max-width: var(--fpf-measure);
+  border-top: 1px dotted var(--fpf-rule-strong);
+}
+
 .fpf-relation {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.5rem 0;
   flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.7rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px dotted var(--fpf-rule);
+  font-family: var(--fpf-font-display);
 }
 
 .fpf-relation-kind {
-  font-size: 0.75rem;
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
-  opacity: 0.62;
 }
 
 .fpf-relation-target {
+  color: var(--fpf-ink);
   font-weight: 500;
 }
 
-/* Breadcrumb primitive — emitted by theme-layer wrapper */
 .fpf-breadcrumb {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8125rem;
-  color: var(--rp-c-text-3);
-  margin-bottom: 0.75rem;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 0.42rem;
+  margin-bottom: 1rem;
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .fpf-breadcrumb a {
@@ -441,12 +642,42 @@ html.dark .fpf-pid {
 }
 
 .fpf-breadcrumb a:hover {
-  color: var(--rp-c-text-1);
+  color: var(--fpf-accent);
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 4px;
 }
 
 .fpf-breadcrumb-separator {
-  opacity: 0.5;
+  opacity: 0.55;
   user-select: none;
+}
+
+/* 7. Responsive refinements */
+
+@media (width >= 1280px) {
+  :root {
+    --rp-content-padding-x: 40px;
+    --rp-content-padding-y: 44px;
+  }
+}
+
+@media (width <= 960px) {
+  .rspress-doc-container .rspress-doc-title,
+  .rspress-doc h1 {
+    max-width: 22ch;
+  }
+
+  .rspress-doc table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rspress-doc a,
+  .rspress-nav a,
+  .rspress-sidebar-item [class*="menuItem"],
+  .fpf-breadcrumb a {
+    transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+  }
 }
