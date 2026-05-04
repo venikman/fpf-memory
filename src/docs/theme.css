@@ -408,6 +408,23 @@ body:has(.rp-doc-layout__sidebar:empty) .rp-doc-layout__menu {
   text-wrap: balance;
 }
 
+/* Generated reference pages have long compound titles like
+   "Γ_method — Order-Sensitive Method Composition & Work Enactment".
+   The 18ch cap + 44px display size renders these ~277px tall before
+   any content starts (DS-P2-006). Generated pattern/route pages emit
+   a `nav.fpf-breadcrumb` directly before the H1, so we use that
+   adjacent-sibling selector to scope a wider measure and smaller
+   display ramp without affecting authored pages. The selector is NOT
+   wrapped in `:where()` because that resets specificity to 0,0,1 and
+   loses to the base `.rspress-doc h1` rule (0,1,1). */
+.fpf-breadcrumb + h1,
+.rspress-doc .fpf-breadcrumb + h1 {
+  max-width: 42ch;
+  font-size: clamp(1.625rem, 1.2rem + 1.2vw, 2.125rem);
+  line-height: 1.15;
+  margin-bottom: 0.65rem;
+}
+
 .rspress-doc h2 {
   margin-top: 2.5rem;
   margin-bottom: 0.75rem;
@@ -857,4 +874,69 @@ html.dark .rp-sidebar-item--active.rp-sidebar-item--active {
 .rp-home-background,
 .rp-home-feature__item__shine {
   display: none;
+}
+
+/* ───────── 9. Responsive layout fixes ─────────
+ *
+ * 9.1  DS-P1-004: Right outline (`position: fixed`, 248px wide) overlapped
+ *      doc content by ~216px at 1100px viewport. Hide it below 1280px so
+ *      doc + sidebar can use the full width without collision. The page
+ *      H2/H3 hierarchy is enough wayfinding at narrow widths.
+ *
+ * 9.2  Sidebar drawer at mobile widths is hidden via the head-script `inert`
+ *      shim (FU-P1-002); the visual hide already exists via rspress
+ *      defaults. This rule belt-and-suspenders the visual hide so screen-
+ *      readers don't see drawer content during the slide animation.
+ */
+
+@media (width < 1280px) {
+  .rp-doc-layout__outline,
+  .rp-doc-layout__outline-placeholder {
+    display: none;
+  }
+  .rp-doc-layout__container:not(:has(> .rp-doc-layout__sidebar:empty)) .rp-doc-layout__doc {
+    max-width: none;
+  }
+}
+
+/* ───────── 10. Focus rings (DS-P2-012) ─────────
+ *
+ * Rspress's nav/search/menu/outline buttons strip the browser default
+ * focus ring (`outline: none`) without supplying a replacement, so
+ * keyboard users have no visible focus indicator. Add a high-contrast
+ * `:focus-visible` ring across all interactive chrome so the focus
+ * indicator is unambiguous in both light and dark mode.
+ */
+
+.rp-search-button:focus-visible,
+.rp-nav-hamburger:focus-visible,
+.rp-nav-hamburger__sm:focus-visible,
+.rp-nav-hamburger__md:focus-visible,
+.rp-search-button--mobile:focus-visible,
+.rp-sidebar-menu__left:focus-visible,
+.rp-sidebar-menu__right:focus-visible,
+.rp-switch-appearance:focus-visible,
+.rp-doc-layout__sidebar a:focus-visible,
+.rp-outline a:focus-visible,
+.rp-toc-item:focus-visible,
+.rp-nav-menu__item__container:focus-visible,
+.rp-nav__title__link:focus-visible {
+  outline: 2px solid var(--fpf-accent);
+  outline-offset: 2px;
+  border-radius: 0;
+}
+
+/* Sidebar groups are <div role="button"> after the head shim runs;
+   keep them in the same focus-ring family. */
+[role='button']:focus-visible {
+  outline: 2px solid var(--fpf-accent);
+  outline-offset: 2px;
+}
+
+/* Body links (already underlined for non-color affordance) get a more
+   pronounced underline thickness on focus to distinguish from hover. */
+.rspress-doc a:not(.rp-header-anchor):not(.rp-nav__title__link):focus-visible {
+  outline: 2px solid var(--fpf-accent);
+  outline-offset: 3px;
+  text-decoration-thickness: 2px;
 }

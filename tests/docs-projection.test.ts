@@ -235,9 +235,12 @@ describe('docs projection', () => {
       expect(rootIndex).toMatch(/- title: Patterns[\s\S]*?link: \/patterns/);
       expect(rootIndex).toContain('  - title: Routes');
       expect(rootIndex).toContain('link: /generated/routes/index');
-      expect(rootIndex).toContain('  - title: Glossary');
+      // Welcome's H.1 / I.3 cards are titled "Glossary anchor" /
+      // "Change-log anchor" so the labels accurately describe the
+      // single-pattern stub pages they point at (DS-P2-017/018).
+      expect(rootIndex).toContain('  - title: Glossary anchor');
       expect(rootIndex).toContain('link: /generated/patterns/H.1');
-      expect(rootIndex).toContain('  - title: Change log');
+      expect(rootIndex).toContain('  - title: Change-log anchor');
       expect(rootIndex).toContain('link: /generated/patterns/I.3');
       expect(rootIndex).toContain('## Methodology');
       expect(rootIndex).toContain('## MCP endpoint');

@@ -38,6 +38,24 @@ export default defineConfig({
   head: [
     ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
     ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    // Favicon: inline SVG (cream paper + accent serif F). No binary asset
+    // to commit; the data-URI is ~250 bytes. Fixes DS-P3-009 favicon 404.
+    [
+      'link',
+      {
+        rel: 'icon',
+        type: 'image/svg+xml',
+        href: "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23faf4ec'/%3E%3Ctext x='32' y='46' font-family='Georgia,serif' font-size='44' font-weight='700' text-anchor='middle' fill='%23ac3225'%3EF%3C/text%3E%3C/svg%3E",
+      },
+    ],
+    // OG / social metadata. og:image is omitted intentionally — we don't
+    // ship a 1200x630 PNG yet, and Twitter/Slack will fall back to a
+    // text-only card with the title and description.
+    ['meta', { property: 'og:site_name', content: 'FPF Reference' }],
+    ['meta', { property: 'og:locale', content: 'en' }],
+    ['meta', { name: 'twitter:card', content: 'summary' }],
+    ['meta', { name: 'theme-color', content: '#faf4ec', media: '(prefers-color-scheme: light)' }],
+    ['meta', { name: 'theme-color', content: '#1f1812', media: '(prefers-color-scheme: dark)' }],
     // Accessibility shim — covers four rspress DOM gaps that the framework
     // doesn't expose hooks for. Driven by a single MutationObserver so we
     // don't poll on intervals (per FU validation P3-012). All effects are
@@ -61,7 +79,7 @@ export default defineConfig({
     `<script>(function(){
 function fixTables(root){(root||document).querySelectorAll('.rp-table-scroll-container').forEach(function(el){if(!el.hasAttribute('tabindex'))el.setAttribute('tabindex','0');});}
 function fixMobileSearch(root){(root||document).querySelectorAll('.rp-search-button--mobile').forEach(function(el){if(el.dataset.fpfA11yPatched==='1')return;el.dataset.fpfA11yPatched='1';el.setAttribute('role','button');el.setAttribute('tabindex','0');el.setAttribute('aria-label','Search');el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});});}
-function fixSidebarGroups(root){(root||document).querySelectorAll('.rp-sidebar-collapse, [class*="rp-sidebar-group"]:not(a):not(button)').forEach(function(el){if(el.dataset.fpfA11yPatched==='1')return;if(el.tagName==='A'||el.tagName==='BUTTON')return;el.dataset.fpfA11yPatched='1';el.setAttribute('role','button');if(!el.hasAttribute('tabindex'))el.setAttribute('tabindex','0');var collapsedAttr=el.getAttribute('aria-expanded');if(collapsedAttr==null){var collapsed=el.classList.contains('rp-sidebar-collapse--closed')||el.querySelector('[class*="closed"]')!=null;el.setAttribute('aria-expanded',String(!collapsed));}el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});var observer=new MutationObserver(function(){var c=el.classList.contains('rp-sidebar-collapse--closed');el.setAttribute('aria-expanded',String(!c));});observer.observe(el,{attributes:true,attributeFilter:['class']});});}
+function fixSidebarGroups(root){(root||document).querySelectorAll('.rp-sidebar-group:not(a):not(button)').forEach(function(el){if(el.dataset.fpfA11yPatched==='1')return;if(el.tagName==='A'||el.tagName==='BUTTON')return;el.dataset.fpfA11yPatched='1';el.setAttribute('role','button');if(!el.hasAttribute('tabindex'))el.setAttribute('tabindex','0');function readExpanded(){var panel=el.nextElementSibling;if(!panel)return true;var rows=panel.style.gridTemplateRows||getComputedStyle(panel).gridTemplateRows;return !(rows==='0fr'||rows==='0px');}el.setAttribute('aria-expanded',String(readExpanded()));el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});var panel=el.nextElementSibling;if(panel){var observer=new MutationObserver(function(){el.setAttribute('aria-expanded',String(readExpanded()));});observer.observe(panel,{attributes:true,attributeFilter:['style']});}});}
 function fixSidebarInert(){var sidebar=document.querySelector('.rp-doc-layout__sidebar');if(!sidebar)return;var rect=sidebar.getBoundingClientRect();var hidden=rect.right<=0||rect.left>=window.innerWidth;if(hidden){if(!sidebar.hasAttribute('inert'))sidebar.setAttribute('inert','');}else{sidebar.removeAttribute('inert');}}
 function applyAll(){fixTables();fixMobileSearch();fixSidebarGroups();fixSidebarInert();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyAll);else applyAll();
@@ -134,7 +152,7 @@ window.addEventListener('transitionend',fixSidebarInert);
             ...navigation.patterns.map((group) => ({
               text: group.text,
               collapsible: true,
-              collapsed: false,
+              collapsed: true,
               items: group.items,
             })),
           ],
@@ -148,7 +166,7 @@ window.addEventListener('transitionend',fixSidebarInert);
             ...navigation.patterns.map((group) => ({
               text: group.text,
               collapsible: true,
-              collapsed: false,
+              collapsed: true,
               items: group.items,
             })),
           ],
@@ -165,7 +183,7 @@ window.addEventListener('transitionend',fixSidebarInert);
             ...navigation.routes.map((group) => ({
               text: group.text,
               collapsible: true,
-              collapsed: false,
+              collapsed: true,
               items: group.items,
             })),
           ],
