@@ -44,38 +44,63 @@ describe('search-hooks afterSearch', () => {
     expect(result[0]?.group).toBe('Some Page');
   });
 
-  it('injects the canonical pattern page when FlexSearch returns nothing', () => {
-    const result: SearchResultGroup[] = [];
+  it('injects the canonical pattern page into the existing first group', () => {
+    // Rspress's PageSearcher always returns at least an empty group
+    // labelled with `siteTitle` ("FPF Reference") even when FlexSearch
+    // returns 0 hits. The hook must merge into THAT group rather than
+    // prepend a new one with the same label (would collide on React
+    // keys + show two adjacent tabs with the same name).
+    const result: SearchResultGroup[] = [
+      { group: 'FPF Reference', renderType: 'default', result: [] },
+    ];
     afterSearch('A.1', result);
-    expect(result.length).toBeGreaterThanOrEqual(1);
+    expect(result).toHaveLength(1);
     const top = result[0]!;
     expect(top.group).toBe('FPF Reference');
     expect(top.result?.[0]?.link).toBe('/generated/patterns/A.1');
     expect(top.result?.[0]?.type).toBe('title');
   });
 
+  it('does not create a duplicate group with the siteTitle label', () => {
+    // Regression for PR #72 review: the previous implementation always
+    // unshifted a new "FPF Reference" group, so searching `E.10.D2`
+    // produced two adjacent tabs with the same label.
+    const result: SearchResultGroup[] = [
+      { group: 'FPF Reference', renderType: 'default', result: [] },
+    ];
+    afterSearch('E.10.D2', result);
+    const groupNames = result.map((g) => g.group);
+    expect(groupNames).toEqual(['FPF Reference']);
+    expect(new Set(groupNames).size).toBe(groupNames.length);
+  });
+
   it('injects compound pattern IDs that FlexSearch substring index misses', () => {
     // E.10.D2 and C.3.A are the two compound IDs the validator flagged
-    // as unsearchable in Round 4 — both must inject as a top result.
+    // as unsearchable in Round 4 — both must inject at position [0] of
+    // the existing siteTitle group.
     for (const id of ['E.10.D2', 'C.3.A']) {
-      const result: SearchResultGroup[] = [];
+      const result: SearchResultGroup[] = [
+        { group: 'FPF Reference', renderType: 'default', result: [] },
+      ];
       afterSearch(id, result);
-      expect(result[0]?.group).toBe('FPF Reference');
       expect(result[0]?.result?.[0]?.link).toBe(`/generated/patterns/${id}`);
     }
   });
 
   it('injects route-selector queries with the route slug', () => {
-    const result: SearchResultGroup[] = [];
+    const result: SearchResultGroup[] = [
+      { group: 'FPF Reference', renderType: 'default', result: [] },
+    ];
     afterSearch('route:project-alignment', result);
-    expect(result[0]?.group).toBe('FPF Reference');
     expect(result[0]?.result?.[0]?.link).toBe(
       '/generated/routes/route_project-alignment',
     );
   });
 
   it('also handles route-selector queries with case variation', () => {
-    const result: SearchResultGroup[] = [];
+    const result: SearchResultGroup[] = [
+      { group: 'FPF Reference', renderType: 'default', result: [] },
+    ];
     afterSearch('Route:Boundary-Burden', result);
     expect(result[0]?.result?.[0]?.link).toBe(
       '/generated/routes/route_boundary-burden',
@@ -84,9 +109,9 @@ describe('search-hooks afterSearch', () => {
 
   it('hoists existing FlexSearch results to position [0] without duplicating', () => {
     // FlexSearch already returned the canonical A.1 page — we should
-    // pull it out of the original bucket and reuse it in the synthetic
-    // top group so the user sees it once, with FlexSearch's highlight
-    // info preserved (the hoisted item is the original).
+    // pull it out of its original bucket and prepend it to the first
+    // group so the user sees it once, with FlexSearch's highlight info
+    // preserved (the hoisted item is the original).
     const a1Item: SearchResultItem = {
       type: 'title',
       title: 'A.1 Holonic Foundation: Entity → Holon',
@@ -94,7 +119,7 @@ describe('search-hooks afterSearch', () => {
     };
     const result: SearchResultGroup[] = [
       {
-        group: 'Other matches',
+        group: 'FPF Reference',
         renderType: 'default',
         result: [
           { type: 'content', title: 'Mention of A.1', link: '/generated/patterns/A.2' },
@@ -103,13 +128,13 @@ describe('search-hooks afterSearch', () => {
       },
     ];
     afterSearch('A.1', result);
+    // Still exactly one group, named FPF Reference (no duplicate label).
+    expect(result).toHaveLength(1);
     expect(result[0]?.group).toBe('FPF Reference');
+    // Hoisted A.1 is at position [0]; the unrelated mention stays.
     expect(result[0]?.result?.[0]).toBe(a1Item);
-    // The original bucket no longer contains the hoisted item.
-    const otherBucket = result[1]?.result ?? [];
-    expect(otherBucket.find((r) => r.link === '/generated/patterns/A.1')).toBeUndefined();
-    // But the unrelated mention stays where it was.
-    expect(otherBucket.length).toBe(1);
+    expect(result[0]?.result?.[1]?.link).toBe('/generated/patterns/A.2');
+    expect(result[0]?.result?.length).toBe(2);
   });
 
   it('strips base prefix and trailing junk when matching existing entries', () => {
@@ -121,11 +146,23 @@ describe('search-hooks afterSearch', () => {
       link: '/fpf-memory/generated/patterns/A.1.html',
     };
     const result: SearchResultGroup[] = [
-      { group: 'X', renderType: 'default', result: [a1Item] },
+      { group: 'FPF Reference', renderType: 'default', result: [a1Item] },
     ];
     afterSearch('A.1', result);
+    expect(result).toHaveLength(1);
     expect(result[0]?.result?.[0]).toBe(a1Item);
-    expect(result[1]?.result?.length ?? 0).toBe(0);
+    expect(result[0]?.result?.length).toBe(1);
+  });
+
+  it('falls back to a synthetic group when searchResult is completely empty', () => {
+    // Extreme edge — rspress almost always returns at least one group.
+    // When it does not, synthesize one labelled with the canonical
+    // page title (never the siteTitle, so no future collision risk).
+    const result: SearchResultGroup[] = [];
+    afterSearch('A.1', result);
+    expect(result).toHaveLength(1);
+    expect(result[0]?.group).not.toBe('FPF Reference');
+    expect(result[0]?.result?.[0]?.link).toBe('/generated/patterns/A.1');
   });
 
   it('returns synth result for unknown route slugs (no panic)', () => {

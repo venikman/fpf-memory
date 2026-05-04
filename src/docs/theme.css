@@ -973,3 +973,24 @@ html.dark .rp-sidebar-item--active.rp-sidebar-item--active {
     min-width: 0 !important;
   }
 }
+
+/* ───────── 12. Mobile search button hit box (PR #72 review) ─────────
+ *
+ * Rspress styles `.rp-search-button--mobile` only with `display: flex`
+ * and `cursor: pointer`; the inner SVG is 1em × 1em (~16px), so the
+ * entire clickable area is ~16×16 — well below WCAG 2.2 AA's 24×24
+ * target-size minimum and uncomfortable to tap on a phone. Bump the
+ * hit box to 44×44 (Apple HIG / Material guidance) at narrow widths
+ * where this control is the primary search affordance. The icon size
+ * itself is left alone so the visual chrome doesn't change — only the
+ * tappable area expands. */
+
+@media (width <= 768px) {
+  .rp-search-button--mobile.rp-search-button--mobile {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+    /* center the SVG in the new larger hit box */
+    box-sizing: border-box;
+  }
+}

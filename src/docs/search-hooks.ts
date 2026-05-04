@@ -9,13 +9,20 @@
  *   1. The query matches a known pattern ID (e.g. `A.1`, `E.10.D2`,
  *      `C.3.A`) or a route selector (e.g. `route:project-alignment`)
  *      AND FlexSearch's substring index already returned the canonical
- *      page — we hoist that result to position [0][0] and pin its
- *      group at the top.
+ *      page — we hoist that result to position [0] of the first group.
  *   2. Same query type, but FlexSearch did NOT return the canonical
  *      page (compound IDs like `E.10.D2` and `C.3.A` reliably miss in
  *      FlexSearch's `tokenize: 'full'` index, R4-P1-002/003) — we
- *      synthesize a TitleMatch and prepend it as a new top group so
- *      the user always lands on the exact page they typed.
+ *      synthesize a TitleMatch and prepend it to the first group's
+ *      result list so the user always lands on the exact page they
+ *      typed.
+ *
+ * The canonical entry merges into rspress's existing first group
+ * rather than introducing a new one. Rspress's PageSearcher always
+ * returns at least one group keyed by `siteTitle` (here
+ * "FPF Reference"); a second group with the same name would create
+ * duplicate React keys AND render two adjacent tabs with the same
+ * label (PR #72 review feedback).
  *
  * The lookup table is generated from the spec snapshot at config-load
  * time and bundled in via `generated-search-id-registry.ts`.
@@ -67,8 +74,6 @@ interface CanonicalEntry {
   title: string;
   /** Page path (without base prefix — rspress's Link component prepends it). */
   link: string;
-  /** Suggestion-list group label. */
-  group: string;
 }
 
 function findCanonicalEntry(query: string): CanonicalEntry | null {
@@ -80,7 +85,6 @@ function findCanonicalEntry(query: string): CanonicalEntry | null {
     return {
       title: `${pattern.id} — ${pattern.title}`,
       link: pattern.staticPath,
-      group: 'FPF Reference',
     };
   }
 
@@ -91,7 +95,6 @@ function findCanonicalEntry(query: string): CanonicalEntry | null {
       return {
         title: `route: ${route.title}`,
         link: route.staticPath,
-        group: 'FPF Reference',
       };
     }
   }
@@ -112,7 +115,12 @@ function pageMatchesLink(item: SearchResultItem, link: string): boolean {
   return norm === link;
 }
 
-function buckets(group: SearchResultGroup): SearchResultItem[][] {
+/**
+ * Return every result-bucket on a group. Different rspress versions wrap
+ * the result list under different keys; we walk all of them so the hook
+ * stays forward-compatible.
+ */
+function bucketsOf(group: SearchResultGroup): SearchResultItem[][] {
   const collected: SearchResultItem[][] = [];
   if (Array.isArray(group.result)) collected.push(group.result);
   if (Array.isArray(group.list)) collected.push(group.list);
@@ -130,7 +138,7 @@ function removeMatchingFromAllBuckets(
 ): SearchResultItem | null {
   let removed: SearchResultItem | null = null;
   for (const group of searchResult) {
-    for (const bucket of buckets(group)) {
+    for (const bucket of bucketsOf(group)) {
       const idx = bucket.findIndex((item) => pageMatchesLink(item, link));
       if (idx >= 0) {
         const [hit] = bucket.splice(idx, 1);
@@ -163,18 +171,32 @@ export function afterSearch(
   if (!canonical) return;
 
   // Pull any existing FlexSearch result for this exact page out of every
-  // bucket so the synthetic injection doesn't show duplicates. Use the
-  // pulled item if present (it has FlexSearch's highlight info), or
-  // synthesize a fresh TitleMatch otherwise.
+  // bucket so the canonical entry doesn't appear twice. The pulled item
+  // (if found) already has FlexSearch's highlight info; otherwise we
+  // synthesize a fresh TitleMatch.
   const existing = removeMatchingFromAllBuckets(searchResult, canonical.link);
   const canonicalItem =
     existing ?? synthesizeCanonicalResult(canonical, query);
 
-  // Prepend a new group at index 0 so the canonical match is always
-  // the first thing the user sees. This works even when FlexSearch
-  // returned zero results for compound IDs like `C.3.A`.
-  searchResult.unshift({
-    group: canonical.group,
+  // Merge into the existing first group rather than prepending a new
+  // one. See module docstring for why.
+  if (searchResult.length > 0) {
+    const top = searchResult[0]!;
+    const bucket = bucketsOf(top)[0];
+    if (bucket) {
+      bucket.unshift(canonicalItem);
+    } else {
+      top.result = [canonicalItem];
+    }
+    return;
+  }
+
+  // FlexSearch returned no groups at all (extreme edge — rspress almost
+  // always returns at least the empty siteTitle group). Synthesize one,
+  // labeled with the canonical page title so it can never collide with
+  // the siteTitle label even if rspress later prepends one.
+  searchResult.push({
+    group: canonical.title,
     renderType: 'default',
     result: [canonicalItem],
   });
