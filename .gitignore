@@ -11,6 +11,7 @@ doc_build
 .fpf-upstream
 docs/generated/
 docs/index.md
+docs/patterns.md
 .claude
 .cursor/hooks/state/
 .env

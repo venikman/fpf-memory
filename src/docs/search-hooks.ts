@@ -80,8 +80,25 @@ interface CanonicalEntry {
   link: string;
 }
 
+/**
+ * Strip a single matching pair of wrapping quotes/backticks from a
+ * trimmed query so users can paste `` `A.1` ``, `"A.1"`, or `'A.1'`
+ * (the most common copy/paste shapes from docs and prompts) and still
+ * hit the canonical-page lookup. Only strips when the open and close
+ * characters match — `"foo'` is left alone.
+ */
+function stripWrappingQuotes(value: string): string {
+  if (value.length < 2) return value;
+  const first = value[0]!;
+  const last = value[value.length - 1]!;
+  if ((first === '`' || first === '"' || first === "'") && first === last) {
+    return value.slice(1, -1).trim();
+  }
+  return value;
+}
+
 function findCanonicalEntry(query: string): CanonicalEntry | null {
-  const trimmed = query.trim();
+  const trimmed = stripWrappingQuotes(query.trim());
   if (!trimmed) return null;
 
   const pattern = PATTERN_BY_ID.get(trimmed);

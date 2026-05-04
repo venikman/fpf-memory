@@ -128,6 +128,51 @@ describe('search-hooks afterSearch', () => {
     }
   });
 
+  it('strips wrapping quotes/backticks around pattern IDs (common copy/paste form)', () => {
+    // Users paste selectors as `\`A.1\`` (markdown), `"A.1"` (config),
+    // or `'A.1'` (prompts). All three should resolve to the canonical
+    // page. Mismatched wrappers (`"A.1\`) are left as-is and miss the
+    // lookup intentionally.
+    for (const query of ['`A.1`', '"A.1"', "'A.1'", '`E.10.D2`', '"C.3.A"']) {
+      const result: SearchResultGroup[] = [
+        { group: 'FPF Reference', renderType: 'default', result: [] },
+      ];
+      afterSearch(query, result);
+      const id = query.replace(/^[`"']|[`"']$/g, '');
+      expect(result[0]?.result?.[0]?.link).toBe(`/generated/patterns/${id}`);
+    }
+  });
+
+  it('strips wrapping quotes/backticks around route selectors', () => {
+    // The ROUTE_QUERY_PATTERN already accepts an inner quote after
+    // `route:` (covering `route:"slug"`), but the OUTER wrap
+    // (`\`route:slug\``) needs the up-front strip.
+    for (const query of [
+      '`route:project-alignment`',
+      '"route:project-alignment"',
+      "'route:project-alignment'",
+    ]) {
+      const result: SearchResultGroup[] = [
+        { group: 'FPF Reference', renderType: 'default', result: [] },
+      ];
+      afterSearch(query, result);
+      expect(result[0]?.result?.[0]?.link).toBe(
+        '/generated/routes/route_project-alignment',
+      );
+    }
+  });
+
+  it('leaves mismatched quote pairs alone (does not silently strip)', () => {
+    // `"A.1\`` has different opening and closing wrappers — should NOT
+    // be stripped. Falls through to no-match → original result intact.
+    const result: SearchResultGroup[] = [
+      { group: 'FPF Reference', renderType: 'default', result: [] },
+    ];
+    afterSearch('"A.1`', result);
+    // No injection because the lookup didn't match.
+    expect(result[0]?.result?.length ?? 0).toBe(0);
+  });
+
   it('synthesized route results include the canonical selector in the title', () => {
     // The display title must contain the exact copyable selector so
     // users see `route:project-alignment` when they search and can grab
