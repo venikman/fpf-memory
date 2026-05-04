@@ -73,6 +73,7 @@ The MCP route sets `Cache-Control`, `CDN-Cache-Control`, and `Vercel-CDN-Cache-C
 ## Direct Vercel origin
 
 The direct-origin project runs the Mastra MCP runtime on Vercel using `@mastra/deployer-vercel`.
+The repo-root `vercel.json` pins GitHub preview builds to `bun run vercel:origin:build`, which stages the hosted spec snapshot, creates the Mastra Vercel Build Output API bundle, and runs the bundle-size guard.
 
 ```bash
 bun run vercel:origin:link

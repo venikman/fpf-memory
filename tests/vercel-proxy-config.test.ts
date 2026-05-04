@@ -17,6 +17,14 @@ interface VercelConfig {
 }
 
 describe('Vercel MCP proxy config', () => {
+  it('uses the hosted MCP origin build command for GitHub preview builds', async () => {
+    const config = JSON.parse(
+      await readFile(resolve(process.cwd(), 'vercel.json'), 'utf8'),
+    ) as VercelConfig;
+
+    expect(config.buildCommand).toBe('bun run vercel:origin:build');
+  });
+
   it('proxies the MCP route to the validated Vercel origin and docs paths to Mastra Cloud', async () => {
     const config = JSON.parse(
       await readFile(resolve(process.cwd(), 'deploy/vercel-proxy/vercel.json'), 'utf8'),
