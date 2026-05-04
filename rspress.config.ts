@@ -38,14 +38,38 @@ export default defineConfig({
   head: [
     ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
     ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
-    // Accessibility shim. Rspress wraps every markdown table in a
-    // `.rp-table-scroll-container` so wide tables get horizontal overflow,
-    // but the wrapper ships without `tabindex` — axe-core flags it as
-    // `scrollable-region-focusable` (WCAG 2.1.1) because keyboard users
-    // can't scroll the table region. Add `tabindex="0"` after each render
-    // (initial + client-side route transitions) so the wrapper enters the
-    // focus order. Idempotent; safe to run repeatedly.
-    `<script>(function(){function fix(){document.querySelectorAll('.rp-table-scroll-container').forEach(function(el){if(!el.hasAttribute('tabindex'))el.setAttribute('tabindex','0');});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fix);else fix();var lp=location.pathname;setInterval(function(){if(location.pathname!==lp){lp=location.pathname;setTimeout(fix,150);}else fix();},800);})();</script>`,
+    // Accessibility shim — covers four rspress DOM gaps that the framework
+    // doesn't expose hooks for. Driven by a single MutationObserver so we
+    // don't poll on intervals (per FU validation P3-012). All effects are
+    // idempotent and re-apply on client-side route transitions.
+    //
+    //   1. .rp-table-scroll-container ships without tabindex → keyboard
+    //      users can't scroll wide tables (WCAG 2.1.1, axe
+    //      scrollable-region-focusable). Add tabindex=0.
+    //   2. .rp-search-button--mobile is a clickable <div> with no role,
+    //      tabindex, or accessible name (FU-P1-001). Add role=button,
+    //      tabindex=0, aria-label, and Enter/Space activation.
+    //   3. Sidebar group headers (.rp-sidebar-collapse, "rp-sidebar-group")
+    //      are clickable <div>s with no role/tabindex/aria-expanded
+    //      (FU-P2-006). Add button semantics + keyboard activation.
+    //   4. The closed mobile sidebar drawer keeps focusable links in the
+    //      tab order at negative x positions (FU-P1-002). Set inert on the
+    //      drawer element when its parent layout is in mobile-closed state.
+    //
+    //   The script runs at <head> evaluation (synchronous, no defer) so
+    //   the initial paint already has correct semantics.
+    `<script>(function(){
+function fixTables(root){(root||document).querySelectorAll('.rp-table-scroll-container').forEach(function(el){if(!el.hasAttribute('tabindex'))el.setAttribute('tabindex','0');});}
+function fixMobileSearch(root){(root||document).querySelectorAll('.rp-search-button--mobile').forEach(function(el){if(el.dataset.fpfA11yPatched==='1')return;el.dataset.fpfA11yPatched='1';el.setAttribute('role','button');el.setAttribute('tabindex','0');el.setAttribute('aria-label','Search');el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});});}
+function fixSidebarGroups(root){(root||document).querySelectorAll('.rp-sidebar-collapse, [class*="rp-sidebar-group"]:not(a):not(button)').forEach(function(el){if(el.dataset.fpfA11yPatched==='1')return;if(el.tagName==='A'||el.tagName==='BUTTON')return;el.dataset.fpfA11yPatched='1';el.setAttribute('role','button');if(!el.hasAttribute('tabindex'))el.setAttribute('tabindex','0');var collapsedAttr=el.getAttribute('aria-expanded');if(collapsedAttr==null){var collapsed=el.classList.contains('rp-sidebar-collapse--closed')||el.querySelector('[class*="closed"]')!=null;el.setAttribute('aria-expanded',String(!collapsed));}el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});var observer=new MutationObserver(function(){var c=el.classList.contains('rp-sidebar-collapse--closed');el.setAttribute('aria-expanded',String(!c));});observer.observe(el,{attributes:true,attributeFilter:['class']});});}
+function fixSidebarInert(){var sidebar=document.querySelector('.rp-doc-layout__sidebar');if(!sidebar)return;var rect=sidebar.getBoundingClientRect();var hidden=rect.right<=0||rect.left>=window.innerWidth;if(hidden){if(!sidebar.hasAttribute('inert'))sidebar.setAttribute('inert','');}else{sidebar.removeAttribute('inert');}}
+function applyAll(){fixTables();fixMobileSearch();fixSidebarGroups();fixSidebarInert();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyAll);else applyAll();
+var observer=new MutationObserver(function(mutations){var needs=false;for(var i=0;i<mutations.length;i++){if(mutations[i].addedNodes.length){needs=true;break;}}if(needs)applyAll();});
+observer.observe(document.body||document.documentElement,{childList:true,subtree:true});
+window.addEventListener('resize',fixSidebarInert);
+window.addEventListener('transitionend',fixSidebarInert);
+})();</script>`,
   ],
   route: {
     cleanUrls: true,
@@ -62,32 +86,12 @@ export default defineConfig({
   },
   themeConfig: {
     nav: [
-      // Reference plane first — the catalog IS the home, then routes,
-      // glossary, and change log lean on it.
-      {
-        text: 'Patterns',
-        link: '/',
-      },
-      {
-        text: 'Routes',
-        link: '/generated/routes/index',
-      },
-      {
-        text: 'Glossary',
-        link: '/generated/patterns/H.1',
-      },
-      {
-        text: 'Change log',
-        link: '/generated/patterns/I.3',
-      },
-      // Adoption plane second — Welcome is the friendly landing; Start
-      // Here / Work Packets / MCP Recipes are the working surfaces. The
-      // Connect MCP and Vercel Proxy guides land at the end as
-      // operational/integration references.
-      {
-        text: 'Welcome',
-        link: '/welcome',
-      },
+      // Adoption-first ordering: the front door is `/`, the working
+      // surfaces follow, and the generated reference + integration
+      // guides are grouped under collapsible items so the top nav stays
+      // task-first and ~5 wide. Per validation FU-P2-001/002/003: root
+      // is the orientation page, no top-level item matches every URL,
+      // and the nav fits without overflowing the tablet breakpoint.
       {
         text: 'Start Here',
         link: '/start-here',
@@ -97,31 +101,36 @@ export default defineConfig({
         link: '/work-packets',
       },
       {
-        text: 'MCP Recipes',
-        link: '/mcp-recipes',
+        text: 'MCP',
+        items: [
+          { text: 'Recipes', link: '/mcp-recipes' },
+          { text: 'Connect to clients', link: '/connect-mcp' },
+          { text: 'Vercel proxy', link: '/vercel-proxy' },
+        ],
       },
       {
-        text: 'Connect MCP',
-        link: '/connect-mcp',
-      },
-      {
-        text: 'Vercel Proxy',
-        link: '/vercel-proxy',
+        text: 'Reference',
+        items: [
+          { text: 'Pattern catalog', link: '/patterns' },
+          { text: 'Routes', link: '/generated/routes/index' },
+          { text: 'Glossary', link: '/generated/patterns/H.1' },
+          { text: 'Change log', link: '/generated/patterns/I.3' },
+        ],
       },
     ],
     sidebar: {
-      // The root URL `/` IS the FPF index — share the same pattern-tree
-      // sidebar as the deep-link catalog at `/generated/patterns/` so the
-      // catalog reads the same way regardless of which URL the visitor
-      // arrived through. The root sidebar omits the "Pattern Catalog"
-      // self-link that the deep-link sidebar carries — on `/` the page H1
-      // already names the catalog, and a self-link rendered as the loud
-      // active state was the brightest pixel on the page (see validation
-      // pass).
-      '/': [
+      // Sidebar scope is now narrow:
+      //   - `/patterns` and every `/generated/patterns/...` page get the
+      //     full pattern tree.
+      //   - `/generated/routes/...` get the routes tree.
+      //   - The root `/` and authored pages (start-here, work-packets,
+      //     mcp-recipes, connect-mcp, vercel-proxy) get NO sidebar so the
+      //     orientation surface stays focused on its own task-first cards.
+      '/patterns': [
         {
           text: 'Patterns',
           items: [
+            { text: 'Pattern Catalog', link: '/patterns' },
             ...navigation.patterns.map((group) => ({
               text: group.text,
               collapsible: true,
@@ -135,10 +144,7 @@ export default defineConfig({
         {
           text: 'Patterns',
           items: [
-            {
-              text: 'Pattern Catalog',
-              link: '/',
-            },
+            { text: 'Pattern Catalog', link: '/patterns' },
             ...navigation.patterns.map((group) => ({
               text: group.text,
               collapsible: true,

@@ -70,10 +70,10 @@ export function buildDocsProjection(
     ...buildRoutePages(snapshot),
     ...buildPrefacePages(snapshot),
     buildPatternIndexPage(snapshot),
+    buildPatternsAliasPage(snapshot),
     buildRouteIndexPage(snapshot),
     buildPrefaceIndexPage(snapshot),
-    buildRootIndexPage(snapshot),
-    buildWelcomePage(snapshot, manifest),
+    buildRootIndexPage(snapshot, manifest),
   ];
 
   return {
@@ -220,14 +220,6 @@ function renderPatternCatalogMarkdown(
     title: string;
     description: string;
     heading?: string;
-    /**
-     * When true, surfaces a one-line pointer to `/welcome` at the top of
-     * the body so first-time visitors arriving on the FPF-index homepage
-     * have a guided entry point. The deep-link catalog page at
-     * `/generated/patterns/index` omits this since its readers already
-     * navigated past the front door.
-     */
-    showWelcomePointer?: boolean;
   },
 ): string {
   const groups = new Map<string, PatternRecord[]>();
@@ -246,26 +238,14 @@ function renderPatternCatalogMarkdown(
     }),
     `# ${options.heading ?? options.title}`,
     '',
-  ];
-
-  if (options.showWelcomePointer) {
-    lines.push(
-      'New here? See [Welcome](/welcome) for adoption guidance, work packets, and MCP recipes.',
-      '',
-    );
-  }
-
-  lines.push(
+    'New here? Start at the [orientation page](/) — work packets, MCP recipes, and the right entry point per task. Use this catalog when you need to audit the full FPF reference, open an exact ID, or compare neighboring patterns by Part.',
+    '',
     '## What this page is',
     '',
     'This is the full generated catalog of FPF pattern IDs from the published FPF snapshot. It is not the first adoption path and it is not a fpf-memory product feature list.',
     '',
-    '## Methodology',
-    '',
-    'Start with [Welcome](/welcome), a route, or a work packet when the job is active. Use this catalog when you need to audit the full FPF reference, open an exact ID, or compare neighboring patterns by Part.',
-    '',
     `Generated pages: ${Object.keys(snapshot.patternGraph.nodes).length}`,
-  );
+  ];
 
   for (const [group, patterns] of groups.entries()) {
     lines.push('', `## ${group}`, '');
@@ -278,6 +258,12 @@ function renderPatternCatalogMarkdown(
   return `${lines.join('\n')}\n`;
 }
 
+/**
+ * The Pattern Catalog at `/generated/patterns/index` — the canonical
+ * deep-link URL inside the generated reference tree. Also surfaced at the
+ * shorter `/patterns` URL so it is discoverable from the top nav without
+ * exposing the `generated/` implementation detail.
+ */
 function buildPatternIndexPage(snapshot: Snapshot): GeneratedDocPage {
   return {
     kind: 'index',
@@ -292,48 +278,39 @@ function buildPatternIndexPage(snapshot: Snapshot): GeneratedDocPage {
 }
 
 /**
- * The site root (`/`) IS the FPF index — visitors land directly in the
- * pattern catalog rather than on a marketing landing. The adoption-landing
- * hero/feature surface lives at `/welcome` (see `buildWelcomePage`).
- *
- * The catalog is rendered with the same generator as `/generated/patterns/`
- * so deep links to the canonical catalog URL keep working unchanged.
+ * The Pattern Catalog at the short URL `/patterns`. Same content as
+ * `/generated/patterns/index`; both URLs work so existing deep-links keep
+ * resolving while the top nav uses the cleaner short form.
  */
-function buildRootIndexPage(snapshot: Snapshot): GeneratedDocPage {
+function buildPatternsAliasPage(snapshot: Snapshot): GeneratedDocPage {
   return {
     kind: 'index',
-    // Browser tab shows "Pattern Catalog – FPF Reference" via rspress's
-    // titleSuffix; the page H1 is "Pattern Catalog" so it stops echoing
-    // the wordmark in the upper-left nav.
     title: 'Pattern Catalog',
-    markdownPath: `${DOCS_ROOT}/index.md`,
-    staticPath: '/',
+    markdownPath: `${DOCS_ROOT}/patterns.md`,
+    staticPath: '/patterns',
     markdown: renderPatternCatalogMarkdown(snapshot, {
       title: 'Pattern Catalog',
-      description:
-        'Compiler-backed reference for the latest published FPF, projected as a slim wiki.',
+      description: 'Generated pattern pages from the compiler snapshot.',
       heading: 'Pattern Catalog',
-      showWelcomePointer: true,
     }),
   };
 }
 
 /**
- * The adoption landing — formerly at `/`, now `/welcome`. Rendered through
- * Rspress's `pageType: home` layout (hero + 4-up feature grid) so first-time
- * visitors get a guided entry point that points back into the reference at
- * `/`. Linked from the top nav and from the homepage's "About this site"
- * footer rule.
+ * The site root (`/`) is the orientation/welcome surface. First-time
+ * visitors land here and choose a path; the full Pattern Catalog lives one
+ * click away at `/patterns`. Rendered with Rspress's `pageType: home`
+ * layout (hero + 4-up feature grid).
  */
-function buildWelcomePage(
+function buildRootIndexPage(
   snapshot: Snapshot,
   manifest?: PublicationManifestSummary,
 ): GeneratedDocPage {
   return {
     kind: 'index',
-    title: 'Welcome',
-    markdownPath: `${DOCS_ROOT}/welcome.md`,
-    staticPath: '/welcome',
+    title: 'FPF Reference',
+    markdownPath: `${DOCS_ROOT}/index.md`,
+    staticPath: '/',
     markdown: renderHomeMarkdown(snapshot, manifest),
   };
 }
@@ -401,7 +378,7 @@ function renderHomeFrontMatter(patternCount: number, routeCount: number): string
     '  - title: Patterns',
     `    details: ${patternCount} patterns across parts A–K. Open an exact ID, audit the full reference, or compare neighboring patterns by Part.`,
     '    icon: A.1',
-    '    link: /',
+    '    link: /patterns',
     '  - title: Routes',
     `    details: ${routeCount} working paths through pattern IDs. Use a route when the work shape is known but the exact patterns are not.`,
     '    icon: F.1',
@@ -529,9 +506,14 @@ function renderPatternPage(snapshot: Snapshot, pattern: PatternRecord): string {
     introText,
     leadExcerpt,
   );
+  // Title prefixes the pattern ID so rspress's search ranks exact-ID
+  // queries onto the canonical page. Without the ID in the title field,
+  // searching `A.1` matched bodies that mention `A.1` more often than
+  // the actual A.1 page (FU-P2-008). The H1 stays as the title alone so
+  // the visible page heading isn't redundant with the ID chip below it.
   const lines = [
     renderFrontMatter({
-      title: pattern.title,
+      title: `${pattern.id} ${pattern.title}`,
       description: pattern.part ?? pattern.cluster ?? 'Generated pattern page from the compiler snapshot.',
     }),
     renderBreadcrumb(buildPatternBreadcrumb(pattern)),
@@ -932,7 +914,41 @@ function formatNodeReference(snapshot: Snapshot, nodeId: string): string {
   if (docTarget) {
     return `[${docTarget.title}](${docTarget.docRef.staticPath})`;
   }
+
+  // No standalone compiled node — but the spec may have it as an anchor
+  // under a parent pattern (e.g. `A.19:0` lives inside `A.19`). Look it up
+  // in the index map and, if its parent resolves to a generated pattern
+  // page, emit a link to the parent + heading anchor instead of a dead
+  // inline code chip. This unbreaks ordered route steps that reference
+  // sub-anchors (FU-P2-004 / DS-P1-006).
+  const indexEntry = snapshot.indexMap[nodeId];
+  if (indexEntry && indexEntry.parentId) {
+    const parent = snapshot.compiledNodes[indexEntry.parentId];
+    if (parent && parent.kind === 'pattern') {
+      const ref = patternDocRef(parent.id);
+      const slug = headingSlug(indexEntry.title);
+      const title = indexEntry.title || nodeId;
+      return `[${title}](${ref.staticPath}#${slug})`;
+    }
+  }
+
   return inlineCode(nodeId);
+}
+
+/**
+ * Convert a heading text to the slug rspress emits for `<h*>` ids. The
+ * generator's `displaySectionTitle` strips the leading FPF-ID prefix
+ * (`A.19:0 - `) before rendering the H2, so the slug must be computed
+ * AFTER the same strip — otherwise the link target won't exist on the
+ * page. Slug rules then mirror GitHub-style slugification (lowercase,
+ * keep alphanumerics + dashes, collapse whitespace to single dashes).
+ */
+function headingSlug(text: string): string {
+  return displaySectionTitle(text)
+    .toLowerCase()
+    .replace(/[^a-z0-9À-ɏЀ-ӿ\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
 }
 
 function patternDocRef(nodeId: string): DocRef {

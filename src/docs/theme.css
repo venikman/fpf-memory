@@ -43,15 +43,22 @@
   --fpf-radius-chip: 0;
   --fpf-radius-panel: 0;
 
-  /* Part palette: one hue per part, used for generated pattern ID chips. */
-  --fpf-part-a: 217 91% 48%;
-  --fpf-part-b: 262 80% 52%;
-  --fpf-part-c: 160 60% 33%;
-  --fpf-part-d: 34 92% 42%;
-  --fpf-part-e: 340 78% 46%;
-  --fpf-part-f: 174 60% 34%;
-  --fpf-part-g: 199 87% 40%;
-  --fpf-part-neutral: 18 60% 42%;
+  /* Part palette: one hue per part, used for generated pattern ID chips.
+     Lightness values were tuned to clear WCAG AA (≥4.5:1) on the chip's
+     8%-tinted paper-2 background — the original PR #76 lightnesses
+     produced 2.45–4.11:1 across parts and triggered axe-core
+     `color-contrast` violations on every chip-bearing page (FU
+     validation, follow-up axe on a pattern page). All L values now ≥
+     pass-AA on light mode; dark mode reads the same hues against an
+     ink canvas where they have no contrast issue. */
+  --fpf-part-a: 217 91% 40%;       /* blue       — 5.00:1 */
+  --fpf-part-b: 262 80% 40%;       /* violet     — 6.76:1 */
+  --fpf-part-c: 160 60% 26%;       /* emerald    — 4.62:1 */
+  --fpf-part-d: 34  92% 28%;       /* amber      — 4.63:1 */
+  --fpf-part-e: 340 78% 40%;       /* rose       — 4.57:1 */
+  --fpf-part-f: 174 60% 26%;       /* teal       — 4.53:1 */
+  --fpf-part-g: 199 87% 30%;       /* sky        — 4.56:1 */
+  --fpf-part-neutral: 18 60% 36%;
   --fpf-chip-h: var(--fpf-part-neutral);
 }
 
@@ -338,23 +345,40 @@ body:has(.rp-doc-layout__sidebar:empty) .rp-doc-layout__menu {
   color: var(--fpf-accent);
 }
 
+/* Live rspress DOM uses `.rp-doc-layout__doc-container` (not the legacy
+   `.rspress-doc-container`). Both selectors are kept so the theme stays
+   compatible across rspress versions, but the live one is what actually
+   bites on the production build. Per FU-P2-007, prose measure was not
+   firing because the old selector matched nothing in the v2.0.x DOM. */
 .rspress-doc-container .rspress-doc,
-.rspress-doc-container .rspress-doc-footer {
+.rspress-doc-container .rspress-doc-footer,
+.rp-doc-layout__doc-container .rspress-doc,
+.rp-doc-layout__doc-container .rp-doc-footer {
   max-width: min(100%, var(--rp-content-max-width));
 }
 
-.rspress-doc-container .rspress-doc {
+.rspress-doc-container .rspress-doc,
+.rp-doc-layout__doc-container .rspress-doc {
   --prose-measure: var(--fpf-measure);
 }
 
+/* Cap top-level prose at the readable measure so guidance pages
+   (start-here, work-packets, mcp-recipes, connect-mcp, vercel-proxy)
+   stop running 95–105 char lines on wide desktops. Tables, code blocks,
+   pre, and nested lists keep the full container width. */
 .rspress-doc-container .rspress-doc > p,
 .rspress-doc-container .rspress-doc > blockquote,
 .rspress-doc-container .rspress-doc > ul,
-.rspress-doc-container .rspress-doc > ol {
+.rspress-doc-container .rspress-doc > ol,
+.rp-doc-layout__doc-container .rspress-doc > p,
+.rp-doc-layout__doc-container .rspress-doc > blockquote,
+.rp-doc-layout__doc-container .rspress-doc > ul,
+.rp-doc-layout__doc-container .rspress-doc > ol {
   max-width: var(--prose-measure);
 }
 
-.rspress-doc-container .rspress-doc-footer {
+.rspress-doc-container .rspress-doc-footer,
+.rp-doc-layout__doc-container .rp-doc-footer {
   border-top: 1px solid var(--fpf-ink);
   color: var(--fpf-ink-3);
   font-family: var(--fpf-font-mono);
@@ -589,8 +613,12 @@ body:has(.rp-doc-layout__sidebar:empty) .rp-doc-layout__menu {
 }
 
 html.dark .fpf-pid {
+  /* Light foreground against the warm-ink chip bg. The base hues were
+     darkened in light mode for AA on cream; in dark mode that same
+     darker hue would fail against the ink canvas, so blend more heavily
+     toward white (was 25% white → 4.17:1, now 50% white → ≥4.7:1). */
   background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 16%, var(--fpf-paper-2));
-  color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 75%, #ffffff 25%);
+  color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 50%, #ffffff 50%);
 }
 
 .fpf-pid--a { --fpf-chip-h: var(--fpf-part-a); }
