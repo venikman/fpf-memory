@@ -101,7 +101,12 @@ export async function runSelectedTestFiles(
 }
 
 function runRstestFile(file: string, cwd: string): number {
-  const result = spawnSync('bunx', ['rstest', 'run', file], {
+  // `--pool=forks` switches rstest from worker_threads to child_process
+  // forks. Bun's worker_threads implementation occasionally exits a
+  // worker mid-load on Linux x64 GH runners ("Worker exited
+  // unexpectedly") with no test failure — affects different files on
+  // different runs. Forks are heavier per file but immune to the bug.
+  const result = spawnSync('bunx', ['rstest', 'run', '--pool=forks', file], {
     cwd,
     stdio: 'inherit',
   });
