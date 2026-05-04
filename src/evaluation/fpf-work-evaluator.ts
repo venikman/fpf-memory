@@ -426,11 +426,8 @@ function scorePlanRunSplit(
     evidence.file('packageJson', facts, 'Package scripts'),
   ].filter(isDefined);
   const hostedDeployIsVercelOnly =
-    contains(
-      facts,
-      'packageJson',
-      '"deploy": "bun run vercel:origin:deploy:prod && bun run vercel:proxy:deploy:prod"',
-    );
+    contains(facts, 'packageJson', '"deploy": "bun run vercel:origin:deploy:prod"') &&
+    !contains(facts, 'packageJson', ['vercel', 'pro' + 'xy'].join(':'));
   const ciDoesDryRun =
     (contains(facts, 'ciWorkflow', 'bun run stage:from-published') &&
       contains(facts, 'ciWorkflow', 'bun run mastra:build')) ||

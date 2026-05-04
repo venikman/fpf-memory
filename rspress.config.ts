@@ -235,7 +235,7 @@ window.addEventListener('transitionend',fixSidebarInert);
         items: [
           { text: 'Recipes', link: '/mcp-recipes' },
           { text: 'Connect to clients', link: '/connect-mcp' },
-          { text: 'Vercel proxy', link: '/vercel-proxy' },
+          { text: 'Vercel hosting', link: '/vercel-hosting' },
         ],
       },
       {
@@ -258,7 +258,7 @@ window.addEventListener('transitionend',fixSidebarInert);
       //     full pattern tree.
       //   - `/generated/routes/...` get the routes tree.
       //   - The root `/` and authored pages (start-here, work-packets,
-      //     mcp-recipes, connect-mcp, vercel-proxy) get NO sidebar so the
+      //     mcp-recipes, connect-mcp, vercel-hosting) get NO sidebar so the
       //     orientation surface stays focused on its own task-first cards.
       '/patterns': [
         {

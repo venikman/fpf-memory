@@ -14,7 +14,7 @@ describe('hosted MCP benchmark harness', () => {
     const options = parseBenchArgs(
       [
         '--name',
-        'proxy',
+        'origin',
         '--url',
         'https://example.test/api/mcp/fpf_memory/mcp',
         '--requests',
@@ -33,7 +33,7 @@ describe('hosted MCP benchmark harness', () => {
     );
 
     expect(options).toEqual({
-      name: 'proxy',
+      name: 'origin',
       url: 'https://example.test/api/mcp/fpf_memory/mcp',
       requests: 40,
       clients: 4,
@@ -85,7 +85,7 @@ describe('hosted MCP benchmark harness', () => {
 
   it('formats markdown summaries for run comparison', () => {
     const summary: BenchSummary = {
-      name: 'proxy',
+      name: 'origin',
       endpoint: 'https://example.test/api/mcp/fpf_memory/mcp',
       scenario: 'mixed',
       clients: 5,
@@ -128,7 +128,7 @@ describe('hosted MCP benchmark harness', () => {
 
     const markdown = formatMarkdownSummary(summary);
 
-    expect(markdown).toContain('# MCP benchmark: proxy');
+    expect(markdown).toContain('# MCP benchmark: origin');
     expect(markdown).toContain('| operation | count | mean ms |');
     expect(markdown).toContain('Fresh source hash: sha256:test');
   });

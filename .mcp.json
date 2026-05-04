@@ -2,7 +2,7 @@
   "mcpServers": {
     "fpf_memory": {
       "type": "http",
-      "url": "https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp"
+      "url": "https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp"
     }
   }
 }

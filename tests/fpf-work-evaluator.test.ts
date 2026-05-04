@@ -190,10 +190,7 @@ function defaultFileTexts(): FpfWorkFacts['fileTexts'] {
         '&& FPF_MASTRA_DEPLOY_TARGET=vercel bun run mastra:build',
         '&& bun run bench:vercel:function-size"',
       ].join(' '),
-      [
-        '"deploy": "bun run vercel:origin:deploy:prod',
-        '&& bun run vercel:proxy:deploy:prod"',
-      ].join(' '),
+      '"deploy": "bun run vercel:origin:deploy:prod"',
     ].join(',\n'),
     publishedSpec: '# FPF',
     publishedSnapshot: '{"sourceHash":"sha256:test"}',

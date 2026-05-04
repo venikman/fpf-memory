@@ -261,7 +261,7 @@ describe('docs projection', () => {
       expect(rootIndex).toContain('link: /generated/patterns/I.3');
       expect(rootIndex).toContain('## Methodology');
       expect(rootIndex).toContain('## MCP endpoint');
-      expect(rootIndex).toContain('fpf-memory-mcp-proxy.vercel.app');
+      expect(rootIndex).toContain('fpf-memory-mcp-vercel-origin.vercel.app');
       expect(rootIndex).toContain('https://github.com/venikman/fpf-memory#run-and-test-mcp');
       expect(rootIndex).toContain('[Connect MCP](/connect-mcp)');
       expect(rootIndex).toContain('[MCP recipes](/mcp-recipes)');
@@ -381,7 +381,7 @@ describe('docs projection', () => {
         'Connect fpf-memory MCP',
       );
       expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
-        'https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp',
+        'https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp',
       );
       expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
         'Codex CLI',

@@ -182,14 +182,14 @@ The evaluator reads local git facts, the committed `published/current/**` surfac
 The current Codex default is the hosted public MCP:
 
 ```text
-https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp
+https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp
 ```
 
 Equivalent `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.fpf_memory]
-url = "https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp"
+url = "https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp"
 ```
 
 This repo ships the same project-scoped configuration at `.codex/config.toml` and `.mcp.json`. Once the project is trusted, Codex can load the hosted `fpf_memory` server directly from the repo.
@@ -235,19 +235,14 @@ Call ask_fpf with:
 
 For a proof-style grounded answer, add `mode: "proof"`. For the raw structured envelope, call `query_fpf_spec` instead. For a deterministic retrieval/debug trace, call `trace_fpf_path`.
 
-The Vercel proxy stays canonical for clients. The direct Vercel origin is the lower-level runtime target and remains useful as a canary and lower-latency comparison endpoint.
+The direct Vercel origin is canonical for clients. There is no separate Vercel forwarding project in this repo.
 
 ```bash
-bun run vercel:proxy:link
-bun run vercel:proxy:deploy
-FPF_MCP_SMOKE_URL=https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp bun run smoke:mcp:http
-
 bun run vercel:origin:link
 bun run vercel:origin:build
 bun run vercel:origin:deploy:prod
 FPF_MCP_SMOKE_URL=https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp bun run smoke:mcp:http
 
-bun run bench:mcp:qa -- --name proxy --url https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp --format markdown
 bun run bench:mcp:qa -- --name vercel-origin --url https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp --format markdown
 ```
 

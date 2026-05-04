@@ -22,9 +22,6 @@
     "bench:mcp:qa": "bun scripts/bench-mcp-qa.ts",
     "bench:mcp:series": "bun scripts/bench-hosted-mcp-series.ts",
     "bench:vercel:function-size": "bun scripts/check-vercel-function-size.ts",
-    "vercel:proxy:link": "vercel link --cwd deploy/vercel-proxy --project fpf-memory-mcp-proxy",
-    "vercel:proxy:deploy": "vercel deploy --cwd deploy/vercel-proxy --yes",
-    "vercel:proxy:deploy:prod": "vercel deploy --cwd deploy/vercel-proxy --prod --yes",
     "vercel:origin:link": "vercel link --project fpf-memory-mcp-vercel-origin",
     "vercel:origin:build": "bun run predeploy && FPF_MASTRA_DEPLOY_TARGET=vercel bun run mastra:build && bun run bench:vercel:function-size",
     "vercel:origin:deploy": "bun run vercel:origin:build && vercel deploy --prebuilt --yes",
@@ -45,7 +42,7 @@
     "test": "rstest run",
     "test:ci": "rstest run --shard=1/4 && rstest run --shard=2/4 && rstest run --shard=3/4 && rstest run --shard=4/4",
     "predeploy": "bun run stage:from-published",
-    "deploy": "bun run vercel:origin:deploy:prod && bun run vercel:proxy:deploy:prod"
+    "deploy": "bun run vercel:origin:deploy:prod"
   },
   "license": "ISC",
   "type": "module",

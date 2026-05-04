@@ -19,7 +19,7 @@ describe('hosted MCP benchmark series harness', () => {
         '--format',
         'jsonl',
         '--name',
-        'proxy',
+        'origin',
         '--url',
         'https://example.test/api/mcp/fpf_memory/mcp',
         '--scenario',
@@ -32,7 +32,7 @@ describe('hosted MCP benchmark series harness', () => {
     expect(options.intervalMs).toBe(250);
     expect(options.format).toBe('jsonl');
     expect(options.bench).toEqual({
-      name: 'proxy',
+      name: 'origin',
       url: 'https://example.test/api/mcp/fpf_memory/mcp',
       requests: 12,
       clients: 1,
@@ -76,7 +76,7 @@ describe('hosted MCP benchmark series harness', () => {
       intervalMs: 0,
       format: 'jsonl',
       bench: {
-        name: 'proxy',
+        name: 'origin',
         url: 'https://example.test/api/mcp/fpf_memory/mcp',
         requests: 3,
         clients: 1,
@@ -108,7 +108,10 @@ describe('hosted MCP benchmark series harness', () => {
       new Date('2026-05-04T00:00:02.000Z'),
       2000,
     );
-    const lines = formatSeriesOutput(summary, 'jsonl').trim().split('\n').map((line) => JSON.parse(line));
+    const lines = formatSeriesOutput(summary, 'jsonl')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
 
     expect(summary.ok).toBe(5);
     expect(summary.failed).toBe(1);
@@ -125,7 +128,7 @@ function benchSummary(values: {
   sourceHash: string;
 }): BenchSummary {
   return {
-    name: 'proxy',
+    name: 'origin',
     endpoint: 'https://example.test/api/mcp/fpf_memory/mcp',
     scenario: 'mixed',
     clients: 1,

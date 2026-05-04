@@ -11,12 +11,10 @@ Use this page when you want ChatGPT, Claude, an editor, or a coding CLI to retri
 ## Hosted endpoint
 
 ```txt
-https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp
+https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp
 ```
 
-This endpoint is a remote MCP server over streamable HTTP. It exposes the public fpf-memory tools for catalog browsing, search, compact answers, exact generated doc reads, and index health.
-
-The Vercel proxy forwards this public endpoint to the validated direct Vercel-origin runtime. The hosted client path is Vercel-only.
+This endpoint is the direct Vercel-hosted MCP origin over streamable HTTP. It exposes the public fpf-memory tools for catalog browsing, search, compact answers, exact generated doc reads, and index health.
 
 Public tools:
 
@@ -72,7 +70,7 @@ Use the MCP: Add Server command, or add a workspace config at `.vscode/mcp.json`
   "servers": {
     "fpf_memory": {
       "type": "http",
-      "url": "https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp"
+      "url": "https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp"
     }
   }
 }
@@ -90,7 +88,7 @@ Open the Agent Panel settings with `agent: open settings`, then add a custom ser
 {
   "context_servers": {
     "fpf-memory": {
-      "url": "https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp"
+      "url": "https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp"
     }
   }
 }
@@ -105,14 +103,14 @@ Reference: [Zed - Model Context Protocol](https://zed.dev/docs/ai/mcp).
 Add the remote streamable HTTP server:
 
 ```sh
-codex mcp add fpf_memory --url https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp
+codex mcp add fpf_memory --url https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp
 ```
 
 Equivalent `~/.codex/config.toml` entry:
 
 ```toml
 [mcp_servers.fpf_memory]
-url = "https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp"
+url = "https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp"
 ```
 
 Reference: [Codex configuration reference](https://developers.openai.com/codex/config-reference#mcp_serversidurl).
@@ -122,7 +120,7 @@ Reference: [Codex configuration reference](https://developers.openai.com/codex/c
 Add the remote HTTP server:
 
 ```sh
-claude mcp add --transport http fpf_memory https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp
+claude mcp add --transport http fpf_memory https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp
 ```
 
 Check it inside Claude Code with `/mcp`.
@@ -144,7 +142,7 @@ Global config at `~/.pi/agent/mcp.json` or project config at `.pi/mcp.json`:
   "mcpServers": {
     "fpf_memory": {
       "transport": "streamable-http",
-      "url": "https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp",
+      "url": "https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp",
       "lifecycle": "eager"
     }
   }

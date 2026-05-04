@@ -41,7 +41,7 @@ export const HOSTED_STAGED_ARTIFACT_DIR = 'hosted/fpf-index';
 export const SERVERLESS_ARTIFACT_DIR = '/tmp/fpf-memory/fpf-index';
 
 export const HOSTED_MCP_ENDPOINT =
-  'https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp';
+  'https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp';
 
 export const ARTIFACT_FILENAMES = {
   snapshot: 'snapshot.json',
