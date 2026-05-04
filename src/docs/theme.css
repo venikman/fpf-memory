@@ -1,184 +1,335 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
 /*
- * FPF Reference — design system
+ * FPF Reference design system
  *
- * Single-file theme override layered on top of Rspress defaults.
- * Organised top-down:
- *   1. Design tokens
- *   2. Rspress variable overrides (light + dark)
- *   3. Global layout (nav / sidebar / TOC / content width)
- *   4. Typography scale
- *   5. Content primitives (blockquote meta-strip, lists, tables, code, callouts)
- *   6. Sidebar & TOC density
- *   7. Pattern-ID chip, relation-row, and breadcrumb primitives (emitted by the
- *      generator in `src/core/documents.ts`)
+ * Ported from the supplied FPF sync design bundle into the Rspress docs shell.
+ * The system keeps the report design's paper surface, rule-first layout,
+ * red accent, mono chrome, and serif reading floor while preserving generated
+ * FPF primitives emitted by `src/core/documents.ts`.
  */
 
-/* ───────── 1. Design tokens ───────── */
-
-/*
- * FPF visual identity follows the author's Mucha / Belle-Époque visual
- * essays (saved as inspiration in the design notebook): warm parchment
- * canvas, sepia ink, jewel-tone earth accents (burgundy / teal / burnt
- * orange / forest green / antique gold), serif typography in the editorial
- * tradition. The aesthetic is "scientific journal of 1900" rather than
- * "Silicon Valley publication" — restrained ornament in service of dense
- * technical content, not decoration for its own sake.
- */
+/* 1. Design tokens */
 
 :root {
-  /* Surface — aged paper. AAA contrast against sepia text (12.32:1). */
-  --fpf-parchment: #f5ecd2;
-  --fpf-parchment-soft: #ede1c5;       /* card surface, slightly darker */
-  --fpf-parchment-deep: #e2d4ad;       /* hovered surface, dividers */
-  --fpf-parchment-shade: #d8c89a;
+  --fpf-paper: oklch(0.97 0.012 75);
+  --fpf-paper-2: oklch(0.945 0.016 75);
+  --fpf-paper-3: oklch(0.92 0.02 75);
+  --fpf-ink: oklch(0.2 0.015 60);
+  --fpf-ink-2: oklch(0.36 0.015 60);
+  --fpf-ink-3: oklch(0.52 0.012 60);
+  --fpf-rule: oklch(0.85 0.018 70);
+  --fpf-rule-strong: oklch(0.65 0.02 70);
+  --fpf-accent: oklch(0.5 0.16 30);
+  --fpf-accent-soft: oklch(0.94 0.04 30);
+  --fpf-accent-ink: oklch(0.98 0.01 30);
 
-  /* Ink — sepia, not pure black. Reads as period-correct printing. */
-  --fpf-sepia: #3a2418;
-  --fpf-sepia-soft: #5a3e2a;
+  --fpf-font-display: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --fpf-font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --fpf-font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
 
-  /* Accents — jewel tones from the Mucha palette. All measured ≥4.48:1
-     against parchment so they pass WCAG AA when used as link/text. */
-  --fpf-burgundy: #7a3a3a;             /* primary accent — links, brand */
-  --fpf-burgundy-deep: #5c2828;        /* hover, primary CTA bg */
-  --fpf-teal: #244a55;                 /* secondary accent */
-  --fpf-burnt-orange: #94411c;         /* tertiary accent */
-  --fpf-forest: #536038;               /* tertiary accent */
-  --fpf-gold: #b08a3a;                 /* decorative only — fails text contrast */
-  --fpf-gold-deep: #7a5e1f;            /* gold-as-text variant (AA on parchment) */
+  --fpf-fs-xs: 12px;
+  --fpf-fs-sm: 14px;
+  --fpf-fs-body: 18px;
+  --fpf-fs-md: 20px;
+  --fpf-fs-lg: 24px;
+  --fpf-fs-xl: 32px;
+  --fpf-fs-2xl: 44px;
+  --fpf-lh-body: 1.6;
+  --fpf-measure: 66ch;
 
-  /* Type stack — Playfair Display for display/headings (Belle-Époque drama,
-     Cyrillic-aware), Cormorant Garamond italic for hero tagline (book-cover
-     flourish), Lora for body and pattern prose, JetBrains Mono for code
-     and pattern IDs. System fallbacks keep the page legible during load. */
-  --fpf-font-display:
-    "Playfair Display", "Cormorant Garamond", "Iowan Old Style", Charter,
-    "Apple Garamond", Cambria, Georgia, "Source Serif Pro", serif;
-  --fpf-font-script:
-    "Cormorant Garamond", "Playfair Display", "Iowan Old Style", Charter,
-    Cambria, Georgia, serif;
-  --fpf-font-body:
-    "Lora", Charter, "Iowan Old Style", "Apple Garamond", Cambria, Georgia,
-    "Source Serif Pro", serif;
-  --fpf-font-mono:
-    "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Monaco, Consolas,
-    "Liberation Mono", monospace;
+  --fpf-gutter: 32px;
+  --fpf-col-gap: 32px;
+  --fpf-radius-chip: 0;
+  --fpf-radius-panel: 0;
 
-  --fpf-measure: 68ch;          /* serif body needs a slightly tighter measure */
-
-  --fpf-space-1: 4px;
-  --fpf-space-2: 8px;
-  --fpf-space-3: 12px;
-  --fpf-space-4: 16px;
-  --fpf-space-5: 24px;
-  --fpf-space-6: 32px;
-  --fpf-space-7: 48px;
-  --fpf-space-8: 64px;
-
-  --fpf-radius-chip: 4px;       /* tighter, more editorial */
-  --fpf-radius-card: 8px;
-  --fpf-radius-button: 6px;
-  --fpf-radius-pill: 999px;
-
-  /* Part palette — kept for pattern-ID chips on generated pattern pages,
-     where the per-Part hue carries semantic meaning. NOT used on the home
-     hero or feature cards (those stay on the Anthropic palette). */
-  --fpf-part-a: 217 91% 55%;
-  --fpf-part-b: 262 80% 58%;
-  --fpf-part-c: 160 60% 38%;
-  --fpf-part-d: 34  92% 46%;
-  --fpf-part-e: 340 78% 50%;
-  --fpf-part-f: 174 60% 38%;
-  --fpf-part-g: 199 87% 45%;
-  --fpf-part-neutral: 220 12% 45%;
-
+  /* Part palette: one hue per part, used for generated pattern ID chips. */
+  --fpf-part-a: 217 91% 48%;
+  --fpf-part-b: 262 80% 52%;
+  --fpf-part-c: 160 60% 33%;
+  --fpf-part-d: 34 92% 42%;
+  --fpf-part-e: 340 78% 46%;
+  --fpf-part-f: 174 60% 34%;
+  --fpf-part-g: 199 87% 40%;
+  --fpf-part-neutral: 18 60% 42%;
   --fpf-chip-h: var(--fpf-part-neutral);
 }
 
-/* ───────── 2. Rspress variable overrides ───────── */
-
-:root {
-  /* Nav / sidebar / TOC footprint */
-  --rp-nav-height: 56px;
-  --rp-sidebar-width: 292px;
-  --rp-aside-width: 240px;
-  --rp-outline-width: 240px;
-
-  /* Content frame */
-  --rp-content-padding-x: 24px;
-  --rp-content-padding-y: 32px;
-  --rp-content-max-width: 1120px;
-
-  /* Typography family — Lora serif body, JetBrains Mono code. Display
-     headings use --fpf-font-display directly (see section 4). */
-  --rp-font-family-base: var(--fpf-font-body);
-  --rp-font-family-mono: var(--fpf-font-mono);
-
-  --rp-code-font-size: 0.9em;
-
-  /* Belle-Époque parchment surface — sepia text, burgundy link. */
-  --rp-c-bg: var(--fpf-parchment);
-  --rp-c-bg-soft: var(--fpf-parchment-soft);
-  --rp-c-bg-mute: var(--fpf-parchment-deep);
-  --rp-c-bg-alt: var(--fpf-parchment-soft);
-  --rp-c-divider: rgb(58 36 24 / 18%);
-  --rp-c-divider-light: rgb(58 36 24 / 9%);
-
-  --rp-c-text-1: var(--fpf-sepia);
-  --rp-c-text-2: rgb(58 36 24 / 76%);
-  --rp-c-text-3: rgb(58 36 24 / 54%);
-  --rp-c-text-4: rgb(58 36 24 / 28%);
-
-  /* Link — burgundy on parchment hits 7.14:1 (AAA). */
-  --rp-c-brand: var(--fpf-burgundy);
-  --rp-c-brand-light: var(--fpf-burgundy);
-  --rp-c-brand-dark: var(--fpf-burgundy-deep);
-  --rp-c-brand-darker: var(--fpf-burgundy-deep);
-  --rp-c-link: var(--fpf-burgundy);
-
-  --rp-code-block-bg: var(--fpf-parchment-soft);
-  --rp-code-block-color: var(--fpf-sepia);
-  --rp-code-title-bg: var(--fpf-parchment-deep);
+html.dark {
+  --fpf-paper: oklch(0.13 0.008 80);
+  --fpf-paper-2: oklch(0.18 0.008 80);
+  --fpf-paper-3: oklch(0.22 0.008 80);
+  --fpf-ink: oklch(0.96 0.004 80);
+  --fpf-ink-2: oklch(0.78 0.006 80);
+  --fpf-ink-3: oklch(0.6 0.008 80);
+  --fpf-rule: oklch(0.28 0.008 80);
+  --fpf-rule-strong: oklch(0.42 0.01 80);
+  --fpf-accent: oklch(0.78 0.17 65);
+  --fpf-accent-soft: oklch(0.28 0.06 65);
+  --fpf-accent-ink: oklch(0.15 0.01 65);
 }
 
-@media (width >= 1280px) {
+@media (width <= 760px) {
   :root {
-    --rp-content-padding-x: 40px;
-    --rp-content-padding-y: 40px;
+    --fpf-fs-body: 17px;
+    --fpf-gutter: 20px;
+    --fpf-col-gap: 24px;
   }
 }
 
-/* Dark surface — deep oxidised-ink canvas with warm parchment text and
-   muted gold accents. Honours prefers-color-scheme; the Belle-Époque
-   register survives the inversion. */
-html.dark {
-  --rp-c-bg: #1d160e;
-  --rp-c-bg-soft: #261d11;
-  --rp-c-bg-mute: #322615;
-  --rp-c-bg-alt: #1d160e;
-  --rp-c-divider: rgb(245 236 210 / 16%);
-  --rp-c-divider-light: rgb(245 236 210 / 8%);
+/* 2. Rspress variable mapping */
 
-  --rp-c-text-1: var(--fpf-parchment);
-  --rp-c-text-2: rgb(245 236 210 / 78%);
-  --rp-c-text-3: rgb(245 236 210 / 56%);
-  --rp-c-text-4: rgb(245 236 210 / 28%);
+html:root {
+  --rp-nav-height: 66px;
+  --rp-sidebar-width: 292px;
+  --rp-aside-width: 248px;
+  --rp-outline-width: 248px;
+  --rp-content-padding-x: var(--fpf-gutter);
+  --rp-content-padding-y: 40px;
+  --rp-content-max-width: 1120px;
 
-  /* On dark, gold and warm orange both pass AA. */
-  --rp-c-brand: var(--fpf-gold);
-  --rp-c-brand-light: var(--fpf-gold);
-  --rp-c-brand-dark: var(--fpf-gold);
-  --rp-c-brand-darker: var(--fpf-gold);
-  --rp-c-link: var(--fpf-gold);
+  --rp-font-family-base: var(--fpf-font-display);
+  --rp-font-family-mono: var(--fpf-font-mono);
+  --rp-code-font-size: 0.9em;
 
-  --rp-code-block-bg: #18120a;
-  --rp-code-block-color: var(--fpf-parchment);
-  --rp-code-title-bg: #1d160e;
+  --rp-c-bg: var(--fpf-paper);
+  --rp-c-bg-soft: var(--fpf-paper-2);
+  --rp-c-bg-mute: var(--fpf-paper-3);
+  --rp-c-bg-alt: var(--fpf-paper-2);
+  --rp-c-text-1: var(--fpf-ink);
+  --rp-c-text-2: var(--fpf-ink-2);
+  --rp-c-text-3: var(--fpf-ink-3);
+  --rp-c-divider: var(--fpf-rule-strong);
+  --rp-c-divider-light: var(--fpf-rule);
+  --rp-c-brand: var(--fpf-accent);
+  --rp-c-brand-light: var(--fpf-accent);
+  --rp-c-brand-dark: var(--fpf-accent);
+  --rp-code-block-bg: var(--fpf-paper-2);
+  --rp-code-block-color: var(--fpf-ink);
+  --rp-code-title-bg: var(--fpf-paper-3);
 }
 
-/* ───────── 3. Global layout ───────── */
+html,
+body {
+  background: var(--fpf-paper);
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-feature-settings: "ss01", "calt", "liga";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
 
+::selection {
+  background: var(--fpf-accent);
+  color: var(--fpf-accent-ink);
+}
+
+/* 3. Site chrome */
+
+.rp-nav.rp-nav,
 .rspress-nav {
-  backdrop-filter: saturate(180%) blur(8px);
+  border-bottom: 1px solid var(--fpf-ink);
+  background: color-mix(in srgb, var(--fpf-paper) 94%, transparent);
+  backdrop-filter: saturate(140%) blur(8px);
+  box-shadow: none;
+}
+
+.rp-nav.rp-nav {
+  color: var(--fpf-ink);
+}
+
+.rp-nav__title__link.rp-nav__title__link {
+  font-family: var(--fpf-font-display);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.rp-nav-menu.rp-nav-menu {
+  gap: 24px;
+}
+
+.rp-nav-menu__item__container.rp-nav-menu__item__container {
+  color: var(--fpf-ink-2);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.rp-nav-menu__item:hover .rp-nav-menu__item__container,
+.rp-nav-menu__item--active .rp-nav-menu__item__container {
+  color: var(--fpf-accent);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.rp-nav-menu__divider.rp-nav-menu__divider {
+  background: var(--fpf-rule-strong);
+}
+
+.rspress-nav * {
+  letter-spacing: 0;
+}
+
+.rspress-nav a,
+.rspress-nav button {
+  border-radius: 0;
+}
+
+.rspress-nav [class*="title"],
+.rspress-nav [class*="logo"],
+.rspress-nav [class*="brand"] {
+  font-family: var(--fpf-font-display);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.rspress-nav nav a,
+.rspress-nav [class*="nav"] a {
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  color: var(--fpf-ink-2);
+  text-decoration: none;
+}
+
+.rspress-nav nav a:hover,
+.rspress-nav [class*="nav"] a:hover,
+.rspress-nav nav a[aria-current="page"],
+.rspress-nav [class*="active"] {
+  color: var(--fpf-ink);
+}
+
+.rp-search-button.rp-search-button,
+.rspress-nav [class*="search"],
+.rspress-nav input[type="search"],
+.rspress-nav button[aria-label*="Search" i] {
+  border-radius: 0;
+  border: 1px solid var(--fpf-rule-strong);
+  background: var(--fpf-paper-2);
+  color: var(--fpf-ink-2);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  box-shadow: none;
+}
+
+.rp-search-button.rp-search-button {
+  min-width: 220px;
+  height: 32px;
+  padding: 0 10px;
+}
+
+.rp-search-button__content.rp-search-button__content {
+  gap: 8px;
+  font-size: 12px;
+}
+
+.rp-search-button__icon.rp-search-button__icon {
+  font-size: 14px;
+}
+
+.rp-search-button__word.rp-search-button__word {
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.rp-search-button__hotkey.rp-search-button__hotkey {
+  border: 1px solid var(--fpf-rule-strong);
+  border-radius: 0;
+  background: var(--fpf-paper);
+  color: var(--fpf-ink-2);
+  font-family: var(--fpf-font-mono);
+  font-size: 10px;
+  padding: 0 5px;
+}
+
+.rp-search-button.rp-search-button:hover {
+  border-color: var(--fpf-ink);
+}
+
+.rp-doc-layout__container {
+  background: var(--fpf-paper);
+}
+
+.rp-doc-layout__sidebar.rp-doc-layout__sidebar {
+  border-right: 1px solid var(--fpf-rule);
+  background: var(--fpf-paper);
+}
+
+.rp-doc-layout__sidebar:empty,
+.rp-doc-layout__outline-placeholder:empty {
+  display: none;
+}
+
+.rp-doc-layout__container:has(> .rp-doc-layout__sidebar:empty) {
+  justify-content: center;
+}
+
+body:has(.rp-doc-layout__sidebar:empty) .rp-doc-layout__menu {
+  display: none;
+}
+
+.rp-doc-layout__container:has(> .rp-doc-layout__sidebar:empty) .rp-doc-layout__doc {
+  max-width: min(100%, 1000px);
+}
+
+.rp-doc-layout__doc-container {
+  background: var(--fpf-paper);
+}
+
+.rspress-sidebar,
+.rspress-sidebar-section,
+[class*="sidebar"] {
+  background: var(--fpf-paper);
+}
+
+.rspress-sidebar {
+  border-right: 1px solid var(--fpf-rule);
+}
+
+.rspress-sidebar-section h2 {
+  margin-top: 1rem;
+  margin-bottom: 0.55rem;
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.rspress-sidebar-item,
+.rspress-sidebar-section {
+  font-family: var(--fpf-font-display);
+  font-size: 13px;
+  line-height: 1.38;
+}
+
+.rspress-sidebar-item [class*="menuItem"] {
+  border-radius: 0;
+  padding-top: 0.38rem !important;
+  padding-bottom: 0.38rem !important;
+}
+
+.rspress-sidebar-item [class*="menuItem"]:hover,
+.rspress-sidebar-item [class*="active"] {
+  background: var(--fpf-accent-soft);
+  color: var(--fpf-ink);
+}
+
+.rspress-toc-link,
+[class*="aside"] a {
+  font-family: var(--fpf-font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--fpf-ink-3);
+}
+
+.rspress-toc-link:hover,
+[class*="aside"] a:hover {
+  color: var(--fpf-accent);
 }
 
 .rspress-doc-container .rspress-doc,
@@ -187,10 +338,6 @@ html.dark {
 }
 
 .rspress-doc-container .rspress-doc {
-  /* Keep prose readable even in wide containers: paragraphs, blockquotes, and
-     top-level lists share the measure so bullet labels stay aligned with the
-     surrounding copy. Tables, code blocks, and admonitions are intentionally
-     excluded and keep the full container width. */
   --prose-measure: var(--fpf-measure);
 }
 
@@ -201,49 +348,48 @@ html.dark {
   max-width: var(--prose-measure);
 }
 
-/* ───────── 4. Typography scale ───────── */
-
-/* Body uses serif Lora for an editorial, publication feel; headings switch
-   to geometric Poppins via the display token. Both ride on Anthropic ink
-   colour against the cream canvas. */
-.rspress-doc {
-  font-family: var(--fpf-font-body);
-  font-size: 17px;
-  line-height: 1.65;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+.rspress-doc-container .rspress-doc-footer {
+  border-top: 1px solid var(--fpf-ink);
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
 }
 
-.rspress-doc-container .rspress-doc-title,
-.rspress-doc h1,
-.rspress-doc h2,
-.rspress-doc h3,
-.rspress-doc h4,
-.rspress-doc h5,
-.rspress-doc h6 {
-  font-family: var(--fpf-font-display);
-  color: var(--rp-c-text-1);
+/* 4. Typography */
+
+.rspress-doc {
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-serif);
+  font-size: var(--fpf-fs-body);
+  line-height: var(--fpf-lh-body);
 }
 
 .rspress-doc-container .rspress-doc-title,
 .rspress-doc h1 {
-  font-size: clamp(1.875rem, calc(1.5rem + 1.5vw), 2.625rem);
-  line-height: 1.1;
-  font-weight: 600;
-  letter-spacing: -0.018em;
+  max-width: 18ch;
   margin-top: 0;
-  margin-bottom: 1rem;
+  margin-bottom: 1.1rem;
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: clamp(2.25rem, 1.6rem + 2.8vw, var(--fpf-fs-2xl));
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 .rspress-doc h2 {
-  font-size: clamp(1.375rem, calc(1.25rem + 0.55vw), 1.625rem);
-  line-height: 1.22;
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--fpf-ink);
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: clamp(1.45rem, 1.2rem + 0.7vw, var(--fpf-fs-xl));
   font-weight: 600;
-  letter-spacing: -0.012em;
-  margin-top: 2.4rem;
-  margin-bottom: 0.6rem;
-  padding-top: 0.6rem;
-  border-top: 1px solid var(--rp-c-divider-light);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
 }
 
 .rspress-doc h2:first-of-type {
@@ -252,26 +398,30 @@ html.dark {
 }
 
 .rspress-doc h3 {
-  font-size: 1.2rem;
-  line-height: 1.3;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: var(--fpf-fs-lg);
   font-weight: 600;
-  letter-spacing: -0.008em;
-  margin-top: 1.8rem;
-  margin-bottom: 0.45rem;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
 }
 
 .rspress-doc h4 {
-  font-size: 1.0625rem;
-  line-height: 1.4;
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: var(--fpf-fs-md);
   font-weight: 600;
-  margin-top: 1.15rem;
-  margin-bottom: 0.35rem;
+  line-height: 1.35;
 }
 
 .rspress-doc p,
 .rspress-doc li,
 .rspress-doc blockquote {
-  line-height: 1.65;
+  line-height: var(--fpf-lh-body);
 }
 
 .rspress-doc p,
@@ -283,203 +433,157 @@ html.dark {
   margin-bottom: 0.85rem;
 }
 
+.rspress-doc ul,
+.rspress-doc ol {
+  padding-left: 1.35rem;
+}
+
 .rspress-doc li + li {
   margin-top: 0.25rem;
 }
 
-.rspress-doc ul,
-.rspress-doc ol {
-  padding-left: 1.4rem;
-}
-
-/* Editorial link treatment — clay-deep on cream, underline by default with
-   subtle hover lift. The underline carries the "this is a link" signal even
-   for users who can't perceive the hue change. */
 .rspress-doc a {
-  text-decoration: underline;
+  color: inherit;
+  text-decoration-color: var(--fpf-rule-strong);
   text-decoration-thickness: 1px;
-  text-decoration-color: color-mix(in srgb, currentcolor 35%, transparent);
-  text-underline-offset: 3px;
-  transition: text-decoration-color 0.15s ease;
+  text-underline-offset: 4px;
 }
 
 .rspress-doc a:hover {
+  color: var(--fpf-accent);
   text-decoration-color: currentcolor;
 }
 
-/* ───────── 5. Content primitives ───────── */
+/* 5. Content primitives */
 
-/*  Meta-strip — the first blockquote on pattern/route pages, e.g.
- *   > Pattern <span class="fpf-pid fpf-pid--a">A.1</span> · Stable · Architectural (A) · Normative
- *   > Part A – Kernel Architecture Cluster
- *   > "Name the thing without smuggling in its parts."
- *  The pattern ID is emitted as a `.fpf-pid` chip (see section 7); older
- *  inline-code snapshots are kept working via the chip-coloured `code` rule
- *  below so migrated content keeps looking native. */
 .rspress-doc > blockquote:first-of-type {
   margin-top: 0;
-  margin-bottom: 1.5rem;
-  padding: 0.85rem 1rem;
-  border-left: 3px solid
-    color-mix(in srgb, hsl(var(--fpf-chip-h)) 60%, transparent);
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 7%, transparent);
-  border-radius: 8px;
-  font-size: 0.95rem;
+  margin-bottom: 1.65rem;
+  padding: 0.95rem 1rem;
+  border: 0;
+  border-left: 2px solid var(--fpf-accent);
+  border-radius: var(--fpf-radius-panel);
+  background: var(--fpf-paper-2);
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-size: 16px;
   line-height: 1.55;
-  color: var(--rp-c-text-1);
-}
-
-html.dark .rspress-doc > blockquote:first-of-type {
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 14%, transparent);
 }
 
 .rspress-doc > blockquote:first-of-type p {
-  margin: 0.15rem 0;
+  margin: 0.18rem 0;
 }
 
 .rspress-doc > blockquote:first-of-type p:first-child {
-  font-weight: 520;
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  color: var(--fpf-ink-2);
 }
 
 .rspress-doc > blockquote:first-of-type em {
-  opacity: 0.78;
+  color: var(--fpf-ink-2);
+  font-family: var(--fpf-font-serif);
   font-style: italic;
 }
 
-/*  Inline code — treat as a muted chip. Pattern IDs in headings/meta-strip
- *   get elevated to the .fpf-pid chip style (see section 7). */
+.rspress-doc blockquote:not(:first-of-type) {
+  border-left: 2px solid var(--fpf-rule-strong);
+  color: var(--fpf-ink-2);
+  font-style: normal;
+}
+
 .rspress-doc :not(pre) > code {
+  border: 1px solid var(--fpf-rule-strong);
+  border-radius: 0;
+  background: var(--fpf-paper-2);
+  color: var(--fpf-accent);
   font-family: var(--fpf-font-mono);
-  font-size: 0.9em;
+  font-size: 0.82em;
+  font-weight: 500;
   padding: 0.12em 0.38em;
-  border-radius: 5px;
-  background: color-mix(in srgb, currentcolor 8%, transparent);
-  border: 1px solid color-mix(in srgb, currentcolor 12%, transparent);
   white-space: nowrap;
 }
 
-html.dark .rspress-doc :not(pre) > code {
-  background: color-mix(in srgb, #ffffff 8%, transparent);
-  border-color: color-mix(in srgb, #ffffff 10%, transparent);
-}
-
-/*  Pattern-id-like inline code inside the meta-strip gets the chip colour */
 .rspress-doc > blockquote:first-of-type :not(pre) > code {
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 16%, transparent);
-  border-color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 32%, transparent);
-  color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 100%, var(--rp-c-text-1) 0%);
-  font-weight: 560;
+  border-color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 42%, var(--fpf-rule));
+  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 10%, var(--fpf-paper-2));
+  color: hsl(var(--fpf-chip-h));
 }
 
-html.dark .rspress-doc > blockquote:first-of-type :not(pre) > code {
-  color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 80%, #ffffff 20%);
-}
-
-/*  Callouts / admonitions — keep Rspress defaults but soften edges */
 .rspress-doc [class*="rspress-directive"] {
-  border-radius: var(--fpf-radius-card);
+  margin: 1.35rem 0;
   padding: 1rem 1.1rem;
-  margin: 1.2rem 0;
+  border-radius: var(--fpf-radius-panel);
+  border: 1px solid var(--fpf-rule-strong);
+  background: var(--fpf-paper-2);
 }
 
 .rspress-doc [class*="rspress-directive"] p {
   margin: 0.25rem 0;
 }
 
-/*  Tables — tighter headers, wider gutters */
 .rspress-doc table {
-  border-collapse: separate;
-  border-spacing: 0;
-  border-radius: 8px;
+  width: 100%;
+  border: 1px solid var(--fpf-ink);
+  border-collapse: collapse;
+  border-radius: 0;
   overflow: hidden;
-  border: 1px solid var(--rp-c-divider-light);
+  font-family: var(--fpf-font-display);
+  font-size: 15px;
 }
 
 .rspress-doc th,
 .rspress-doc td {
-  padding: 0.55rem 0.75rem;
-  border: none;
-  border-bottom: 1px solid var(--rp-c-divider-light);
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--fpf-rule);
 }
 
 .rspress-doc th {
-  font-weight: 600;
-  background: color-mix(in srgb, currentcolor 4%, transparent);
+  background: var(--fpf-paper-2);
+  color: var(--fpf-ink);
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
+  font-weight: 500;
   text-align: left;
-}
-
-.rspress-doc tr:last-child td {
-  border-bottom: none;
-}
-
-/*  Code blocks */
-.rspress-doc pre {
-  border-radius: 10px;
-}
-
-/* ───────── 6. Sidebar & TOC density ───────── */
-
-.rspress-sidebar-section h2 {
-  font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-weight: 600;
-  opacity: 0.7;
-  line-height: 1.2;
-  margin-top: 1rem;
-  margin-bottom: 0.35rem;
 }
 
-.rspress-sidebar-item,
-.rspress-sidebar-section {
-  font-size: 0.8125rem;
-  line-height: 1.45;
+.rspress-doc tr:hover td {
+  background: color-mix(in srgb, var(--fpf-accent-soft) 60%, transparent);
 }
 
-.rspress-sidebar-item [class*="menuItem"] {
-  padding-top: 0.32rem !important;
-  padding-bottom: 0.32rem !important;
-  border-radius: 6px;
+.rspress-doc pre {
+  border: 1px solid var(--fpf-rule-strong);
+  border-radius: 0;
+  background: var(--fpf-paper-2);
 }
 
-/* Right-side "On this page" TOC */
-.rspress-toc-link,
-[class*="aside"] a {
-  font-size: 0.8125rem;
-  line-height: 1.45;
+.rspress-doc pre code {
+  font-family: var(--fpf-font-mono);
 }
 
-.rspress-toc-link + .rspress-toc-link {
-  margin-top: 0.1rem;
-}
-
-/* ───────── 7. Pattern-ID chip primitive ─────────
- *
- * The generator (`src/core/documents.ts::patternIdChip`) emits
- * `<span class="fpf-pid fpf-pid--a">A.1</span>` in pattern titles, relations,
- * and node references. Part-specific hues come from the `.fpf-pid--{letter}`
- * modifiers below; unknown letters fall back to the neutral `.fpf-pid` base.
- */
+/* 6. Generated FPF primitives */
 
 .fpf-pid {
   display: inline-flex;
-  align-items: center;
-  font-family: var(--fpf-font-mono);
-  font-weight: 560;
-  font-size: 0.875em;
-  line-height: 1;
-  padding: 0.25em 0.5em;
+  align-items: baseline;
+  gap: 0.35em;
+  border: 1px solid color-mix(in srgb, hsl(var(--fpf-chip-h)) 35%, var(--fpf-rule-strong));
   border-radius: var(--fpf-radius-chip);
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 12%, transparent);
-  border: 1px solid color-mix(in srgb, hsl(var(--fpf-chip-h)) 28%, transparent);
+  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 8%, var(--fpf-paper-2));
   color: hsl(var(--fpf-chip-h));
+  font-family: var(--fpf-font-mono);
+  font-size: 0.72em;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  padding: 0.22em 0.55em;
   white-space: nowrap;
-  letter-spacing: 0.01em;
 }
 
 html.dark .fpf-pid {
-  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 18%, transparent);
-  border-color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 40%, transparent);
+  background: color-mix(in srgb, hsl(var(--fpf-chip-h)) 16%, var(--fpf-paper-2));
   color: color-mix(in srgb, hsl(var(--fpf-chip-h)) 75%, #ffffff 25%);
 }
 
@@ -491,43 +595,45 @@ html.dark .fpf-pid {
 .fpf-pid--f { --fpf-chip-h: var(--fpf-part-f); }
 .fpf-pid--g { --fpf-chip-h: var(--fpf-part-g); }
 
-/* Relation-row primitive — emitted by the generator
- * (`src/core/documents.ts::formatRelation`). Shape:
- *   <div class="fpf-relation">
- *     <span class="fpf-pid fpf-pid--a">A.1</span>
- *     <span class="fpf-relation-kind">prerequisite for</span>
- *     <a class="fpf-relation-target" href="...">Role Taxonomy</a>
- *   </div>
- */
+.fpf-relations {
+  max-width: var(--fpf-measure);
+  border-top: 1px dotted var(--fpf-rule-strong);
+}
+
 .fpf-relation {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.5rem 0;
   flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.7rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px dotted var(--fpf-rule);
+  font-family: var(--fpf-font-display);
 }
 
 .fpf-relation-kind {
-  font-size: 0.75rem;
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
-  opacity: 0.62;
 }
 
 .fpf-relation-target {
+  color: var(--fpf-ink);
   font-weight: 500;
 }
 
-/* Breadcrumb primitive — emitted by theme-layer wrapper */
 .fpf-breadcrumb {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8125rem;
-  color: var(--rp-c-text-3);
-  margin-bottom: 0.75rem;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 0.42rem;
+  margin-bottom: 1rem;
+  color: var(--fpf-ink-3);
+  font-family: var(--fpf-font-mono);
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .fpf-breadcrumb a {
@@ -536,517 +642,42 @@ html.dark .fpf-pid {
 }
 
 .fpf-breadcrumb a:hover {
-  color: var(--rp-c-text-1);
+  color: var(--fpf-accent);
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 4px;
 }
 
 .fpf-breadcrumb-separator {
-  opacity: 0.5;
+  opacity: 0.55;
   user-select: none;
 }
 
-/* ───────── 8. Home (pageType: home) — Belle-Époque editorial ─────────
- *
- * The home reads as a Belle-Époque scientific journal: parchment paper,
- * sepia type set in Playfair Display, italic Cormorant tagline, gold rules
- * and a single fleuron between the hero and the catalog grid. Cards carry
- * a thin double-rule border with discreet ornamental corner glyphs;
- * jewel-tone hover states echo the Mucha palette without overwhelming the
- * scan flow. No transforms or shine overlays — the ornament is on the
- * page, not in the motion.
- */
+/* 7. Responsive refinements */
 
-.rp-home-hero {
-  margin-inline: auto;
-  max-width: 880px;
-  padding-block: clamp(4rem, 6vw, 6rem) clamp(1rem, 2vw, 1.75rem);
-  padding-inline: var(--rp-content-padding-x);
-  text-align: center;
-}
-
-.rp-home-hero__container {
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-}
-
-.rp-home-hero__content {
-  text-align: center;
-  align-items: center;
-}
-
-.rp-home-hero__title {
-  margin: 0;
-  position: relative;
-}
-
-.rp-home-hero__title-brand {
-  font-family: var(--fpf-font-display);
-  font-size: clamp(2.5rem, 1.75rem + 3vw, 4rem);
-  line-height: 1.04;
-  font-weight: 700;
-  letter-spacing: 0.005em;
-  color: var(--rp-c-text-1);
-  background: none;
-  -webkit-background-clip: initial;
-  background-clip: initial;
-  -webkit-text-fill-color: currentcolor;
-  font-feature-settings: "lnum", "kern", "liga";
-}
-
-.rp-home-hero__subtitle {
-  font-family: var(--fpf-font-display);
-  font-size: clamp(1.125rem, 0.85rem + 0.85vw, 1.45rem);
-  line-height: 1.3;
-  font-weight: 500;
-  color: var(--fpf-burgundy);
-  margin-top: 0.65rem;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-  font-feature-settings: "smcp", "c2sc";
-}
-
-/* Italic serif tagline — the closing Belle-Époque flourish. Cormorant's
-   italic carries the period feel; Lora is the body fallback. */
-.rp-home-hero__tagline {
-  font-family: var(--fpf-font-script);
-  font-style: italic;
-  font-size: clamp(1.125rem, 1.05rem + 0.4vw, 1.35rem);
-  line-height: 1.5;
-  font-weight: 500;
-  color: var(--rp-c-text-2);
-  margin-top: 1.5rem;
-  max-width: 52ch;
-  margin-inline: auto;
-}
-
-/* Decorative fleuron between hero and the actions row.
-   Uses a tripartite Unicode ornament (❦ ❦ ❦) framed by gold rules. */
-.rp-home-hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.85rem;
-  justify-content: center;
-  margin-top: 2.25rem;
-  position: relative;
-  padding-top: 2.25rem;
-}
-
-.rp-home-hero__actions::before {
-  content: "❦";
-  position: absolute;
-  top: 0.4rem;
-  left: 50%;
-  transform: translate(-50%, 0);
-  font-family: var(--fpf-font-display);
-  font-size: 1.1rem;
-  color: var(--fpf-gold-deep);
-  letter-spacing: 0.4em;
-  opacity: 0.85;
-}
-
-.rp-home-hero__actions::after {
-  content: "";
-  position: absolute;
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: clamp(120px, 30%, 220px);
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--fpf-gold) 25%,
-    var(--fpf-gold) 75%,
-    transparent 100%
-  );
-  opacity: 0.55;
-  z-index: -1;
-}
-
-.rp-home-hero__action {
-  border-radius: var(--fpf-radius-button);
-  padding: 0.7rem 1.4rem;
-  font-family: var(--fpf-font-display);
-  font-weight: 600;
-  font-size: 0.95rem;
-  letter-spacing: 0.01em;
-  text-decoration: none !important;
-  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
-}
-
-.rp-home-hero__action.rp-button--brand,
-.rp-button--brand.rp-home-hero__action {
-  background: var(--fpf-burgundy-deep);
-  color: var(--fpf-parchment);
-  border: 1px solid var(--fpf-burgundy-deep);
-}
-
-.rp-home-hero__action.rp-button--brand:hover,
-.rp-button--brand.rp-home-hero__action:hover {
-  background: var(--fpf-sepia);
-  border-color: var(--fpf-sepia);
-  color: var(--fpf-parchment);
-}
-
-.rp-home-hero__action.rp-button--alt,
-.rp-button--alt.rp-home-hero__action {
-  background: transparent;
-  color: var(--fpf-sepia);
-  border: 1px solid color-mix(in srgb, var(--fpf-sepia) 35%, transparent);
-}
-
-.rp-home-hero__action.rp-button--alt:hover,
-.rp-button--alt.rp-home-hero__action:hover {
-  border-color: var(--fpf-sepia);
-  background: color-mix(in srgb, var(--fpf-sepia) 4%, transparent);
-}
-
-/* Feature grid — Belle-Époque vignettes. Each card carries a thin double
-   gold rule (outer + inner via box-shadow inset). Hover cycles through
-   the Mucha palette so the four cards feel like four illustrated plates,
-   not a duplicated row. */
-html body .rp-home-feature {
-  --rp-home-feature-gap: 1.5rem;
-
-  max-width: 1000px;
-  margin-inline: auto;
-  padding-inline: var(--rp-content-padding-x);
-  padding-block: 0.5rem 4rem;
-}
-
-@media (width >= 1100px) {
-  html body .rp-home-feature__item--span-4 {
-    width: calc(25% - var(--rp-home-feature-gap));
+@media (width >= 1280px) {
+  :root {
+    --rp-content-padding-x: 40px;
+    --rp-content-padding-y: 44px;
   }
 }
 
-.rp-home-feature__item-wrapper,
-.rp-home-feature__card {
-  height: 100%;
+@media (width <= 960px) {
+  .rspress-doc-container .rspress-doc-title,
+  .rspress-doc h1 {
+    max-width: 22ch;
+  }
+
+  .rspress-doc table {
+    display: block;
+    overflow-x: auto;
+  }
 }
 
-.rp-home-feature__card {
-  --fpf-card-accent: var(--fpf-burgundy);
-
-  position: relative;
-  border-radius: var(--fpf-radius-card);
-  border: 1px solid color-mix(in srgb, var(--fpf-card-accent) 35%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fpf-gold) 35%, transparent);
-  background: color-mix(in srgb, var(--fpf-card-accent) 4%, var(--fpf-parchment-soft));
-  padding: 1.5rem 1.4rem 1.4rem;
-  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
-  overflow: hidden;
-}
-
-/* Discreet corner ornaments — small fleurons in opposite corners. */
-.rp-home-feature__card::before,
-.rp-home-feature__card::after {
-  content: "✦";
-  position: absolute;
-  font-family: var(--fpf-font-display);
-  font-size: 0.65rem;
-  color: var(--fpf-gold);
-  opacity: 0.55;
-  pointer-events: none;
-}
-
-.rp-home-feature__card::before {
-  top: 6px;
-  right: 8px;
-}
-
-.rp-home-feature__card::after {
-  bottom: 6px;
-  left: 8px;
-}
-
-.rp-home-feature__card--clickable:hover {
-  transform: none;
-  border-color: var(--fpf-card-accent);
-  background: color-mix(in srgb, var(--fpf-card-accent) 8%, var(--fpf-parchment-soft));
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--fpf-gold) 55%, transparent),
-    0 8px 22px -16px color-mix(in srgb, var(--fpf-card-accent) 60%, transparent);
-}
-
-html.dark .rp-home-feature__card {
-  background: color-mix(in srgb, var(--fpf-card-accent) 14%, var(--rp-c-bg-soft));
-  border-color: color-mix(in srgb, var(--fpf-card-accent) 50%, transparent);
-}
-
-html.dark .rp-home-feature__card--clickable:hover {
-  background: color-mix(in srgb, var(--fpf-card-accent) 22%, var(--rp-c-bg-soft));
-}
-
-/* Each of the four cards picks a different Mucha jewel tone in source order
-   (Patterns, Routes, Glossary, Change log) — burgundy, teal, burnt orange,
-   forest. The accent drives border, hover bg, and icon chip. */
-.rp-home-feature__item:nth-child(4n+1) .rp-home-feature__card {
-  --fpf-card-accent: var(--fpf-burgundy);
-}
-.rp-home-feature__item:nth-child(4n+2) .rp-home-feature__card {
-  --fpf-card-accent: var(--fpf-teal);
-}
-.rp-home-feature__item:nth-child(4n+3) .rp-home-feature__card {
-  --fpf-card-accent: var(--fpf-burnt-orange);
-}
-.rp-home-feature__item:nth-child(4n+4) .rp-home-feature__card {
-  --fpf-card-accent: var(--fpf-forest);
-}
-
-.rp-home-feature__title-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  margin-bottom: 0.65rem;
-}
-
-.rp-home-feature__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--fpf-font-mono);
-  font-weight: 500;
-  font-size: 0.75rem;
-  line-height: 1;
-  padding: 0.4em 0.55em;
-  border-radius: var(--fpf-radius-chip);
-  background: color-mix(in srgb, var(--fpf-card-accent) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--fpf-card-accent) 35%, transparent);
-  color: var(--fpf-card-accent);
-  letter-spacing: 0.02em;
-  width: fit-content;
-}
-
-html.dark .rp-home-feature__icon {
-  background: color-mix(in srgb, var(--fpf-card-accent) 22%, transparent);
-  border-color: color-mix(in srgb, var(--fpf-card-accent) 55%, transparent);
-  color: color-mix(in srgb, var(--fpf-card-accent) 60%, var(--fpf-parchment) 40%);
-}
-
-.rp-home-feature__title {
-  font-family: var(--fpf-font-display);
-  font-size: 1.2rem;
-  font-weight: 600;
-  line-height: 1.2;
-  margin: 0;
-  letter-spacing: 0;
-  color: var(--rp-c-text-1);
-  border-top: none;
-  padding-top: 0;
-}
-
-.rp-home-feature__detail {
-  font-family: var(--fpf-font-body);
-  font-size: 0.95rem;
-  line-height: 1.55;
-  color: var(--rp-c-text-2);
-  margin: 0;
-}
-
-/* Strip Rspress's noisier home decorations — the page already carries
-   enough ornament from the cards and the fleuron rule. */
-.rp-home-feature__item__shine {
-  display: none;
-}
-
-.rp-home-background {
-  display: none;
-}
-
-/* Body content beneath the feature grid — narrow measure, generous spacing,
-   small fleuron between the grid and the first body section to mark the
-   shift from "front matter" to "operational text". */
-.rspress-home-container .rspress-doc,
-[class*='rp-home-content'] .rspress-doc,
-.rp-home-feature ~ .rspress-doc,
-.rp-home-feature + * .rspress-doc {
-  max-width: 680px;
-  margin-inline: auto;
-  padding-inline: var(--rp-content-padding-x);
-  position: relative;
-}
-
-.rp-home-feature ~ .rspress-doc::before,
-[class*='rp-home-content'] .rspress-doc::before {
-  content: "✦  ✦  ✦";
-  display: block;
-  text-align: center;
-  font-size: 0.7rem;
-  letter-spacing: 0.6em;
-  color: var(--fpf-gold-deep);
-  opacity: 0.55;
-  margin: 1rem 0 2rem;
-}
-
-/* ───────── 9. Design variants — temporary picker ─────────
- *
- * The default styling above corresponds to variant A (Belle-Époque
- * maximalist). Variants B/C/D are scoped to `html[data-design=…]` and only
- * override the bits that change. A small floating switcher (mounted via
- * an inline script in rspress.config head) lets the reader compare them
- * live; once the design is chosen the picker and the unchosen variants
- * will be deleted.
- *
- *  A  Belle-Époque maximalist  —  4 jewel-tone cards, both fleurons,
- *                                 italic Cormorant tagline, corner ✦
- *  B  Editorial restraint      —  single burgundy accent, plain tagline,
- *                                 one fleuron only
- *  C  Letterpress catalogue    —  cards collapse to gold-hairline rows,
- *                                 no card chrome, larger type
- *  D  Mucha colour, no ornament —  4 jewel tones kept, but no fleurons,
- *                                  no corner ✦, plain tagline, soft shadow
- */
-
-/* ── Variant B: editorial restraint ─────────────────────────────────── */
-
-html[data-design="b"] .rp-home-feature__item:nth-child(n) .rp-home-feature__card {
-  --fpf-card-accent: var(--fpf-burgundy);
-}
-
-html[data-design="b"] .rp-home-hero__tagline {
-  font-family: var(--fpf-font-body);
-  font-style: normal;
-  font-weight: 400;
-  font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.2rem);
-}
-
-html[data-design="b"] .rp-home-feature ~ .rspress-doc::before,
-html[data-design="b"] [class*='rp-home-content'] .rspress-doc::before {
-  display: none;
-}
-
-/* ── Variant C: letterpress catalogue ─────────────────────────────── */
-
-html[data-design="c"] body .rp-home-feature {
-  --rp-home-feature-gap: 0;
-  max-width: 720px;
-  padding-block: 0 4rem;
-  display: block;
-}
-
-html[data-design="c"] body .rp-home-feature__item--span-4,
-html[data-design="c"] body .rp-home-feature__item {
-  width: 100%;
-}
-
-html[data-design="c"] .rp-home-feature__card {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--fpf-gold) 40%, transparent);
-  box-shadow: none;
-  border-radius: 0;
-  padding: 1.6rem 0 1.6rem;
-}
-
-html[data-design="c"] .rp-home-feature__item:last-child .rp-home-feature__card {
-  border-bottom: none;
-}
-
-html[data-design="c"] .rp-home-feature__card::before,
-html[data-design="c"] .rp-home-feature__card::after {
-  display: none;
-}
-
-html[data-design="c"] .rp-home-feature__card--clickable:hover {
-  background: color-mix(in srgb, var(--fpf-burgundy) 4%, transparent);
-  border-color: color-mix(in srgb, var(--fpf-gold) 70%, transparent);
-}
-
-html[data-design="c"] .rp-home-feature__title-wrapper {
-  margin-bottom: 0.4rem;
-}
-
-html[data-design="c"] .rp-home-feature__title {
-  font-size: 1.4rem;
-  font-weight: 600;
-}
-
-html[data-design="c"] .rp-home-feature__icon {
-  background: transparent;
-  border-color: color-mix(in srgb, var(--fpf-burgundy) 35%, transparent);
-  color: var(--fpf-burgundy);
-}
-
-html[data-design="c"] .rp-home-feature__detail {
-  font-size: 1rem;
-  max-width: 56ch;
-}
-
-html[data-design="c"] .rp-home-hero__tagline {
-  font-family: var(--fpf-font-body);
-  font-style: normal;
-  font-weight: 400;
-}
-
-html[data-design="c"] .rp-home-feature__item:nth-child(n) .rp-home-feature__card {
-  --fpf-card-accent: var(--fpf-burgundy);
-}
-
-/* ── Variant D: Mucha colour, no ornament ─────────────────────────── */
-
-html[data-design="d"] .rp-home-hero__actions {
-  padding-top: 0;
-  margin-top: 1.75rem;
-}
-
-html[data-design="d"] .rp-home-hero__actions::before,
-html[data-design="d"] .rp-home-hero__actions::after,
-html[data-design="d"] .rp-home-feature__card::before,
-html[data-design="d"] .rp-home-feature__card::after,
-html[data-design="d"] .rp-home-feature ~ .rspress-doc::before,
-html[data-design="d"] [class*='rp-home-content'] .rspress-doc::before {
-  display: none;
-}
-
-html[data-design="d"] .rp-home-feature__card {
-  box-shadow: 0 4px 14px -10px color-mix(in srgb, var(--fpf-card-accent) 60%, transparent);
-}
-
-html[data-design="d"] .rp-home-hero__tagline {
-  font-family: var(--fpf-font-body);
-  font-style: normal;
-  font-weight: 400;
-}
-
-/* Switcher widget — minimal styling. Lives below all theme rules so it can
-   inherit but not be overridden by them. Hidden once the picker is removed. */
-#fpf-design-switcher {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  z-index: 1000;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  background: color-mix(in srgb, var(--fpf-parchment) 90%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  padding: 6px 10px;
-  border: 1px solid color-mix(in srgb, var(--fpf-sepia) 22%, transparent);
-  border-radius: 8px;
-  box-shadow: 0 6px 20px -10px rgb(0 0 0 / 25%);
-  font-family: var(--fpf-font-display);
-  font-size: 12px;
-  color: var(--fpf-sepia);
-}
-
-#fpf-design-switcher button {
-  border: 1px solid color-mix(in srgb, var(--fpf-sepia) 18%, transparent);
-  background: transparent;
-  color: var(--fpf-sepia);
-  border-radius: 5px;
-  padding: 4px 10px;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease;
-}
-
-#fpf-design-switcher button[data-active="true"] {
-  background: var(--fpf-sepia);
-  color: var(--fpf-parchment);
-  border-color: var(--fpf-sepia);
+@media (prefers-reduced-motion: no-preference) {
+  .rspress-doc a,
+  .rspress-nav a,
+  .rspress-sidebar-item [class*="menuItem"],
+  .fpf-breadcrumb a {
+    transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+  }
 }
