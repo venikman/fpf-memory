@@ -1,17 +1,59 @@
-import { MCPServer } from '@mastra/mcp';
-import type { createMcpTools } from './tools.js';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+
+import type { createMcpTools, FpfMcpTool, FpfMcpToolMap } from './tools.js';
+
+export interface FpfMcpServerOptions {
+  name: string;
+  version: string;
+  description: string;
+  tools: FpfMcpToolMap;
+}
+
+export class FpfMcpServer {
+  constructor(private readonly options: FpfMcpServerOptions) {}
+
+  async startStdio(): Promise<void> {
+    const server = this.createSdkServer();
+    await server.connect(new StdioServerTransport());
+  }
+
+  async handleStreamableHttp(request: Request): Promise<Response> {
+    const transport = new WebStandardStreamableHTTPServerTransport({
+      enableJsonResponse: true,
+    });
+    const server = this.createSdkServer();
+    await server.connect(transport);
+    return transport.handleRequest(request);
+  }
+
+  createSdkServer(): McpServer {
+    const server = new McpServer({
+      name: this.options.name,
+      version: this.options.version,
+    });
+
+    for (const tool of Object.values(this.options.tools)) {
+      registerFpfTool(server, tool);
+    }
+
+    return server;
+  }
+}
 
 export function createMcpServerSet(
   tools: ReturnType<typeof createMcpTools>,
 ) {
-  const fpfMemory = new MCPServer({
+  const fpfMemory = new FpfMcpServer({
     name: 'fpf_memory',
     version: '1.0.0',
     description: 'Local vectorless MCP runtime for the FPF spec with full tool surface.',
     tools: tools.fpfMcpTools,
   });
 
-  const fpfMemoryPublic = new MCPServer({
+  const fpfMemoryPublic = new FpfMcpServer({
     name: 'fpf_memory',
     version: '1.0.0',
     description:
@@ -23,4 +65,34 @@ export function createMcpServerSet(
     fpfMemory,
     fpfMemoryPublic,
   };
+}
+
+function registerFpfTool(server: McpServer, tool: FpfMcpTool): void {
+  server.registerTool(
+    tool.id,
+    {
+      description: tool.description,
+      inputSchema: tool.inputSchema,
+      outputSchema: tool.outputSchema,
+    },
+    async (input) => {
+      const structuredContent = asStructuredContent(await tool.execute(input));
+      return {
+        structuredContent,
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(structuredContent, null, 2),
+          },
+        ],
+      } satisfies CallToolResult;
+    },
+  );
+}
+
+function asStructuredContent(value: unknown): Record<string, unknown> {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return { value };
 }

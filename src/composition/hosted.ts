@@ -1,11 +1,12 @@
-import { HonoBindings, HonoVariables, MastraServer } from '@mastra/hono';
 import { Hono } from 'hono';
 
 import { parseHostedConfig } from '../adapters/infra/config/env.js';
 import { renderHostedHomePage } from '../adapters/hosted/home-page.js';
-import { createHostedMastraRuntime } from '../adapters/hosted/mastra-runtime.js';
 import { applyHostedEnvDefaults } from './hosted-env.js';
 import { getSharedMcpComposition } from './mcp.js';
+
+export const HOSTED_HOME_ROUTES = ['/', '/connect-mcp'] as const;
+export const HOSTED_MCP_ROUTE = '/api/mcp/fpf_memory/mcp';
 
 export function createHostedComposition(env: NodeJS.ProcessEnv) {
   const hostedEnv = applyHostedEnvDefaults(env, { moduleUrl: import.meta.url });
@@ -15,25 +16,17 @@ export function createHostedComposition(env: NodeJS.ProcessEnv) {
     hostedConfig.surface === 'full'
       ? mcpComposition.fpfMemory
       : mcpComposition.fpfMemoryPublic;
-  const mastra = createHostedMastraRuntime({
-    logger: mcpComposition.logger,
-    observability: mcpComposition.observability,
-    mcpServer,
-  });
 
-  const app = new Hono<{
-    Bindings: HonoBindings;
-    Variables: HonoVariables;
-  }>();
-  app.get('/', (c) => c.html(renderHostedHomePage()));
-  app.get('/connect-mcp', (c) => c.html(renderHostedHomePage()));
-  const server = new MastraServer({ app, mastra });
+  const app = new Hono();
+  for (const route of HOSTED_HOME_ROUTES) {
+    app.get(route, (c) => c.html(renderHostedHomePage()));
+  }
+  app.all(HOSTED_MCP_ROUTE, (c) => mcpServer.handleStreamableHttp(c.req.raw));
 
   return {
     ...mcpComposition,
     hostedConfig,
     app,
-    server,
-    mastra,
+    mcpServer,
   };
 }

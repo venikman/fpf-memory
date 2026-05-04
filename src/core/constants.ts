@@ -28,13 +28,10 @@ export const DEFAULT_PUBLISH_SOURCE_PATH = '.fpf-upstream/FPF-Spec.md';
 /**
  * Where the hosted deploy bundle stages its runtime inputs.
  *
- * Deliberately non-dotfile because Mastra's `bunx mastra server deploy`
- * zip step silently excludes dotfile directories from the upload
- * artifact. Staging under `.fpf-upstream/`/`.runtime/` looks correct
- * locally but arrives empty in the container, forcing a 16-18 s cold
- * compile on the first tool call. A plain `hosted/` prefix survives
- * the zip and lets the hosted runtime boot with a pre-compiled
- * snapshot in ~1-2 s.
+ * Deliberately non-dotfile inside the Vercel function bundle. Staging
+ * under `.fpf-upstream/`/`.runtime/` looks correct locally but can arrive
+ * empty in serverless packaging, forcing a cold compile on the first tool
+ * call. A plain `hosted/` prefix keeps the pre-compiled snapshot visible.
  */
 export const HOSTED_STAGED_SOURCE_PATH = 'hosted/FPF-Spec.md';
 export const HOSTED_STAGED_ARTIFACT_DIR = 'hosted/fpf-index';

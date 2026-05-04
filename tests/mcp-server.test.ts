@@ -6,8 +6,8 @@ import readline from 'node:readline';
 
 import { afterEach, describe, expect, it } from '@rstest/core';
 
+import { createHostedComposition } from '../src/composition/hosted.js';
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
-import { createMastraRuntime } from '../src/mastra/index.js';
 
 interface JsonRpcResponse {
   jsonrpc: '2.0';
@@ -150,7 +150,7 @@ class StdioMcpHarness {
   }
 }
 
-describe('Mastra MCP server', () => {
+describe('direct MCP server', () => {
   const harnesses: StdioMcpHarness[] = [];
   const tempDirs: string[] = [];
 
@@ -163,7 +163,7 @@ describe('Mastra MCP server', () => {
     const tempDir = await mkdtemp(resolve(tmpdir(), 'fpf-mcp-stdio-'));
     tempDirs.push(tempDir);
 
-    const child = spawn('bun', ['src/mastra/stdio.ts'], {
+    const child = spawn('bun', ['src/entrypoints/mcp-stdio.ts'], {
       cwd: process.cwd(),
       env: {
         ...process.env,
@@ -178,8 +178,8 @@ describe('Mastra MCP server', () => {
         FPF_RUNTIME_ARTIFACT_DIR: resolve(tempDir, 'fpf-index'),
         FPF_PERSIST_SESSION_CACHE: 'false',
         ...(surface === 'full' ? { FPF_MCP_SURFACE: 'full' } : {}),
-        FPF_MASTRA_LOG_PATH: resolve(tempDir, 'mastra.log'),
-        FPF_MASTRA_OBSERVABILITY_PATH: resolve(tempDir, 'mastra-observability.json'),
+        FPF_RUNTIME_LOG_PATH: resolve(tempDir, 'fpf-runtime.log'),
+        FPF_RUNTIME_OBSERVABILITY_PATH: resolve(tempDir, 'runtime-observability.json'),
       },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
@@ -207,7 +207,7 @@ describe('Mastra MCP server', () => {
     harness.notify('notifications/initialized');
   }
 
-  it('starts stdio through Mastra and answers initialize plus ping', async () => {
+  it('starts stdio and answers initialize plus ping', async () => {
     const harness = await startHarness();
     await initializeHarness(harness);
 
@@ -387,9 +387,13 @@ describe('Mastra MCP server', () => {
     ]);
   });
 
-  it('initializes the Mastra runtime', () => {
-    const mastra = createMastraRuntime();
-    expect(mastra).toBeDefined();
+  it('initializes the direct hosted runtime', async () => {
+    const { app } = createHostedComposition({
+      ...process.env,
+      PORT: '0',
+    } as NodeJS.ProcessEnv);
+    const response = await app.request('/');
+    expect(response.status).toBe(200);
   });
 });
 

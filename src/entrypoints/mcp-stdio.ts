@@ -33,3 +33,7 @@ function normalizeErrorMessage(error: unknown): string {
     return String(error);
   }
 }
+
+if (import.meta.main) {
+  void main();
+}

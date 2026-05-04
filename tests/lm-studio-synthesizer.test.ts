@@ -40,7 +40,7 @@ describe('LmStudioSynthesizer', () => {
     sourcePath = resolve(tempRoot, 'FPF-spec.md');
     artifactDir = resolve(tempRoot, 'artifacts');
     aiTraceLogPath = resolve(tempRoot, 'ai-traces.jsonl');
-    observabilityLogPath = resolve(tempRoot, 'mastra-observability.json');
+    observabilityLogPath = resolve(tempRoot, 'runtime-observability.json');
     await copyFile(canonicalSourcePath, sourcePath);
     await resetRuntimeObservabilityForTests();
   });
@@ -50,11 +50,11 @@ describe('LmStudioSynthesizer', () => {
     delete process.env.FPF_LOCAL_LLM_MODEL;
     delete process.env.FPF_LOCAL_LLM_API_KEY;
     delete process.env.FPF_LOCAL_LLM_TIMEOUT_MS;
-    delete process.env.FPF_MASTRA_OBSERVABILITY_PATH;
-    delete process.env.FPF_MASTRA_OBSERVABILITY_FORMAT;
-    delete process.env.FPF_MASTRA_OBSERVABILITY_INCLUDE_INTERNAL_SPANS;
-    delete process.env.FPF_MASTRA_OBSERVABILITY_INCLUDE_MODEL_CHUNKS;
-    delete process.env.FPF_MASTRA_OBSERVABILITY_LOG_LEVEL;
+    delete process.env.FPF_RUNTIME_OBSERVABILITY_PATH;
+    delete process.env.FPF_RUNTIME_OBSERVABILITY_FORMAT;
+    delete process.env.FPF_RUNTIME_OBSERVABILITY_INCLUDE_INTERNAL_SPANS;
+    delete process.env.FPF_RUNTIME_OBSERVABILITY_INCLUDE_MODEL_CHUNKS;
+    delete process.env.FPF_RUNTIME_OBSERVABILITY_LOG_LEVEL;
     await resetRuntimeObservabilityForTests();
     await rm(tempRoot, { recursive: true, force: true });
   });
@@ -128,7 +128,7 @@ describe('LmStudioSynthesizer', () => {
   it('configures the local synthesizer from environment at the composition edge', async () => {
     process.env.FPF_LOCAL_LLM_BASE_URL = 'http://localhost:1234/v1';
     process.env.FPF_LOCAL_LLM_MODEL = 'google/gemma-4-31b';
-    process.env.FPF_MASTRA_OBSERVABILITY_PATH = observabilityLogPath;
+    process.env.FPF_RUNTIME_OBSERVABILITY_PATH = observabilityLogPath;
 
     const { runtime } = createConfiguredRuntime({
       ...process.env,
@@ -152,7 +152,7 @@ describe('LmStudioSynthesizer', () => {
       FPF_LOCAL_LLM_BASE_URL: 'http://localhost:1234/v1',
       FPF_LOCAL_LLM_MODEL: 'google/gemma-4-31b',
       FPF_AI_TRACE_LOG_PATH: aiTraceLogPath,
-      FPF_MASTRA_OBSERVABILITY_PATH: observabilityLogPath,
+      FPF_RUNTIME_OBSERVABILITY_PATH: observabilityLogPath,
     } as NodeJS.ProcessEnv);
 
     expect(synthesizer).toBeDefined();

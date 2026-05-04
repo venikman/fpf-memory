@@ -19,8 +19,8 @@ let sharedMcpComposition: ReturnType<typeof createMcpComposition> | undefined;
 let sharedMcpCompositionKey: string | undefined;
 
 /**
- * One MCP/runtime stack per process for the ambient `process.env` path so Mastra compat,
- * stdio, hosted, and legacy `fpf_memory` exports do not construct duplicate runtimes.
+ * One MCP/runtime stack per process for the ambient `process.env` path so
+ * stdio and hosted entrypoints do not construct duplicate runtimes.
  * Callers that provide a custom env object get an isolated composition instead of reusing
  * process-global state derived from another environment.
  */

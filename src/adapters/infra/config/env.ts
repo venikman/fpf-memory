@@ -19,7 +19,7 @@ import type {
 
 const DEFAULT_DOCS_ROOT = 'docs';
 const DEFAULT_DOCS_OUT_DIR = 'doc_build';
-const DEFAULT_HOSTED_PUBLIC_DIR = 'src/mastra/public';
+const DEFAULT_HOSTED_PUBLIC_DIR = '.vercel-staged';
 const DEFAULT_DIST_DIR = 'dist';
 const DEFAULT_SERVER_PORT = 4111;
 const MAX_TCP_PORT = 65_535;
@@ -48,8 +48,8 @@ export function parseRuntimeCoreConfig(
 
 export function parseLoggingConfig(env: NodeJS.ProcessEnv): LoggingConfig {
   return {
-    filePath: parseString(env.FPF_MASTRA_LOG_PATH, '.runtime/logs/mastra.log'),
-    level: parseEnum(env.FPF_MASTRA_LOG_LEVEL, loggingLevelSchema, 'info'),
+    filePath: parseString(env.FPF_RUNTIME_LOG_PATH, '.runtime/logs/fpf-runtime.log'),
+    level: parseEnum(env.FPF_RUNTIME_LOG_LEVEL, loggingLevelSchema, 'info'),
     serviceName: 'fpf-spec-runtime',
   };
 }
@@ -59,25 +59,25 @@ export function parseObservabilityConfig(
 ): ObservabilityConfig {
   return {
     filePath: parseString(
-      env.FPF_MASTRA_OBSERVABILITY_PATH,
-      '.runtime/logs/mastra-observability.json',
+      env.FPF_RUNTIME_OBSERVABILITY_PATH,
+      '.runtime/logs/runtime-observability.json',
     ),
     format: parseEnum(
-      env.FPF_MASTRA_OBSERVABILITY_FORMAT,
+      env.FPF_RUNTIME_OBSERVABILITY_FORMAT,
       observabilityFormatSchema,
       'flat',
     ),
     includeInternalSpans: parseBoolean(
-      env.FPF_MASTRA_OBSERVABILITY_INCLUDE_INTERNAL_SPANS,
+      env.FPF_RUNTIME_OBSERVABILITY_INCLUDE_INTERNAL_SPANS,
       true,
     ),
     logLevel: parseEnum(
-      env.FPF_MASTRA_OBSERVABILITY_LOG_LEVEL,
+      env.FPF_RUNTIME_OBSERVABILITY_LOG_LEVEL,
       observabilityLogLevelSchema,
       'info',
     ),
     excludeModelChunks: !parseBoolean(
-      env.FPF_MASTRA_OBSERVABILITY_INCLUDE_MODEL_CHUNKS,
+      env.FPF_RUNTIME_OBSERVABILITY_INCLUDE_MODEL_CHUNKS,
       false,
     ),
     serviceName: 'fpf-spec-runtime',

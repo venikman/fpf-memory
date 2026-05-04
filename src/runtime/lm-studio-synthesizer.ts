@@ -1,6 +1,7 @@
-import { SpanType } from '@mastra/core/observability';
-
-import { withRuntimeSpan } from '../adapters/infra/observability/runtime-observability.js';
+import {
+  RuntimeSpanType,
+  withRuntimeSpan,
+} from '../adapters/infra/observability/runtime-observability.js';
 import {
   parseLmStudioConfig,
   parseObservabilityConfig,
@@ -170,7 +171,7 @@ export class LmStudioSynthesizer implements LocalAnswerSynthesizer {
     const endpointInfo = describeEndpoint(this.endpoint);
     const spanResult = await withRuntimeSpan({
       observabilityConfig: this.options.observabilityConfig,
-      type: SpanType.MODEL_GENERATION,
+      type: RuntimeSpanType.ModelGeneration,
       name: `local synthesis: ${this.options.model}`,
       input: {
         question: input.question,

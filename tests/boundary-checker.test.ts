@@ -30,16 +30,6 @@ describe('boundary checker', () => {
     );
     await writeModule(
       root,
-      'src/compat/mastra/runtime.ts',
-      "import { main } from '../../composition/main.js';\nexport const runtime = main;\n",
-    );
-    await writeModule(
-      root,
-      'src/mastra/index.ts',
-      "export { runtime } from '../compat/mastra/runtime.js';\n",
-    );
-    await writeModule(
-      root,
       'src/entrypoints/cli.ts',
       "import { main } from '../composition/main.js';\nvoid main;\n",
     );
@@ -77,21 +67,6 @@ describe('boundary checker', () => {
       'src/entrypoints/cli.ts',
       "import { tool } from '../adapters/mcp/tool.js';\nvoid tool;\n",
     );
-    await writeModule(
-      root,
-      'src/compat/mastra/runtime.ts',
-      "import { main } from '../../composition/main.js';\nexport const runtime = main;\n",
-    );
-    await writeModule(
-      root,
-      'src/mastra/index.ts',
-      "import { main } from '../composition/main.js';\nvoid main;\n",
-    );
-    await writeModule(
-      root,
-      'src/build/deploy.ts',
-      "import { runtime } from '../compat/mastra/runtime.js';\nexport const deploy = runtime;\n",
-    );
 
     const violations = scanBoundaryViolations(root);
 
@@ -102,8 +77,6 @@ describe('boundary checker', () => {
         'Ctx.Run.Hosted may not depend on Ctx.Run.MCP',
         'Ctx.Docs/Ctx.Build may not depend on runtime adapters or entrypoints',
         'Ctx.EntryPoint may import only Ctx.Composition',
-        'Documented Mastra shims may import only Ctx.Compat.Mastra',
-        'Only Ctx.Compat.Mastra and documented Mastra shims may import compat modules',
       ]),
     );
   });

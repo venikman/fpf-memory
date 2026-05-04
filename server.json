@@ -5,7 +5,7 @@
   "transport": "stdio",
   "command": "bun",
   "cwd": ".",
-  "args": ["src/mastra/stdio.ts"],
+  "args": ["src/entrypoints/mcp-stdio.ts"],
   "env": {
     "FPF_SPEC_SOURCE_PATH": "published/current/FPF-Spec.md",
     "FPF_RUNTIME_ARTIFACT_DIR": ".runtime/fpf-index",

@@ -16,7 +16,7 @@ interface JsonRpcResponse {
 }
 
 /**
- * Compact stdio harness for driving the Mastra MCP server over JSON-RPC.
+ * Compact stdio harness for driving the direct MCP server over JSON-RPC.
  * Mirrors `mcp-server.test.ts`'s harness but scoped to this file so the
  * session-continuity fixtures stay self-contained.
  */
@@ -140,7 +140,7 @@ describe('MCP session-continuity roundtrip', () => {
   async function startHarness(): Promise<StdioMcpHarness> {
     const tempDir = await mkdtemp(resolve(tmpdir(), 'fpf-session-'));
     tempDirs.push(tempDir);
-    const child = spawn('bun', ['src/mastra/stdio.ts'], {
+    const child = spawn('bun', ['src/entrypoints/mcp-stdio.ts'], {
       cwd: process.cwd(),
       env: {
         ...process.env,
@@ -158,8 +158,8 @@ describe('MCP session-continuity roundtrip', () => {
         FPF_RUNTIME_ARTIFACT_DIR: resolve(tempDir, 'fpf-index'),
         FPF_PERSIST_SESSION_CACHE: 'false',
         FPF_MCP_SURFACE: 'full',
-        FPF_MASTRA_LOG_PATH: resolve(tempDir, 'mastra.log'),
-        FPF_MASTRA_OBSERVABILITY_PATH: resolve(tempDir, 'mastra-observability.json'),
+        FPF_RUNTIME_LOG_PATH: resolve(tempDir, 'fpf-runtime.log'),
+        FPF_RUNTIME_OBSERVABILITY_PATH: resolve(tempDir, 'runtime-observability.json'),
       },
       stdio: ['pipe', 'pipe', 'pipe'],
     });

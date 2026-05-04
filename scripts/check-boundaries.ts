@@ -114,18 +114,6 @@ function evaluateBoundaryRule(
   const source = normalizePath(relative(rootDir, sourceFile));
   const target = normalizePath(relative(rootDir, targetFile));
 
-  if (isMastraCompatShimPath(source) && !isCompatMastraPath(target)) {
-    return 'Documented Mastra shims may import only Ctx.Compat.Mastra';
-  }
-
-  if (
-    isCompatMastraPath(target)
-    && !isCompatMastraPath(source)
-    && !isMastraCompatShimPath(source)
-  ) {
-    return 'Only Ctx.Compat.Mastra and documented Mastra shims may import compat modules';
-  }
-
   if (source.startsWith('src/core/') && !target.startsWith('src/core/')) {
     return 'Ctx.Core may import only Ctx.Core';
   }
@@ -183,14 +171,6 @@ function walkSourceFiles(directory: string): string[] {
 
 function normalizePath(value: string): string {
   return value.replace(/\\/g, '/');
-}
-
-function isCompatMastraPath(value: string): boolean {
-  return value.startsWith('src/compat/mastra/');
-}
-
-function isMastraCompatShimPath(value: string): boolean {
-  return value === 'src/mastra/index.ts' || value === 'src/mastra/mcp/server.ts';
 }
 
 if (import.meta.main) {

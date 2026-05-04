@@ -1,12 +1,10 @@
 import { describe, expect, it } from '@rstest/core';
-import { Hono } from 'hono';
 
 import { renderHostedHomePage } from '../src/adapters/hosted/home-page.js';
 import {
-  buildHostedMastraRuntimeOptions,
-  HOSTED_HOME_API_ROUTES,
-} from '../src/adapters/hosted/mastra-runtime.js';
-import { createHostedComposition } from '../src/composition/hosted.js';
+  createHostedComposition,
+  HOSTED_HOME_ROUTES,
+} from '../src/composition/hosted.js';
 import { HOSTED_MCP_ENDPOINT } from '../src/core/constants.js';
 
 describe('hosted home page', () => {
@@ -30,40 +28,27 @@ describe('hosted home page', () => {
     expect(html).toContain('read_fpf_doc');
   });
 
-  it('serves the connection page from the hosted root before Mastra fallback HTML', async () => {
-    const { app, server } = createHostedComposition({
+  it('serves the connection page from the hosted root', async () => {
+    const { app } = createHostedComposition({
       ...process.env,
       PORT: '0',
     } as NodeJS.ProcessEnv);
 
-    await server.init();
     const response = await app.request('/');
     const html = await response.text();
 
     expect(response.status).toBe(200);
     expect(html).toContain('<title>fpf-memory MCP</title>');
     expect(html).toContain(HOSTED_MCP_ENDPOINT);
-    expect(html).not.toContain('<title>Mastra Server</title>');
   }, 20_000);
 
-  it('registers the connection page on the Mastra CLI server config path', async () => {
-    const options = buildHostedMastraRuntimeOptions({
-      logger: {} as never,
-      observability: { observability: {} } as never,
-      mcpServer: {} as never,
-    });
+  it('registers the connection page on direct hosted home routes', async () => {
+    const { app } = createHostedComposition({
+      ...process.env,
+      PORT: '0',
+    } as NodeJS.ProcessEnv);
 
-    expect(options.server.apiRoutes).toBe(HOSTED_HOME_API_ROUTES);
-    expect(HOSTED_HOME_API_ROUTES.map((route) => route.path)).toEqual([
-      '/',
-      '/connect-mcp',
-    ]);
-
-    const app = new Hono();
-    for (const route of HOSTED_HOME_API_ROUTES) {
-      app.get(route.path, route.handler);
-    }
-
+    expect([...HOSTED_HOME_ROUTES]).toEqual(['/', '/connect-mcp']);
     const response = await app.request('/connect-mcp');
     const html = await response.text();
 

@@ -52,7 +52,7 @@ On each refresh trigger the runtime:
 
 - **Bun** — preferred local runtime and package manager
 - **Zod** — repo-authored MCP contracts and validation
-- **Mastra SDK** — MCP, logging, and observability adapter used inside the local/Vercel runtime
+- **Model Context Protocol SDK** — direct MCP server/transport runtime for local stdio and hosted HTTP
 - **Hono** — hosted server engine
 - **Rstest, Rslint, Rspress** — test, lint, docs
 
@@ -86,8 +86,8 @@ Copy `.env.example` to `.env`. The most common settings:
 | `FPF_LOCAL_LLM_MODEL`                     | `google/gemma-4-31b`                 | Optional LM Studio model.                                             |
 | `FPF_LOCAL_LLM_API_KEY`                   | *(empty)*                            | LM Studio API token (Developer → Server Settings → Manage Tokens).    |
 | `FPF_LOCAL_LLM_TIMEOUT_MS`                | `20000`                              | LM Studio request timeout.                                            |
-| `FPF_MASTRA_LOG_PATH`                     | `.runtime/logs/mastra.log`           | Structured Mastra runtime/MCP logs.                                   |
-| `FPF_MASTRA_OBSERVABILITY_PATH`           | `.runtime/logs/mastra-observability.json` | Observability snapshot file.                                     |
+| `FPF_RUNTIME_LOG_PATH`                    | `.runtime/logs/fpf-runtime.log`      | Structured runtime/MCP logs.                                          |
+| `FPF_RUNTIME_OBSERVABILITY_PATH`          | `.runtime/logs/runtime-observability.json` | Observability snapshot file.                                  |
 | `FPF_AI_TRACE_LOG_PATH`                   | `.runtime/logs/ai-traces.jsonl`      | Per-call LM Studio synthesis traces (JSONL).                          |
 
 <details>
@@ -99,9 +99,9 @@ Copy `.env.example` to `.env`. The most common settings:
 
 `FPF_LOCAL_LLM_*` is optional. If present, the runtime calls the local LM Studio Anthropic-compatible API (`POST /v1/messages` with model discovery at `GET /v1/models`) only after deterministic retrieval has selected a bounded slice set. If absent, the runtime stays fully deterministic. If you opt into the LM Studio path by setting either `FPF_LOCAL_LLM_BASE_URL` or `FPF_LOCAL_LLM_MODEL`, the missing half falls back to the defaults above. The synthesizer posts to `{FPF_LOCAL_LLM_BASE_URL}/messages` with the Anthropic Messages request shape (`system` + `messages` + `max_tokens`) and parses `content[].text` from the response.
 
-`FPF_MASTRA_OBSERVABILITY_*` configures the Mastra-backed observability snapshot file, which includes `model_generation` spans around the local LM Studio synthesis call. Additional knobs: `FPF_MASTRA_LOG_LEVEL=info`, `FPF_MASTRA_OBSERVABILITY_FORMAT=flat`, `FPF_MASTRA_OBSERVABILITY_INCLUDE_INTERNAL_SPANS=true`, `FPF_MASTRA_OBSERVABILITY_INCLUDE_MODEL_CHUNKS=false`, `FPF_MASTRA_OBSERVABILITY_LOG_LEVEL=info`.
+`FPF_RUNTIME_OBSERVABILITY_*` configures the runtime observability snapshot file, which includes `model_generation` spans around the local LM Studio synthesis call. Additional knobs: `FPF_RUNTIME_LOG_LEVEL=info`, `FPF_RUNTIME_OBSERVABILITY_FORMAT=flat`, `FPF_RUNTIME_OBSERVABILITY_INCLUDE_INTERNAL_SPANS=true`, `FPF_RUNTIME_OBSERVABILITY_INCLUDE_MODEL_CHUNKS=false`, `FPF_RUNTIME_OBSERVABILITY_LOG_LEVEL=info`.
 
-`FPF_AI_TRACE_LOG_PATH` writes bounded LM Studio synthesis traces as JSON lines. This is the actual local model call path in this project — the synthesizer uses a direct `fetch` to the LM Studio-compatible endpoint instead of a Mastra agent model wrapper.
+`FPF_AI_TRACE_LOG_PATH` writes bounded LM Studio synthesis traces as JSON lines. This is the actual local model call path in this project; the synthesizer uses a direct `fetch` to the LM Studio-compatible endpoint.
 
 </details>
 
@@ -126,7 +126,7 @@ bun run lint
 bun run check
 bun run test
 bun run build
-bun run mastra:build
+bun run vercel:origin:build
 ```
 
 **Docs**
@@ -220,7 +220,7 @@ bun run cli -- inspect --selector "A.1.1"
 The direct stdio launcher (same entry as `bun run mcp`):
 
 ```bash
-FPF_MCP_SURFACE=full bun src/mastra/stdio.ts
+FPF_MCP_SURFACE=full bun run mcp
 ```
 
 This starts a long-running stdio server; for a manual smoke check, stop it with `Ctrl+C` after startup confirmation. Omit `FPF_MCP_SURFACE=full` if you only want the public surface.
@@ -273,16 +273,15 @@ When a configured synthesizer fails or reports unavailable, answer tools return 
 
 - `src/mcp/tool-contracts.ts` — Zod-authored MCP input/output contracts
 - `src/adapters/mcp/tools.ts` — canonical snake_case MCP tools and `ask_fpf`
-- `src/adapters/mcp/server.ts` — canonical MCPServer definitions (public + full)
+- `src/adapters/mcp/server.ts` — direct MCP SDK server definitions (public + full)
 - `src/composition/` — canonical bridge layer for runtime/bootstrap composition
-- `src/compat/mastra/` — governed Mastra compatibility bootstrap layer
-- `src/mastra/mcp/server.ts` — compatibility shim for the legacy MCP server import path
-- `src/mastra/index.ts` — compatibility shim consumed by `bun run mastra:build` for Vercel packaging
-- `src/mastra/stdio.ts` — stdio entry point for MCP clients
+- `src/entrypoints/mcp-stdio.ts` — stdio entry point for MCP clients
+- `src/entrypoints/vercel-function.ts` — Vercel Build Output API function entry point
+- `src/build/vercel-origin-build.ts` — direct Vercel-origin bundle builder
 - `src/server.ts` — Hono HTTP server bootstrap for Bun
 - `src/runtime/` — compiler, retrieval, trace, inspect, synthesis
-- `src/adapters/infra/logging/runtime-logger.ts` — Mastra-backed structured runtime/MCP log writer
-- `src/adapters/infra/observability/runtime-observability.ts` — Mastra-backed observability wrapper for local synthesis
+- `src/adapters/infra/logging/runtime-logger.ts` — structured runtime/MCP log writer
+- `src/adapters/infra/observability/runtime-observability.ts` — observability wrapper for local synthesis
 
 **Docs**
 
@@ -301,6 +300,6 @@ The docs pipeline does not use an LLM step. `bun run docs:generate` writes the c
 
 ## Logs
 
-- `.runtime/logs/mastra.log` — structured runtime server/tool logs
-- `.runtime/logs/mastra-observability.json` — observability snapshot containing manual LM Studio `model_generation` traces
+- `.runtime/logs/fpf-runtime.log` — structured runtime server/tool logs
+- `.runtime/logs/runtime-observability.json` — observability snapshot containing manual LM Studio `model_generation` traces
 - `.runtime/logs/ai-traces.jsonl` — request/response/error traces for local LM Studio synthesis calls

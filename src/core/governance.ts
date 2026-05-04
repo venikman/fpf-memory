@@ -15,7 +15,6 @@ export const CONTEXT_IDS = [
   'Ctx.Docs',
   'Ctx.Build',
   'Ctx.Infra',
-  'Ctx.Compat.Mastra',
 ] as const;
 
 export type ContextId = (typeof CONTEXT_IDS)[number];

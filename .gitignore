@@ -6,9 +6,9 @@ FPF-spec.md
 !published/current/FPF-Spec.md
 dist
 doc_build
-.mastra
 .runtime
 .fpf-upstream
+.vercel-staged
 docs/generated/
 docs/index.md
 docs/patterns.md
@@ -19,8 +19,6 @@ docs/patterns.md
 output.txt
 *.db
 *.db-*
-.mastra-project.json
 .vercel
 package-lock.json
-src/mastra/public
 .DS_Store

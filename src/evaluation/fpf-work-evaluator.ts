@@ -429,8 +429,6 @@ function scorePlanRunSplit(
     contains(facts, 'packageJson', '"deploy": "bun run vercel:origin:deploy:prod"') &&
     !contains(facts, 'packageJson', ['vercel', 'pro' + 'xy'].join(':'));
   const ciDoesDryRun =
-    (contains(facts, 'ciWorkflow', 'bun run stage:from-published') &&
-      contains(facts, 'ciWorkflow', 'bun run mastra:build')) ||
     (contains(facts, 'ciWorkflow', 'bun run vercel:origin:build') &&
       contains(facts, 'ciWorkflow', '.vercel/output/functions/index.func'));
   const localPublishOwner =
@@ -527,7 +525,6 @@ function scoreSelectedPublication(
     contains(facts, 'docsIndex', '[Patterns]') &&
     contains(facts, 'docsIndex', '[Routes]');
   const deploySelectsHostedAssets =
-    contains(facts, 'ciWorkflow', '.mastra/output/hosted') ||
     contains(facts, 'ciWorkflow', 'bun run vercel:origin:build');
   const packageHasPublicationCommands =
     contains(facts, 'packageJson', '"publish:current"') &&

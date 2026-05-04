@@ -16,10 +16,11 @@ import {
 import { applyHostedEnvDefaults } from '../src/composition/hosted-env.js';
 
 /**
- * Hosted deploys run from a Mastra bundle whose working directory contains
- * `hosted/FPF-Spec.md` and `hosted/fpf-index/snapshot.json`. Local repo runs
- * do not. `applyHostedEnvDefaults` should only redirect to the hosted staged
- * paths when those files are actually present relative to the runtime root.
+ * Hosted deploys run from a Vercel function bundle whose working directory
+ * contains `hosted/FPF-Spec.md` and `hosted/fpf-index/snapshot.json`. Local
+ * repo runs do not. `applyHostedEnvDefaults` should only redirect to the
+ * hosted staged paths when those files are actually present relative to the
+ * runtime root.
  */
 describe('applyHostedEnvDefaults', () => {
   let tempRoot: string;
@@ -77,7 +78,7 @@ describe('applyHostedEnvDefaults', () => {
   });
 
   it('discovers hosted staged files from the bundle module root when cwd lacks them', async () => {
-    const bundleRoot = resolve(tempRoot, '.mastra/output');
+    const bundleRoot = resolve(tempRoot, '.vercel/output/functions/index.func');
     const bundleModulePath = resolve(bundleRoot, 'chunks/runtime.mjs');
 
     await writeHostedStage(bundleRoot);

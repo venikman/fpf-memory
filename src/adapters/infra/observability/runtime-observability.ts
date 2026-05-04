@@ -1,23 +1,16 @@
-import {
-  SpanType,
-  type FeedbackEvent,
-  type LogEvent,
-  type MetricEvent,
-  type ScoreEvent,
-  type SpanTypeMap,
-  type TracingEvent,
-} from '@mastra/core/observability';
-import { Observability, TestExporter } from '@mastra/observability';
+import { writeFile } from 'node:fs/promises';
 
 import { resolveLogPath } from '../../../logging/file-paths.js';
 import type { ObservabilityConfig } from '../config/types.js';
 
-const DEFAULT_LOG_FILE = 'mastra-observability.json';
+const DEFAULT_LOG_FILE = 'runtime-observability.json';
 
-interface PersistedExporterOptions {
-  filePath: string;
-  format: ObservabilityConfig['format'];
-}
+export const RuntimeSpanType = {
+  ModelGeneration: 'model_generation',
+  ModelChunk: 'model_chunk',
+} as const;
+
+export type RuntimeSpanTypeValue = (typeof RuntimeSpanType)[keyof typeof RuntimeSpanType];
 
 export interface RuntimeObservabilitySummary {
   configured: boolean;
@@ -28,70 +21,116 @@ export interface RuntimeObservabilitySummary {
   excludeModelChunks: boolean;
 }
 
-interface RuntimeObservabilityHandle extends RuntimeObservabilitySummary {
-  observability: Observability;
+export interface RuntimeSpanRecord {
+  id: string;
+  type: RuntimeSpanTypeValue;
+  name: string;
+  startedAt: string;
+  endedAt?: string;
+  durationMs?: number;
+  input?: unknown;
+  output?: unknown;
+  attributes?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  errorInfo?: {
+    message: string;
+    name?: string;
+    stack?: string;
+  };
 }
 
-class PersistedTestExporter extends TestExporter {
-  readonly name = 'persisted-test-exporter';
+interface RuntimeObservabilityHandle extends RuntimeObservabilitySummary {
+  recorder: RuntimeObservabilityRecorder;
+}
+
+class RuntimeObservabilityRecorder {
+  private readonly spans: RuntimeSpanRecord[] = [];
   private writeChain = Promise.resolve();
 
-  constructor(private readonly options: PersistedExporterOptions) {
-    super({
-      jsonIndent: 2,
-      logLevel: 'error',
-      logMetricsOnFlush: false,
-      storeLogs: true,
-      validateLifecycle: true,
+  constructor(private readonly summary: RuntimeObservabilitySummary) {}
+
+  startSpan(options: {
+    type: RuntimeSpanTypeValue;
+    name: string;
+    input?: unknown;
+    attributes?: Record<string, unknown>;
+    metadata?: Record<string, unknown>;
+  }): RuntimeSpanRecord {
+    const span: RuntimeSpanRecord = {
+      id: crypto.randomUUID(),
+      type: options.type,
+      name: options.name,
+      startedAt: new Date().toISOString(),
+      input: sanitizePayload(options.input),
+      attributes: sanitizeRecord(options.attributes),
+      metadata: sanitizeRecord(options.metadata),
+    };
+    this.spans.push(span);
+    return span;
+  }
+
+  endSpan(span: RuntimeSpanRecord, output?: unknown): void {
+    const endedAt = new Date();
+    span.endedAt = endedAt.toISOString();
+    span.durationMs = Math.max(0, endedAt.getTime() - Date.parse(span.startedAt));
+    span.output = sanitizePayload(output);
+  }
+
+  failSpan(
+    span: RuntimeSpanRecord,
+    error: Error,
+    metadata?: Record<string, unknown>,
+  ): void {
+    const endedAt = new Date();
+    span.endedAt = endedAt.toISOString();
+    span.durationMs = Math.max(0, endedAt.getTime() - Date.parse(span.startedAt));
+    span.metadata = sanitizeRecord({
+      ...(span.metadata ?? {}),
+      ...(metadata ?? {}),
     });
+    span.errorInfo = {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    };
   }
 
-  protected override async _exportTracingEvent(event: TracingEvent): Promise<void> {
-    await super._exportTracingEvent(event);
-    await this.persist();
-  }
-
-  override async onLogEvent(event: LogEvent): Promise<void> {
-    await super.onLogEvent(event);
-    await this.persist();
-  }
-
-  override async onMetricEvent(event: MetricEvent): Promise<void> {
-    await super.onMetricEvent(event);
-    await this.persist();
-  }
-
-  override async onScoreEvent(event: ScoreEvent): Promise<void> {
-    await super.onScoreEvent(event);
-    await this.persist();
-  }
-
-  override async onFeedbackEvent(event: FeedbackEvent): Promise<void> {
-    await super.onFeedbackEvent(event);
-    await this.persist();
-  }
-
-  override async flush(): Promise<void> {
-    await super.flush();
-    await this.persist();
-  }
-
-  override async shutdown(): Promise<void> {
-    await this.flush();
-    await super.shutdown();
-  }
-
-  private async persist(): Promise<void> {
+  async flush(): Promise<void> {
     const writeOperation = this.writeChain.then(() =>
-      this.writeToFile(this.options.filePath, {
-        indent: 2,
-        includeEvents: true,
-        includeStats: true,
-        format: this.options.format,
-      }),
+      writeFile(
+        this.summary.filePath,
+        `${JSON.stringify(this.snapshot(), null, 2)}\n`,
+        'utf8',
+      ),
     );
     this.writeChain = writeOperation.catch(() => undefined);
     await writeOperation;
+  }
+
+  async shutdown(): Promise<void> {
+    await this.flush();
+  }
+
+  private snapshot(): Record<string, unknown> {
+    return {
+      service: 'fpf-spec-runtime',
+      format: this.summary.format,
+      includeInternalSpans: this.summary.includeInternalSpans,
+      logLevel: this.summary.logLevel,
+      excludeModelChunks: this.summary.excludeModelChunks,
+      stats: {
+        spans: this.spans.length,
+        errors: this.spans.filter((span) => span.errorInfo).length,
+      },
+      events: this.visibleSpans(),
+    };
+  }
+
+  private visibleSpans(): RuntimeSpanRecord[] {
+    return this.spans.filter(
+      (span) =>
+        !(this.summary.excludeModelChunks && span.type === RuntimeSpanType.ModelChunk),
+    );
   }
 }
 
@@ -109,37 +148,12 @@ export function getRuntimeObservability(
   }
 
   if (cachedHandle) {
-    void cachedHandle.observability.shutdown().catch(() => undefined);
+    void cachedHandle.recorder.shutdown().catch(() => undefined);
   }
-
-  const exporter = new PersistedTestExporter({
-    filePath: summary.filePath,
-    format: summary.format,
-  });
-  const observability = new Observability({
-    configs: {
-      default: {
-        serviceName: config.serviceName,
-        exporters: [exporter],
-        includeInternalSpans: summary.includeInternalSpans,
-        excludeSpanTypes: summary.excludeModelChunks ? [SpanType.MODEL_CHUNK] : [],
-        logging: {
-          enabled: true,
-          level: summary.logLevel,
-        },
-        serializationOptions: {
-          maxStringLength: 8_000,
-          maxDepth: 8,
-          maxArrayLength: 24,
-          maxObjectKeys: 40,
-        },
-      },
-    },
-  });
 
   cachedHandle = {
     ...summary,
-    observability,
+    recorder: new RuntimeObservabilityRecorder(summary),
   };
   cachedKey = cacheKey;
   return cachedHandle;
@@ -151,12 +165,12 @@ export function getRuntimeObservabilitySummary(
   return resolveRuntimeObservabilitySummary(config);
 }
 
-export async function withRuntimeSpan<TType extends SpanType, TResult>(options: {
+export async function withRuntimeSpan<TResult>(options: {
   observabilityConfig?: ObservabilityConfig;
-  type: TType;
+  type: RuntimeSpanTypeValue;
   name: string;
   input?: unknown;
-  attributes?: SpanTypeMap[TType];
+  attributes?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
   mapOutput?: (result: TResult) => unknown;
   operation: () => Promise<TResult>;
@@ -166,12 +180,7 @@ export async function withRuntimeSpan<TType extends SpanType, TResult>(options: 
   }
 
   const handle = getRuntimeObservability(options.observabilityConfig);
-  const instance = handle.observability.getDefaultInstance();
-  if (!instance) {
-    return options.operation();
-  }
-
-  const span = instance.startSpan({
+  const span = handle.recorder.startSpan({
     type: options.type,
     name: options.name,
     input: options.input,
@@ -181,24 +190,21 @@ export async function withRuntimeSpan<TType extends SpanType, TResult>(options: 
 
   try {
     const result = await options.operation();
-    span.end({
-      output: options.mapOutput ? options.mapOutput(result) : result,
-    });
+    handle.recorder.endSpan(
+      span,
+      options.mapOutput ? options.mapOutput(result) : result,
+    );
     return result;
   } catch (error) {
-    span.error({
-      error: toError(error),
-      endSpan: true,
-      metadata: options.metadata,
-    });
+    handle.recorder.failSpan(span, toError(error), options.metadata);
     throw error;
   } finally {
-    await instance.flush();
+    await handle.recorder.flush();
   }
 }
 
 export async function resetRuntimeObservabilityForTests(): Promise<void> {
-  await cachedHandle?.observability.shutdown().catch(() => undefined);
+  await cachedHandle?.recorder.shutdown().catch(() => undefined);
   cachedHandle = undefined;
   cachedKey = undefined;
 }
@@ -214,6 +220,41 @@ function resolveRuntimeObservabilitySummary(
     logLevel: config.logLevel,
     excludeModelChunks: config.excludeModelChunks,
   };
+}
+
+function sanitizeRecord(value: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
+  const sanitized = sanitizePayload(value);
+  return isRecord(sanitized) ? sanitized : undefined;
+}
+
+function sanitizePayload(value: unknown, depth = 0): unknown {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value === null || typeof value === 'boolean' || typeof value === 'number') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    return value.length > 8_000 ? `${value.slice(0, 8_000)}...` : value;
+  }
+  if (depth >= 8) {
+    return '[MaxDepth]';
+  }
+  if (Array.isArray(value)) {
+    return value.slice(0, 24).map((item) => sanitizePayload(item, depth + 1));
+  }
+  if (isRecord(value)) {
+    return Object.fromEntries(
+      Object.entries(value)
+        .slice(0, 40)
+        .map(([key, entry]) => [key, sanitizePayload(entry, depth + 1)]),
+    );
+  }
+  return String(value);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function toError(value: unknown): Error {

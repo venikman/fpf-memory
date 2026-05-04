@@ -187,7 +187,7 @@ function defaultFileTexts(): FpfWorkFacts['fileTexts'] {
       '"predeploy": "bun run stage:from-published"',
       [
         '"vercel:origin:build": "bun run predeploy',
-        '&& FPF_MASTRA_DEPLOY_TARGET=vercel bun run mastra:build',
+        '&& bun run build:vercel-origin',
         '&& bun run bench:vercel:function-size"',
       ].join(' '),
       '"deploy": "bun run vercel:origin:deploy:prod"',

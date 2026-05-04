@@ -25,7 +25,7 @@ describe('Vercel MCP origin config', () => {
       'vercel link --project fpf-memory-mcp-vercel-origin',
     );
     expect(packageJson.scripts['vercel:origin:build']).toBe(
-      'bun run predeploy && FPF_MASTRA_DEPLOY_TARGET=vercel bun run mastra:build && bun run bench:vercel:function-size',
+      'bun run predeploy && bun run build:vercel-origin && bun run bench:vercel:function-size',
     );
     expect(packageJson.scripts.deploy).toBe('bun run vercel:origin:deploy:prod');
     const retiredScriptPrefix = ['vercel', 'pro' + 'xy'].join(':');

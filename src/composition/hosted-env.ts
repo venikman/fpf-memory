@@ -14,9 +14,8 @@ export interface HostedEnvDefaultsOptions {
 /**
  * Layer hosted defaults on top of the caller env only when the runtime
  * root actually contains the staged `hosted/…` inputs. That is true in
- * the built Mastra bundle (`.mastra/output/hosted/…`) and false in a
- * normal repo checkout, where falling back to `published/current/…`
- * keeps local startup working.
+ * the Vercel function bundle and false in a normal repo checkout, where
+ * falling back to `published/current/…` keeps local startup working.
  *
  * Explicit env vars still win when they resolve to real runtime inputs.
  * Stale hosted env vars from older deploys should not strand production

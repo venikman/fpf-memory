@@ -16,7 +16,7 @@ Canonical MCP endpoint:
 https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp
 ```
 
-The direct Vercel origin is the only hosted endpoint documented for clients. The runtime still uses the Mastra MCP framework and `@mastra/deployer-vercel` to build the Vercel output, but production hosting is Vercel-owned.
+The direct Vercel origin is the only hosted endpoint documented for clients. The runtime uses the official MCP SDK directly and emits Vercel Build Output API files without an intermediate framework deployer.
 
 Validation snapshot on 2026-05-04:
 
@@ -28,7 +28,7 @@ The 75-call mixed sample still had read/query tail spikes, so treat p95 latency 
 
 ## Vercel setup
 
-The Vercel project runs the Mastra MCP runtime on Vercel using `@mastra/deployer-vercel`.
+The Vercel project runs the direct MCP runtime as a Vercel function.
 The repo-root `vercel.json` pins GitHub preview builds to `bun run vercel:origin:build`, which stages the hosted spec snapshot, creates the Vercel Build Output API bundle, and runs the bundle-size guard.
 
 ```bash
@@ -43,7 +43,7 @@ Known direct-origin constraints:
 - The local prebuilt Vercel function bundle is about 211 MB, close enough to Vercel's 250 MB function bundle limit that `bun run bench:vercel:function-size` remains a release gate.
 - Vercel functions can read the bundled `hosted/FPF-Spec.md` and seed the bundled snapshot into `/tmp`; mutable runtime artifacts and logs must use `/tmp`.
 - Preview deployments may be protected by Vercel Authentication; smoke the production alias or use an automation bypass token.
-- Keep `@mastra/deployer-vercel`, `@mastra/deployer`, `@mastra/server`, and `@mastra/core` on compatible Mastra minor lines. This repo currently pins the Vercel deployer and overrides deployer/server packages to match `@mastra/core@1.24.x`.
+- The generated `.vercel/output/functions/index.func` directory is the deployment artifact; keep the build-output shape covered by `bun run vercel:origin:build`.
 
 ## Cost comparison
 

@@ -1,4 +1,4 @@
-import { createTool } from '@mastra/core/tools';
+import type { z } from 'zod';
 
 import {
   asSessionId,
@@ -47,6 +47,26 @@ export interface McpToolDependencies {
   discoveryAppService: DiscoveryAppService;
 }
 
+export interface FpfMcpTool<
+  TInputSchema extends z.ZodType = z.ZodType,
+  TOutputSchema extends z.ZodType = z.ZodType,
+> {
+  id: string;
+  description: string;
+  inputSchema: TInputSchema;
+  outputSchema: TOutputSchema;
+  execute: (input: z.infer<TInputSchema>) => Promise<z.infer<TOutputSchema>>;
+}
+
+export type FpfMcpToolMap = Record<string, FpfMcpTool>;
+
+function createFpfMcpTool<
+  TInputSchema extends z.ZodType,
+  TOutputSchema extends z.ZodType,
+>(tool: FpfMcpTool<TInputSchema, TOutputSchema>): FpfMcpTool<TInputSchema, TOutputSchema> {
+  return tool;
+}
+
 export function createMcpTools(dependencies: McpToolDependencies) {
   const runQuery = async (input: {
     question: string;
@@ -63,7 +83,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
       }),
     );
 
-  const refreshFpfIndexTool = createTool({
+  const refreshFpfIndexTool = createFpfMcpTool({
     id: 'refresh_fpf_index',
     description:
       'Build or rebuild the compiler-backed vectorless FPF index from the configured spec source and persist the artifact set.',
@@ -73,7 +93,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
       unwrapOutcome(await dependencies.refreshAppService.refresh({ force: force ?? false })),
   });
 
-  const queryFpfSpecTool = createTool({
+  const queryFpfSpecTool = createFpfMcpTool({
     id: 'query_fpf_spec',
     description:
       'Answer questions against the compiler-backed vectorless FPF runtime with auditable IDs, citations, constraints, and freshness metadata.',
@@ -88,7 +108,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
       }),
   });
 
-  const askFpfTool = createTool({
+  const askFpfTool = createFpfMcpTool({
     id: 'ask_fpf',
     description:
       'Return an FPF answer in markdown with grounding metadata using the compiler-backed vectorless runtime.',
@@ -105,7 +125,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
     },
   });
 
-  const getFpfIndexStatusTool = createTool({
+  const getFpfIndexStatusTool = createFpfMcpTool({
     id: 'get_fpf_index_status',
     description:
       'Inspect whether the current FPF runtime index exists, whether it is fresh against the current source hash, and which artifacts are present.',
@@ -114,7 +134,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
     execute: async () => unwrapOutcome(await dependencies.refreshAppService.status()),
   });
 
-  const inspectFpfNodeTool = createTool({
+  const inspectFpfNodeTool = createFpfMcpTool({
     id: 'inspect_fpf_node',
     description:
       'Inspect one compiled FPF node by exact ID, route name, or lexeme and return anchors plus neighboring relations.',
@@ -130,7 +150,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
       ),
   });
 
-  const readFpfDocTool = createTool({
+  const readFpfDocTool = createFpfMcpTool({
     id: 'read_fpf_doc',
     description:
       'Resolve one FPF selector to the canonical generated markdown page and return exact text plus stable markdown/static paths.',
@@ -146,7 +166,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
       ),
   });
 
-  const inspectFpfAnchorTool = createTool({
+  const inspectFpfAnchorTool = createFpfMcpTool({
     id: 'inspect_fpf_anchor',
     description:
       'Inspect one compiled FPF anchor by exact anchor ID and return raw anchor text plus owning node context.',
@@ -161,7 +181,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
       ),
   });
 
-  const expandFpfCitationsTool = createTool({
+  const expandFpfCitationsTool = createFpfMcpTool({
     id: 'expand_fpf_citations',
     description:
       'Expand multiple exact citation IDs into raw anchor text plus owning node context without adding new semantics.',
@@ -176,7 +196,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
       ),
   });
 
-  const traceFpfPathTool = createTool({
+  const traceFpfPathTool = createFpfMcpTool({
     id: 'trace_fpf_path',
     description:
       'Return the deterministic retrieval trace showing normalization, candidate scores, graph expansion, and selected slices.',
@@ -193,7 +213,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
       ),
   });
 
-  const browseFpfCatalogTool = createTool({
+  const browseFpfCatalogTool = createFpfMcpTool({
     id: 'browse_fpf_catalog',
     description:
       'Browse the FPF catalog of compiled patterns, routes, and lexicon entries. Filter by part, status, or kind to discover relevant material before drilling into individual nodes.',
@@ -211,7 +231,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
       ),
   });
 
-  const searchFpfTool = createTool({
+  const searchFpfTool = createFpfMcpTool({
     id: 'search_fpf',
     description:
       'Full-text search across all compiled FPF nodes. Returns ranked hits with contextual snippets. Use this to find patterns, routes, or lexicon entries by keyword or concept.',
