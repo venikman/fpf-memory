@@ -99,14 +99,16 @@ describe('docs projection', () => {
     expect(patternPage).toContain('## How to use this pattern');
     expect(patternPage).toContain('## Problem frame');
     expect(patternPage).not.toContain('## A.2:1 - Problem frame');
-    // The ID renders as an eyebrow chip ABOVE the H1 (was a boxed
-    // blockquote strip before PR #72 design review). The byline below
-    // the H1 carries status/type/normativity but no longer repeats the
-    // ID or Part — the breadcrumb already covers Part.
-    expect(patternPage).toContain(
-      '<div class="fpf-pattern-eyebrow"><span class="fpf-pid fpf-pid--a">A.2</span></div>',
+    // The ID + status/type/normativity/cluster/part render as ONE
+    // inline mono byline directly under the H1 (was a boxed blockquote
+    // before PR #72 design review, then briefly an eyebrow above + a
+    // separate byline below — collapsed into one line per the design
+    // review screenshots).
+    expect(patternPage).toMatch(
+      /<p class="fpf-pattern-byline"><span class="fpf-pid fpf-pid--a">A\.2<\/span>/,
     );
     expect(patternPage).not.toContain('> Pattern <span class="fpf-pid');
+    expect(patternPage).not.toContain('class="fpf-pattern-eyebrow"');
     expect(patternPage).not.toContain('- **ID:** `A.2`');
   });
 
@@ -233,9 +235,12 @@ describe('docs projection', () => {
       const rootIndex = await readFile(resolve(docsRoot, 'index.md'), 'utf8');
       expect(rootIndex).toContain('pageType: home');
       expect(rootIndex).toContain('title: FPF Reference');
-      expect(rootIndex).toContain('  name: FPF Reference');
+      // Kicker now carries brand + role per PR #72 design review.
+      expect(rootIndex).toContain('FPF Reference');
+      expect(rootIndex).toContain('Projection of the latest published spec');
       expect(rootIndex).toContain('Small, grounded entry points to the framework');
-      expect(rootIndex).toContain('text: Adoption guide');
+      // Primary CTA verb-prefixed; secondary actions stay as plain text.
+      expect(rootIndex).toContain('Open the adoption guide');
       expect(rootIndex).toContain('link: /start-here');
       expect(rootIndex).toContain('text: Work packets');
       expect(rootIndex).toContain('link: /work-packets');
@@ -317,10 +322,12 @@ describe('docs projection', () => {
       );
 
       // `/` is the orientation/welcome page (pageType: home with hero +
-      // feature grid). Hero copy + 'Adoption guide' action should be present.
+      // feature grid). Hero copy + adoption-guide CTA should be present.
       const indexHtml = await readFile(resolve(outDir, 'index.html'), 'utf8');
       expect(indexHtml).toContain('FPF Reference');
-      expect(indexHtml).toContain('Adoption guide');
+      // Primary CTA copy now reads "Open the adoption guide" with a
+      // leading arrow per PR #72 design review.
+      expect(indexHtml).toContain('Open the adoption guide');
 
       // `/patterns` is the short-URL Pattern Catalog. Verify it lists Part A
       // Role Taxonomy and points back at the orientation page.

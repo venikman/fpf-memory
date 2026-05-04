@@ -431,12 +431,22 @@ function renderHomeFrontMatter(patternCount: number): string {
     'title: FPF Reference',
     'description: Compiler-backed reference for the latest published FPF, projected as a slim wiki.',
     'hero:',
-    '  name: FPF Reference',
-    '  text: Small, grounded entry points to the framework',
-    '  tagline: Use the full First Principles Framework instead of pasting the whole specification into every conversation. Adoption landing for the published reference — not the spec, not a release page.',
+    // The "name" slot renders as the small mono kicker above the H1.
+    // Extended per PR #72 design review to carry the static framing
+    // ("projection of the latest published spec") so the kicker reads
+    // as both brand + role.
+    '  name: "FPF Reference · Projection of the latest published spec"',
+    '  text: Small, grounded entry points to the framework.',
+    // Tagline tightened per design review — closes with "the doorways"
+    // to forward-link to the index list of stable anchors below.
+    '  tagline: Use the full First Principles Framework instead of pasting the whole specification into every conversation. Not the spec, not a release page — the doorways.',
     '  actions:',
+    // Primary CTA carries an inline arrow + verb ("Open the adoption
+    // guide") so it reads as the action it is. Secondary actions stay
+    // as plain text links — the arrow on those was redundant once the
+    // primary already had one.
     '    - theme: brand',
-    '      text: Adoption guide',
+    '      text: "→ Open the adoption guide"',
     '      link: /start-here',
     '    - theme: alt',
     '      text: Work packets',
@@ -584,17 +594,23 @@ function renderPatternPage(snapshot: Snapshot, pattern: PatternRecord): string {
   // Title prefixes the pattern ID so rspress's search ranks exact-ID
   // queries onto the canonical page. Without the ID in the title field,
   // searching `A.1` matched bodies that mention `A.1` more often than
-  // the actual A.1 page (FU-P2-008). The H1 stays as the title alone so
-  // the visible page heading isn't redundant with the ID chip above it.
+  // the actual A.1 page (FU-P2-008). The H1 stays as the title alone.
   //
-  // The ID renders as an eyebrow ABOVE the H1 (not inside it) and the
-  // status/type/normativity render as a single small byline UNDER the
-  // H1 — replacing the previous boxed blockquote strip ("Pattern A.12 ·
-  // Stable · Part A — Kernel Architecture Cluster") which repeated info
-  // already in the breadcrumb (PR #72 design review). Part is omitted
-  // here because the breadcrumb above already shows it.
-  const bylineParts = [pattern.status, pattern.type, pattern.normativity]
-    .filter((part): part is string => Boolean(part));
+  // ONE byline directly under the H1 carries chip + status/type/
+  // normativity + cluster + part, all on one mono line. Replaces the
+  // previous double-take treatment (eyebrow chip ABOVE the H1 +
+  // separate status byline BELOW) per PR #72 design review — chip and
+  // status form a single identifying signature, not two stacked items.
+  const bylineMeta = [
+    pattern.cluster,
+    pattern.status,
+    pattern.type,
+    pattern.normativity,
+    pattern.part,
+  ].filter((part): part is string => Boolean(part));
+  const bylineMetaHtml = bylineMeta.length > 0
+    ? bylineMeta.map((part) => escapeHtml(part)).join(' · ')
+    : '';
   const lines = [
     renderFrontMatter({
       title: `${pattern.id} ${pattern.title}`,
@@ -602,16 +618,9 @@ function renderPatternPage(snapshot: Snapshot, pattern: PatternRecord): string {
     }),
     renderBreadcrumb(buildPatternBreadcrumb(pattern)),
     '',
-    `<div class="fpf-pattern-eyebrow">${patternIdChip(pattern.id)}</div>`,
-    '',
     `# ${pattern.title}`,
+    `<p class="fpf-pattern-byline">${patternIdChip(pattern.id)}${bylineMetaHtml ? ` <span class="fpf-pattern-byline__meta">· ${bylineMetaHtml}</span>` : ''}</p>`,
   ];
-
-  if (bylineParts.length > 0) {
-    lines.push(
-      `<p class="fpf-pattern-byline">${bylineParts.map((part) => escapeHtml(part)).join(' · ')}</p>`,
-    );
-  }
 
   appendPatternContext(lines, pattern);
 

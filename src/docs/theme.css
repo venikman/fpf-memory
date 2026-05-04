@@ -149,6 +149,22 @@ body {
   font-family: var(--fpf-font-display);
   font-weight: 650;
   letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Brand-mark accent dot (■) restored from the original mark per PR
+   #72 design review. The square is a pseudo-element so it doesn't
+   require touching rspress's brand-link DOM. Color matches the active
+   nav-state accent — same role as "active state". */
+.rp-nav__title__link.rp-nav__title__link::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  background: var(--fpf-accent);
+  flex-shrink: 0;
 }
 
 .rp-nav-menu.rp-nav-menu {
@@ -888,13 +904,9 @@ html.dark .rp-sidebar-item--active.rp-sidebar-item--active {
   border-radius: 0;
 }
 
-.rp-home-hero__action.rp-button--alt::after {
-  content: ' →';
-  margin-left: 4px;
-  color: var(--fpf-ink-3);
-  transition: color 120ms ease, transform 120ms ease;
-  display: inline-block;
-}
+/* Secondary text links no longer carry their own arrow — the primary
+   CTA's leading "→" already telegraphs "click to do something" so
+   adding arrows on every link is redundant (PR #72 design review). */
 
 .rp-home-hero__action.rp-button--alt:hover,
 .rp-button--alt.rp-home-hero__action:hover {
@@ -903,11 +915,6 @@ html.dark .rp-sidebar-item--active.rp-sidebar-item--active {
   color: var(--fpf-accent);
   text-decoration-color: var(--fpf-accent);
   text-decoration-thickness: 2px;
-}
-
-.rp-home-hero__action.rp-button--alt:hover::after {
-  color: var(--fpf-accent);
-  transform: translateX(2px);
 }
 
 /* 8.6 — Feature deck as a 4-row index list (PR #72 design review).
@@ -1254,21 +1261,29 @@ html body .rp-home-feature__card .rp-home-feature__title-wrapper.rp-home-feature
   font-size: 13px;
 }
 
-/* ───────── 12.5. Pattern page eyebrow + byline (PR #72 design review) ─────────
+/* ───────── 12.5. Pattern page byline (PR #72 design review) ─────────
  *
- * The previous lead-strip rendered as a blockquote with "Pattern A.12 ·
- * Stable · Part A — Kernel Architecture Cluster" — repeating info the
- * breadcrumb already showed. Replaced by:
- *   - .fpf-pattern-eyebrow: clean accent-bordered ID chip ABOVE the H1
- *   - .fpf-pattern-byline: small muted line UNDER the H1 with status only
+ * One inline mono byline under the H1 carrying:
+ *   [A.12]  ·  C-2  ·  stable  ·  normative  ·  Part A
+ *   (chip)  · cluster · status · normativity · part
  *
- * Accent role: "FPF identifier" (the chip). The byline is plain ink-3
- * — no accent. */
-.rspress-doc .fpf-pattern-eyebrow {
-  margin-bottom: 8px;
-  margin-top: 4px;
+ * Chip first (accent-bordered, role "FPF identifier"), meta after in
+ * uppercase ink-3 mono. Replaces the previous boxed blockquote AND
+ * the separate-eyebrow-above-H1 treatment — one line, one signature.
+ *
+ * Accent role on this page: ID chip border + outline-active state.
+ * Nothing else gets accent. */
+.rspress-doc .fpf-pattern-byline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: -8px;
+  margin-bottom: 28px;
+  font-family: var(--fpf-font-mono);
+  font-size: 12px;
 }
-.rspress-doc .fpf-pattern-eyebrow .fpf-pid {
+.rspress-doc .fpf-pattern-byline .fpf-pid {
   display: inline-block;
   font-family: var(--fpf-font-mono);
   font-size: 13px;
@@ -1280,45 +1295,51 @@ html body .rp-home-feature__card .rp-home-feature__title-wrapper.rp-home-feature
   background: transparent;
   border-radius: 0;
 }
-.rspress-doc .fpf-pattern-byline {
-  font-family: var(--fpf-font-mono);
-  font-size: 12px;
+.rspress-doc .fpf-pattern-byline__meta {
   color: var(--fpf-ink-3);
-  margin-top: -4px;
-  margin-bottom: 24px;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  font-size: 11px;
 }
 
-/* ───────── 12.6. Home byline / publication provenance (PR #72 design review) ─────────
+/* ───────── 12.6. Header publication provenance (PR #72 design review) ─────────
  *
- * One muted mono line directly under the hero deck so newcomers can see
- * "which spec are you reading" without scrolling to the bottom. The hash
- * uses tabular numerals + word-break so the long sha256 doesn't break
- * the reading column on narrow viewports. */
-.rspress-doc .fpf-home-byline {
+ * Tiny mono "as of <upstream-short-ref> · <date>" line in the nav left,
+ * right after the brand mark. Tells newcomers — at a glance, on every
+ * page — which spec snapshot they're reading. The full upstream ref
+ * and ISO date are exposed via title= for hover/copy. Hidden on narrow
+ * widths to keep the mobile nav clean. */
+.fpf-header-provenance {
   font-family: var(--fpf-font-mono);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--fpf-ink-3);
-  margin: 8px 0 32px 0;
-  line-height: 1.5;
   letter-spacing: 0;
+  margin-left: 16px;
+  padding-left: 16px;
+  border-left: 1px solid var(--fpf-rule);
+  white-space: nowrap;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
-.rspress-doc .fpf-home-byline__label {
+.fpf-header-provenance__label {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--fpf-ink-3);
-  margin-right: 4px;
 }
-.rspress-doc .fpf-home-byline code,
-.rspress-doc .fpf-home-byline__hash {
+.fpf-header-provenance code {
   font-family: var(--fpf-font-mono);
   background: transparent;
   border: 0;
   padding: 0;
   color: var(--fpf-ink-2);
-  word-break: break-all;
-  font-size: 12px;
+  font-size: 11px;
+}
+@media (width <= 900px) {
+  .fpf-header-provenance {
+    display: none;
+  }
 }
 
 /* ───────── 13. Skip-to-content link (R5-P1-003) ─────────
