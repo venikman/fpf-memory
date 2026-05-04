@@ -156,11 +156,17 @@ body {
   letter-spacing: 0;
 }
 
-.rp-nav-menu__item:hover .rp-nav-menu__item__container,
-.rp-nav-menu__item--active .rp-nav-menu__item__container {
+/* Hover/active: change colour only. Rspress's default rules set the
+   active container to 14px / 500, which reflowed the whole nav row on
+   hover (each item resized → adjacent items jumped). The doubled
+   `__container.__container` selector beats rspress's specificity so the
+   12px / 400 metrics stay constant; the colour change is the only
+   affordance. */
+.rp-nav-menu__item:hover .rp-nav-menu__item__container.rp-nav-menu__item__container,
+.rp-nav-menu__item--active .rp-nav-menu__item__container.rp-nav-menu__item__container {
   color: var(--fpf-accent);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .rp-nav-menu__divider.rp-nav-menu__divider {
