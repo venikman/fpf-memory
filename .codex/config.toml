@@ -1,4 +1,4 @@
 #:schema https://developers.openai.com/codex/config-schema.json
 
 [mcp_servers.fpf_memory]
-url = "https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp"
+url = "https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp"

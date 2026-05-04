@@ -64,7 +64,7 @@ export default defineConfig({
         link: '/connect-mcp',
       },
       {
-        text: 'Vercel Proxy',
+        text: 'Vercel MCP Hosting',
         link: '/vercel-proxy',
       },
       {

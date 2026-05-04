@@ -11,6 +11,7 @@ import {
   DEFAULT_SOURCE_PATH,
   HOSTED_STAGED_ARTIFACT_DIR,
   HOSTED_STAGED_SOURCE_PATH,
+  SERVERLESS_ARTIFACT_DIR,
 } from '../src/core/constants.js';
 import { applyHostedEnvDefaults } from '../src/composition/hosted-env.js';
 
@@ -58,6 +59,17 @@ describe('applyHostedEnvDefaults', () => {
 
     expect(runtime.sourcePath).toBe(HOSTED_STAGED_SOURCE_PATH);
     expect(runtime.artifactDir).toBe(HOSTED_STAGED_ARTIFACT_DIR);
+  });
+
+  it('uses a writable artifact directory on Vercel when hosted files exist', async () => {
+    await writeHostedStage(tempRoot);
+
+    const runtime = parseRuntimeCoreConfig(
+      applyHostedEnvDefaults({ VERCEL: '1' } as NodeJS.ProcessEnv, { cwd: tempRoot }),
+    );
+
+    expect(runtime.sourcePath).toBe(HOSTED_STAGED_SOURCE_PATH);
+    expect(runtime.artifactDir).toBe(SERVERLESS_ARTIFACT_DIR);
   });
 
   it('discovers hosted staged files from the bundle module root when cwd lacks them', async () => {
@@ -132,6 +144,17 @@ describe('applyHostedEnvDefaults', () => {
     } as NodeJS.ProcessEnv, { cwd: tempRoot });
     expect(env.FPF_SPEC_SOURCE_PATH).toBe(customSpecPath);
     expect(env.FPF_RUNTIME_ARTIFACT_DIR).toBe(HOSTED_STAGED_ARTIFACT_DIR);
+  });
+
+  it('moves an explicit hosted artifact dir to tmp on Vercel', async () => {
+    await writeHostedStage(tempRoot);
+
+    const env = applyHostedEnvDefaults({
+      VERCEL: '1',
+      FPF_RUNTIME_ARTIFACT_DIR: HOSTED_STAGED_ARTIFACT_DIR,
+    } as NodeJS.ProcessEnv, { cwd: tempRoot });
+
+    expect(env.FPF_RUNTIME_ARTIFACT_DIR).toBe(SERVERLESS_ARTIFACT_DIR);
   });
 
   it('treats whitespace-only values as unset when hosted files exist', async () => {

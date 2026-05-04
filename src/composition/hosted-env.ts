@@ -2,6 +2,7 @@ import {
   ARTIFACT_FILENAMES,
   HOSTED_STAGED_ARTIFACT_DIR,
   HOSTED_STAGED_SOURCE_PATH,
+  SERVERLESS_ARTIFACT_DIR,
 } from '../core/constants.js';
 import { resolveRuntimePath } from '../runtime/path-resolution.js';
 
@@ -33,8 +34,12 @@ export function applyHostedEnvDefaults(
   if (shouldUseHostedDefault(env.FPF_SPEC_SOURCE_PATH, options, 'file')) {
     overrides.FPF_SPEC_SOURCE_PATH = HOSTED_STAGED_SOURCE_PATH;
   }
-  if (shouldUseHostedDefault(env.FPF_RUNTIME_ARTIFACT_DIR, options, 'directory')) {
-    overrides.FPF_RUNTIME_ARTIFACT_DIR = HOSTED_STAGED_ARTIFACT_DIR;
+  const artifactDir = defaultHostedArtifactDir(env);
+  if (
+    shouldUseHostedDefault(env.FPF_RUNTIME_ARTIFACT_DIR, options, 'directory')
+    || shouldMoveHostedArtifactsToServerlessTmp(env.FPF_RUNTIME_ARTIFACT_DIR, env)
+  ) {
+    overrides.FPF_RUNTIME_ARTIFACT_DIR = artifactDir;
   }
   if (Object.keys(overrides).length === 0) {
     return env;
@@ -70,6 +75,26 @@ function isKnownHostedLegacyPath(value: string, kind: 'file' | 'directory'): boo
   }
 
   return normalized === '.runtime/fpf-index' || normalized === '/app/.runtime/fpf-index';
+}
+
+function defaultHostedArtifactDir(env: NodeJS.ProcessEnv): string {
+  return isVercelRuntime(env) ? SERVERLESS_ARTIFACT_DIR : HOSTED_STAGED_ARTIFACT_DIR;
+}
+
+function shouldMoveHostedArtifactsToServerlessTmp(
+  value: string | undefined,
+  env: NodeJS.ProcessEnv,
+): boolean {
+  return isVercelRuntime(env)
+    && normalizeRuntimePath(value) === HOSTED_STAGED_ARTIFACT_DIR;
+}
+
+function isVercelRuntime(env: NodeJS.ProcessEnv): boolean {
+  return env.VERCEL === '1';
+}
+
+function normalizeRuntimePath(value: string | undefined): string {
+  return value?.trim().replace(/\\/gu, '/').replace(/^\.\//u, '') ?? '';
 }
 
 function hasHostedStage(options: HostedEnvDefaultsOptions): boolean {

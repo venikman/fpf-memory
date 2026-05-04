@@ -283,6 +283,7 @@ export function renderAskFpfResult(result: QueryResult): AskFpfResult {
     constraints: result.constraints,
     gaps: result.gaps,
     confidence: result.confidence,
+    candidateIds: result.candidateIds,
     status: result.status,
     snapshot: result.snapshot,
     groundingChain: result.groundingChain,
@@ -313,6 +314,7 @@ function renderMarkdown(result: QueryResult): string {
     `- Status: \`${result.status}\``,
     `- Confidence: ${result.confidence}`,
     `- IDs: ${formatCodeList(result.ids)}`,
+    ...(result.candidateIds ? [`- Candidate IDs: ${formatCodeList(result.candidateIds)}`] : []),
     `- Citations: ${formatCodeList(result.citations)}`,
     `- Snapshot: \`${result.snapshot.sourceHash}\` at \`${result.snapshot.builtAt}\``,
   );

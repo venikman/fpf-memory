@@ -5,6 +5,7 @@ export const nodeKindSchema = z.enum(['pattern', 'route', 'lexeme']);
 export const selectorKindSchema = z.enum(['auto', 'id', 'route', 'lexeme']);
 export const answerStatusSchema = z.enum([
   'ok',
+  'degraded',
   'not_found',
   'ambiguous',
   'unsupported',
@@ -200,6 +201,7 @@ export const queryResultSchema = z
     citations: z.array(z.string()),
     confidence: z.number(),
     gaps: z.array(z.string()),
+    candidateIds: z.array(z.string()).optional(),
     snapshot: snapshotWithRebuildSchema,
     status: answerStatusSchema,
     groundingChain: z.array(z.string()).optional(),
@@ -216,6 +218,7 @@ export const askFpfResultSchema = z
     constraints: z.array(z.string()),
     gaps: z.array(z.string()),
     confidence: z.number(),
+    candidateIds: z.array(z.string()).optional(),
     status: answerStatusSchema,
     snapshot: snapshotWithRebuildSchema,
     groundingChain: z.array(z.string()).optional(),

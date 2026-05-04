@@ -248,6 +248,20 @@ describe('Query / Seed coverage stage', () => {
       Object.keys(snapshot.compiledNodes).length / 2,
     );
   });
+
+  it('seeds MM-CHR for measurement template semantics', async () => {
+    const snapshot = await getSnapshot();
+    const normalized = normalizeQuery(
+      'How should I define a measurement template with a characteristic, scale, and evidence?',
+      snapshot,
+    );
+    const seeding = seedCandidates(normalized, snapshot);
+
+    const c16Candidate = seeding.candidateMap.get('C.16');
+    expect(c16Candidate).toBeDefined();
+    expect(c16Candidate!.reasons).toContain('measurement-template-discipline');
+    expect(c16Candidate!.score).toBeGreaterThanOrEqual(80);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -332,6 +346,18 @@ describe('Query / Ranker stage', () => {
 
     expect(ranking.routeWins).toBe(true);
     expect(ranking.initialNodeIds).toEqual(['route:boundary-burden']);
+  });
+
+  it('selects C.16 for measurement template characteristic scale evidence prompts', async () => {
+    const snapshot = await getSnapshot();
+    const question =
+      'How should I define a measurement template with a characteristic, scale, and evidence?';
+    const normalized = normalizeQuery(question, snapshot);
+    const seeding = seedCandidates(normalized, snapshot);
+    const ranking = rankCandidates(question, seeding.candidateMap, snapshot);
+
+    expect(ranking.routeWins).toBe(false);
+    expect(ranking.initialNodeIds).toEqual(['C.16']);
   });
 });
 
@@ -543,7 +569,7 @@ describe('Query / Projection stability stage', () => {
 // Stage 6: Synthesis isolation  (synthesizeAnswer)
 // ---------------------------------------------------------------------------
 describe('Query / Synthesis isolation stage', () => {
-  it('returns deterministic answer when synthesizer is unavailable', async () => {
+  it('returns an honest degraded envelope when a configured synthesizer is unavailable', async () => {
     const snapshot = await getSnapshot();
     const trace = assembleTrace('What is A.1.1?', 'verbose', snapshot);
     const deterministicResult = buildPatternAnswer('What is A.1.1?', 'verbose', trace, snapshot, false);
@@ -564,9 +590,11 @@ describe('Query / Synthesis isolation stage', () => {
       'What is A.1.1?', 'verbose', trace, nodes, slices, deterministicResult, unavailable,
     );
 
-    expect(result.status).toBe('ok');
-    expect(result.ids).toContain('A.1.1');
-    expect(result.answer.length).toBeGreaterThan(0);
+    expect(result.status).toBe('degraded');
+    expect(result.ids).toEqual([]);
+    expect(result.candidateIds).toContain('A.1.1');
+    expect(result.confidence).toBeLessThanOrEqual(0.45);
+    expect(result.answer).toContain('no synthesized answer was committed');
   });
 
   it('falls back to deterministic answer when synthesizer throws', async () => {
@@ -590,12 +618,14 @@ describe('Query / Synthesis isolation stage', () => {
       'What is A.1.1?', 'verbose', trace, nodes, slices, deterministicResult, failing,
     );
 
-    expect(result.status).toBe('ok');
-    expect(result.ids).toContain('A.1.1');
+    expect(result.status).toBe('degraded');
+    expect(result.ids).toEqual([]);
+    expect(result.candidateIds).toContain('A.1.1');
+    expect(result.confidence).toBeLessThanOrEqual(0.45);
     expect(result.gaps.some((gap) => gap.includes('synthesis skipped') || gap.includes('synthesizer crashed'))).toBe(true);
   });
 
-  it('does not alter deterministic IDs or citations when synthesis fails', async () => {
+  it('moves deterministic IDs to candidateIds when synthesis fails', async () => {
     const snapshot = await getSnapshot();
     const trace = assembleTrace('What is A.1.1?', 'verbose', snapshot);
     const deterministicResult = buildPatternAnswer('What is A.1.1?', 'verbose', trace, snapshot, false);
@@ -616,9 +646,11 @@ describe('Query / Synthesis isolation stage', () => {
       'What is A.1.1?', 'verbose', trace, nodes, slices, deterministicResult, failing,
     );
 
-    expect(failedSynthResult.ids).toEqual(deterministicResult.ids);
+    expect(failedSynthResult.ids).toEqual([]);
+    expect(failedSynthResult.candidateIds).toEqual(deterministicResult.ids);
     expect(failedSynthResult.citations).toEqual(deterministicResult.citations);
-    expect(failedSynthResult.relations).toEqual(deterministicResult.relations);
+    expect(failedSynthResult.relations).toEqual([]);
+    expect(failedSynthResult.constraints).toEqual([]);
   });
 
   it('does not call synthesize when synthesizer reports unavailable', async () => {

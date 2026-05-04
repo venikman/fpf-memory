@@ -32,6 +32,7 @@ export type AnswerMode = 'compact' | 'verbose' | 'proof';
 
 export type AnswerStatus =
   | 'ok'
+  | 'degraded'
   | 'not_found'
   | 'ambiguous'
   | 'unsupported'
@@ -330,6 +331,7 @@ export interface QueryResult {
   citations: string[];
   confidence: number;
   gaps: string[];
+  candidateIds?: string[];
   snapshot: {
     sourceHash: string;
     builtAt: string;
@@ -348,6 +350,7 @@ export interface AskFpfResult {
   constraints: string[];
   gaps: string[];
   confidence: number;
+  candidateIds?: string[];
   status: AnswerStatus;
   snapshot: {
     sourceHash: string;

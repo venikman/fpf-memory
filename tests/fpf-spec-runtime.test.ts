@@ -168,7 +168,7 @@ describe('FpfRuntime', () => {
     expect(agentWorkflow.answer.length).toBeGreaterThan(0);
     expect(agentWorkflow.citations.length).toBeGreaterThan(0);
 
-    const deterministicOnly = new FpfRuntime({
+    const unavailableSynthesizer = new FpfRuntime({
       artifactDir: resolve(tempRoot, 'deterministic-artifacts'),
       sourcePath,
       synthesizer: {
@@ -178,12 +178,13 @@ describe('FpfRuntime', () => {
         },
       },
     });
-    const deterministicAnswer = await deterministicOnly.query(
+    const degradedAnswer = await unavailableSynthesizer.query(
       'What is U.BoundedContext?',
       'compact',
     );
-    expect(deterministicAnswer.status).toBe('ok');
-    expect(deterministicAnswer.ids).toContain('A.1.1');
+    expect(degradedAnswer.status).toBe('degraded');
+    expect(degradedAnswer.ids).toEqual([]);
+    expect(degradedAnswer.candidateIds).toContain('A.1.1');
 
     const creativity = await runtime.query(
       'How is creativity and open-ended search represented in FPF?',

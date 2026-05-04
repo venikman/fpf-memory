@@ -20,7 +20,10 @@ export async function synthesizeAnswer(
   try {
     const available = await synthesizer.isAvailable();
     if (!available) {
-      return deterministicResult;
+      return degradedSynthesisResult(
+        deterministicResult,
+        'configured local synthesizer reported unavailable',
+      );
     }
 
     const synthesized = await synthesizer.synthesize({
@@ -43,9 +46,40 @@ export async function synthesizeAnswer(
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'Local synthesizer failed with an unknown error.';
-    return {
-      ...deterministicResult,
-      gaps: unique([...deterministicResult.gaps, `Local synthesis skipped: ${message}`]),
-    };
+    return degradedSynthesisResult(deterministicResult, message);
   }
+}
+
+function degradedSynthesisResult(
+  deterministicResult: QueryResult,
+  reason: string,
+): QueryResult {
+  const candidateIds = unique([
+    ...(deterministicResult.candidateIds ?? []),
+    ...deterministicResult.ids,
+  ]);
+  return {
+    ...deterministicResult,
+    answer:
+      candidateIds.length > 0
+        ? `Local synthesis is unavailable, so no synthesized answer was committed. Inspect candidate IDs: ${candidateIds.join(', ')}.`
+        : 'Local synthesis is unavailable, so no synthesized answer was committed.',
+    ids: [],
+    relations: [],
+    constraints: [],
+    candidateIds,
+    confidence: Math.min(deterministicResult.confidence, 0.45),
+    gaps: unique([
+      ...deterministicResult.gaps,
+      `Local synthesis skipped: ${reason}`,
+      'Candidate IDs are retrieval candidates, not committed synthesized answer IDs.',
+    ]),
+    status: 'degraded',
+    groundingChain: deterministicResult.groundingChain
+      ? unique([
+          'Degraded: local synthesis unavailable; committed IDs withheld.',
+          ...deterministicResult.groundingChain,
+        ])
+      : undefined,
+  };
 }

@@ -346,7 +346,10 @@ describe('LmStudioSynthesizer', () => {
     });
 
     const result = await runtime.query('What is U.BoundedContext?', 'compact');
-    expect(result.ids).toContain('A.1.1');
+    expect(result.status).toBe('degraded');
+    expect(result.ids).toEqual([]);
+    expect(result.candidateIds).toContain('A.1.1');
+    expect(result.confidence).toBeLessThanOrEqual(0.45);
     expect(result.gaps.some((gap) => gap.includes('Local synthesis skipped'))).toBe(true);
 
     const traceLog = await readFile(aiTraceLogPath, 'utf8');

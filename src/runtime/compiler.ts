@@ -177,6 +177,31 @@ function buildHeuristicSeedRules(
     });
   }
 
+  const measurementTemplateNodeIds = ['C.16'].filter(
+    (id) => id in patternNodes || id in routeNodes,
+  );
+  if (measurementTemplateNodeIds.length > 0) {
+    rules.push({
+      name: 'measurement-template-discipline',
+      allOf: [
+        ['measurement', 'measure', 'metric', 'metrics'],
+        ['template', 'dhcmethod', 'dhc method'],
+      ],
+      anyOf: [
+        ['characteristic'],
+        ['scale'],
+        ['evidence', 'evidencestub', 'evidence stub'],
+        ['unit'],
+        ['comparability'],
+        ['score', 'scoring'],
+      ],
+      seedNodeIds: measurementTemplateNodeIds,
+      seedScore: 84,
+      seedOrigin: 'lexical',
+      initialNodeIds: measurementTemplateNodeIds.filter((id) => id in patternNodes),
+    });
+  }
+
   const alignmentRoute = Object.values(routeNodes).find(
     (r) => r.name.toLowerCase() === PROJECT_ALIGNMENT_ROUTE_NAME,
   );

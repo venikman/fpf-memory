@@ -19,7 +19,7 @@ Check runtime health first, find the right doorway with search or query tools, r
 Hosted endpoint:
 
 ```txt
-https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp
+https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp
 ```
 
 ## Check health
