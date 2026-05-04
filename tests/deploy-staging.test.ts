@@ -129,7 +129,7 @@ describe('stageFromPublished', () => {
     ).rejects.toThrow(/ENOENT/);
 
     // Fix for #48: staged paths must live outside any dotfile directory so
-    // `bunx mastra server deploy`'s zip step doesn't silently drop them.
+    // the hosted bundle zip step doesn't silently drop them.
     expect(HOSTED_STAGED_SOURCE_PATH.startsWith('.')).toBe(false);
     expect(HOSTED_STAGED_ARTIFACT_DIR.startsWith('.')).toBe(false);
     expect(

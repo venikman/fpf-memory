@@ -130,7 +130,7 @@ jobs:
         run: bun scripts/run-test-shard.ts --shard=${{ matrix.shard }}/4
 
   build:
-    name: Build (docs + MCP + mastra dry-run)
+    name: Build (docs + MCP + Vercel origin dry-run)
     runs-on: ubuntu-latest
     needs: setup
     timeout-minutes: 15
@@ -148,16 +148,16 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run docs:build
       - run: bun run build:mcp
-      - name: Stage + mastra build (deploy dry-run)
-        # Assemble the deploy bundle without uploading. Catches packaging
-        # regressions (missing hosted files, broken `mastra build`) on
-        # every PR without requiring deploy credentials.
+      - name: Build Vercel origin bundle without uploading
+        # Assemble the Vercel Build Output API bundle without uploading.
+        # Catches packaging regressions on every PR without requiring
+        # deploy credentials.
         run: |
-          bun run stage:from-published
-          bun run mastra:build
-          test -f .mastra/output/index.mjs
-          test -f .mastra/output/hosted/FPF-Spec.md
-          test -f .mastra/output/hosted/fpf-index/snapshot.json
+          bun run vercel:origin:build
+          test -d .vercel/output/functions/index.func
+          test -f .vercel/output/functions/index.func/index.mjs
+          test -f .vercel/output/functions/index.func/hosted/FPF-Spec.md
+          test -f .vercel/output/functions/index.func/hosted/fpf-index/snapshot.json
 
   # Single green check for branch protection: this is the only required
   # status. It goes green iff every parallel job above succeeded. The job

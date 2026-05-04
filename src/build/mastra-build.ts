@@ -23,8 +23,8 @@ const TEMPORARY_PACKAGE_LOCK = {
  * under the project root. This repo is Bun-first, but the generated
  * `.mastra/output` package hangs on `bun install` while `npm install` completes
  * quickly and deterministically. Create a temporary root `package-lock.json`
- * during `mastra build` and `mastra server deploy` so the nested install uses
- * npm without changing the repo's primary package manager.
+ * during `mastra build` so the nested install uses npm without changing the
+ * repo's primary package manager.
  */
 export async function withTemporaryMastraPackageLock<T>(
   rootDir: string,
@@ -59,21 +59,6 @@ export async function runMastraBuild(
 
   await withTemporaryMastraPackageLock(rootDir, async () => {
     await runCommand('bunx', ['mastra', 'build', ...args], {
-      cwd: rootDir,
-      env: process.env,
-    });
-  });
-}
-
-export async function runMastraServerDeploy(
-  options: RunMastraBuildOptions = {},
-): Promise<void> {
-  const rootDir = resolve(options.rootDir ?? process.cwd());
-  const args = options.args ?? [];
-  const runCommand = options.runCommand ?? runSpawnedCommand;
-
-  await withTemporaryMastraPackageLock(rootDir, async () => {
-    await runCommand('bunx', ['mastra', 'server', 'deploy', ...args], {
       cwd: rootDir,
       env: process.env,
     });

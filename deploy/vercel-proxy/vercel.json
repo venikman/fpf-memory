@@ -30,11 +30,11 @@
     },
     {
       "source": "/connect-mcp",
-      "destination": "https://fpf-memory.server.mastra.cloud/connect-mcp"
+      "destination": "https://fpf-memory-mcp-vercel-origin.vercel.app/connect-mcp"
     },
     {
       "source": "/",
-      "destination": "https://fpf-memory.server.mastra.cloud/"
+      "destination": "https://fpf-memory-mcp-vercel-origin.vercel.app/"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "name": "fpf-memory",
   "version": "1.0.0",
-  "description": "Bun-first compiler-backed FPF spec runtime exposed through hosted and local Mastra MCP surfaces with a Hono server engine.",
+  "description": "Bun-first compiler-backed FPF spec runtime exposed through hosted Vercel and local MCP surfaces with a Hono server engine.",
   "packageManager": "bun@1.3.5",
   "bin": "dist/stdio.js",
   "files": [
@@ -30,7 +30,6 @@
     "vercel:origin:deploy": "bun run vercel:origin:build && vercel deploy --prebuilt --yes",
     "vercel:origin:deploy:prod": "bun run vercel:origin:build && vercel deploy --prebuilt --prod --yes",
     "mastra:build": "bun scripts/mastra-build.ts",
-    "mastra:deploy": "bun scripts/mastra-deploy.ts",
     "build": "bun run build:runtime && bun run build:mcp",
     "build:runtime": "bun build ./src/cli.ts ./src/server.ts --outdir dist --target bun",
     "build:mcp": "tsup src/mastra/stdio.ts --format esm --out-dir dist --no-splitting && bun scripts/fixup-stdio-build.ts",
@@ -46,7 +45,7 @@
     "test": "rstest run",
     "test:ci": "rstest run --shard=1/4 && rstest run --shard=2/4 && rstest run --shard=3/4 && rstest run --shard=4/4",
     "predeploy": "bun run stage:from-published",
-    "deploy": "bun run predeploy && bun run mastra:build && bun run mastra:deploy -- --yes"
+    "deploy": "bun run vercel:origin:deploy:prod && bun run vercel:proxy:deploy:prod"
   },
   "license": "ISC",
   "type": "module",

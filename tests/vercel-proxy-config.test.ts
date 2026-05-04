@@ -19,6 +19,8 @@ interface VercelConfig {
 }
 
 describe('Vercel MCP proxy config', () => {
+  const retiredCloudHost = ['mastra', 'cloud'].join('.');
+
   it('uses the hosted MCP origin build command for GitHub preview builds', async () => {
     const config = JSON.parse(
       await readFile(resolve(process.cwd(), 'vercel.json'), 'utf8'),
@@ -27,7 +29,7 @@ describe('Vercel MCP proxy config', () => {
     expect(config.buildCommand).toBe('bun run vercel:origin:build');
   });
 
-  it('proxies the MCP route to the validated Vercel origin and docs paths to Mastra Cloud', async () => {
+  it('proxies every public route to the validated Vercel origin', async () => {
     const config = JSON.parse(
       await readFile(resolve(process.cwd(), 'deploy/vercel-proxy/vercel.json'), 'utf8'),
     ) as VercelConfig;
@@ -41,13 +43,14 @@ describe('Vercel MCP proxy config', () => {
       },
       {
         source: '/connect-mcp',
-        destination: 'https://fpf-memory.server.mastra.cloud/connect-mcp',
+        destination: 'https://fpf-memory-mcp-vercel-origin.vercel.app/connect-mcp',
       },
       {
         source: '/',
-        destination: 'https://fpf-memory.server.mastra.cloud/',
+        destination: 'https://fpf-memory-mcp-vercel-origin.vercel.app/',
       },
     ]);
+    expect(JSON.stringify(config)).not.toContain(retiredCloudHost);
   });
 
   it('disables Vercel build steps so the rewrite-only deploy does not need a public/ directory', async () => {

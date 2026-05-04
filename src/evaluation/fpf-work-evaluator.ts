@@ -109,7 +109,6 @@ type KnownWorkFile =
   | 'docsIndex'
   | 'ciWorkflow'
   | 'deployDocsWorkflow'
-  | 'deployMcpWorkflow'
   | 'prePushHook'
   | 'packageJson'
   | 'publishedSpec'
@@ -122,7 +121,6 @@ const KNOWN_WORK_FILES: Record<KnownWorkFile, string> = {
   docsIndex: 'docs/index.md',
   ciWorkflow: '.github/workflows/ci.yml',
   deployDocsWorkflow: '.github/workflows/deploy-docs.yml',
-  deployMcpWorkflow: '.github/workflows/deploy-mcp.yml',
   prePushHook: 'scripts/hooks/pre-push.sh',
   packageJson: 'package.json',
   publishedSpec: PUBLISHED_SPEC_PATH,
@@ -333,7 +331,7 @@ function scoreSurfaceSplit(
     evidence.file('publishedManifest', facts, 'Committed published manifest'),
     evidence.file('ciWorkflow', facts, 'CI workflow'),
     evidence.file('deployDocsWorkflow', facts, 'Docs deploy workflow'),
-    evidence.file('deployMcpWorkflow', facts, 'MCP deploy workflow'),
+    evidence.file('packageJson', facts, 'Hosted deploy scripts'),
   ].filter(isDefined);
   const publishedComplete =
     facts.fileExists.publishedSpec &&
@@ -345,17 +343,23 @@ function scoreSurfaceSplit(
   const docsConsumesPublished =
     contains(facts, 'deployDocsWorkflow', 'published/current') &&
     !contains(facts, 'deployDocsWorkflow', 'bun run spec:download');
-  const deployStagesPublished =
-    contains(facts, 'deployMcpWorkflow', 'workflow_run') &&
-    contains(facts, 'deployMcpWorkflow', 'bun run validate:published') &&
-    contains(facts, 'deployMcpWorkflow', 'bun run stage:from-published');
+  const vercelOriginStagesPublished =
+    contains(facts, 'ciWorkflow', 'bun run vercel:origin:build') &&
+    contains(facts, 'ciWorkflow', '.vercel/output/functions/index.func') &&
+    contains(facts, 'packageJson', '"vercel:origin:build"') &&
+    contains(facts, 'packageJson', 'bun run predeploy');
 
-  if (publishedComplete && ciConsumesPublished && docsConsumesPublished && deployStagesPublished) {
+  if (
+    publishedComplete &&
+    ciConsumesPublished &&
+    docsConsumesPublished &&
+    vercelOriginStagesPublished
+  ) {
     return rubricPass(
       'surface-split',
       anchor,
-      'MCP deploy, local preparation, and wiki publication consume separate surfaces.',
-      'Keep CI and deploy consuming committed `published/current/**`; do not reintroduce spec download in CI.',
+      'Hosted runtime packaging, local preparation, and wiki publication consume separate surfaces.',
+      'Keep CI and Vercel deploy packaging consuming committed `published/current/**`; do not reintroduce spec download in CI.',
       evidenceIds,
     );
   }
@@ -417,29 +421,41 @@ function scorePlanRunSplit(
 ): FpfRubricItem {
   const evidenceIds = [
     ...baseEvidenceIds,
-    evidence.file('deployMcpWorkflow', facts, 'Deploy waits on CI'),
     evidence.file('ciWorkflow', facts, 'CI validation workflow'),
     evidence.file('prePushHook', facts, 'Local pre-push publication hook'),
     evidence.file('packageJson', facts, 'Package scripts'),
   ].filter(isDefined);
-  const deployWaitsForCi =
-    contains(facts, 'deployMcpWorkflow', 'workflow_run') &&
-    contains(facts, 'deployMcpWorkflow', 'WORKFLOW_RUN_CONCLUSION') &&
-    contains(facts, 'deployMcpWorkflow', 'success');
+  const hostedDeployIsVercelOnly =
+    contains(
+      facts,
+      'packageJson',
+      '"deploy": "bun run vercel:origin:deploy:prod && bun run vercel:proxy:deploy:prod"',
+    );
   const ciDoesDryRun =
-    contains(facts, 'ciWorkflow', 'bun run stage:from-published') &&
-    contains(facts, 'ciWorkflow', 'bun run mastra:build');
+    (contains(facts, 'ciWorkflow', 'bun run stage:from-published') &&
+      contains(facts, 'ciWorkflow', 'bun run mastra:build')) ||
+    (contains(facts, 'ciWorkflow', 'bun run vercel:origin:build') &&
+      contains(facts, 'ciWorkflow', '.vercel/output/functions/index.func'));
   const localPublishOwner =
     contains(facts, 'prePushHook', 'bun run publish:current') ||
     contains(facts, 'prePushHook', 'publishing ./published/current/');
-  const packageStagesOnly = contains(facts, 'packageJson', '"predeploy": "bun run stage:from-published"');
+  const packageStagesOnly = contains(
+    facts,
+    'packageJson',
+    '"predeploy": "bun run stage:from-published"',
+  );
 
-  if (deployWaitsForCi && ciDoesDryRun && localPublishOwner && packageStagesOnly) {
+  if (
+    hostedDeployIsVercelOnly &&
+    ciDoesDryRun &&
+    localPublishOwner &&
+    packageStagesOnly
+  ) {
     return rubricPass(
       'plan-run-split',
       anchor,
-      'Plan, local publication, CI validation, and deploy execution are visibly gated.',
-      'Keep deployment as a post-CI execution path, not a validation substitute.',
+      'Plan, local publication, CI validation, and Vercel deploy execution are visibly separated.',
+      'Keep deployment as a post-validation execution path, not a validation substitute.',
       evidenceIds,
     );
   }
@@ -447,10 +463,10 @@ function scorePlanRunSplit(
   return rubricIssue(
     'plan-run-split',
     anchor,
-    deployWaitsForCi ? 'partial' : 'missing',
+    hostedDeployIsVercelOnly ? 'partial' : 'missing',
     'high',
     'Plan/run boundaries are not explicit enough for a safe PR-to-deploy path.',
-    'Gate deploy on successful CI for the same SHA, keep CI as validation, and keep local publication in pre-push.',
+    'Keep CI as validation, keep local publication in pre-push, and keep hosted deploy execution on the Vercel-only path.',
     evidenceIds,
   );
 }
@@ -507,7 +523,6 @@ function scoreSelectedPublication(
     ...baseEvidenceIds,
     evidence.file('docsIndex', facts, 'Selected wiki entry points'),
     evidence.file('ciWorkflow', facts, 'Deploy dry-run output checks'),
-    evidence.file('deployMcpWorkflow', facts, 'Hosted bundle staging'),
     evidence.file('packageJson', facts, 'Publication scripts'),
   ].filter(isDefined);
   const wikiSelectsEntryPoints =
@@ -515,8 +530,8 @@ function scoreSelectedPublication(
     contains(facts, 'docsIndex', '[Patterns]') &&
     contains(facts, 'docsIndex', '[Routes]');
   const deploySelectsHostedAssets =
-    contains(facts, 'deployMcpWorkflow', 'bun run stage:from-published') ||
-    contains(facts, 'ciWorkflow', '.mastra/output/hosted');
+    contains(facts, 'ciWorkflow', '.mastra/output/hosted') ||
+    contains(facts, 'ciWorkflow', 'bun run vercel:origin:build');
   const packageHasPublicationCommands =
     contains(facts, 'packageJson', '"publish:current"') &&
     contains(facts, 'packageJson', '"stage:from-published"');

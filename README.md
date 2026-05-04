@@ -52,7 +52,7 @@ On each refresh trigger the runtime:
 
 - **Bun** — preferred local runtime and package manager
 - **Zod** — repo-authored MCP contracts and validation
-- **Mastra** — MCP, logging, and observability boundary
+- **Mastra SDK** — MCP, logging, and observability adapter used inside the local/Vercel runtime
 - **Hono** — hosted server engine
 - **Rstest, Rslint, Rspress** — test, lint, docs
 
@@ -155,7 +155,7 @@ bun run cli -- lm-check --timeout-ms 60000
 ```bash
 bun run mcp                      # public surface
 FPF_MCP_SURFACE=full bun run mcp # full surface (expert tools)
-bun run start                    # hosted Mastra runtime on Hono
+bun run start                    # hosted HTTP runtime on Hono
 bun run smoke:mcp:http           # smoke-test the streamable HTTP endpoint
 bun run bench:mcp:qa             # hosted Q&A correctness gate
 bun run bench:mcp                # hosted latency/correctness benchmark
@@ -282,7 +282,7 @@ When a configured synthesizer fails or reports unavailable, answer tools return 
 - `src/composition/` — canonical bridge layer for runtime/bootstrap composition
 - `src/compat/mastra/` — governed Mastra compatibility bootstrap layer
 - `src/mastra/mcp/server.ts` — compatibility shim for the legacy MCP server import path
-- `src/mastra/index.ts` — compatibility shim consumed by `bun run mastra:build` and Mastra deploy tooling
+- `src/mastra/index.ts` — compatibility shim consumed by `bun run mastra:build` for Vercel packaging
 - `src/mastra/stdio.ts` — stdio entry point for MCP clients
 - `src/server.ts` — Hono HTTP server bootstrap for Bun
 - `src/runtime/` — compiler, retrieval, trace, inspect, synthesis
