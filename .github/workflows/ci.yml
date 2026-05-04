@@ -124,25 +124,31 @@ jobs:
       # Run one shard per runner, then split that shard into one Rstest
       # process per file. The full FPF suite includes docs and runtime index
       # builds; keeping each file in a fresh process prevents late-shard worker
-      # exits from accumulated test-runner state while preserving shard
-      # selection and failure visibility.
+      # exits from accumulated test-runner state while preserving failure
+      # visibility.
       - name: Run test shard
         run: |
-          files="$(
-            bunx rstest list --shard=${{ matrix.shard }}/4 \
-              | awk '/^tests\/.*\.test\.ts/ && !seen[$1]++ { print $1 }'
-          )"
+          mapfile -t all_files < <(find tests -maxdepth 1 -type f -name '*.test.ts' | sort)
+          files=()
+          shard_index=${{ matrix.shard }}
+          shard_count=4
 
-          if [[ -z "$files" ]]; then
+          for i in "${!all_files[@]}"; do
+            if (( i % shard_count == shard_index - 1 )); then
+              files+=("${all_files[$i]}")
+            fi
+          done
+
+          if (( ${#files[@]} == 0 )); then
             echo "::error::No tests found for shard ${{ matrix.shard }}/4."
             exit 1
           fi
 
-          while IFS= read -r file; do
+          for file in "${files[@]}"; do
             echo "::group::$file"
             bun run test -- "$file"
             echo "::endgroup::"
-          done <<< "$files"
+          done
 
   build:
     name: Build (docs + MCP + mastra dry-run)
