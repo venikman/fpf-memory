@@ -681,3 +681,145 @@ html.dark .fpf-pid {
     transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
   }
 }
+
+/* ───────── 8. Post-validation overrides ─────────
+ *
+ * Fixes from the Claude Preview MCP validation pass (axe-core + computed-
+ * style inspection on / and /welcome at desktop, mobile, and dark mode).
+ * Ordered by impact:
+ *   8.1  Body links invisible — same color as body text, no underline
+ *   8.2  Sidebar active-state inherits rspress's blue tint + 8px radius,
+ *        clashing with paper palette and brutalist 0px chip discipline
+ *   8.3  Heading anchor `#` glyphs are aria-hidden but focusable, failing
+ *        axe rule aria-hidden-focus (WCAG 2.4.3, 4.1.2). Hide them
+ *        visually since headings still expose `id` for #deep-links.
+ */
+
+/* 8.1 — Body links: clay accent + underline. Excludes the wordmark and
+   the (now-hidden) heading anchors so they don't get re-styled. */
+.rspress-doc a:not(.rp-header-anchor):not(.rp-nav__title__link) {
+  color: var(--fpf-accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentcolor 40%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.rspress-doc a:not(.rp-header-anchor):not(.rp-nav__title__link):hover {
+  text-decoration-color: currentcolor;
+}
+
+/* 8.2 — Sidebar active state: pin to accent-soft on the paper canvas,
+   drop the 8px radius so it matches the rest of the chrome (0px). The
+   doubled selector beats rspress's default specificity without !important. */
+.rp-sidebar-item--active.rp-sidebar-item--active {
+  background: var(--fpf-accent-soft);
+  border-radius: 0;
+  border-left: 2px solid var(--fpf-accent);
+  padding-left: 22px;       /* compensate for the 2px border so text aligns */
+}
+
+html.dark .rp-sidebar-item--active.rp-sidebar-item--active {
+  background: var(--fpf-accent-soft);
+  border-left-color: var(--fpf-accent);
+}
+
+/* 8.3 — Heading anchor links: hidden visually + from screen readers.
+   Headings retain their `id` so deep links (`#some-heading`) still work. */
+.rspress-doc .rp-header-anchor {
+  display: none;
+}
+
+/* 8.4 — Hero action buttons on /welcome. Rspress's default `rp-button--brand`
+   ships a clay→purple gradient and a 24px pill radius; `rp-button--alt`
+   ships a non-palette gray border. Both clash with the design system's
+   no-gradient discipline and 0px chip radius. Override to flat tokens. */
+.rp-home-hero__action.rp-button--brand,
+.rp-button--brand.rp-home-hero__action,
+.rp-home-hero__action.rp-button--brand.rp-button--brand {
+  background: var(--fpf-accent);
+  background-image: none;
+  color: var(--fpf-accent-ink);
+  border: 1px solid var(--fpf-accent);
+  border-radius: 0;
+}
+
+.rp-home-hero__action.rp-button--brand:hover,
+.rp-button--brand.rp-home-hero__action:hover {
+  background: var(--fpf-ink);
+  border-color: var(--fpf-ink);
+  color: var(--fpf-paper);
+}
+
+.rp-home-hero__action.rp-button--alt,
+.rp-button--alt.rp-home-hero__action,
+.rp-home-hero__action.rp-button--alt.rp-button--alt {
+  background: transparent;
+  background-image: none;
+  color: var(--fpf-ink);
+  border: 1px solid var(--fpf-ink);
+  border-radius: 0;
+}
+
+.rp-home-hero__action.rp-button--alt:hover,
+.rp-button--alt.rp-home-hero__action:hover {
+  background: var(--fpf-paper-2);
+  color: var(--fpf-ink);
+  border-color: var(--fpf-ink);
+}
+
+/* 8.5 — Hero gradient brand title. Rspress's home layout paints
+   `rp-home-hero__title-brand` with a clay→purple gradient via
+   `background-clip: text`. Pin it to flat ink so /welcome's hero matches
+   the editorial register elsewhere on the site. */
+.rp-home-hero__title-brand.rp-home-hero__title-brand {
+  background: none;
+  background-image: none;
+  background-clip: initial;
+  -webkit-background-clip: initial;
+  color: var(--fpf-ink);
+  -webkit-text-fill-color: var(--fpf-ink);
+  font-family: var(--fpf-font-display);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+/* 8.6 — Feature card chrome. Rspress's home layout adds rounded corners
+   and a hover transform; flatten both to keep the brutalist discipline. */
+.rp-home-feature__card.rp-home-feature__card {
+  border-radius: 0;
+  border: 1px solid var(--fpf-rule-strong);
+  background: var(--fpf-paper-2);
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.rp-home-feature__card.rp-home-feature__card--clickable:hover {
+  transform: none;
+  border-color: var(--fpf-ink);
+  background: var(--fpf-paper-3);
+  box-shadow: none;
+}
+
+.rp-home-feature__icon.rp-home-feature__icon {
+  border-radius: 0;
+  background: var(--fpf-accent-soft);
+  color: var(--fpf-accent);
+  font-family: var(--fpf-font-mono);
+  border: 1px solid var(--fpf-accent);
+}
+
+.rp-home-feature__title.rp-home-feature__title {
+  font-family: var(--fpf-font-display);
+  color: var(--fpf-ink);
+}
+
+.rp-home-feature__detail.rp-home-feature__detail {
+  font-family: var(--fpf-font-serif);
+  color: var(--fpf-ink-2);
+}
+
+/* Kill rspress's home-page background blob and feature shine overlay. */
+.rp-home-background,
+.rp-home-feature__item__shine {
+  display: none;
+}

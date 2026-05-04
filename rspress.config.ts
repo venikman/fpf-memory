@@ -91,15 +91,15 @@ export default defineConfig({
       // The root URL `/` IS the FPF index — share the same pattern-tree
       // sidebar as the deep-link catalog at `/generated/patterns/` so the
       // catalog reads the same way regardless of which URL the visitor
-      // arrived through.
+      // arrived through. The root sidebar omits the "Pattern Catalog"
+      // self-link that the deep-link sidebar carries — on `/` the page H1
+      // already names the catalog, and a self-link rendered as the loud
+      // active state was the brightest pixel on the page (see validation
+      // pass).
       '/': [
         {
           text: 'Patterns',
           items: [
-            {
-              text: 'Pattern Catalog',
-              link: '/',
-            },
             ...navigation.patterns.map((group) => ({
               text: group.text,
               collapsible: true,

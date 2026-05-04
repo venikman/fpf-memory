@@ -301,14 +301,17 @@ function buildPatternIndexPage(snapshot: Snapshot): GeneratedDocPage {
 function buildRootIndexPage(snapshot: Snapshot): GeneratedDocPage {
   return {
     kind: 'index',
-    title: 'FPF Reference',
+    // Browser tab shows "Pattern Catalog – FPF Reference" via rspress's
+    // titleSuffix; the page H1 is "Pattern Catalog" so it stops echoing
+    // the wordmark in the upper-left nav.
+    title: 'Pattern Catalog',
     markdownPath: `${DOCS_ROOT}/index.md`,
     staticPath: '/',
     markdown: renderPatternCatalogMarkdown(snapshot, {
-      title: 'FPF Reference',
+      title: 'Pattern Catalog',
       description:
         'Compiler-backed reference for the latest published FPF, projected as a slim wiki.',
-      heading: 'FPF Reference',
+      heading: 'Pattern Catalog',
       showWelcomePointer: true,
     }),
   };

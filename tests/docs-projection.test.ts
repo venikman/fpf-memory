@@ -220,8 +220,8 @@ describe('docs projection', () => {
       // sidebar wired in rspress.config.ts) and surfaces a one-line pointer
       // to /welcome for first-time visitors.
       const rootIndex = await readFile(resolve(docsRoot, 'index.md'), 'utf8');
-      expect(rootIndex).toContain('title: "FPF Reference"');
-      expect(rootIndex).toContain('# FPF Reference');
+      expect(rootIndex).toContain('title: "Pattern Catalog"');
+      expect(rootIndex).toContain('# Pattern Catalog');
       expect(rootIndex).toContain('[Welcome](/welcome)');
       expect(rootIndex).toContain('## What this page is');
       expect(rootIndex).toContain('full generated catalog of FPF pattern IDs');
@@ -306,10 +306,11 @@ describe('docs projection', () => {
         },
       );
 
-      // `/` is the FPF index (pattern catalog) — verify the Role Taxonomy
-      // entry from Part A is listed and the welcome pointer is present.
+      // `/` is the FPF index (pattern catalog) — verify the H1 names the
+      // catalog (so it stops echoing the wordmark), the Role Taxonomy entry
+      // from Part A is listed, and the welcome pointer is present.
       const indexHtml = await readFile(resolve(outDir, 'index.html'), 'utf8');
-      expect(indexHtml).toContain('FPF Reference');
+      expect(indexHtml).toContain('Pattern Catalog');
       expect(indexHtml).toContain('Role Taxonomy');
       expect(indexHtml).toContain('/fpf-memory/welcome');
 
