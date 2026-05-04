@@ -1,157 +1,186 @@
 # FPF Spec Runtime
 
-> **📖 Live reference: [venikman.github.io/fpf-memory](https://venikman.github.io/fpf-memory/)** — searchable pattern catalog, routes, and preface. Type an ID like `A.2` or `route:project-alignment` in the search box to jump in.
+> **📖 Live reference:** [venikman.github.io/fpf-memory](https://venikman.github.io/fpf-memory/) — searchable pattern catalog, routes, and preface. Type an ID like `A.2` or `route:project-alignment` in the search box to jump in.
+>
+> **🤖 Working with this repo as an agent?** See [`AGENTS.md`](./AGENTS.md) for the MCP tool guide and workspace conventions.
 
-Local **FPF spec** runtime built around the `LocalFPFSpecKnowledgeRuntime` use case. The repo carries a committed publication surface under `published/current/**` for runtime/docs/deploy consumption, while local memory preparation refreshes that surface from a gitignored upstream working copy (`bun run spec:download` or `FPF_PUBLISH_SOURCE_PATH`).
+## What is this?
 
-It uses:
+A local **FPF spec** runtime. Given a single markdown spec file, it compiles a deterministic, vectorless index of FPF IDs, routes, relations, and anchors, and exposes that as:
 
-- local deterministic parsing for exact FPF IDs, routes, relations, anchors, and answer envelopes
-- a vectorless index compiler that emits structural and graph artifacts from the configured spec file
-- Mastra-owned MCP surfaces plus a Bun CLI as the integration surface
+- an **MCP server** (public + optional full surface) for IDE agents like Codex
+- a **Bun CLI** for queries, traces, and inspections
+- a **static docs site** built from the same compiled artifacts
 
-## Stack
+No vector database, no remote indexing, no Python. Optional local LLM synthesis via LM Studio is layered *on top of* deterministic retrieval — it is never the primary search path.
 
-- Bun is the preferred local runtime and package manager.
-- Zod owns repo-authored MCP contracts and validation.
-- Mastra owns the MCP, logging, and observability boundary.
-- Hono is the hosted server engine.
-- Rstest, Rslint, and Rspress are the preferred test, lint, and docs tools.
-
-## Scope
-
-- Runtime source set: one markdown spec file (default runtime path: `published/current/FPF-Spec.md`)
-- Local publish source: `.fpf-upstream/FPF-Spec.md` (gitignored) or any local checkout wired via `FPF_PUBLISH_SOURCE_PATH`
-- Generated pattern/route markdown: `docs/generated/**` (not committed; run `bun run docs:generate` against the published surface)
-- Static docs build output: `doc_build/` (deterministic, ignored)
-- Validation/tuning corpus: outside the runtime path
-- No vector database
-- No remote indexing service
-- No Python code
-
-## Environment
-
-Copy `.env.example` to `.env` and set:
-
-```bash
-FPF_SPEC_SOURCE_PATH=published/current/FPF-Spec.md
-FPF_PUBLISH_SOURCE_PATH=.fpf-upstream/FPF-Spec.md
-FPF_RUNTIME_ARTIFACT_DIR=.runtime/fpf-index
-FPF_QUERY_DEFAULT_MODE=verbose
-FPF_LOCAL_LLM_BASE_URL=http://localhost:1234/v1
-FPF_LOCAL_LLM_MODEL=google/gemma-4-31b
-FPF_LOCAL_LLM_API_KEY=
-FPF_LOCAL_LLM_TIMEOUT_MS=20000
-FPF_MASTRA_LOG_PATH=.runtime/logs/mastra.log
-FPF_MASTRA_LOG_LEVEL=info
-FPF_MASTRA_OBSERVABILITY_PATH=.runtime/logs/mastra-observability.json
-FPF_MASTRA_OBSERVABILITY_FORMAT=flat
-FPF_MASTRA_OBSERVABILITY_INCLUDE_INTERNAL_SPANS=true
-FPF_MASTRA_OBSERVABILITY_INCLUDE_MODEL_CHUNKS=false
-FPF_MASTRA_OBSERVABILITY_LOG_LEVEL=info
-FPF_AI_TRACE_LOG_PATH=.runtime/logs/ai-traces.jsonl
-```
-
-`FPF_SPEC_SOURCE_PATH` must be a **local filesystem path** (the runtime does not fetch `https://` URLs). The default when unset is the committed publication surface: `published/current/FPF-Spec.md`. Local memory preparation uses `FPF_PUBLISH_SOURCE_PATH`, which defaults to `.fpf-upstream/FPF-Spec.md` after `bun run spec:download`. You can instead point `FPF_PUBLISH_SOURCE_PATH` at a local checkout of [github.com/venikman/fpf-sync](https://github.com/venikman/fpf-sync) such as [`FPF/FPF-Spec.md`](https://github.com/venikman/fpf-sync/blob/main/FPF/FPF-Spec.md). Override the download URL or output path with `FPF_UPSTREAM_SPEC_URL` and `FPF_DOWNLOAD_SPEC_OUTPUT`. Keep `FPF_SPEC_SOURCE_PATH` aligned across `.env`, your shell, and any MCP config (`server.json` `env`) so every runtime/docs entrypoint agrees on the published file it should read.
-
-`FPF_QUERY_DEFAULT_MODE` applies to `query_fpf_spec` and `ask_fpf` when `mode` is omitted. `trace_fpf_path` stays `compact` by default.
-
-`FPF_LOCAL_LLM_*` is optional. If present, the runtime calls the local LM Studio Anthropic-compatible API (`POST /v1/messages` with model discovery at `GET /v1/models`) only after deterministic retrieval has selected a bounded slice set. If absent, the runtime stays fully deterministic.
-
-If you opt into the LM Studio path by setting either `FPF_LOCAL_LLM_BASE_URL` or `FPF_LOCAL_LLM_MODEL`, the missing half falls back to the repo defaults:
-
-- `FPF_LOCAL_LLM_BASE_URL=http://localhost:1234/v1`
-- `FPF_LOCAL_LLM_MODEL=google/gemma-4-31b`
-
-The synthesizer posts to `{FPF_LOCAL_LLM_BASE_URL}/messages` with the Anthropic Messages request shape (`system` + `messages` + `max_tokens`) and parses `content[].text` from the response. Generate an API token in LM Studio → Developer → Server Settings → Manage Tokens and set it on `FPF_LOCAL_LLM_API_KEY`.
-
-`FPF_MASTRA_LOG_PATH` configures the Mastra-backed runtime/MCP logger and writes structured JSON logs.
-
-`FPF_MASTRA_OBSERVABILITY_*` configures the Mastra-backed observability snapshot file. That file includes `model_generation` spans around the local LM Studio synthesis call.
-
-`FPF_AI_TRACE_LOG_PATH` writes bounded LM Studio synthesis traces as JSON lines. This is the actual local model call path in this project, because the synthesizer uses a direct `fetch` to the LM Studio-compatible endpoint instead of a Mastra agent model wrapper.
-
-## Commands
+## Quick start
 
 ```bash
 bun install
-bun run spec:download
-bun run publish:current
-bun run evaluate:work
-bun run stage:from-published
-bun run smoke:mcp:http
-bun run mastra:build
-bun run hooks:install
-bun run docs:generate
-bun run lint
-bun run check
-bun run test
-bun run build
-bun run docs:generate
-bun run docs:build
-bun run docs:dev
-bun run start
-bun run cli -- status
-bun run cli -- refresh
+cp .env.example .env             # see Configuration below
+bun run spec:download            # fetch FPF-Spec.md into .fpf-upstream/
+bun run publish:current          # refresh the committed published/current/** surface
 bun run cli -- query --question "What is U.BoundedContext?" --mode verbose
-bun run cli -- query --question "How does it connect to role assignment?" --session s1
-bun run cli -- inspect --selector "A.1.1"
-bun run cli -- read-doc --selector "A.1.1"
-bun run cli -- trace --question "How do U.RoleAssignment and U.BoundedContext connect?" --mode proof --session s1
-bun run cli -- evaluate-work --target current-pr --base origin/main --format markdown
-bun run cli -- evaluate-work --target current-pr --base origin/main --format json
-bun run cli -- lm-check --timeout-ms 60000
-bun run cli -- lm-check --base-url http://localhost:1234/v1 --api-key "$FPF_LOCAL_LLM_API_KEY" --timeout-ms 60000
-bun run mcp
 ```
 
-## FPF Work Evaluation
-
-Use the deterministic local evaluator when you want an FPF-grounded review of the current branch or worktree:
-
-```bash
-bun run evaluate:work
-bun run cli -- evaluate-work --target current-pr --base origin/main --format markdown
-bun run cli -- evaluate-work --target working-tree --base origin/main --format json
-bun run cli -- evaluate-work --spec ~/Downloads/FPF-Spec\(12\).md --out reports/fpf-work.md
-```
-
-The evaluator reads local git facts, the committed `published/current/**` surface, and the configured FPF spec. It does not call an LLM, fetch GitHub, or regenerate artifacts. By default it reads `FPF_SPEC_SOURCE_PATH` if set, otherwise `published/current/FPF-Spec.md`; it does not fall back to `.fpf-upstream/`.
-
-## Run And Test MCP
-
-Hosted/public MCP endpoint used by Codex by default:
-
-```text
-https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp
-```
-
-Optional local full-surface MCP server for development and expert tools:
+To run the local MCP server (full surface, expert tools enabled):
 
 ```bash
 FPF_MCP_SURFACE=full bun run mcp
 ```
 
-Start the hosted Mastra runtime locally on the Hono engine:
+To browse docs locally:
 
 ```bash
-bun run start
+bun run docs:generate && bun run docs:dev
 ```
 
-Smoke-test the hosted streamable HTTP endpoint:
+## How it works
+
+On each refresh trigger the runtime:
+
+1. hashes the spec file at `FPF_SPEC_SOURCE_PATH` and reuses the snapshot if the hash matches
+2. otherwise recompiles a local vectorless index, writing `snapshot.json`, `build-audit.json`, `index-map.json`, `pattern-graph.json`, `route-graph.json`, `lexicon.json`, and `anchor-map.json` under `.runtime/fpf-index/`
+3. enriches the index with deterministic section descriptions plus per-node metadata (role, route-bearing status, …)
+4. follows explicit references, route hints, and outline adjacency in a bounded frontier loop when the first anchor set is insufficient
+5. optionally reuses a short-lived in-memory session context when `query` or `trace` is called with `--session` / `sessionId`
+6. optionally calls a local LM Studio model on bounded slices plus a compact retrieval summary only
+7. answers with IDs, citations, constraints, relations, and snapshot metadata
+
+## Stack
+
+- **Bun** — preferred local runtime and package manager
+- **Zod** — repo-authored MCP contracts and validation
+- **Mastra** — MCP, logging, and observability boundary
+- **Hono** — hosted server engine
+- **Rstest, Rslint, Rspress** — test, lint, docs
+
+## Scope
+
+In:
+
+- one markdown spec file as the runtime source set (default: `published/current/FPF-Spec.md`)
+- a gitignored local publish source: `.fpf-upstream/FPF-Spec.md`, or any local checkout via `FPF_PUBLISH_SOURCE_PATH`
+- generated pattern/route markdown under `docs/generated/**` (not committed; produced by `bun run docs:generate`)
+- static docs build output under `doc_build/` (deterministic, ignored)
+
+Out:
+
+- a vector database
+- any remote indexing service
+- any Python code
+- a validation/tuning corpus inside the runtime path
+
+## Configuration
+
+Copy `.env.example` to `.env`. The most common settings:
+
+| Variable                                  | Default                              | Purpose                                                               |
+| ----------------------------------------- | ------------------------------------ | --------------------------------------------------------------------- |
+| `FPF_SPEC_SOURCE_PATH`                    | `published/current/FPF-Spec.md`      | Local path to the spec the runtime reads (must be a filesystem path). |
+| `FPF_PUBLISH_SOURCE_PATH`                 | `.fpf-upstream/FPF-Spec.md`          | Local source used by `publish:current`.                               |
+| `FPF_RUNTIME_ARTIFACT_DIR`                | `.runtime/fpf-index`                 | Where compiled artifacts are written.                                 |
+| `FPF_QUERY_DEFAULT_MODE`                  | `verbose`                            | Default `mode` for `query_fpf_spec` and `ask_fpf`.                    |
+| `FPF_LOCAL_LLM_BASE_URL`                  | `http://localhost:1234/v1`           | Optional LM Studio endpoint. Omit to stay fully deterministic.        |
+| `FPF_LOCAL_LLM_MODEL`                     | `google/gemma-4-31b`                 | Optional LM Studio model.                                             |
+| `FPF_LOCAL_LLM_API_KEY`                   | *(empty)*                            | LM Studio API token (Developer → Server Settings → Manage Tokens).    |
+| `FPF_LOCAL_LLM_TIMEOUT_MS`                | `20000`                              | LM Studio request timeout.                                            |
+| `FPF_MASTRA_LOG_PATH`                     | `.runtime/logs/mastra.log`           | Structured Mastra runtime/MCP logs.                                   |
+| `FPF_MASTRA_OBSERVABILITY_PATH`           | `.runtime/logs/mastra-observability.json` | Observability snapshot file.                                     |
+| `FPF_AI_TRACE_LOG_PATH`                   | `.runtime/logs/ai-traces.jsonl`      | Per-call LM Studio synthesis traces (JSONL).                          |
+
+<details>
+<summary>Detailed notes on these variables</summary>
+
+`FPF_SPEC_SOURCE_PATH` must be a **local filesystem path** — the runtime does not fetch `https://` URLs. The default is the committed publication surface: `published/current/FPF-Spec.md`. Local memory preparation uses `FPF_PUBLISH_SOURCE_PATH`, which defaults to `.fpf-upstream/FPF-Spec.md` after `bun run spec:download`. You can instead point `FPF_PUBLISH_SOURCE_PATH` at a local checkout of [github.com/venikman/fpf-sync](https://github.com/venikman/fpf-sync) such as [`FPF/FPF-Spec.md`](https://github.com/venikman/fpf-sync/blob/main/FPF/FPF-Spec.md). Override the download URL or output path with `FPF_UPSTREAM_SPEC_URL` and `FPF_DOWNLOAD_SPEC_OUTPUT`. Keep `FPF_SPEC_SOURCE_PATH` aligned across `.env`, your shell, and any MCP config (`server.json` `env`) so every runtime/docs entrypoint agrees on the published file it should read.
+
+`FPF_QUERY_DEFAULT_MODE` applies to `query_fpf_spec` and `ask_fpf` when `mode` is omitted. `trace_fpf_path` stays `compact` by default.
+
+`FPF_LOCAL_LLM_*` is optional. If present, the runtime calls the local LM Studio Anthropic-compatible API (`POST /v1/messages` with model discovery at `GET /v1/models`) only after deterministic retrieval has selected a bounded slice set. If absent, the runtime stays fully deterministic. If you opt into the LM Studio path by setting either `FPF_LOCAL_LLM_BASE_URL` or `FPF_LOCAL_LLM_MODEL`, the missing half falls back to the defaults above. The synthesizer posts to `{FPF_LOCAL_LLM_BASE_URL}/messages` with the Anthropic Messages request shape (`system` + `messages` + `max_tokens`) and parses `content[].text` from the response.
+
+`FPF_MASTRA_OBSERVABILITY_*` configures the Mastra-backed observability snapshot file, which includes `model_generation` spans around the local LM Studio synthesis call. Additional knobs: `FPF_MASTRA_OBSERVABILITY_FORMAT=flat`, `FPF_MASTRA_OBSERVABILITY_INCLUDE_INTERNAL_SPANS=true`, `FPF_MASTRA_OBSERVABILITY_INCLUDE_MODEL_CHUNKS=false`, `FPF_MASTRA_OBSERVABILITY_LOG_LEVEL=info`.
+
+`FPF_AI_TRACE_LOG_PATH` writes bounded LM Studio synthesis traces as JSON lines. This is the actual local model call path in this project — the synthesizer uses a direct `fetch` to the LM Studio-compatible endpoint instead of a Mastra agent model wrapper.
+
+</details>
+
+## Common commands
+
+Grouped by what you're trying to do. See `package.json` for the full list.
+
+**Setup & publishing**
 
 ```bash
-bun run smoke:mcp:http
-FPF_MCP_SMOKE_URL=https://mcp.<your-domain>/api/mcp/fpf_memory/mcp bun run smoke:mcp:http
+bun install
+bun run spec:download            # download FPF-Spec.md into .fpf-upstream/
+bun run publish:current          # refresh published/current/** from FPF_PUBLISH_SOURCE_PATH
+bun run stage:from-published     # stage published/current/** for commit
+bun run hooks:install            # install local git hooks
 ```
 
-The Vercel trusted-domain proxy spike lives under `deploy/vercel-proxy`. In Vercel, create a separate project with that directory as the project root, attach the trusted domain, and run the smoke against the preview URL before changing the canonical endpoint references.
+**Develop, test, build**
 
-## Codex Setup
+```bash
+bun run lint
+bun run check
+bun run test
+bun run build
+bun run mastra:build
+```
 
-The current Codex default is the hosted public MCP.
+**Docs**
 
-Equivalent `~/.codex/config.toml` entry:
+```bash
+bun run docs:generate            # produce docs/generated/** from the published surface
+bun run docs:build               # static build into doc_build/
+bun run docs:dev                 # local docs site
+```
+
+**CLI**
+
+```bash
+bun run cli -- status
+bun run cli -- refresh
+bun run cli -- query    --question "What is U.BoundedContext?" --mode verbose
+bun run cli -- query    --question "How does it connect to role assignment?" --session s1
+bun run cli -- inspect  --selector "A.1.1"
+bun run cli -- read-doc --selector "A.1.1"
+bun run cli -- trace    --question "How do U.RoleAssignment and U.BoundedContext connect?" --mode proof --session s1
+bun run cli -- lm-check --timeout-ms 60000
+```
+
+**MCP server**
+
+```bash
+bun run mcp                      # public surface
+FPF_MCP_SURFACE=full bun run mcp # full surface (expert tools)
+bun run start                    # hosted Mastra runtime on Hono
+bun run smoke:mcp:http           # smoke-test the streamable HTTP endpoint
+```
+
+## FPF work evaluation
+
+Deterministic, local FPF-grounded review of the current branch or worktree:
+
+```bash
+bun run evaluate:work
+bun run cli -- evaluate-work --target current-pr   --base origin/main --format markdown
+bun run cli -- evaluate-work --target working-tree --base origin/main --format json
+bun run cli -- evaluate-work --spec ~/Downloads/FPF-Spec\(12\).md --out reports/fpf-work.md
+```
+
+The evaluator reads local git facts, the committed `published/current/**` surface, and the configured FPF spec. It does **not** call an LLM, fetch GitHub, or regenerate artifacts. By default it reads `FPF_SPEC_SOURCE_PATH` if set, otherwise `published/current/FPF-Spec.md`; it does not fall back to `.fpf-upstream/`.
+
+## Using it from Codex (and other MCP clients)
+
+The current Codex default is the hosted public MCP:
+
+```text
+https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp
+```
+
+Equivalent `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.fpf_memory]
@@ -160,37 +189,30 @@ url = "https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp"
 
 This repo ships the same project-scoped configuration at `.codex/config.toml` and `.mcp.json`. Once the project is trusted, Codex can load the hosted `fpf_memory` server directly from the repo.
 
-Recommended Codex tasks:
+**Recommended Codex tasks** (public surface):
 
-- answer a question: `Use only the fpf_memory MCP server. Call ask_fpf with question: "What is U.PromiseContent?"`
-- structured query: `Use only the fpf_memory MCP server. Call query_fpf_spec with question: "What is an FPF pattern?"`
-- read a generated page: `Use only the fpf_memory MCP server. Call read_fpf_doc with selector: "A.1.1"`
-- check runtime freshness: `Use only the fpf_memory MCP server. Call get_fpf_index_status`
+- answer a question — `Use only the fpf_memory MCP server. Call ask_fpf with question: "What is U.PromiseContent?"`
+- structured query — `Use only the fpf_memory MCP server. Call query_fpf_spec with question: "What is an FPF pattern?"`
+- read a generated page — `Use only the fpf_memory MCP server. Call read_fpf_doc with selector: "A.1.1"`
+- check runtime freshness — `Use only the fpf_memory MCP server. Call get_fpf_index_status`
 
-Expert tasks (local full-surface runtime only):
+**Expert tasks** (require local full-surface runtime, `FPF_MCP_SURFACE=full bun run mcp`):
 
-- inspect retrieval evidence: `Use only the fpf_memory MCP server. Call trace_fpf_path with question: "How do U.RoleAssignment and U.BoundedContext connect?"`
-- rebuild the local index: `Use only the fpf_memory MCP server. Call refresh_fpf_index`
-
-Start the local full-surface runtime before using expert tools:
-
-```bash
-FPF_MCP_SURFACE=full bun run mcp
-```
+- inspect retrieval evidence — `Use only the fpf_memory MCP server. Call trace_fpf_path with question: "How do U.RoleAssignment and U.BoundedContext connect?"`
+- rebuild the local index — `Use only the fpf_memory MCP server. Call refresh_fpf_index`
 
 Smoke-test the local full-surface runtime before using expert tools or deploying changes:
 
 ```bash
 bun run cli -- status
 bun run cli -- lm-check --timeout-ms 60000
-bun run cli -- lm-check --base-url http://localhost:1234/v1 --api-key "$FPF_LOCAL_LLM_API_KEY" --timeout-ms 60000
 bun run cli -- refresh
-bun run cli -- query --question "What is U.BoundedContext?" --mode verbose
-bun run cli -- trace --question "How do U.RoleAssignment and U.BoundedContext connect?" --mode proof
+bun run cli -- query   --question "What is U.BoundedContext?" --mode verbose
+bun run cli -- trace   --question "How do U.RoleAssignment and U.BoundedContext connect?" --mode proof
 bun run cli -- inspect --selector "A.1.1"
 ```
 
-The direct stdio launcher (same entry as `bun run mcp`; add `FPF_MCP_SURFACE=full` for expert-tool work):
+The direct stdio launcher (same entry as `bun run mcp`):
 
 ```bash
 FPF_MCP_SURFACE=full bun src/mastra/stdio.ts
@@ -198,7 +220,7 @@ FPF_MCP_SURFACE=full bun src/mastra/stdio.ts
 
 This starts a long-running stdio server; for a manual smoke check, stop it with `Ctrl+C` after startup confirmation. Omit `FPF_MCP_SURFACE=full` if you only want the public surface.
 
-If this repo is registered as a Codex MCP server, restart Codex after changes and then test with a forced tool-use prompt such as:
+If this repo is registered as a Codex MCP server, restart Codex after changes and then test with a forced tool-use prompt:
 
 ```text
 Use only the fpf_memory MCP server.
@@ -206,101 +228,67 @@ Call ask_fpf with:
 - question: "Give me a checklist for how to model my project's information system."
 ```
 
-For the normal high-level path, that is the whole prompt.
+For a proof-style grounded answer, add `mode: "proof"`. For the raw structured envelope, call `query_fpf_spec` instead. For a deterministic retrieval/debug trace, call `trace_fpf_path`.
 
-Proof-style grounding:
+The Vercel trusted-domain proxy spike lives under `deploy/vercel-proxy`. In Vercel, create a separate project with that directory as the project root, attach the trusted domain, and run the smoke against the preview URL before changing the canonical endpoint references:
 
-```text
-Use only the fpf_memory MCP server.
-Call ask_fpf with:
-- question: "Give me a checklist for how to model my project's information system."
-- mode: "proof"
+```bash
+FPF_MCP_SMOKE_URL=https://mcp.<your-domain>/api/mcp/fpf_memory/mcp bun run smoke:mcp:http
 ```
 
-Raw structured answer envelope:
+## MCP tools
 
-```text
-Use only the fpf_memory MCP server.
-Call query_fpf_spec with:
-- question: "Give me a checklist for how to model my project's information system."
-```
+**Public** (default surface):
 
-Deterministic retrieval/debug trace:
+- `browse_fpf_catalog` — task-oriented discovery by part, status, or kind
+- `search_fpf` — full-text search across compiled nodes
+- `ask_fpf` — markdown-first answers
+- `query_fpf_spec` — structured answer envelope
+- `read_fpf_doc` — exact generated markdown pages
+- `get_fpf_index_status` — runtime freshness check
 
-```text
-Use only the fpf_memory MCP server.
-Call trace_fpf_path with:
-- question: "Give me a checklist for how to model my project's information system."
-- mode: "proof"
-```
+**Full-surface only** (`FPF_MCP_SURFACE=full`):
 
-## Runtime surfaces
-
-- `src/mcp/tool-contracts.ts`: Zod-authored MCP input and output contracts
-- `src/adapters/mcp/tools.ts`: canonical snake_case MCP tools and `ask_fpf`
-- `src/adapters/mcp/server.ts`: canonical MCPServer definitions (public and full surfaces)
-- `src/composition/`: canonical bridge layer for runtime/bootstrap composition
-- `src/compat/mastra/`: governed Mastra compatibility bootstrap layer
-- `src/mastra/mcp/server.ts`: compatibility shim for the legacy MCP server import path
-- `src/mastra/index.ts`: compatibility shim consumed by `bun run mastra:build` and Mastra deploy tooling
-- `src/mastra/stdio.ts`: stdio entry point for MCP clients
-- `src/server.ts`: Hono HTTP server bootstrap for Bun
-- `src/runtime/`: compiler, retrieval, trace, inspect, and synthesis logic
-- `src/adapters/infra/logging/runtime-logger.ts`: Mastra-backed structured runtime/MCP log writer
-- `src/adapters/infra/observability/runtime-observability.ts`: Mastra-backed observability wrapper for local synthesis
-
-## Docs surface
-
-- `docs/`: Rspress content root populated by generated pages plus any optional hand-authored pages
-- `scripts/generate-docs.ts`: compiler-backed docs generation into `docs/generated/` (gitignored; fed from `published/current/**` by default)
-- `rspress.config.ts`: docs site config
-
-## MCP tool roles
-
-### Public tools (default surface)
-
-`browse_fpf_catalog`, `search_fpf`, `ask_fpf`, `query_fpf_spec`, `read_fpf_doc`, and `get_fpf_index_status`.
-
-### Full-surface-only tools
-
-Set `FPF_MCP_SURFACE=full` on local stdio or local HTTP runtimes to expose `inspect_fpf_node`, `inspect_fpf_anchor`, `expand_fpf_citations`, `trace_fpf_path`, and `refresh_fpf_index`.
+- `inspect_fpf_node`, `inspect_fpf_anchor`, `expand_fpf_citations` — deep inspection
+- `trace_fpf_path` — retrieval evidence and provenance
+- `refresh_fpf_index` — rebuild the local artifact set
 
 Only `query_fpf_spec` and `ask_fpf` can use the optional synthesizer. All other MCP tools stay deterministic. Set `FPF_MCP_SURFACE=public` on the deployed server to restrict it to public tools only.
 
-## Runtime behavior
+## Project layout
 
-On each refresh trigger the runtime:
+**Runtime surfaces**
 
-1. hashes the spec file at `FPF_SPEC_SOURCE_PATH`
-2. reuses the snapshot if the hash matches
-3. otherwise recompiles a local vectorless index
-4. writes:
-   - `snapshot.json`
-   - `build-audit.json`
-   - `index-map.json`
-   - `pattern-graph.json`
-   - `route-graph.json`
-   - `lexicon.json`
-   - `anchor-map.json`
-5. enriches the index map with deterministic section descriptions plus per-node metadata such as role and route-bearing status
-6. follows explicit references, route hints, and outline adjacency in a bounded frontier loop when the first anchor set is insufficient
-7. optionally reuses a short-lived in-memory session context when `query` or `trace` is called with `--session` or `sessionId`
-8. optionally calls a local LM Studio model on bounded slices plus a compact retrieval summary only
-9. answers with IDs, citations, constraints, relations, and snapshot metadata
+- `src/mcp/tool-contracts.ts` — Zod-authored MCP input/output contracts
+- `src/adapters/mcp/tools.ts` — canonical snake_case MCP tools and `ask_fpf`
+- `src/adapters/mcp/server.ts` — canonical MCPServer definitions (public + full)
+- `src/composition/` — canonical bridge layer for runtime/bootstrap composition
+- `src/compat/mastra/` — governed Mastra compatibility bootstrap layer
+- `src/mastra/mcp/server.ts` — compatibility shim for the legacy MCP server import path
+- `src/mastra/index.ts` — compatibility shim consumed by `bun run mastra:build` and Mastra deploy tooling
+- `src/mastra/stdio.ts` — stdio entry point for MCP clients
+- `src/server.ts` — Hono HTTP server bootstrap for Bun
+- `src/runtime/` — compiler, retrieval, trace, inspect, synthesis
+- `src/adapters/infra/logging/runtime-logger.ts` — Mastra-backed structured runtime/MCP log writer
+- `src/adapters/infra/observability/runtime-observability.ts` — Mastra-backed observability wrapper for local synthesis
 
-Artifacts are stored under `.runtime/fpf-index/`.
+**Docs**
 
-## Docs surfaces
-
-- Spec source: path from `FPF_SPEC_SOURCE_PATH` (defaults to `published/current/FPF-Spec.md`; canonical upstream lives in [fpf-sync](https://github.com/venikman/fpf-sync))
-- Local publish source: path from `FPF_PUBLISH_SOURCE_PATH` (defaults to `.fpf-upstream/FPF-Spec.md` after `bun run spec:download`)
-- `docs/generated/**`: produced locally by `docs:generate` (not committed; CI and docs deploy read the committed publication surface and generate from it)
-- `doc_build/`: deterministic Rspress build output for the wiki-like static viewer
+- `docs/` — Rspress content root populated by generated pages plus any optional hand-authored pages
+- `docs/generated/**` — produced locally by `docs:generate` (gitignored; CI and docs deploy read the committed publication surface and generate from it)
+- `scripts/generate-docs.ts` — compiler-backed docs generation (fed from `published/current/**` by default)
+- `rspress.config.ts` — docs site config
+- `doc_build/` — deterministic Rspress build output for the wiki-like static viewer
 
 The docs pipeline does not use an LLM step. `bun run docs:generate` writes the canonical markdown collection, and `bun run docs:build` builds the static viewer from that collection.
 
-## Log Files
+**Spec sources**
 
-- `.runtime/logs/mastra.log`: structured runtime server/tool logs
-- `.runtime/logs/mastra-observability.json`: runtime observability snapshot containing manual LM Studio `model_generation` traces
-- `.runtime/logs/ai-traces.jsonl`: request/response/error traces for local LM Studio synthesis calls
+- `FPF_SPEC_SOURCE_PATH` — runtime spec path (default `published/current/FPF-Spec.md`; canonical upstream lives in [fpf-sync](https://github.com/venikman/fpf-sync))
+- `FPF_PUBLISH_SOURCE_PATH` — local publish source (default `.fpf-upstream/FPF-Spec.md` after `bun run spec:download`)
+
+## Logs
+
+- `.runtime/logs/mastra.log` — structured runtime server/tool logs
+- `.runtime/logs/mastra-observability.json` — observability snapshot containing manual LM Studio `model_generation` traces
+- `.runtime/logs/ai-traces.jsonl` — request/response/error traces for local LM Studio synthesis calls
