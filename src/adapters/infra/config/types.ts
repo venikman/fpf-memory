@@ -8,6 +8,7 @@ export type ObservabilityLogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal
 export interface RuntimeCoreConfig {
   sourcePath: string;
   artifactDir: string;
+  artifactSeedDir?: string;
   maxSessions: number;
   persistSessionCache: boolean;
 }

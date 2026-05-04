@@ -4,6 +4,7 @@ import {
   buildOperationPlan,
   formatMarkdownSummary,
   parseBenchArgs,
+  readJsonRpcResponse,
   summarizeDurations,
   type BenchSummary,
 } from '../scripts/bench-hosted-mcp.js';
@@ -130,5 +131,43 @@ describe('hosted MCP benchmark harness', () => {
     expect(markdown).toContain('# MCP benchmark: proxy');
     expect(markdown).toContain('| operation | count | mean ms |');
     expect(markdown).toContain('Fresh source hash: sha256:test');
+  });
+
+  it('parses the matching JSON-RPC response from multi-event SSE bodies', () => {
+    const message = readJsonRpcResponse(
+      200,
+      'text/event-stream',
+      [
+        'event: notification',
+        'data: {"jsonrpc":"2.0","method":"progress"}',
+        '',
+        'event: message',
+        'data: {"jsonrpc":"2.0","id":2,"result":{"ok":true}}',
+        '',
+        'event: message',
+        'data: {"jsonrpc":"2.0","id":3,"result":{"wrong":true}}',
+        '',
+      ].join('\n'),
+      2,
+    );
+
+    expect(message).toEqual({
+      jsonrpc: '2.0',
+      id: 2,
+      result: { ok: true },
+    });
+  });
+
+  it('preserves HTTP status context for non-JSON error bodies', () => {
+    const message = readJsonRpcResponse(500, 'text/html', '<h1>upstream failed</h1>', 7);
+
+    expect(message).toEqual({
+      jsonrpc: '2.0',
+      id: 7,
+      error: {
+        code: -32000,
+        message: '<h1>upstream failed</h1>',
+      },
+    });
   });
 });

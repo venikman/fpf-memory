@@ -3,6 +3,18 @@ import { dirname } from 'node:path';
 import { performance } from 'node:perf_hooks';
 
 import { HOSTED_MCP_ENDPOINT } from '../src/core/constants.js';
+import {
+  asArray,
+  asOptionalString,
+  asRecord,
+  assert,
+  parseFlagMap,
+  readNonNegativeInteger,
+  readOptionalString,
+  readPositiveInteger,
+  readString,
+  round,
+} from './_args.js';
 
 const EXPECTED_PUBLIC_TOOLS = [
   'browse_fpf_catalog',
@@ -214,7 +226,7 @@ export class McpHttpClient {
 
     const contentType = response.headers.get('content-type') ?? '';
     const body = await response.text();
-    const message = readJsonRpcResponse(response.status, contentType, body);
+    const message = readJsonRpcResponse(response.status, contentType, body, id);
     assert(
       response.ok,
       `${method} returned HTTP ${response.status}: ${message.error?.message ?? 'no JSON-RPC error'}`,
@@ -271,26 +283,7 @@ export function parseBenchArgs(
   args: string[],
   env: NodeJS.ProcessEnv = process.env,
 ): BenchOptions {
-  const values = new Map<string, string | true>();
-  for (let index = 0; index < args.length; index += 1) {
-    const token = args[index];
-    if (!token.startsWith('--')) {
-      throw new Error(`Unexpected positional argument: ${token}`);
-    }
-    const [rawKey, inlineValue] = token.slice(2).split('=', 2);
-    if (inlineValue !== undefined) {
-      values.set(rawKey, inlineValue);
-      continue;
-    }
-    const next = args[index + 1];
-    if (!next || next.startsWith('--')) {
-      values.set(rawKey, true);
-      continue;
-    }
-    values.set(rawKey, next);
-    index += 1;
-  }
-
+  const values = parseFlagMap(args);
   const url = readString(values, 'url', env.FPF_MCP_BENCH_URL ?? HOSTED_MCP_ENDPOINT);
   const name = readString(values, 'name', env.FPF_MCP_BENCH_NAME ?? new URL(url).hostname);
   const scenario = readScenario(readString(values, 'scenario', env.FPF_MCP_BENCH_SCENARIO ?? 'mixed'));
@@ -588,26 +581,56 @@ function operationWeights(scenario: Scenario): OperationName[] {
   }
 }
 
-function readJsonRpcResponse(
+export function readJsonRpcResponse(
   status: number,
   contentType: string,
   body: string,
+  expectedId?: string | number,
 ): JsonRpcResponse {
   assert(body.trim().length > 0, `HTTP ${status} returned an empty response body.`);
-  if (contentType.includes('text/event-stream')) {
-    return parseSseJsonRpc(body);
+  try {
+    if (contentType.includes('text/event-stream')) {
+      return parseSseJsonRpc(body, expectedId);
+    }
+    return JSON.parse(body) as JsonRpcResponse;
+  } catch (error) {
+    if (status >= 400) {
+      return {
+        jsonrpc: '2.0',
+        id: expectedId ?? null,
+        error: {
+          code: -32000,
+          message: body.slice(0, 500) || String(error),
+        },
+      };
+    }
+    throw error;
   }
-  return JSON.parse(body) as JsonRpcResponse;
 }
 
-function parseSseJsonRpc(body: string): JsonRpcResponse {
-  const dataLines = body
-    .split('\n')
-    .map((line) => line.trimEnd())
-    .filter((line) => line.startsWith('data:'))
-    .map((line) => line.slice('data:'.length).trim());
-  assert(dataLines.length > 0, 'SSE response did not contain any data lines.');
-  return JSON.parse(dataLines.join('\n')) as JsonRpcResponse;
+function parseSseJsonRpc(body: string, expectedId?: string | number): JsonRpcResponse {
+  const messages = body
+    .split(/\r?\n\r?\n/u)
+    .map((event) => event
+      .split(/\r?\n/u)
+      .map((line) => line.trimEnd())
+      .filter((line) => line.startsWith('data:'))
+      .map((line) => line.slice('data:'.length).trim())
+      .join('\n'))
+    .filter((data) => data.length > 0)
+    .map((data) => parseJsonRpcMaybe(data))
+    .filter((message): message is JsonRpcResponse => message !== undefined);
+
+  assert(messages.length > 0, 'SSE response did not contain any JSON-RPC data events.');
+  return messages.find((message) => message.id === expectedId) ?? messages[messages.length - 1];
+}
+
+function parseJsonRpcMaybe(data: string): JsonRpcResponse | undefined {
+  try {
+    return JSON.parse(data) as JsonRpcResponse;
+  } catch {
+    return undefined;
+  }
 }
 
 function extractToolError(result: ToolCallResult): string {
@@ -617,54 +640,6 @@ function extractToolError(result: ToolCallResult): string {
     .filter(isString)
     .join('\n');
   return text || 'no tool error text';
-}
-
-function readString(values: Map<string, string | true>, key: string, fallback: string): string {
-  const value = values.get(key);
-  if (value === undefined || value === true || value.trim() === '') {
-    return fallback;
-  }
-  return value.trim();
-}
-
-function readOptionalString(
-  values: Map<string, string | true>,
-  key: string,
-  fallback: string | undefined,
-): string | undefined {
-  const value = values.get(key);
-  if (value === true) {
-    throw new Error(`--${key} requires a value.`);
-  }
-  return value?.trim() || fallback?.trim() || undefined;
-}
-
-function readPositiveInteger(
-  values: Map<string, string | true>,
-  key: string,
-  envValue: string | undefined,
-  fallback: number,
-): number {
-  const value = readOptionalString(values, key, envValue) ?? `${fallback}`;
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new Error(`--${key} must be a positive integer.`);
-  }
-  return parsed;
-}
-
-function readNonNegativeInteger(
-  values: Map<string, string | true>,
-  key: string,
-  envValue: string | undefined,
-  fallback: number,
-): number {
-  const value = readOptionalString(values, key, envValue) ?? `${fallback}`;
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed) || parsed < 0) {
-    throw new Error(`--${key} must be a non-negative integer.`);
-  }
-  return parsed;
 }
 
 function readScenario(value: string): Scenario {
@@ -701,35 +676,8 @@ function percentile(sortedValues: number[], rank: number): number {
   return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight;
 }
 
-function round(value: number): number {
-  return Math.round(value * 100) / 100;
-}
-
-function asRecord(value: unknown, label: string): Record<string, unknown> {
-  assert(
-    typeof value === 'object' && value !== null && !Array.isArray(value),
-    `${label} was not an object.`,
-  );
-  return value as Record<string, unknown>;
-}
-
-function asArray(value: unknown, label: string): unknown[] {
-  assert(Array.isArray(value), `${label} was not an array.`);
-  return value;
-}
-
-function asOptionalString(value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined;
-}
-
 function isString(value: unknown): value is string {
   return typeof value === 'string';
-}
-
-function assert(condition: unknown, message: string): asserts condition {
-  if (!condition) {
-    throw new Error(message);
-  }
 }
 
 function assertArrayEquals(

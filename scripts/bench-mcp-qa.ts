@@ -3,6 +3,17 @@ import { dirname } from 'node:path';
 import { performance } from 'node:perf_hooks';
 
 import { HOSTED_MCP_ENDPOINT } from '../src/core/constants.js';
+import {
+  asArray,
+  asOptionalString,
+  asRecord,
+  assert,
+  parseFlagMap,
+  readOptionalString,
+  readPositiveInteger,
+  readString,
+  round,
+} from './_args.js';
 import { McpHttpClient } from './bench-hosted-mcp.js';
 
 type AnswerMode = 'compact' | 'verbose' | 'proof';
@@ -17,6 +28,7 @@ type QaStatus =
 
 const DEFAULT_TIMEOUT_MS = 60_000;
 const DEFAULT_CASE_SET = 'core';
+const KNOWN_IDS_INCOMPLETE = '__fpf_known_ids_incomplete__';
 
 export interface QaBenchOptions {
   name: string;
@@ -190,7 +202,7 @@ export async function runQaBenchmark(options: QaBenchOptions): Promise<QaBenchSu
     durationMs: round(finishedAt.getTime() - startedAt.getTime()),
     sourceHash: asOptionalString(status.sourceHash),
     builtAt: asOptionalString(status.builtAt),
-    knownIdCount: knownIds.size,
+    knownIdCount: knownIdCount(knownIds),
     cases: results,
     sessionCheck,
     ok: results.length + 1 - failed,
@@ -247,7 +259,9 @@ export async function runQaCase(
     }
   }
   for (const id of [...ids, ...candidateIds]) {
-    if (!knownIds.has(id)) {
+    if (!knownIds.has(id) && knownIds.has(KNOWN_IDS_INCOMPLETE)) {
+      warnings.push(`unknown-id check skipped for ${id} because catalog listing was truncated`);
+    } else if (!knownIds.has(id)) {
       failures.push(`returned unknown id ${id}`);
     }
   }
@@ -290,7 +304,7 @@ export async function runQaCase(
 }
 
 export function formatQaMarkdownSummary(summary: QaBenchSummary): string {
-  return [
+  const lines = [
     `# MCP Q&A benchmark: ${summary.name}`,
     '',
     `Endpoint: ${summary.endpoint}`,
@@ -308,11 +322,12 @@ export function formatQaMarkdownSummary(summary: QaBenchSummary): string {
     `Session check: ${summary.sessionCheck.ok ? 'ok' : 'failed'}`,
     `Fresh IDs: ${summary.sessionCheck.freshIds.join(', ')}`,
     `Session IDs: ${summary.sessionCheck.sessionIds.join(', ')}`,
-    summary.sessionCheck.failures.length > 0
-      ? `Session failures: ${summary.sessionCheck.failures.join('; ')}`
-      : '',
     '',
-  ].filter((line) => line !== '').join('\n');
+  ];
+  if (summary.sessionCheck.failures.length > 0) {
+    lines.splice(-1, 0, `Session failures: ${summary.sessionCheck.failures.join('; ')}`);
+  }
+  return lines.join('\n');
 }
 
 function formatResultIds(result: QaCaseResult): string {
@@ -333,7 +348,12 @@ async function loadKnownIds(client: McpHttpClient): Promise<Set<string>> {
       limit: 500,
     });
     const content = asRecord(result.structuredContent, `${kind} catalog`);
-    for (const entry of asArray(content.entries, `${kind} entries`)) {
+    const entries = asArray(content.entries, `${kind} entries`);
+    const total = typeof content.total === 'number' ? content.total : entries.length;
+    if (total > entries.length) {
+      ids.add(KNOWN_IDS_INCOMPLETE);
+    }
+    for (const entry of entries) {
       const id = asRecord(entry, `${kind} entry`).id;
       if (typeof id === 'string') {
         ids.add(id);
@@ -341,6 +361,10 @@ async function loadKnownIds(client: McpHttpClient): Promise<Set<string>> {
     }
   }
   return ids;
+}
+
+function knownIdCount(ids: ReadonlySet<string>): number {
+  return ids.size - (ids.has(KNOWN_IDS_INCOMPLETE) ? 1 : 0);
 }
 
 async function runSessionCheck(
@@ -387,7 +411,7 @@ async function runSessionCheck(
     failures.push('session target did not include route:project-alignment');
   }
   for (const id of [...primeIds, ...freshIds, ...sessionIds]) {
-    if (!knownIds.has(id)) {
+    if (!knownIds.has(id) && !knownIds.has(KNOWN_IDS_INCOMPLETE)) {
       failures.push(`session check returned unknown id ${id}`);
     }
   }
@@ -404,81 +428,11 @@ async function runSessionCheck(
   };
 }
 
-function parseFlagMap(args: string[]): Map<string, string | true> {
-  const values = new Map<string, string | true>();
-  for (let index = 0; index < args.length; index += 1) {
-    const token = args[index];
-    if (!token.startsWith('--')) {
-      throw new Error(`Unexpected positional argument: ${token}`);
-    }
-    const [rawKey, inlineValue] = token.slice(2).split('=', 2);
-    if (inlineValue !== undefined) {
-      values.set(rawKey, inlineValue);
-      continue;
-    }
-    const next = args[index + 1];
-    if (!next || next.startsWith('--')) {
-      values.set(rawKey, true);
-      continue;
-    }
-    values.set(rawKey, next);
-    index += 1;
-  }
-  return values;
-}
-
-function readString(values: Map<string, string | true>, key: string, fallback: string): string {
-  const value = values.get(key);
-  if (value === undefined || value === true || value.trim() === '') {
-    return fallback;
-  }
-  return value.trim();
-}
-
-function readOptionalString(
-  values: Map<string, string | true>,
-  key: string,
-  fallback: string | undefined,
-): string | undefined {
-  const value = values.get(key);
-  if (value === true) {
-    throw new Error(`--${key} requires a value.`);
-  }
-  return value?.trim() || fallback?.trim() || undefined;
-}
-
-function readPositiveInteger(
-  values: Map<string, string | true>,
-  key: string,
-  envValue: string | undefined,
-  fallback: number,
-): number {
-  const value = readOptionalString(values, key, envValue) ?? `${fallback}`;
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new Error(`--${key} must be a positive integer.`);
-  }
-  return parsed;
-}
-
 function readOutputFormat(value: string): OutputFormat {
   if (value === 'json' || value === 'markdown') {
     return value;
   }
   throw new Error(`Unknown format: ${value}`);
-}
-
-function asRecord(value: unknown, label: string): Record<string, unknown> {
-  assert(
-    typeof value === 'object' && value !== null && !Array.isArray(value),
-    `${label} was not an object.`,
-  );
-  return value as Record<string, unknown>;
-}
-
-function asArray(value: unknown, label: string): unknown[] {
-  assert(Array.isArray(value), `${label} was not an array.`);
-  return value;
 }
 
 function asStringArray(value: unknown, label: string, issues: string[]): string[] {
@@ -491,20 +445,6 @@ function asStringArray(value: unknown, label: string, issues: string[]): string[
     issues.push(`${label} contained non-string entries`);
   }
   return strings;
-}
-
-function asOptionalString(value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined;
-}
-
-function round(value: number): number {
-  return Math.round(value * 100) / 100;
-}
-
-function assert(condition: unknown, message: string): asserts condition {
-  if (!condition) {
-    throw new Error(message);
-  }
 }
 
 async function main(): Promise<void> {

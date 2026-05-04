@@ -235,7 +235,7 @@ Call ask_fpf with:
 
 For a proof-style grounded answer, add `mode: "proof"`. For the raw structured envelope, call `query_fpf_spec` instead. For a deterministic retrieval/debug trace, call `trace_fpf_path`.
 
-The Vercel proxy stays canonical for clients. The direct Vercel origin remains a canary and lower-latency comparison endpoint until it has enough production traffic evidence.
+The Vercel proxy stays canonical for clients. The direct Vercel origin is the lower-level runtime target and remains useful as a canary and lower-latency comparison endpoint.
 
 ```bash
 bun run vercel:proxy:link
@@ -270,7 +270,7 @@ bun run bench:mcp:qa -- --name vercel-origin --url https://fpf-memory-mcp-vercel
 
 Only `query_fpf_spec` and `ask_fpf` can use the optional synthesizer. All other MCP tools stay deterministic. Set `FPF_MCP_SURFACE=public` on the deployed server to restrict it to public tools only.
 
-When a configured synthesizer fails or reports unavailable, answer tools return `degraded` with low confidence and `candidateIds`; deterministic retrieval tools still return normal `ok` envelopes.
+When a configured synthesizer fails or reports unavailable, answer tools return `degraded` with low confidence and `candidateIds`; deterministic citations, relations, and constraints remain available as evidence. Deterministic retrieval tools still return normal `ok` envelopes.
 
 ## Project layout
 

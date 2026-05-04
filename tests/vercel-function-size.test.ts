@@ -99,5 +99,15 @@ describe('Vercel function bundle size budget', () => {
         status: 'warn',
       }),
     ).toContain('WARN: bundle exceeds the configured warning threshold.');
+    expect(
+      formatBundleBudgetResult({
+        functionPath: '.vercel/output/functions/index.func',
+        sizeBytes: 236_000_000,
+        sizeMb: 236,
+        warnMb: 235,
+        failMb: 240,
+        status: 'warn',
+      }),
+    ).toContain('Fail-threshold headroom 4 MB.');
   });
 });

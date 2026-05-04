@@ -17,6 +17,7 @@ describe('context config parsing', () => {
     const env = {
       FPF_SPEC_SOURCE_PATH: '/tmp/fpf/FPF-spec.md',
       FPF_RUNTIME_ARTIFACT_DIR: '/tmp/fpf/.runtime/fpf-index',
+      FPF_RUNTIME_ARTIFACT_SEED_DIR: '/tmp/fpf/hosted/fpf-index',
       FPF_RUNTIME_MAX_SESSIONS: '12',
       FPF_PERSIST_SESSION_CACHE: 'true',
       FPF_MASTRA_LOG_PATH: '/tmp/fpf/logs/mastra.log',
@@ -43,6 +44,7 @@ describe('context config parsing', () => {
     expect(parseRuntimeCoreConfig(env)).toEqual({
       sourcePath: '/tmp/fpf/FPF-spec.md',
       artifactDir: '/tmp/fpf/.runtime/fpf-index',
+      artifactSeedDir: '/tmp/fpf/hosted/fpf-index',
       maxSessions: 12,
       persistSessionCache: true,
     });
@@ -98,6 +100,7 @@ describe('context config parsing', () => {
     expect(parseRuntimeCoreConfig({} as NodeJS.ProcessEnv)).toEqual({
       sourcePath: DEFAULT_SOURCE_PATH,
       artifactDir: '.runtime/fpf-index',
+      artifactSeedDir: undefined,
       maxSessions: 50,
       persistSessionCache: false,
     });

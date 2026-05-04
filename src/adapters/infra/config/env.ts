@@ -40,6 +40,7 @@ export function parseRuntimeCoreConfig(
   return {
     sourcePath: parseString(env.FPF_SPEC_SOURCE_PATH, DEFAULT_SOURCE_PATH),
     artifactDir: parseString(env.FPF_RUNTIME_ARTIFACT_DIR, DEFAULT_ARTIFACT_DIR),
+    artifactSeedDir: normalizeOptionalString(env.FPF_RUNTIME_ARTIFACT_SEED_DIR),
     maxSessions: parsePositiveInteger(env.FPF_RUNTIME_MAX_SESSIONS, DEFAULT_MAX_SESSIONS),
     persistSessionCache: parseBoolean(env.FPF_PERSIST_SESSION_CACHE, false),
   };

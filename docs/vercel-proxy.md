@@ -6,7 +6,7 @@ outline: false
 
 # Vercel MCP hosting
 
-Use this page to operate the Vercel-managed hostname that forwards the public MCP endpoint to the existing Mastra Cloud deployment, and to track the direct Vercel-origin migration candidate.
+Use this page to operate the Vercel-managed hostname that forwards the public MCP endpoint to the validated direct Vercel-origin runtime, and to keep the legacy Mastra Cloud origin available for rollback checks.
 
 ## Current state
 
@@ -16,7 +16,7 @@ Canonical MCP endpoint:
 https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp
 ```
 
-Upstream Mastra origin:
+Legacy Mastra origin:
 
 ```txt
 https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp
@@ -34,16 +34,18 @@ Direct Vercel-origin candidate:
 https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp
 ```
 
-The proxy is still the canonical client endpoint. The direct origin has passed hosted smoke and Q&A validation, but it should remain a migration candidate until the Mastra origin behind the proxy can be updated or the canonical URL is intentionally cut over.
+The proxy is still the canonical client endpoint. The direct origin is the lower-level runtime target behind that proxy and remains useful as a canary and rollback comparison endpoint.
 
 Validation snapshot on 2026-05-04:
 
 | Endpoint | Smoke | Q&A gate | Mixed latency | Notes |
 | --- | --- | --- | --- | --- |
-| Proxy | pass | fail, 4/8 | 75/0, 1.47 ops/s, mean 3298.97 ms, p95 7640.09 ms | Still forwards to the older Mastra origin built at 2026-05-03T23:49:37.217Z; it keeps the stale high-confidence synthesis-failure contract. |
-| Direct Vercel origin | pass | pass, 8/8 | 75/0, 2.5 ops/s, mean 1891.48 ms, p95 6664.54 ms | Deployed production origin includes the `C.16` retrieval fix and passes the Q&A benchmark. |
+| Proxy | pass | pass, 8/8 | 30/0, 1.38 ops/s, mean 3469.83 ms, p95 7300.85 ms | Canonical client URL. The production proxy now forwards the MCP route to the direct Vercel origin, so clients no longer receive the older Mastra synthesis-failure contract. |
+| Direct Vercel origin | pass | pass, 8/8 | 30/0, 1.35 ops/s, mean 3482.94 ms, p95 12010.25 ms | Deployed production origin includes the `C.16` retrieval fix and passes the Q&A benchmark. |
 
-Short no-idle series checks also passed for both endpoints: direct origin 36/0, proxy 36/0. Treat those as script-gate validation only; they are not a real idle soak because `--interval-ms 0` was used.
+In the current 30-call mixed sample, the proxy measured slightly faster than the direct origin, so no positive proxy overhead was observed. Treat that as live serverless variance rather than a permanent latency claim; keep comparing both endpoints before migration decisions.
+
+Earlier short no-idle series checks also passed for both endpoints: direct origin 36/0, proxy 36/0. Treat those as script-gate validation only; they are not a real idle soak because `--interval-ms 0` was used.
 
 The proxy preserves the MCP path:
 
@@ -62,9 +64,9 @@ https://<your-vercel-domain>/api/mcp/fpf_memory/mcp
 
 The proxy config forwards only:
 
-- `/api/mcp/fpf_memory/mcp`
-- `/connect-mcp`
-- `/`
+- `/api/mcp/fpf_memory/mcp` to the direct Vercel origin
+- `/connect-mcp` to the legacy Mastra origin
+- `/` to the legacy Mastra origin
 
 The MCP route sets `Cache-Control`, `CDN-Cache-Control`, and `Vercel-CDN-Cache-Control` to `no-store`.
 
@@ -87,8 +89,8 @@ https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp
 
 Known direct-origin constraints:
 
-- The local prebuilt Vercel output is about 229 MB, close to Vercel's 250 MB function bundle limit.
-- Vercel functions can read the bundled `hosted/FPF-Spec.md`, but mutable runtime artifacts and logs must use `/tmp`.
+- The local prebuilt Vercel function bundle is about 211 MB, close enough to Vercel's 250 MB function bundle limit that `bun run bench:vercel:function-size` remains a release gate.
+- Vercel functions can read the bundled `hosted/FPF-Spec.md` and seed the bundled snapshot into `/tmp`; mutable runtime artifacts and logs must use `/tmp`.
 - Preview deployments may be protected by Vercel Authentication; smoke the production alias or use an automation bypass token.
 - Keep `@mastra/deployer-vercel`, `@mastra/deployer`, `@mastra/server`, and `@mastra/core` on compatible Mastra minor lines. This repo currently pins the Vercel deployer and overrides deployer/server packages to match `@mastra/core@1.24.x`.
 
@@ -104,10 +106,10 @@ Comparison:
 
 | Option | Fixed platform cost | Usage cost | Operational notes |
 | --- | ---: | --- | --- |
-| Mastra origin + Vercel proxy | $0 if Mastra Starter and Vercel free-tier/project limits are enough; Mastra Teams is $250/month if needed | Mastra CPU/egress/observability after included quota, plus small Vercel proxy request/egress usage if it exceeds included limits | Lowest migration risk; adds one forwarding hop; keeps Mastra Cloud as runtime owner |
-| Direct Vercel origin | $0 on Hobby if eligible and within limits; Pro starts at $20/month plus usage | Vercel Functions active CPU, provisioned memory, invocations, and data transfer after included quota | Removes Mastra Cloud runtime cost and hop; current bundle is close to the 250 MB limit; Vercel `/tmp` cache is per instance and cold starts may rebuild runtime artifacts |
+| Mastra origin + Vercel proxy | $0 if Mastra Starter and Vercel free-tier/project limits are enough; Mastra Teams is $250/month if needed | Mastra CPU/egress/observability after included quota, plus small Vercel proxy request/egress usage if it exceeds included limits | Lowest migration risk when Mastra is the runtime owner, but it currently serves the old synthesis-failure behavior until redeployed |
+| Vercel proxy + direct Vercel origin | $0 on Hobby if eligible and within limits; Pro starts at $20/month plus usage | Vercel Functions active CPU, provisioned memory, invocations, and data transfer after included quota, plus small proxy forwarding usage if it exceeds included limits | Keeps the canonical proxy URL while moving runtime ownership to Vercel; current bundle is close to the 250 MB limit; Vercel `/tmp` cache is per instance and seeded from the bundled snapshot on cold start |
 
-Current pick: keep the proxy as canonical while the direct origin is observed. Move canonical clients to the direct origin only after at least one production traffic window confirms stable cold starts, bundle headroom, and no need for Mastra Teams-only features.
+Current pick: keep the proxy URL canonical, but back its MCP route with the direct Vercel origin. Keep the direct origin URL available as a canary and the Mastra origin available as a rollback comparison endpoint.
 
 ## LLM support cost comparison
 
@@ -157,7 +159,7 @@ Current pick: keep deterministic answers as the hosted default. Use LM Studio fo
 
 ## Smoke test
 
-Run the hosted HTTP smoke against the current Mastra origin:
+Run the hosted HTTP smoke against the canonical proxy:
 
 ```bash
 bun run smoke:mcp:http
@@ -219,7 +221,7 @@ bun run bench:mcp:qa -- --name proxy --url https://fpf-memory-mcp-proxy.vercel.a
 bun run bench:mcp:qa -- --name vercel-origin --url https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp --format markdown
 ```
 
-The Q&A gate accepts `status: "degraded"` only when the answer exposes expected retrieval candidates in `candidateIds`, keeps committed `ids` empty, and confidence stays low. A synthesis failure with `status: "ok"` is a benchmark failure.
+The Q&A gate accepts `status: "degraded"` only when the answer exposes expected retrieval candidates in `candidateIds`, keeps committed `ids` empty, and confidence stays low. Deterministic citations, relations, and constraints remain valid evidence in degraded answers. A synthesis failure with `status: "ok"` is a benchmark failure.
 
 ## Cutover rule
 
@@ -227,4 +229,4 @@ Do not update `HOSTED_MCP_ENDPOINT`, `.mcp.json`, `.codex/config.toml`, or publi
 
 The Vercel proxy has passed this smoke against `https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp`. Keep the Mastra URL available for one migration window. ChatGPT, Claude, Codex, editor, and CLI clients register exact URLs, so a hard cut can break existing connector configs.
 
-The direct Vercel origin has passed the same smoke against `https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp`. Do not make it canonical until the cutover criteria above are met.
+The direct Vercel origin has passed the same smoke against `https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp`. Keep clients on the proxy URL so future upstream changes do not require client reconfiguration.

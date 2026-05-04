@@ -26,7 +26,7 @@
     "vercel:proxy:deploy": "vercel deploy --cwd deploy/vercel-proxy --yes",
     "vercel:proxy:deploy:prod": "vercel deploy --cwd deploy/vercel-proxy --prod --yes",
     "vercel:origin:link": "vercel link --project fpf-memory-mcp-vercel-origin",
-    "vercel:origin:build": "bun run predeploy && bun run mastra:build && bun run bench:vercel:function-size",
+    "vercel:origin:build": "bun run predeploy && FPF_MASTRA_DEPLOY_TARGET=vercel bun run mastra:build && bun run bench:vercel:function-size",
     "vercel:origin:deploy": "bun run vercel:origin:build && vercel deploy --prebuilt --yes",
     "vercel:origin:deploy:prod": "bun run vercel:origin:build && vercel deploy --prebuilt --prod --yes",
     "mastra:build": "bun scripts/mastra-build.ts",

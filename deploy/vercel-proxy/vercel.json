@@ -24,7 +24,7 @@
   "rewrites": [
     {
       "source": "/api/mcp/fpf_memory/mcp",
-      "destination": "https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp"
+      "destination": "https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp"
     },
     {
       "source": "/connect-mcp",

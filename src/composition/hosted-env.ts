@@ -41,6 +41,12 @@ export function applyHostedEnvDefaults(
   ) {
     overrides.FPF_RUNTIME_ARTIFACT_DIR = artifactDir;
   }
+  if (
+    isVercelRuntime(env)
+    && shouldUseArtifactSeedDefault(env.FPF_RUNTIME_ARTIFACT_SEED_DIR, options)
+  ) {
+    overrides.FPF_RUNTIME_ARTIFACT_SEED_DIR = HOSTED_STAGED_ARTIFACT_DIR;
+  }
   if (Object.keys(overrides).length === 0) {
     return env;
   }
@@ -68,7 +74,7 @@ function shouldUseHostedDefault(
 }
 
 function isKnownHostedLegacyPath(value: string, kind: 'file' | 'directory'): boolean {
-  const normalized = value.replace(/\\/gu, '/').replace(/^\.\//u, '');
+  const normalized = normalizeRuntimePath(value);
 
   if (kind === 'file') {
     return normalized === 'FPF-spec.md' || normalized === '/app/FPF-spec.md';
@@ -89,12 +95,29 @@ function shouldMoveHostedArtifactsToServerlessTmp(
     && normalizeRuntimePath(value) === HOSTED_STAGED_ARTIFACT_DIR;
 }
 
+function shouldUseArtifactSeedDefault(
+  value: string | undefined,
+  options: HostedEnvDefaultsOptions,
+): boolean {
+  const configured = value?.trim();
+  if (!configured) {
+    return true;
+  }
+
+  return !resolveRuntimePath(configured, {
+    cwd: options.cwd,
+    moduleUrl: options.moduleUrl,
+    kind: 'directory',
+  }).existed;
+}
+
 function isVercelRuntime(env: NodeJS.ProcessEnv): boolean {
   return env.VERCEL === '1';
 }
 
 function normalizeRuntimePath(value: string | undefined): string {
-  return value?.trim().replace(/\\/gu, '/').replace(/^\.\//u, '') ?? '';
+  const normalized = value?.trim().replace(/\\/gu, '/').replace(/^\.\//u, '') ?? '';
+  return normalized === '/' ? normalized : normalized.replace(/\/+$/u, '');
 }
 
 function hasHostedStage(options: HostedEnvDefaultsOptions): boolean {

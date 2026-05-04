@@ -17,7 +17,7 @@ interface VercelConfig {
 }
 
 describe('Vercel MCP proxy config', () => {
-  it('proxies only the hosted MCP and connection page paths to Mastra Cloud', async () => {
+  it('proxies the MCP route to the validated Vercel origin and docs paths to Mastra Cloud', async () => {
     const config = JSON.parse(
       await readFile(resolve(process.cwd(), 'deploy/vercel-proxy/vercel.json'), 'utf8'),
     ) as VercelConfig;
@@ -27,7 +27,7 @@ describe('Vercel MCP proxy config', () => {
     expect(config.rewrites).toEqual([
       {
         source: '/api/mcp/fpf_memory/mcp',
-        destination: 'https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp',
+        destination: 'https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp',
       },
       {
         source: '/connect-mcp',

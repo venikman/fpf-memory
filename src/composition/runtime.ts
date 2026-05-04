@@ -31,6 +31,7 @@ export function createConfiguredRuntime(
     runtime: new FpfRuntime({
       sourcePath: runtimeConfig.sourcePath,
       artifactDir: runtimeConfig.artifactDir,
+      artifactSeedDir: runtimeConfig.artifactSeedDir,
       maxSessions: runtimeConfig.maxSessions,
       persistSessionCache: runtimeConfig.persistSessionCache,
       synthesizer: lmStudioConfig.enabled

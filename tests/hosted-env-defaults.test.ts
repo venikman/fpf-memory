@@ -65,11 +65,15 @@ describe('applyHostedEnvDefaults', () => {
     await writeHostedStage(tempRoot);
 
     const runtime = parseRuntimeCoreConfig(
-      applyHostedEnvDefaults({ VERCEL: '1' } as NodeJS.ProcessEnv, { cwd: tempRoot }),
+      applyHostedEnvDefaults(
+        { VERCEL: '1' } as NodeJS.ProcessEnv,
+        { cwd: tempRoot },
+      ),
     );
 
     expect(runtime.sourcePath).toBe(HOSTED_STAGED_SOURCE_PATH);
     expect(runtime.artifactDir).toBe(SERVERLESS_ARTIFACT_DIR);
+    expect(runtime.artifactSeedDir).toBe(HOSTED_STAGED_ARTIFACT_DIR);
   });
 
   it('discovers hosted staged files from the bundle module root when cwd lacks them', async () => {
@@ -151,10 +155,11 @@ describe('applyHostedEnvDefaults', () => {
 
     const env = applyHostedEnvDefaults({
       VERCEL: '1',
-      FPF_RUNTIME_ARTIFACT_DIR: HOSTED_STAGED_ARTIFACT_DIR,
+      FPF_RUNTIME_ARTIFACT_DIR: `${HOSTED_STAGED_ARTIFACT_DIR}/`,
     } as NodeJS.ProcessEnv, { cwd: tempRoot });
 
     expect(env.FPF_RUNTIME_ARTIFACT_DIR).toBe(SERVERLESS_ARTIFACT_DIR);
+    expect(env.FPF_RUNTIME_ARTIFACT_SEED_DIR).toBe(HOSTED_STAGED_ARTIFACT_DIR);
   });
 
   it('treats whitespace-only values as unset when hosted files exist', async () => {

@@ -8,6 +8,14 @@ import {
   type BenchOptions,
   type BenchSummary,
 } from './bench-hosted-mcp.js';
+import {
+  parseFlagMap,
+  readNonNegativeInteger,
+  readOptionalString,
+  readPositiveInteger,
+  readString,
+  round,
+} from './_args.js';
 
 const DEFAULT_ITERATIONS = 3;
 const DEFAULT_INTERVAL_MS = 60_000;
@@ -74,7 +82,7 @@ export function parseSeriesArgs(
   env: NodeJS.ProcessEnv = process.env,
 ): SeriesOptions {
   const { seriesArgs, benchArgs } = splitSeriesArgs(args);
-  const values = readFlagMap(seriesArgs);
+  const values = parseFlagMap(seriesArgs);
   const defaultedBenchArgs = applyBenchLiteDefaults(benchArgs, env);
   const bench = parseBenchArgs(defaultedBenchArgs, env);
 
@@ -192,6 +200,8 @@ function splitSeriesArgs(args: string[]): ParsedSeriesArgs {
   }
 
   const seriesKeys = new Set(['iterations', 'interval-ms', 'format', 'output']);
+  // This fallback keeps old invocations working. Use `--` before bench flags
+  // when a forwarded option could collide with series-level option names.
   const seriesArgs: string[] = [];
   const benchArgs: string[] = [];
 
@@ -249,77 +259,6 @@ function phaseForIteration(iteration: number, iterations: number): SeriesPhase {
   return 'idle';
 }
 
-function readFlagMap(args: string[]): Map<string, string | true> {
-  const values = new Map<string, string | true>();
-  for (let index = 0; index < args.length; index += 1) {
-    const token = args[index];
-    if (!token.startsWith('--')) {
-      throw new Error(`Unexpected positional argument: ${token}`);
-    }
-    const [rawKey, inlineValue] = token.slice(2).split('=', 2);
-    if (inlineValue !== undefined) {
-      values.set(rawKey, inlineValue);
-      continue;
-    }
-    const next = args[index + 1];
-    if (!next || next.startsWith('--')) {
-      values.set(rawKey, true);
-      continue;
-    }
-    values.set(rawKey, next);
-    index += 1;
-  }
-  return values;
-}
-
-function readString(values: Map<string, string | true>, key: string, fallback: string): string {
-  const value = values.get(key);
-  if (value === undefined || value === true || value.trim() === '') {
-    return fallback;
-  }
-  return value.trim();
-}
-
-function readOptionalString(
-  values: Map<string, string | true>,
-  key: string,
-  fallback: string | undefined,
-): string | undefined {
-  const value = values.get(key);
-  if (value === true) {
-    throw new Error(`--${key} requires a value.`);
-  }
-  return value?.trim() || fallback?.trim() || undefined;
-}
-
-function readPositiveInteger(
-  values: Map<string, string | true>,
-  key: string,
-  envValue: string | undefined,
-  fallback: number,
-): number {
-  const value = readOptionalString(values, key, envValue) ?? `${fallback}`;
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new Error(`--${key} must be a positive integer.`);
-  }
-  return parsed;
-}
-
-function readNonNegativeInteger(
-  values: Map<string, string | true>,
-  key: string,
-  envValue: string | undefined,
-  fallback: number,
-): number {
-  const value = readOptionalString(values, key, envValue) ?? `${fallback}`;
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed) || parsed < 0) {
-    throw new Error(`--${key} must be a non-negative integer.`);
-  }
-  return parsed;
-}
-
 function readSeriesFormat(value: string): SeriesFormat {
   if (value === 'json' || value === 'jsonl') {
     return value;
@@ -331,10 +270,6 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
-}
-
-function round(value: number): number {
-  return Math.round(value * 100) / 100;
 }
 
 async function main(): Promise<void> {

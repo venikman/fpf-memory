@@ -625,7 +625,7 @@ describe('Query / Synthesis isolation stage', () => {
     expect(result.gaps.some((gap) => gap.includes('synthesis skipped') || gap.includes('synthesizer crashed'))).toBe(true);
   });
 
-  it('moves deterministic IDs to candidateIds when synthesis fails', async () => {
+  it('moves deterministic IDs to candidateIds while preserving deterministic evidence', async () => {
     const snapshot = await getSnapshot();
     const trace = assembleTrace('What is A.1.1?', 'verbose', snapshot);
     const deterministicResult = buildPatternAnswer('What is A.1.1?', 'verbose', trace, snapshot, false);
@@ -649,8 +649,8 @@ describe('Query / Synthesis isolation stage', () => {
     expect(failedSynthResult.ids).toEqual([]);
     expect(failedSynthResult.candidateIds).toEqual(deterministicResult.ids);
     expect(failedSynthResult.citations).toEqual(deterministicResult.citations);
-    expect(failedSynthResult.relations).toEqual([]);
-    expect(failedSynthResult.constraints).toEqual([]);
+    expect(failedSynthResult.relations).toEqual(deterministicResult.relations);
+    expect(failedSynthResult.constraints).toEqual(deterministicResult.constraints);
   });
 
   it('does not call synthesize when synthesizer reports unavailable', async () => {

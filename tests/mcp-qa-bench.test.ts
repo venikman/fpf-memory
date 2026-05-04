@@ -70,6 +70,42 @@ describe('MCP Q&A benchmark harness', () => {
     expect(result.failures).toContain('returned unknown id not-real');
   });
 
+  it('skips unknown-ID failures when the catalog listing was truncated', async () => {
+    const fakeClient = {
+      async callTool() {
+        return {
+          result: {},
+          httpStatus: 200,
+          contentType: 'application/json',
+          bodyBytes: 2,
+          structuredContent: {
+            status: 'ok',
+            confidence: 0.9,
+            ids: ['A.15', 'not-loaded-from-truncated-catalog'],
+            candidateIds: [],
+            gaps: [],
+          },
+        };
+      },
+    };
+
+    const result = await runQaCase(
+      fakeClient as never,
+      {
+        id: 'case',
+        question: 'question',
+        mode: 'compact',
+        allowedStatuses: ['ok'],
+      },
+      new Set(['A.15', '__fpf_known_ids_incomplete__']),
+    );
+
+    expect(result.ok).toBe(true);
+    expect(result.warnings).toContain(
+      'unknown-id check skipped for not-loaded-from-truncated-catalog because catalog listing was truncated',
+    );
+  });
+
   it('flags high-confidence degraded synthesis answers', async () => {
     const fakeClient = {
       async callTool() {
@@ -181,7 +217,10 @@ describe('MCP Q&A benchmark harness', () => {
     const markdown = formatQaMarkdownSummary(summary);
 
     expect(markdown).toContain('# MCP Q&A benchmark: origin');
+    expect(markdown).toContain('# MCP Q&A benchmark: origin\n\nEndpoint:');
+    expect(markdown).toContain('Known IDs: 2\n\n| case | ok | status |');
     expect(markdown).toContain('| case | ok | status |');
+    expect(markdown).toContain('|  |\n\nSession check: ok');
     expect(markdown).toContain('Session check: ok');
   });
 });

@@ -65,8 +65,6 @@ function degradedSynthesisResult(
         ? `Local synthesis is unavailable, so no synthesized answer was committed. Inspect candidate IDs: ${candidateIds.join(', ')}.`
         : 'Local synthesis is unavailable, so no synthesized answer was committed.',
     ids: [],
-    relations: [],
-    constraints: [],
     candidateIds,
     confidence: Math.min(deterministicResult.confidence, 0.45),
     gaps: unique([

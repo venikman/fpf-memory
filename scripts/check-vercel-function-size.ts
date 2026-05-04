@@ -1,6 +1,5 @@
 import { readdir, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
 
 const BYTES_PER_MB = 1_000_000;
 const DEFAULT_FUNCTION_PATH = '.vercel/output/functions/index.func';
@@ -104,14 +103,17 @@ export function formatBundleBudgetResult(result: BundleBudgetResult): string {
   const summary = `Vercel function bundle ${result.functionPath}: ${formatMb(
     result.sizeMb,
   )} MB (warn ${formatMb(result.warnMb)} MB, fail ${formatMb(result.failMb)} MB)`;
+  const headroom = `${result.sizeMb >= result.failMb ? 'Over fail threshold by' : 'Fail-threshold headroom'} ${formatMb(
+    Math.abs(result.failMb - result.sizeMb),
+  )} MB.`;
 
   if (result.status === 'fail') {
-    return `${summary}\nFAIL: bundle exceeds the configured fail threshold.`;
+    return `${summary}\n${headroom}\nFAIL: bundle exceeds the configured fail threshold.`;
   }
   if (result.status === 'warn') {
-    return `${summary}\nWARN: bundle exceeds the configured warning threshold.`;
+    return `${summary}\n${headroom}\nWARN: bundle exceeds the configured warning threshold.`;
   }
-  return `${summary}\nPASS: bundle is within the configured budget.`;
+  return `${summary}\n${headroom}\nPASS: bundle is within the configured budget.`;
 }
 
 async function directorySizeBytes(path: string): Promise<number> {
@@ -178,6 +180,9 @@ async function main(): Promise<void> {
   console.log(output);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
-  await main();
+if (import.meta.main) {
+  await main().catch((error) => {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.exitCode = 1;
+  });
 }

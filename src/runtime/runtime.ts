@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 import { computeCompilerFingerprint } from '../build/compiler-fingerprint.js';
@@ -45,6 +45,7 @@ import { normalizeForLookup, tokenize, scoreOverlap } from './text.js';
 export interface FpfRuntimeOptions {
   sourcePath?: string;
   artifactDir?: string;
+  artifactSeedDir?: string;
   synthesizer?: LocalAnswerSynthesizer;
   maxSessions?: number;
   persistSessionCache?: boolean;
@@ -60,6 +61,7 @@ export class FpfRuntime {
   private readonly sourcePath: string;
   private readonly artifactDir: string;
   private readonly artifactPaths: Record<keyof typeof ARTIFACT_FILENAMES, string>;
+  private readonly artifactSeedPaths?: Record<keyof typeof ARTIFACT_FILENAMES, string>;
   private readonly synthesizer?: LocalAnswerSynthesizer;
   private readonly sessionCache: SessionCache;
   private readonly observabilitySummary: RuntimeStatus['observability'];
@@ -89,6 +91,20 @@ export class FpfRuntime {
         resolve(this.artifactDir, filename),
       ]),
     ) as Record<keyof typeof ARTIFACT_FILENAMES, string>;
+    const artifactSeedDir = options.artifactSeedDir?.trim();
+    if (artifactSeedDir) {
+      const seedResolution = resolveRuntimePath(resolve(sourceResolution.root, artifactSeedDir), {
+        kind: 'directory',
+      });
+      if (seedResolution.existed && seedResolution.path !== this.artifactDir) {
+        this.artifactSeedPaths = Object.fromEntries(
+          Object.entries(ARTIFACT_FILENAMES).map(([key, filename]) => [
+            key,
+            resolve(seedResolution.path, filename),
+          ]),
+        ) as Record<keyof typeof ARTIFACT_FILENAMES, string>;
+      }
+    }
     this.synthesizer = options.synthesizer;
     this.observabilitySummary =
       options.observability ?? {
@@ -115,6 +131,7 @@ export class FpfRuntime {
     const allowMemoryCache =
       typeof options === 'boolean' ? options : options.allowMemoryCache ?? false;
     await mkdir(this.artifactDir, { recursive: true });
+    await this.seedArtifactsFromReadOnlyBundle();
     const sourceFingerprint = await fingerprintFile(this.sourcePath);
     if (
       allowMemoryCache &&
@@ -527,6 +544,23 @@ export class FpfRuntime {
 
   private async writeAudit(audit: BuildAudit): Promise<void> {
     await this.writeJson(this.artifactPaths.buildAudit, audit);
+  }
+
+  private async seedArtifactsFromReadOnlyBundle(): Promise<void> {
+    if (!this.artifactSeedPaths) {
+      return;
+    }
+
+    await Promise.all(
+      Object.entries(this.artifactSeedPaths).map(async ([key, sourcePath]) => {
+        const targetPath = this.artifactPaths[key as keyof typeof ARTIFACT_FILENAMES];
+        if ((await this.pathExists(targetPath)) || !(await this.pathExists(sourcePath))) {
+          return;
+        }
+        await mkdir(dirname(targetPath), { recursive: true });
+        await copyFile(sourcePath, targetPath);
+      }),
+    );
   }
 
   private async writeJson(path: string, value: unknown): Promise<void> {

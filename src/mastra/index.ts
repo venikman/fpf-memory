@@ -8,11 +8,13 @@ import {
 
 export { createMastraRuntime };
 
-const vercelDeployer = new VercelDeployer({
-  maxDuration: 300,
-  memory: 2048,
-  regions: ['iad1'],
-});
+const vercelDeployer = shouldUseVercelDeployer()
+  ? new VercelDeployer({
+      maxDuration: 300,
+      memory: 2048,
+      regions: ['iad1'],
+    })
+  : undefined;
 
 // NOTE: The Mastra CLI statically scans this file for the literal pattern
 // `export const mastra = new Mastra({ ... })`. Do NOT refactor this expression
@@ -23,3 +25,7 @@ export const mastra = new Mastra({
   ...resolveMastraRuntimeOptions(),
   deployer: vercelDeployer,
 });
+
+function shouldUseVercelDeployer(): boolean {
+  return process.env.FPF_MASTRA_DEPLOY_TARGET === 'vercel' || process.env.VERCEL === '1';
+}

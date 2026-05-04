@@ -16,7 +16,7 @@ https://fpf-memory-mcp-proxy.vercel.app/api/mcp/fpf_memory/mcp
 
 This endpoint is a remote MCP server over streamable HTTP. It exposes the public fpf-memory tools for catalog browsing, search, compact answers, exact generated doc reads, and index health.
 
-The Vercel proxy forwards this public endpoint to the Mastra Cloud runtime. Keep the Mastra origin available during migration for existing client configs.
+The Vercel proxy forwards this public endpoint to the validated direct Vercel-origin runtime. Keep the Mastra origin available during migration for existing client configs and rollback checks.
 
 Public tools:
 

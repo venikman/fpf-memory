@@ -1,4 +1,4 @@
-import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
@@ -124,6 +124,32 @@ describe('FpfRuntime', () => {
     } finally {
       globalThis.fetch = originalFetch;
     }
+  });
+
+  it('seeds a writable artifact directory from a staged read-only snapshot', async () => {
+    const seededArtifactDir = resolve(tempRoot, 'seeded-artifacts');
+    const artifactSeedDir = resolve(tempRoot, 'hosted/fpf-index');
+    await mkdir(artifactSeedDir, { recursive: true });
+    await copyFile(
+      resolve(process.cwd(), 'published/current/fpf-index/snapshot.json'),
+      resolve(artifactSeedDir, ARTIFACT_FILENAMES.snapshot),
+    );
+
+    const seededRuntime = new FpfRuntime({
+      sourcePath: DEFAULT_SOURCE_PATH,
+      artifactDir: seededArtifactDir,
+      artifactSeedDir,
+    });
+    const audit = await seededRuntime.refresh();
+
+    expect(audit.rebuilt).toBe(false);
+    expect(audit.reason).toBe('snapshot_current');
+    expect(await readFile(resolve(seededArtifactDir, ARTIFACT_FILENAMES.snapshot), 'utf8')).toContain(
+      '"sourceHash"',
+    );
+    expect(await readFile(resolve(seededArtifactDir, ARTIFACT_FILENAMES.indexingView), 'utf8')).toContain(
+      '"patterns"',
+    );
   });
 
   // Snapshot construction plus several downstream queries can cross the
