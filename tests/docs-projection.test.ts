@@ -89,12 +89,24 @@ describe('docs projection', () => {
     const patternPage =
       projection.pagesByMarkdownPath['docs/generated/patterns/A.2.md']?.markdown ?? '';
 
-    expect(patternPage).toContain('## What this page is');
+    // Pattern pages now use "About this pattern" instead of the
+    // boilerplate "What this page is" (PR #72 design review).
+    expect(patternPage).toContain('## About this pattern');
     expect(patternPage).toContain('This is a generated FPF pattern page');
-    expect(patternPage).toContain('## Methodology');
+    // "Methodology" was renamed to "How to use this pattern" alongside
+    // "About this pattern" so the pattern page heading set says what
+    // it actually means (PR #72 design review).
+    expect(patternPage).toContain('## How to use this pattern');
     expect(patternPage).toContain('## Problem frame');
     expect(patternPage).not.toContain('## A.2:1 - Problem frame');
-    expect(patternPage).toContain('> Pattern <span class="fpf-pid fpf-pid--a">A.2</span>');
+    // The ID renders as an eyebrow chip ABOVE the H1 (was a boxed
+    // blockquote strip before PR #72 design review). The byline below
+    // the H1 carries status/type/normativity but no longer repeats the
+    // ID or Part — the breadcrumb already covers Part.
+    expect(patternPage).toContain(
+      '<div class="fpf-pattern-eyebrow"><span class="fpf-pid fpf-pid--a">A.2</span></div>',
+    );
+    expect(patternPage).not.toContain('> Pattern <span class="fpf-pid');
     expect(patternPage).not.toContain('- **ID:** `A.2`');
   });
 
@@ -235,12 +247,12 @@ describe('docs projection', () => {
       expect(rootIndex).toMatch(/- title: Patterns[\s\S]*?link: \/patterns/);
       expect(rootIndex).toContain('  - title: Routes');
       expect(rootIndex).toContain('link: /generated/routes/index');
-      // Welcome's H.1 / I.3 cards are titled "Glossary anchor" /
-      // "Change-log anchor" so the labels accurately describe the
-      // single-pattern stub pages they point at (DS-P2-017/018).
-      expect(rootIndex).toContain('  - title: Glossary anchor');
+      // Card titles dropped the "anchor" suffix per PR #72 design
+      // review (the chip already telegraphs that the title is an FPF
+      // identifier — repeating "anchor" in the label was redundant).
+      expect(rootIndex).toContain('  - title: Glossary');
       expect(rootIndex).toContain('link: /generated/patterns/H.1');
-      expect(rootIndex).toContain('  - title: Change-log anchor');
+      expect(rootIndex).toContain('  - title: Change log');
       expect(rootIndex).toContain('link: /generated/patterns/I.3');
       expect(rootIndex).toContain('## Methodology');
       expect(rootIndex).toContain('## MCP endpoint');

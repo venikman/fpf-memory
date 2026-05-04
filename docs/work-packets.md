@@ -1,7 +1,7 @@
 ---
 title: "Work Packets"
 description: "Task-sized FPF packets for project review, PR review, product-role feedback, specs, role/promise analysis, and agent workflows."
-outline: false
+outline: deep
 ---
 
 # Work Packets

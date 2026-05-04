@@ -55,6 +55,26 @@ if (currentRegistrySource !== nextRegistrySource) {
   writeFileSync(searchIdRegistryPath, nextRegistrySource);
 }
 
+// Read the publication manifest so we can surface a "Published from"
+// byline on the home page (PR #72 design review). rspress's `pageType:
+// home` layout drops body markdown, so we inject the byline via the
+// inline a11y shim, sourcing the values from <meta> tags emitted in
+// the `head` config below. Falls back to empty strings if the manifest
+// isn't present (local dev without a published snapshot).
+let manifestSourceHash = '';
+let manifestUpstreamRef = '';
+let manifestPublishedAt = '';
+try {
+  const manifest = JSON.parse(
+    readFileSync(resolve(process.cwd(), 'published/current/manifest.json'), 'utf8'),
+  ) as { sourceHash?: string; upstreamRef?: string; publishedAt?: string };
+  manifestSourceHash = manifest.sourceHash ?? '';
+  manifestUpstreamRef = manifest.upstreamRef ?? '';
+  manifestPublishedAt = manifest.publishedAt ?? '';
+} catch {
+  // No manifest available — byline injection will be skipped.
+}
+
 export default defineConfig({
   root: docsRoot,
   outDir,
@@ -81,6 +101,14 @@ export default defineConfig({
     // OG / social metadata. og:image is omitted intentionally — we don't
     // ship a 1200x630 PNG yet, and Twitter/Slack will fall back to a
     // text-only card with the title and description.
+    // Publication manifest as <meta> tags so the inline a11y shim can
+    // surface a "Published from <hash> · upstream <ref> · <date>"
+    // byline on the home page (PR #72 design review). rspress's home
+    // layout drops body markdown, so the byline can't live in the
+    // home .md file — it has to be injected client-side.
+    ['meta', { name: 'fpf-source-hash', content: manifestSourceHash }],
+    ['meta', { name: 'fpf-upstream-ref', content: manifestUpstreamRef }],
+    ['meta', { name: 'fpf-published-at', content: manifestPublishedAt }],
     ['meta', { property: 'og:site_name', content: 'FPF Reference' }],
     ['meta', { property: 'og:locale', content: 'en' }],
     ['meta', { name: 'twitter:card', content: 'summary' }],
@@ -131,7 +159,8 @@ function fixSidebarInert(){var sidebar=document.querySelector('.rp-doc-layout__s
 function fixHomeFeatureCards(root){(root||document).querySelectorAll('.rp-home-feature__card--clickable').forEach(function(el){if(el.dataset.fpfA11yPatched==='1')return;el.dataset.fpfA11yPatched='1';el.setAttribute('role','link');el.setAttribute('tabindex','0');var title=el.querySelector('.rp-home-feature__title');var detail=el.querySelector('.rp-home-feature__detail');var label=[title&&title.textContent.trim(),detail&&detail.textContent.trim()].filter(Boolean).join(' — ');if(label)el.setAttribute('aria-label',label);el.style.cursor='pointer';el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});});}
 function fixNavDropdowns(root){(root||document).querySelectorAll('li.rp-nav-menu__item > .rp-nav-menu__item__container').forEach(function(trigger){if(trigger.dataset.fpfA11yPatched==='1')return;if(trigger.tagName==='A'||trigger.tagName==='BUTTON')return;var panel=trigger.nextElementSibling;if(!panel||!panel.classList||!panel.classList.contains('rp-hover-group'))return;trigger.dataset.fpfA11yPatched='1';trigger.setAttribute('role','button');trigger.setAttribute('tabindex','0');trigger.setAttribute('aria-haspopup','true');function isOpen(){return !panel.classList.contains('rp-hover-group--hidden');}function syncExpanded(){trigger.setAttribute('aria-expanded',String(isOpen()));}syncExpanded();function open(){panel.classList.remove('rp-hover-group--hidden');syncExpanded();}function close(){panel.classList.add('rp-hover-group--hidden');syncExpanded();}trigger.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '||e.key==='ArrowDown'){e.preventDefault();if(isOpen()){close();}else{open();var firstLink=panel.querySelector('a');if(firstLink)firstLink.focus();}}else if(e.key==='Escape'){close();}});panel.addEventListener('keydown',function(e){if(e.key==='Escape'){e.preventDefault();close();trigger.focus();}});var observer=new MutationObserver(syncExpanded);observer.observe(panel,{attributes:true,attributeFilter:['class']});});}
 function injectSkipLink(){if(document.getElementById('fpf-skip-link'))return;var link=document.createElement('a');link.id='fpf-skip-link';link.className='fpf-skip-link';link.href='#fpf-main-content';link.textContent='Skip to main content';if(document.body){document.body.insertBefore(link,document.body.firstChild);}var main=document.querySelector('main, .rspress-doc, .rp-doc-content');if(main){if(!main.id)main.id='fpf-main-content';if(!main.hasAttribute('tabindex'))main.setAttribute('tabindex','-1');}else{var doc=document.querySelector('article, .rspress-doc, #__rspress_root');if(doc&&!document.getElementById('fpf-main-content')){doc.id='fpf-main-content';doc.setAttribute('tabindex','-1');}}}
-function applyAll(){fixTables();fixMobileSearch();fixSidebarGroups();fixSidebarInert();fixHomeFeatureCards();fixNavDropdowns();injectSkipLink();}
+function injectHomeByline(){if(document.getElementById('fpf-home-byline'))return;var hero=document.querySelector('.rp-home-hero');if(!hero)return;var hash=document.querySelector('meta[name="fpf-source-hash"]')?.getAttribute('content')||'';var ref=document.querySelector('meta[name="fpf-upstream-ref"]')?.getAttribute('content')||'';var rawDate=document.querySelector('meta[name="fpf-published-at"]')?.getAttribute('content')||'';if(!hash&&!ref&&!rawDate)return;var date=rawDate;try{var parsed=new Date(rawDate);if(!isNaN(parsed.getTime())){var y=parsed.getUTCFullYear();var m=String(parsed.getUTCMonth()+1).padStart(2,'0');var d=String(parsed.getUTCDate()).padStart(2,'0');date=y+'-'+m+'-'+d;}}catch(e){}var p=document.createElement('p');p.id='fpf-home-byline';p.className='fpf-home-byline';p.innerHTML='<span class="fpf-home-byline__label">Published from</span> <code class="fpf-home-byline__hash">'+hash.replace(/[<>&"]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];})+'</code> · upstream <code>'+ref.replace(/[<>&"]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];})+'</code> · <span class="fpf-home-byline__date">'+date.replace(/[<>&"]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];})+'</span>';hero.parentNode.insertBefore(p,hero.nextSibling);}
+function applyAll(){fixTables();fixMobileSearch();fixSidebarGroups();fixSidebarInert();fixHomeFeatureCards();fixNavDropdowns();injectSkipLink();injectHomeByline();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyAll);else applyAll();
 var observer=new MutationObserver(function(mutations){var needs=false;for(var i=0;i<mutations.length;i++){if(mutations[i].addedNodes.length){needs=true;break;}}if(needs)applyAll();});
 observer.observe(document.body||document.documentElement,{childList:true,subtree:true});

@@ -384,12 +384,28 @@ function buildRootIndexPage(
 
 function renderHomeMarkdown(
   snapshot: Snapshot,
-  manifest?: PublicationManifestSummary,
+  // The manifest parameter is intentionally unused since rspress's
+  // home layout drops body markdown — provenance now renders via
+  // the inline shim reading <meta> tags. Kept on the signature so
+  // call sites in `buildDocsProjection` don't need to change shape.
+  _manifest?: PublicationManifestSummary,
 ): string {
   const patternCount = Object.keys(snapshot.patternGraph.nodes).length;
 
-  const lines: string[] = [
-    renderHomeFrontMatter(patternCount),
+  const lines: string[] = [renderHomeFrontMatter(patternCount)];
+
+  // The "Published from" provenance line is injected client-side by the
+  // a11y shim in rspress.config.ts (PR #72 design review). We can't put
+  // it in this markdown body because rspress's `pageType: home` layout
+  // drops body content entirely — only the frontmatter (hero + features)
+  // renders. The shim reads `<meta name="fpf-source-hash">` etc. and
+  // injects a `.fpf-home-byline` element directly under the hero.
+  // The body markdown below is kept for non-home tooling that consumes
+  // the projection (search index, MCP, etc.) and harmless on the home
+  // page itself since the layout ignores it.
+
+  lines.push(
+    '',
     '## Methodology',
     '',
     'Name the work first, choose the smallest matching route or packet, then open generated pattern pages only when exact wording matters. Keep the full FPF intact as the canonical source while retrieving only the slice needed for the task.',
@@ -403,19 +419,7 @@ function renderHomeMarkdown(
     '```',
     '',
     'Tool catalog and local-surface setup: [README on GitHub](https://github.com/venikman/fpf-memory#run-and-test-mcp).',
-  ];
-
-  if (manifest) {
-    lines.push(
-      '',
-      '## Published from',
-      '',
-      `- **Channel:** \`${manifest.channel}\``,
-      `- **Source hash:** \`${manifest.sourceHash}\``,
-      `- **Upstream ref:** \`${manifest.upstreamRef}\``,
-      `- **Published at:** ${manifest.publishedAt}`,
-    );
-  }
+  );
 
   return `${lines.join('\n')}\n`;
 }
@@ -443,17 +447,22 @@ function renderHomeFrontMatter(patternCount: number): string {
     'features:',
     '  - title: Patterns',
     `    details: ${patternCount} patterns across parts A–K. Open an exact ID, audit the full reference, or compare neighboring patterns by Part.`,
-    '    icon: A.1',
+    // Patterns and Routes are categories — using a real ID like `A.1`
+    // or `F.1` as the chip (R5-P2-007) misleads users into thinking
+    // those IDs *are* "all patterns" or "all routes". Use a category
+    // badge instead. H.1 and I.3 chips stay because those IDs *are*
+    // the canonical glossary and change-log anchors.
+    '    icon: A–K',
     '    link: /patterns',
     '  - title: Routes',
     '    details: Generated working paths through pattern IDs. Use a route when the work shape is known but the exact patterns are not.',
-    '    icon: F.1',
+    '    icon: "route:"',
     '    link: /generated/routes/index',
-    '  - title: Glossary anchor',
+    '  - title: Glossary',
     '    details: H.1 is the published glossary anchor — a stable selector for term lookups. Treat it as a starting point for vocabulary, not a complete A–Z list.',
     '    icon: H.1',
     '    link: /generated/patterns/H.1',
-    '  - title: Change-log anchor',
+    '  - title: Change log',
     '    details: I.3 is the published change-log anchor — a stable selector for spec version history. Treat it as a starting point, not a release-note feed.',
     '    icon: I.3',
     '    link: /generated/patterns/I.3',
@@ -576,7 +585,16 @@ function renderPatternPage(snapshot: Snapshot, pattern: PatternRecord): string {
   // queries onto the canonical page. Without the ID in the title field,
   // searching `A.1` matched bodies that mention `A.1` more often than
   // the actual A.1 page (FU-P2-008). The H1 stays as the title alone so
-  // the visible page heading isn't redundant with the ID chip below it.
+  // the visible page heading isn't redundant with the ID chip above it.
+  //
+  // The ID renders as an eyebrow ABOVE the H1 (not inside it) and the
+  // status/type/normativity render as a single small byline UNDER the
+  // H1 — replacing the previous boxed blockquote strip ("Pattern A.12 ·
+  // Stable · Part A — Kernel Architecture Cluster") which repeated info
+  // already in the breadcrumb (PR #72 design review). Part is omitted
+  // here because the breadcrumb above already shows it.
+  const bylineParts = [pattern.status, pattern.type, pattern.normativity]
+    .filter((part): part is string => Boolean(part));
   const lines = [
     renderFrontMatter({
       title: `${pattern.id} ${pattern.title}`,
@@ -584,14 +602,15 @@ function renderPatternPage(snapshot: Snapshot, pattern: PatternRecord): string {
     }),
     renderBreadcrumb(buildPatternBreadcrumb(pattern)),
     '',
+    `<div class="fpf-pattern-eyebrow">${patternIdChip(pattern.id)}</div>`,
+    '',
     `# ${pattern.title}`,
-    `> Pattern ${patternIdChip(pattern.id)} · ${pattern.status}${pattern.type ? ` · ${pattern.type}` : ''}${pattern.normativity ? ` · ${pattern.normativity}` : ''}`,
   ];
 
-  if (pattern.part) {
-    lines.push(`> ${pattern.part}`);
-  } else if (pattern.cluster) {
-    lines.push(`> ${pattern.cluster}`);
+  if (bylineParts.length > 0) {
+    lines.push(
+      `<p class="fpf-pattern-byline">${bylineParts.map((part) => escapeHtml(part)).join(' · ')}</p>`,
+    );
   }
 
   appendPatternContext(lines, pattern);
@@ -641,13 +660,17 @@ function renderPatternPage(snapshot: Snapshot, pattern: PatternRecord): string {
 
 function appendPatternContext(lines: string[], pattern: PatternRecord): void {
   const context = patternPageContext(pattern);
+  // Heading is "About this pattern" on pattern pages (PR #72 design
+  // review) — the "What this page is" wording felt boilerplate when
+  // it appeared on every page with identical phrasing. Pattern pages
+  // are visibly about a pattern, so the heading should say so.
   lines.push(
     '',
-    '## What this page is',
+    '## About this pattern',
     '',
     context.what,
     '',
-    '## Methodology',
+    '## How to use this pattern',
     '',
     context.methodology,
   );

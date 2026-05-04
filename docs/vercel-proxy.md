@@ -1,7 +1,7 @@
 ---
 title: "Vercel Proxy"
 description: "Trusted-domain reverse proxy spike for the hosted fpf-memory MCP endpoint."
-outline: false
+outline: deep
 ---
 
 # Vercel trusted-domain proxy

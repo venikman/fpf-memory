@@ -1,7 +1,7 @@
 ---
 title: "Start Here"
 description: "Adoption-first entry points for using FPF without loading the whole specification."
-outline: false
+outline: deep
 ---
 
 # Start Here
