@@ -121,11 +121,13 @@ jobs:
             node_modules
           key: ${{ needs.setup.outputs.cache-key }}
       - run: bun install --frozen-lockfile
-      # Run one shard per runner. The full FPF suite can push a single
-      # long-lived worker over the GitHub runner memory cliff even with
-      # `maxWorkers: 1`, so each shard gets a fresh process *and* a fresh
-      # runner.
-      - run: bunx rstest run --shard=${{ matrix.shard }}/4
+      # Run one shard per runner, then split that shard into one Rstest
+      # process per file. The full FPF suite includes docs and runtime index
+      # builds; keeping each file in a fresh process prevents late-shard worker
+      # exits from accumulated test-runner state while preserving failure
+      # visibility.
+      - name: Run test shard
+        run: bun scripts/run-test-shard.ts --shard=${{ matrix.shard }}/4
 
   build:
     name: Build (docs + MCP + mastra dry-run)
