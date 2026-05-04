@@ -191,6 +191,12 @@ export function buildDocsNavigation(snapshot: Snapshot): DocsNavigation {
  * and `route:<slug>` injection. Pattern IDs preserve case (FPF uses
  * uppercase part letters and case-sensitive cluster suffixes), route
  * slugs are stored lowercase to match the URL form.
+ *
+ * Both arrays are sorted by their stable identifier (pattern ID,
+ * route slug) — not by display title — so the serialized registry
+ * has a deterministic order independent of cosmetic title edits.
+ * That keeps the committed `generated-search-id-registry.ts` diff
+ * minimal across spec updates.
  */
 export function buildSearchIdRegistry(snapshot: Snapshot): SearchIdRegistry {
   const patterns = sortedPatterns(snapshot).map((pattern) => ({
@@ -199,13 +205,35 @@ export function buildSearchIdRegistry(snapshot: Snapshot): SearchIdRegistry {
     staticPath: patternDocRef(pattern.id).staticPath,
   }));
   const routes = Object.values(snapshot.routeGraph.nodes)
-    .sort((left, right) => left.name.localeCompare(right.name))
     .map((route) => ({
       slug: route.id.replace(/^route:/, ''),
       title: route.name,
       staticPath: routeDocRef(route.id).staticPath,
-    }));
+    }))
+    .sort((left, right) => left.slug.localeCompare(right.slug));
   return { patterns, routes };
+}
+
+/**
+ * Render the search-ID registry as a TypeScript module string suitable
+ * for writing to `src/docs/generated-search-id-registry.ts`. Used by
+ * `rspress.config.ts` (config-load write) and `scripts/generate-docs.ts`
+ * (`bun run docs:generate`) so both entry points share an identical
+ * serializer and the drift test compares apples to apples.
+ */
+export function renderSearchIdRegistryModule(registry: SearchIdRegistry): string {
+  return `// Auto-generated from published/current/FPF-Spec.md — do not edit by hand.
+// Regeneration runs at rspress config load and at \`bun run docs:generate\`.
+// A drift test in tests/search-id-registry-drift.test.ts fails if the
+// committed file is stale.
+import type { SearchIdRegistry } from '../core/documents.js';
+
+export const SEARCH_ID_REGISTRY: SearchIdRegistry = ${JSON.stringify(
+    registry,
+    null,
+    2,
+  )};
+`;
 }
 
 function buildPatternPages(snapshot: Snapshot): GeneratedDocPage[] {

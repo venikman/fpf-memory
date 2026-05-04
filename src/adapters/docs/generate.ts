@@ -13,7 +13,9 @@ import type { Snapshot } from '../../runtime/types.js';
 import type { ContextId, LifecycleState } from '../../core/governance.js';
 import {
   buildDocsProjection,
+  buildSearchIdRegistry,
   docsRelativePath,
+  renderSearchIdRegistryModule,
   type PublicationManifestSummary,
 } from '../../core/documents.js';
 
@@ -72,6 +74,23 @@ export async function generateDocsSite(
       await writeFile(outputPath, page.markdown);
     }),
   );
+
+  // Write the search-hook registry alongside the generated docs so a
+  // single `bun run docs:generate` is sufficient to refresh both the
+  // markdown projection and the bundled search lookup table. Idempotent
+  // — only writes when the content actually differs, so reruns on a
+  // clean tree leave the working directory clean.
+  const registryPath = resolve(process.cwd(), 'src/docs/generated-search-id-registry.ts');
+  const registrySource = renderSearchIdRegistryModule(buildSearchIdRegistry(snapshot));
+  let currentSource = '';
+  try {
+    currentSource = await readFile(registryPath, 'utf8');
+  } catch {
+    // registry not yet checked in — first generation
+  }
+  if (currentSource !== registrySource) {
+    await writeFile(registryPath, registrySource);
+  }
 
   return {
     sourcePath,

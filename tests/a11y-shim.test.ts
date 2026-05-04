@@ -67,4 +67,31 @@ describe('a11y shim regression checks', () => {
     // per DS-P3-012; if someone reintroduces setInterval the test fires.
     expect(configSource).not.toMatch(/setInterval\s*\(/);
   });
+
+  it('patches top-nav dropdown triggers (`MCP`, `Reference`) for keyboard activation', () => {
+    // R5-P1-003: rspress ships dropdown triggers as `<div>` elements
+    // that only respond to mouse hover. Without this shim, keyboard
+    // users skip the MCP and Reference menus entirely.
+    expect(configSource).toContain('rp-nav-menu__item__container');
+    expect(configSource).toContain("aria-haspopup");
+    expect(configSource).toContain('rp-hover-group--hidden');
+    // The menu must close on Escape so a trapped user can get out.
+    expect(configSource).toContain("'Escape'");
+  });
+
+  it('injects a skip-to-content link as the first focusable element', () => {
+    // R5-P1-003: keyboard users on long reference pages should be able
+    // to bypass the sidebar and land on the article body in one Tab.
+    expect(configSource).toContain('fpf-skip-link');
+    expect(configSource).toContain('fpf-main-content');
+    expect(configSource).toContain('Skip to main content');
+  });
+
+  it('marks collapsed sidebar panels as `inert` so their descendants leave the tab order', () => {
+    // R5-P1-003: rspress collapses sidebar groups by setting
+    // `gridTemplateRows: 0fr` on the panel; descendants stay tabbable
+    // unless we mark the panel inert.
+    expect(configSource).toContain('isCollapsedPanel');
+    expect(configSource).toMatch(/setAttribute\(\s*['"]inert['"]/);
+  });
 });

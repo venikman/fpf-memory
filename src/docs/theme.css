@@ -941,56 +941,155 @@ html.dark .rp-sidebar-item--active.rp-sidebar-item--active {
   text-decoration-thickness: 2px;
 }
 
-/* ───────── 11. Prompt code blocks on mobile (R3-P2-004, R4-P2-001) ─────────
+/* ───────── 11. Code blocks on mobile (R3-P2-004, R4-P2-001, R5-P1-002) ─────────
  *
- * MCP-recipe and connect-mcp pages embed prompt text inside language-txt
- * fenced blocks. On mobile (≤640px) these prompts can be 1610-2904px
- * wide, forcing the user to horizontally scroll through prose. Real code
- * (language-bash, language-ts, language-json, etc.) keeps horizontal
- * scrolling — only `txt` blocks (used here for prose prompts and
- * endpoint URLs that are scrolled-to-end frequently) wrap at narrow
- * widths so the prompt is readable on a phone without panning.
+ * Setup, prompt, and config blocks (language-txt, language-json,
+ * language-sh, language-toml, language-bash) regularly produce 600-3000px
+ * lines that clip the actual command/URL on a 390px viewport. R5-P1-002
+ * called out that the previous rule only wrapped txt blocks; users still
+ * could not see the full setup commands or route selectors on phones.
+ *
+ * We now force-wrap ALL code blocks at narrow widths. The wrap toggle
+ * button stays available (rspress provides one in every codeblock) so
+ * power users who want strict line-by-line scrolling can flip it back.
+ * `word-break: break-word` keeps wrapping at safe boundaries (spaces,
+ * punctuation) and falls back to mid-token only when a single token
+ * exceeds the viewport (e.g., a long URL).
  *
  * Selector targets the actual rspress DOM: `.rp-codeblock` is the outer
- * wrapper that carries the `language-txt` class; `pre` and `code` inside
+ * wrapper that carries the language class; `pre` and `code` inside
  * have no language class. Rspress's user-toggled wrap rule uses
  * `!important` on `.rp-codeblock__content--wrap-code code`, so we match
  * that specificity to force-wrap by default on narrow viewports. */
 
 @media (width <= 640px) {
-  .rspress-doc .rp-codeblock.language-txt code,
-  .rspress-doc .rp-codeblock.language-txt pre {
+  .rspress-doc .rp-codeblock code,
+  .rspress-doc .rp-codeblock pre {
     white-space: pre-wrap !important;
     word-break: break-word !important;
   }
-  /* The shiki <pre> wraps each prompt line in <span class="line">; that
-     span keeps `display: inline` by default and respects the parent's
-     wrapping. But on Safari the `width: fit-content; min-width: 100%`
-     rspress applies to the inner <code> can keep the block from
-     shrinking past the longest line. Override here. */
-  .rspress-doc .rp-codeblock.language-txt .rp-codeblock__content code {
+  /* The shiki <pre> wraps each line in <span class="line">; that span
+     keeps `display: inline` by default and respects the parent's
+     wrapping. But Safari's `width: fit-content; min-width: 100%` on
+     the inner <code> can keep the block from shrinking past the
+     longest line. Override here so the code element fits the screen. */
+  .rspress-doc .rp-codeblock .rp-codeblock__content code {
     width: 100% !important;
     min-width: 0 !important;
   }
 }
 
-/* ───────── 12. Mobile search button hit box (PR #72 review) ─────────
+/* Inline route-selector chips also clip on narrow viewports — selectors
+ * like `route:we-know-something-is-there-but-it-is-still-only-partly-said`
+ * push past the viewport in the routes catalog (R5-P1-002). Allow inline
+ * `<code>` tags inside body text to wrap at any character so the chip
+ * stays inside the column. */
+@media (width <= 640px) {
+  .rspress-doc :not(pre) > code {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+/* ───────── 12. Mobile tap targets (PR #72 review, R5-P2-010) ─────────
  *
- * Rspress styles `.rp-search-button--mobile` only with `display: flex`
- * and `cursor: pointer`; the inner SVG is 1em × 1em (~16px), so the
- * entire clickable area is ~16×16 — well below WCAG 2.2 AA's 24×24
- * target-size minimum and uncomfortable to tap on a phone. Bump the
- * hit box to 44×44 (Apple HIG / Material guidance) at narrow widths
- * where this control is the primary search affordance. The icon size
- * itself is left alone so the visual chrome doesn't change — only the
- * tappable area expands. */
+ * WCAG 2.2 AA requires a 24×24 minimum target size; Apple HIG and
+ * Material both recommend 44×44 for primary controls on touch devices.
+ * Rspress's mobile chrome ships several controls below that:
+ *   - `.rp-search-button--mobile` SVG-only (~16×16)
+ *   - `.rp-nav-hamburger*` (~37×37)
+ *   - `.rp-code-button-group__button` for copy/wrap (~20×20)
+ *   - sidebar menu row anchors (~36px tall)
+ *   - home CTA buttons (~42px tall — close, but bumping to 44 too)
+ *
+ * Bump all of them to 44×44 at narrow widths so primary nav, search,
+ * and copy controls are reliably tappable. The icon SVGs inside aren't
+ * resized — only the surrounding hit box expands. */
 
 @media (width <= 768px) {
   .rp-search-button--mobile.rp-search-button--mobile {
     min-width: 44px;
     min-height: 44px;
     padding: 10px;
-    /* center the SVG in the new larger hit box */
     box-sizing: border-box;
   }
+
+  /* Hamburger menus (sm + md variants both rendered in the nav). */
+  .rp-nav-hamburger.rp-nav-hamburger,
+  .rp-nav-hamburger__sm.rp-nav-hamburger__sm,
+  .rp-nav-hamburger__md.rp-nav-hamburger__md {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  /* Theme switcher in the mobile nav. */
+  .rp-switch-appearance.rp-switch-appearance {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  /* Code copy + wrap buttons inside every codeblock. Default rspress
+     fades them via opacity until hover, but on touch they should be
+     persistently tappable (R5-P3-002 also flagged the opacity:0
+     discoverability gap). */
+  .rspress-doc .rp-code-button-group__button.rp-code-button-group__button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+  /* Keep the button group visible on touch instead of opacity:0 reveal. */
+  .rspress-doc .rp-code-button-group {
+    opacity: 1 !important;
+  }
+
+  /* Sidebar menu rows that ship as <a> with cramped vertical padding. */
+  .rp-doc-layout__sidebar a.rp-link,
+  .rp-sidebar-menu__left,
+  .rp-sidebar-menu__right {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Home CTA buttons — bump from ~42 to a clean 44. */
+  .rp-home-hero__action a,
+  .rp-home-hero__actions a {
+    min-height: 44px;
+  }
+}
+
+/* ───────── 13. Skip-to-content link (R5-P1-003) ─────────
+ *
+ * Visually hidden until the user focuses it (typically the first Tab
+ * after the URL bar). On focus it becomes visible at the top-left so
+ * keyboard users can jump straight past the long reference sidebar /
+ * dropdown nav into the article body. */
+
+.fpf-skip-link {
+  position: fixed;
+  top: -100px;
+  left: 8px;
+  z-index: 10000;
+  padding: 12px 18px;
+  background: var(--fpf-paper, #faf4ec);
+  color: var(--fpf-ink, #1f1812);
+  border: 2px solid var(--fpf-accent, #ac3225);
+  border-radius: 0;
+  font-family: var(--fpf-font-mono, ui-monospace, monospace);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  transition: top 120ms ease-out;
+}
+
+.fpf-skip-link:focus,
+.fpf-skip-link:focus-visible {
+  top: 8px;
+  outline: 2px solid var(--fpf-accent, #ac3225);
+  outline-offset: 2px;
 }

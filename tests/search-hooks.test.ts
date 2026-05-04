@@ -107,6 +107,39 @@ describe('search-hooks afterSearch', () => {
     );
   });
 
+  it('tolerates whitespace and quote wrappers after route:', () => {
+    // Users naturally type `route: project-alignment` with a space, and
+    // the spec sometimes wraps selectors in backticks. Both should
+    // resolve to the same canonical page (R5-P2-005).
+    for (const query of [
+      'route: project-alignment',
+      'route :project-alignment',
+      'route : project-alignment',
+      'route:`project-alignment`',
+      'route: "project-alignment"',
+    ]) {
+      const result: SearchResultGroup[] = [
+        { group: 'FPF Reference', renderType: 'default', result: [] },
+      ];
+      afterSearch(query, result);
+      expect(result[0]?.result?.[0]?.link).toBe(
+        '/generated/routes/route_project-alignment',
+      );
+    }
+  });
+
+  it('synthesized route results include the canonical selector in the title', () => {
+    // The display title must contain the exact copyable selector so
+    // users see `route:project-alignment` when they search and can grab
+    // the canonical string for prompts/configs (R5-P2-005).
+    const result: SearchResultGroup[] = [
+      { group: 'FPF Reference', renderType: 'default', result: [] },
+    ];
+    afterSearch('route:project-alignment', result);
+    const title = result[0]?.result?.[0]?.title ?? '';
+    expect(title).toContain('route:project-alignment');
+  });
+
   it('hoists existing FlexSearch results to position [0] without duplicating', () => {
     // FlexSearch already returned the canonical A.1 page — we should
     // pull it out of its original bucket and prepend it to the first

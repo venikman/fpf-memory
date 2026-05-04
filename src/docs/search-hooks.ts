@@ -67,7 +67,11 @@ const ROUTE_BY_SLUG = new Map(
   SEARCH_ID_REGISTRY.routes.map((entry) => [entry.slug.toLowerCase(), entry]),
 );
 
-const ROUTE_QUERY_PATTERN = /^route:([a-z0-9-]+)$/iu;
+// Accept optional whitespace and a stray quotes wrapper after `route:`
+// because users naturally type `route: project-alignment` (with a space)
+// and the FPF spec text often uses backticks/quotes around route IDs.
+// The slug match itself still requires the canonical `kebab-case` form.
+const ROUTE_QUERY_PATTERN = /^route\s*:\s*['"`]?([a-z0-9-]+)['"`]?$/iu;
 
 interface CanonicalEntry {
   /** Display title shown to the user in the suggestion list. */
@@ -90,10 +94,14 @@ function findCanonicalEntry(query: string): CanonicalEntry | null {
 
   const routeMatch = ROUTE_QUERY_PATTERN.exec(trimmed);
   if (routeMatch) {
-    const route = ROUTE_BY_SLUG.get(routeMatch[1].toLowerCase());
+    const slug = routeMatch[1].toLowerCase();
+    const route = ROUTE_BY_SLUG.get(slug);
     if (route) {
+      // Always include the canonical selector in the displayed title so
+      // the user can copy the exact `route:slug` string from the search
+      // result (R5-P2-005). The display name follows for readability.
       return {
-        title: `route: ${route.title}`,
+        title: `route:${slug} — ${route.title}`,
         link: route.staticPath,
       };
     }
