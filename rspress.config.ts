@@ -38,6 +38,14 @@ export default defineConfig({
   head: [
     ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
     ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    // Accessibility shim. Rspress wraps every markdown table in a
+    // `.rp-table-scroll-container` so wide tables get horizontal overflow,
+    // but the wrapper ships without `tabindex` — axe-core flags it as
+    // `scrollable-region-focusable` (WCAG 2.1.1) because keyboard users
+    // can't scroll the table region. Add `tabindex="0"` after each render
+    // (initial + client-side route transitions) so the wrapper enters the
+    // focus order. Idempotent; safe to run repeatedly.
+    `<script>(function(){function fix(){document.querySelectorAll('.rp-table-scroll-container').forEach(function(el){if(!el.hasAttribute('tabindex'))el.setAttribute('tabindex','0');});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fix);else fix();var lp=location.pathname;setInterval(function(){if(location.pathname!==lp){lp=location.pathname;setTimeout(fix,150);}else fix();},800);})();</script>`,
   ],
   route: {
     cleanUrls: true,

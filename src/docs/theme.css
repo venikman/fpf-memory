@@ -666,11 +666,12 @@ html.dark .fpf-pid {
   .rspress-doc h1 {
     max-width: 22ch;
   }
-
-  .rspress-doc table {
-    display: block;
-    overflow-x: auto;
-  }
+  /* Tables overflow on narrow viewports through rspress's outer
+     `.rp-table-scroll-container` wrapper (which carries tabindex="0" via
+     the head shim). Setting `display: block; overflow-x: auto` on the
+     `<table>` itself nested a second scroll container and tripped
+     axe-core's `scrollable-region-focusable` rule on three nodes per
+     pattern page. The wrapper does the right thing on its own. */
 }
 
 @media (prefers-reduced-motion: no-preference) {
