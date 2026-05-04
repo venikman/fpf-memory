@@ -17,6 +17,7 @@
     "validate:published": "bun scripts/validate-published-current.ts",
     "evaluate:work": "bun src/cli.ts evaluate-work --target current-pr --base origin/main --format markdown",
     "stage:from-published": "bun scripts/stage-from-published.ts",
+    "smoke:mcp:http": "bun scripts/smoke-hosted-mcp.ts",
     "mastra:build": "bun scripts/mastra-build.ts",
     "mastra:deploy": "bun scripts/mastra-deploy.ts",
     "build": "bun run build:runtime && bun run build:mcp",

@@ -1,6 +1,6 @@
 import { SpanType } from '@mastra/core/observability';
 
-import { withRuntimeSpan } from '../observability/runtime-observability.js';
+import { withRuntimeSpan } from '../adapters/infra/observability/runtime-observability.js';
 import {
   parseLmStudioConfig,
   parseObservabilityConfig,
@@ -10,6 +10,7 @@ import type {
   AnswerSlice,
   AnswerSynthesizerInput,
   AnswerSynthesizerOutput,
+  LocalAnswerSynthesizerAvailability,
   LocalAnswerSynthesizer,
   LocalAnswerSynthesizerInfo,
 } from './types.js';
@@ -96,6 +97,46 @@ export class LmStudioSynthesizer implements LocalAnswerSynthesizer {
       provider: 'lm_studio',
       model: this.options.model,
       baseUrl: this.options.baseUrl,
+    };
+  }
+
+  async checkAvailability(): Promise<LocalAnswerSynthesizerAvailability> {
+    const checkedAt = new Date().toISOString();
+    if (!this.isAvailable()) {
+      return {
+        availability: 'unavailable',
+        checkedAt,
+        failure: {
+          message: 'LM Studio synthesis is not configured with both base URL and model.',
+          endpoint: this.endpoint,
+        },
+      };
+    }
+
+    const health = await runLmStudioHealthCheck({
+      baseUrl: this.options.baseUrl,
+      model: this.options.model,
+      apiKey: this.options.apiKey,
+      timeoutMs: Math.min(this.timeoutMs, 3_000),
+      fetchImpl: this.fetchImpl,
+      systemPrompt: 'Return one short health-check token.',
+      input: 'Return ok.',
+    });
+
+    if (health.modelDiscovery.ok && health.generation.ok) {
+      return { availability: 'available', checkedAt };
+    }
+
+    const generationFailed = !health.generation.ok;
+    const failed = generationFailed ? health.generation : health.modelDiscovery;
+    return {
+      availability: health.modelDiscovery.ok || health.generation.ok ? 'degraded' : 'unavailable',
+      checkedAt,
+      failure: {
+        message: summarizeHealthFailure(generationFailed ? 'generation' : 'model discovery', failed),
+        httpStatus: failed.httpStatus,
+        endpoint: generationFailed ? health.endpoints.generation : health.endpoints.models,
+      },
     };
   }
 
@@ -235,6 +276,23 @@ export class LmStudioSynthesizer implements LocalAnswerSynthesizer {
 
     return spanResult.output;
   }
+}
+
+function summarizeHealthFailure(
+  phase: string,
+  result: { error?: string; responsePreview?: string; httpStatus?: number; listed?: boolean },
+): string {
+  if (result.error) {
+    return `LM Studio ${phase} health check failed: ${result.error}`;
+  }
+  if (result.httpStatus !== undefined) {
+    const preview = result.responsePreview ? `: ${result.responsePreview.slice(0, 160)}` : '';
+    return `LM Studio ${phase} health check returned HTTP ${result.httpStatus}${preview}`;
+  }
+  if (result.listed === false) {
+    return `LM Studio ${phase} health check did not list the configured model.`;
+  }
+  return `LM Studio ${phase} health check failed.`;
 }
 
 export function createSynthesizerFromConfig(

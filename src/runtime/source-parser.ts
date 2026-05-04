@@ -14,6 +14,15 @@ import {
   stripMarkdownToText,
   unique,
 } from './text.js';
+import {
+  isAsciiAlphaNumeric,
+  isAsciiDigit,
+  isUppercaseAsciiLetter,
+  isWhitespaceCharacter,
+  skipWhitespace,
+  startsWithAsciiIgnoreCase,
+  toLowerAscii,
+} from './text-scan.js';
 import type { AnchorRef, RelationEdge, RelationKind, SectionRole } from './types.js';
 
 export interface HeadingSection extends AnchorRef {
@@ -65,20 +74,266 @@ const RELATION_LABELS: Record<string, RelationKind> = {
   'interacts with': 'interacts_with',
 };
 
-const RELATION_LABEL_ALTERNATION = Object.keys(RELATION_LABELS)
-  .sort((left, right) => right.length - left.length)
-  .map((label) => label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-  .join('|');
-const RELATION_LABEL_TOKEN =
-  `(?:\\*\\*\\s*)?(?:${RELATION_LABEL_ALTERNATION}):(?:\\s*\\*\\*)?`;
-const LABELED_RELATION_REGEX = new RegExp(
-  `(?:\\*\\*\\s*)?(${RELATION_LABEL_ALTERNATION}):(?:\\s*\\*\\*)?\\s*([\\s\\S]*?)(?=(?:\\s*(?:[*-]\\s*)?${RELATION_LABEL_TOKEN})|$)`,
-  'gis',
+const ORDERED_RELATION_LABELS = Object.keys(RELATION_LABELS).sort(
+  (left, right) => right.length - left.length,
 );
+const RELATION_LABELS_BY_FIRST_CHARACTER = ORDERED_RELATION_LABELS.reduce<
+  Record<string, string[]>
+>((labelsByFirstCharacter, label) => {
+  const firstCharacter = label[0]!;
+  labelsByFirstCharacter[firstCharacter] ??= [];
+  labelsByFirstCharacter[firstCharacter]!.push(label);
+  return labelsByFirstCharacter;
+}, {});
 
 const PATTERN_ROW_ID = /^\**[A-Z]\.\d+(?:\.[A-Za-z0-9]+)*\**$/;
-const HEADING_ID =
-  /^([A-Z]\.\d+(?:\.[A-Za-z0-9]+)*(?::[A-Za-z0-9.]+)?)\s+-\s+(.+)$/;
+
+interface ParsedHeadingLine {
+  level: number;
+  title: string;
+  fullId?: string;
+  patternId?: string;
+}
+
+interface RelationLabelMatch {
+  start: number;
+  label: string;
+  contentStart: number;
+}
+
+function parseHeadingLine(line: string): ParsedHeadingLine | undefined {
+  let index = 0;
+  while (index < line.length && line[index] === '#') {
+    index += 1;
+  }
+
+  if (index === 0 || index > 6 || !isWhitespaceCharacter(line[index])) {
+    return undefined;
+  }
+
+  const level = index;
+  const title = cleanMarkdown(line.slice(skipWhitespace(line, index)));
+  const { fullId, patternId } = parseStructuredHeading(title);
+  return { level, title, fullId, patternId };
+}
+
+function parseStructuredHeading(
+  title: string,
+): { fullId?: string; patternId?: string } {
+  const separatorIndex = findSpacedDashSeparator(title);
+  if (separatorIndex < 0) {
+    return {};
+  }
+
+  const fullId = title.slice(0, separatorIndex).trimEnd();
+  const remainder = title.slice(separatorIndex + 1).trimStart();
+  if (!remainder || !isStructuredHeadingId(fullId)) {
+    return {};
+  }
+
+  return {
+    fullId,
+    patternId: fullId.split(':')[0],
+  };
+}
+
+function findSpacedDashSeparator(text: string): number {
+  for (let index = 1; index < text.length - 1; index += 1) {
+    if (
+      text[index] === '-' &&
+      isWhitespaceCharacter(text[index - 1]) &&
+      isWhitespaceCharacter(text[index + 1])
+    ) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function isStructuredHeadingId(value: string): boolean {
+  let index = 0;
+  if (!isUppercaseAsciiLetter(value[index])) {
+    return false;
+  }
+  index += 1;
+
+  if (value[index] !== '.') {
+    return false;
+  }
+  index += 1;
+
+  const afterMajor = consumeDigits(value, index);
+  if (afterMajor === index) {
+    return false;
+  }
+  index = afterMajor;
+
+  while (value[index] === '.') {
+    index += 1;
+    const nextIndex = consumeAlphaNumeric(value, index);
+    if (nextIndex === index) {
+      return false;
+    }
+    index = nextIndex;
+  }
+
+  if (value[index] === ':') {
+    index += 1;
+    const nextIndex = consumeAlphaNumericOrDots(value, index);
+    if (nextIndex === index) {
+      return false;
+    }
+    index = nextIndex;
+  }
+
+  return index === value.length;
+}
+
+function consumeDigits(text: string, startIndex: number): number {
+  let index = startIndex;
+  while (isAsciiDigit(text[index])) {
+    index += 1;
+  }
+  return index;
+}
+
+function consumeAlphaNumeric(text: string, startIndex: number): number {
+  let index = startIndex;
+  while (isAsciiAlphaNumeric(text[index])) {
+    index += 1;
+  }
+  return index;
+}
+
+function consumeAlphaNumericOrDots(text: string, startIndex: number): number {
+  let index = startIndex;
+  while (isAsciiAlphaNumeric(text[index]) || text[index] === '.') {
+    index += 1;
+  }
+  return index;
+}
+
+function isDashCharacter(character: string | undefined): boolean {
+  return character === '-' || character === '–' || character === '—';
+}
+
+function parseCatalogPartHeading(line: string): string | undefined {
+  if (!line.startsWith('**') || !line.endsWith('**')) {
+    return undefined;
+  }
+
+  const normalized = normalizeLabel(line.slice(2, -2));
+  if (!normalized.startsWith('Part ')) {
+    return undefined;
+  }
+
+  let index = 'Part '.length;
+  const letter = normalized[index];
+  if (!isUppercaseAsciiLetter(letter)) {
+    return undefined;
+  }
+  index += 1;
+  index = skipWhitespace(normalized, index);
+
+  if (!isDashCharacter(normalized[index])) {
+    return undefined;
+  }
+  index += 1;
+  index = skipWhitespace(normalized, index);
+
+  const title = normalized.slice(index).trim();
+  if (!title) {
+    return undefined;
+  }
+
+  return `Part ${letter} - ${title}`;
+}
+
+function stripLeadingBlockquoteMarker(line: string): string {
+  if (!line.startsWith('>')) {
+    return line;
+  }
+  return line.slice(skipWhitespace(line, 1));
+}
+
+function parseLabeledValue(line: string): { key: string; value: string } | undefined {
+  const separatorIndex = line.indexOf(':');
+  if (separatorIndex <= 0) {
+    return undefined;
+  }
+
+  const key = line.slice(0, separatorIndex).trim();
+  const value = line.slice(separatorIndex + 1).trim();
+  if (!key || !value) {
+    return undefined;
+  }
+
+  return { key, value };
+}
+
+function findNextRelationLabel(
+  text: string,
+  fromIndex: number,
+): RelationLabelMatch | undefined {
+  for (let index = fromIndex; index < text.length; index += 1) {
+    const match = parseRelationLabelAt(text, index);
+    if (match) {
+      return match;
+    }
+  }
+  return undefined;
+}
+
+function parseRelationLabelAt(
+  text: string,
+  startIndex: number,
+): RelationLabelMatch | undefined {
+  let index = skipWhitespace(text, startIndex);
+
+  if (text[index] === '-' || (text[index] === '*' && text[index + 1] !== '*')) {
+    index += 1;
+    index = skipWhitespace(text, index);
+  }
+
+  if (text[index] === '*' && text[index + 1] === '*') {
+    index += 2;
+    index = skipWhitespace(text, index);
+  }
+
+  if (!isRelationLabelBoundaryBefore(text, index)) {
+    return undefined;
+  }
+
+  for (const label of RELATION_LABELS_BY_FIRST_CHARACTER[toLowerAscii(text[index]) ?? ''] ?? []) {
+    if (!startsWithAsciiIgnoreCase(text, label, index)) {
+      continue;
+    }
+
+    let cursor = index + label.length;
+    if (text[cursor] !== ':') {
+      continue;
+    }
+    cursor += 1;
+    cursor = skipWhitespace(text, cursor);
+
+    if (text[cursor] === '*' && text[cursor + 1] === '*') {
+      cursor += 2;
+      cursor = skipWhitespace(text, cursor);
+    }
+
+    return {
+      start: startIndex,
+      label,
+      contentStart: cursor,
+    };
+  }
+
+  return undefined;
+}
+
+function isRelationLabelBoundaryBefore(text: string, index: number): boolean {
+  return index === 0 || !isAsciiAlphaNumeric(text[index - 1]);
+}
 
 export function parseSource(sourceText: string): SourceIR {
   const lines = sourceText.split(/\r?\n/);
@@ -103,22 +358,16 @@ function parseHeadingSections(lines: string[]): HeadingSection[] {
   }> = [];
 
   for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index];
-    const match = line.match(/^(#{1,6})\s+(.*)$/);
-    if (!match) {
+    const parsedHeading = parseHeadingLine(lines[index] ?? '');
+    if (!parsedHeading) {
       continue;
     }
-    const level = match[1].length;
-    const title = cleanMarkdown(match[2]);
-    const idMatch = title.match(HEADING_ID);
-    const fullId = idMatch?.[1];
-    const patternId = fullId ? fullId.split(':')[0] : undefined;
     headings.push({
       lineIndex: index,
-      level,
-      title,
-      fullId,
-      patternId,
+      level: parsedHeading.level,
+      title: parsedHeading.title,
+      fullId: parsedHeading.fullId,
+      patternId: parsedHeading.patternId,
     });
   }
 
@@ -276,9 +525,9 @@ function parseCatalogMetadata(lines: string[]): Record<string, PatternMeta> {
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed.startsWith('|')) {
-      const partMatch = trimmed.match(/^\*\*Part\s+([A-Z])\s*[–—-]\s*(.+)\*\*$/);
-      if (partMatch) {
-        currentPart = normalizeLabel(`Part ${partMatch[1]} - ${partMatch[2]}`);
+      const partHeading = parseCatalogPartHeading(trimmed);
+      if (partHeading) {
+        currentPart = partHeading;
         currentCluster = undefined;
       }
       continue;
@@ -303,10 +552,12 @@ function parseCatalogMetadata(lines: string[]): Record<string, PatternMeta> {
     const status = normalizeLabel(cells[2] ?? '');
     const keywordsCell = cleanMarkdown(cells[3] ?? '');
     const dependenciesRaw = cleanMarkdown(cells[4] ?? '');
+    const normalizedKeywordsCell = normalizeForLookup(keywordsCell);
     const description =
       !dependenciesRaw &&
       keywordsCell &&
-      !/\*keywords:\*|\*queries:\*/i.test(keywordsCell)
+      !normalizedKeywordsCell.includes('keywords:') &&
+      !normalizedKeywordsCell.includes('queries:')
         ? keywordsCell
         : undefined;
 
@@ -341,18 +592,18 @@ export function parseHeadingMetadata(
       }
       continue;
     }
-    const cleanLine = cleanMarkdown(line.replace(/^>\s*/, ''));
-    const match = cleanLine.match(/^([^:]+):\s*(.+)$/);
-    if (!match) {
+    const cleanLine = cleanMarkdown(stripLeadingBlockquoteMarker(line));
+    const labeledValue = parseLabeledValue(cleanLine);
+    if (!labeledValue) {
       continue;
     }
-    const key = normalizeForLookup(match[1] ?? '');
+    const key = normalizeForLookup(labeledValue.key);
     if (key === 'type') {
-      result.type = match[2];
+      result.type = labeledValue.value;
     } else if (key === 'status') {
-      result.status = match[2];
+      result.status = labeledValue.value;
     } else if (key === 'normativity') {
-      result.normativity = match[2];
+      result.normativity = labeledValue.value;
     }
   }
   return result;
@@ -372,8 +623,12 @@ export function parseLabeledRelations(
 ): RelationEdge[] {
   const relationEdges: RelationEdge[] = [];
 
-  for (const match of text.matchAll(LABELED_RELATION_REGEX)) {
-    pushRelationEdges(relationEdges, sourceId, match[1] ?? '', match[2] ?? '', sourceCitation);
+  let current = findNextRelationLabel(text, 0);
+  while (current) {
+    const next = findNextRelationLabel(text, current.contentStart);
+    const rawTargets = text.slice(current.contentStart, next?.start ?? text.length);
+    pushRelationEdges(relationEdges, sourceId, current.label, rawTargets, sourceCitation);
+    current = next;
   }
 
   return relationEdges;
@@ -425,23 +680,60 @@ export function inferSectionRole(heading: string, fullId?: string): SectionRole 
 }
 
 function parseKeywords(cell: string): string[] {
-  const match = cell.match(/Keywords:\s*(.+?)(?:Queries:|$)/i);
-  if (!match) {
+  const keywordsIndex = indexOfIgnoreCase(cell, 'Keywords:');
+  if (keywordsIndex < 0) {
     return [];
   }
-  return match[1]!
+
+  const valueStart = keywordsIndex + 'Keywords:'.length;
+  const queriesIndex = indexOfIgnoreCase(cell, 'Queries:', valueStart);
+  const segment = cell.slice(valueStart, queriesIndex >= 0 ? queriesIndex : undefined).trim();
+  if (!segment) {
+    return [];
+  }
+
+  return segment
     .split(',')
     .map((entry) => normalizeLabel(entry))
     .filter(Boolean);
 }
 
 function parseQueries(cell: string): string[] {
-  const match = cell.match(/Queries:\s*(.+)$/i);
-  if (!match) {
+  const queriesIndex = indexOfIgnoreCase(cell, 'Queries:');
+  if (queriesIndex < 0) {
     return [];
   }
-  return Array.from(match[1]!.matchAll(/"([^"]+)"/g), (item) => normalizeLabel(item[1] ?? ''))
+
+  const segment = cell.slice(queriesIndex + 'Queries:'.length);
+  return extractDoubleQuotedSegments(segment)
+    .map((entry) => normalizeLabel(entry))
     .filter(Boolean);
+}
+
+function indexOfIgnoreCase(text: string, search: string, fromIndex = 0): number {
+  return text.toLowerCase().indexOf(search.toLowerCase(), fromIndex);
+}
+
+function extractDoubleQuotedSegments(text: string): string[] {
+  const matches: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (const character of text) {
+    if (character === '"') {
+      if (inQuotes && current.trim()) {
+        matches.push(current.trim());
+      }
+      current = '';
+      inQuotes = !inQuotes;
+      continue;
+    }
+    if (inQuotes) {
+      current += character;
+    }
+  }
+
+  return matches;
 }
 
 function normalizeClusterLabel(label: string): string {

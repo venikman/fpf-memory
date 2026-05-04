@@ -1,5 +1,5 @@
 import { parseDocsConfig } from '../src/adapters/infra/config/env.js';
-import { generateDocsSite } from '../src/docs/generate.js';
+import { generateDocsSite } from '../src/adapters/docs/generate.js';
 
 const docsConfig = parseDocsConfig(process.env);
 const result = await generateDocsSite({

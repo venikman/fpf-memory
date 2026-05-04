@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
+import { computeCompilerFingerprint } from '../build/compiler-fingerprint.js';
 import {
   ARTIFACT_FILENAMES,
   DEFAULT_ARTIFACT_DIR,
@@ -16,6 +17,10 @@ import {
   SessionCache,
   type RetrievalSessionState,
 } from './session-cache.js';
+import {
+  collapseWhitespace,
+  findTokenPosition,
+} from './text-scan.js';
 import type {
   AnswerMode,
   BrowseCatalogResult,
@@ -46,6 +51,11 @@ export interface FpfRuntimeOptions {
   observability?: RuntimeStatus['observability'];
 }
 
+interface SourceFingerprint {
+  mtimeMs: number;
+  size: number;
+}
+
 export class FpfRuntime {
   private readonly sourcePath: string;
   private readonly artifactDir: string;
@@ -53,6 +63,10 @@ export class FpfRuntime {
   private readonly synthesizer?: LocalAnswerSynthesizer;
   private readonly sessionCache: SessionCache;
   private readonly observabilitySummary: RuntimeStatus['observability'];
+  private cachedSnapshot?: Snapshot;
+  private cachedAudit?: BuildAudit;
+  private cachedSourceFingerprint?: SourceFingerprint;
+  private sessionCacheLoadedForHash?: string;
 
   constructor(options: FpfRuntimeOptions = {}) {
     const sourcePath = options.sourcePath ?? DEFAULT_SOURCE_PATH;
@@ -94,12 +108,41 @@ export class FpfRuntime {
     });
   }
 
-  async refresh(force = false): Promise<BuildAudit> {
+  async refresh(
+    force = false,
+    options: boolean | { compilerFingerprint?: string; allowMemoryCache?: boolean } = {},
+  ): Promise<BuildAudit> {
+    const allowMemoryCache =
+      typeof options === 'boolean' ? options : options.allowMemoryCache ?? false;
     await mkdir(this.artifactDir, { recursive: true });
+    const sourceFingerprint = await fingerprintFile(this.sourcePath);
+    if (
+      allowMemoryCache &&
+      !force &&
+      this.cachedSnapshot &&
+      this.cachedAudit &&
+      this.cachedSourceFingerprint &&
+      sourceFingerprintEquals(sourceFingerprint, this.cachedSourceFingerprint) &&
+      !snapshotNeedsRebuild(this.cachedSnapshot)
+    ) {
+      await this.loadSessionCacheOnce(this.cachedSnapshot.sourceHash);
+      return this.cachedAudit;
+    }
+
     const currentSourceHash = await hashFile(this.sourcePath);
-    await this.sessionCache.load(currentSourceHash);
+    const currentCompilerFingerprint =
+      typeof options === 'object' && Object.hasOwn(options, 'compilerFingerprint')
+        ? options.compilerFingerprint
+        : await readCurrentCompilerFingerprint();
+    await this.loadSessionCacheOnce(currentSourceHash);
     const existingSnapshot = await this.loadSnapshot();
-    const compatibleSnapshot = existingSnapshot && !snapshotNeedsRebuild(existingSnapshot);
+    const staleSnapshotShape = existingSnapshot
+      ? snapshotShapeNeedsRebuild(existingSnapshot)
+      : false;
+    const staleCompilerFingerprint = existingSnapshot
+      ? snapshotCompilerFingerprintChanged(existingSnapshot, currentCompilerFingerprint)
+      : false;
+    const compatibleSnapshot = existingSnapshot && !staleSnapshotShape && !staleCompilerFingerprint;
 
     if (!force && compatibleSnapshot && existingSnapshot.sourceHash === currentSourceHash) {
       const audit: BuildAudit = {
@@ -119,6 +162,7 @@ export class FpfRuntime {
       }
       await this.writeArtifacts(existingSnapshot, true);
       await this.writeAudit(audit);
+      this.rememberSnapshot(existingSnapshot, audit, sourceFingerprint);
       return audit;
     }
 
@@ -129,6 +173,7 @@ export class FpfRuntime {
     const { snapshot } = compileFpfSource({
       sourcePath: this.sourcePath,
       sourceHash: currentSourceHash,
+      compilerFingerprint: currentCompilerFingerprint,
       builtAt,
       sourceText,
     });
@@ -147,19 +192,20 @@ export class FpfRuntime {
       previousSourceHash: existingSnapshot?.sourceHash,
       builtAt,
       rebuilt: true,
-      reason: force
-        ? 'forced'
-        : existingSnapshot
-          ? compatibleSnapshot
-            ? 'source_hash_changed'
-            : 'missing_snapshot'
-          : 'missing_snapshot',
+      reason: refreshReasonForRebuild({
+        force,
+        existingSnapshot,
+        staleSnapshotShape,
+        staleCompilerFingerprint,
+        currentSourceHash,
+      }),
       validation: snapshot.validation,
       refreshClassification,
       compiler: buildCompilerSummary(snapshot),
       artifacts: this.artifactPaths,
     };
     await this.writeAudit(audit);
+    this.rememberSnapshot(snapshot, audit, sourceFingerprint);
     return audit;
   }
 
@@ -216,15 +262,19 @@ export class FpfRuntime {
 
   async status(): Promise<RuntimeStatus> {
     let existingSnapshot = await this.loadSnapshot();
-    if (!existingSnapshot || snapshotNeedsRebuild(existingSnapshot)) {
-      await this.refresh(false).catch((error) => {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[FpfRuntime.status] refresh(false) failed: ${message}`);
-      });
+    const currentCompilerFingerprint = await readCurrentCompilerFingerprint();
+    if (!existingSnapshot || snapshotNeedsRebuild(existingSnapshot, currentCompilerFingerprint)) {
+      await this.refresh(false, { compilerFingerprint: currentCompilerFingerprint }).catch(
+        (error) => {
+          const message = error instanceof Error ? error.message : String(error);
+          console.warn(`[FpfRuntime.status] refresh(false) failed: ${message}`);
+        },
+      );
       existingSnapshot = await this.loadSnapshot();
     }
 
     const currentSourceHash = await hashFile(this.sourcePath);
+    const synthesizer = await this.synthesizerStatus();
     return {
       sourcePath: this.sourcePath,
       sourceHash: existingSnapshot?.sourceHash,
@@ -233,19 +283,58 @@ export class FpfRuntime {
       currentSourceHash,
       fresh:
         existingSnapshot != null &&
-        !snapshotNeedsRebuild(existingSnapshot) &&
+        !snapshotNeedsRebuild(existingSnapshot, currentCompilerFingerprint) &&
         existingSnapshot.sourceHash === currentSourceHash,
       compilerMode: 'local_vectorless',
       artifacts: await this.getArtifactPresence(),
-      synthesizer: this.synthesizer?.describe
-        ? {
-            configured: true,
-            ...this.synthesizer.describe(),
-          }
-        : { configured: false },
+      synthesizer,
       observability: this.observabilitySummary,
       sessionCache: this.sessionCache.summary(),
     };
+  }
+
+  private async synthesizerStatus(): Promise<RuntimeStatus['synthesizer']> {
+    if (!this.synthesizer) {
+      return {
+        configured: false,
+        availability: 'not_configured',
+      };
+    }
+
+    const base = this.synthesizer.describe
+      ? {
+          configured: true,
+          ...this.synthesizer.describe(),
+        }
+      : { configured: true };
+
+    if (!this.synthesizer.checkAvailability) {
+      const available = await this.synthesizer.isAvailable();
+      return {
+        ...base,
+        availability: available ? 'unknown' : 'unavailable',
+        checkedAt: new Date().toISOString(),
+      };
+    }
+
+    try {
+      return {
+        ...base,
+        ...(await this.synthesizer.checkAvailability()),
+      };
+    } catch (error) {
+      return {
+        ...base,
+        availability: 'unknown',
+        checkedAt: new Date().toISOString(),
+        failure: {
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Synthesizer availability check failed with an unknown error.',
+        },
+      };
+    }
   }
 
   async browse(
@@ -363,7 +452,7 @@ export class FpfRuntime {
   }
 
   private async createEngine(forceRefresh = false, sessionId?: string): Promise<QueryEngine> {
-    const audit = await this.refresh(forceRefresh);
+    const audit = await this.refresh(forceRefresh, true);
     return new QueryEngine(
       await this.requireSnapshot(),
       audit.rebuilt,
@@ -381,11 +470,33 @@ export class FpfRuntime {
   }
 
   private async requireSnapshot(): Promise<Snapshot> {
+    if (this.cachedSnapshot && !snapshotNeedsRebuild(this.cachedSnapshot)) {
+      return this.cachedSnapshot;
+    }
     const snapshot = await this.loadSnapshot();
     if (!snapshot) {
       throw new Error('Compiled snapshot is missing after refresh.');
     }
+    this.cachedSnapshot = snapshot;
     return snapshot;
+  }
+
+  private rememberSnapshot(
+    snapshot: Snapshot,
+    audit: BuildAudit,
+    sourceFingerprint: SourceFingerprint,
+  ): void {
+    this.cachedSnapshot = snapshot;
+    this.cachedAudit = audit;
+    this.cachedSourceFingerprint = sourceFingerprint;
+  }
+
+  private async loadSessionCacheOnce(sourceHash: string): Promise<void> {
+    if (this.sessionCacheLoadedForHash === sourceHash) {
+      return;
+    }
+    await this.sessionCache.load(sourceHash);
+    this.sessionCacheLoadedForHash = sourceHash;
   }
 
   private async writeArtifacts(snapshot: Snapshot, onlyMissing = false): Promise<void> {
@@ -453,6 +564,18 @@ async function hashFile(path: string): Promise<string> {
   return `sha256:${createHash('sha256').update(content).digest('hex')}`;
 }
 
+async function fingerprintFile(path: string): Promise<SourceFingerprint> {
+  const fileStat = await stat(path);
+  return {
+    mtimeMs: fileStat.mtimeMs,
+    size: fileStat.size,
+  };
+}
+
+function sourceFingerprintEquals(left: SourceFingerprint, right: SourceFingerprint): boolean {
+  return left.mtimeMs === right.mtimeMs && left.size === right.size;
+}
+
 function buildCompilerSummary(snapshot: Snapshot): BuildAudit['compiler'] {
   return {
     mode: 'local_vectorless',
@@ -465,7 +588,45 @@ function buildCompilerSummary(snapshot: Snapshot): BuildAudit['compiler'] {
   };
 }
 
-function snapshotNeedsRebuild(snapshot: Snapshot): boolean {
+function refreshReasonForRebuild(params: {
+  force: boolean;
+  existingSnapshot: Snapshot | undefined;
+  staleSnapshotShape: boolean;
+  staleCompilerFingerprint: boolean;
+  currentSourceHash: string;
+}): BuildAudit['reason'] {
+  if (params.force) {
+    return 'forced';
+  }
+  if (!params.existingSnapshot || params.staleSnapshotShape) {
+    return 'missing_snapshot';
+  }
+  if (params.existingSnapshot.sourceHash !== params.currentSourceHash) {
+    return 'source_hash_changed';
+  }
+  if (params.staleCompilerFingerprint) {
+    return 'compiler_changed';
+  }
+  throw new Error('refreshReasonForRebuild called without a rebuild reason');
+}
+
+async function readCurrentCompilerFingerprint(): Promise<string | undefined> {
+  try {
+    return await computeCompilerFingerprint();
+  } catch {
+    return undefined;
+  }
+}
+
+function snapshotNeedsRebuild(
+  snapshot: Snapshot,
+  currentCompilerFingerprint?: string,
+): boolean {
+  return snapshotShapeNeedsRebuild(snapshot)
+    || snapshotCompilerFingerprintChanged(snapshot, currentCompilerFingerprint);
+}
+
+function snapshotShapeNeedsRebuild(snapshot: Snapshot): boolean {
   if (!Array.isArray(snapshot.heuristicSeedRules)) {
     return true;
   }
@@ -475,6 +636,16 @@ function snapshotNeedsRebuild(snapshot: Snapshot): boolean {
       !node.metadata ||
       typeof node.metadata.role !== 'string' ||
       typeof node.metadata.routeBearing !== 'boolean',
+  );
+}
+
+function snapshotCompilerFingerprintChanged(
+  snapshot: Snapshot,
+  currentCompilerFingerprint?: string,
+): boolean {
+  return Boolean(
+    currentCompilerFingerprint &&
+      snapshot.compilerFingerprint !== currentCompilerFingerprint,
   );
 }
 
@@ -556,41 +727,13 @@ function nodeToCatalogEntry(
 
 const SNIPPET_RADIUS = 80;
 
-function findTokenPosition(
-  searchableText: string,
-  lower: string,
-  token: string,
-): { pos: number; len: number } | undefined {
-  // Try literal substring match first.
-  const literalPos = lower.indexOf(token);
-  if (literalPos !== -1) {
-    return { pos: literalPos, len: token.length };
-  }
-
-  // For collapsed tokens (e.g. "a23" from "A.2.3"), try matching with
-  // optional non-alphanumeric separators between each character.
-  if (token.length > 0) {
-    const escaped = Array.from(token).map((c) =>
-      c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-    );
-    const pattern = new RegExp(escaped.join('[^a-z0-9]*'), 'i');
-    const match = pattern.exec(searchableText);
-    if (match && match.index !== undefined) {
-      return { pos: match.index, len: match[0].length };
-    }
-  }
-
-  return undefined;
-}
-
 function extractSnippet(searchableText: string, queryTokens: string[]): string {
-  const lower = searchableText.toLowerCase();
   let bestPos = 0;
   let bestLen = 0;
   let bestTokenLen = 0;
 
   for (const token of queryTokens) {
-    const hit = findTokenPosition(searchableText, lower, token);
+    const hit = findTokenPosition(searchableText, token);
     if (hit && token.length > bestTokenLen) {
       bestPos = hit.pos;
       bestLen = hit.len;
@@ -615,7 +758,7 @@ function extractSnippet(searchableText: string, queryTokens: string[]): string {
     }
   }
 
-  let snippet = searchableText.slice(start, end).replace(/\s+/g, ' ').trim();
+  let snippet = collapseWhitespace(searchableText.slice(start, end));
   if (start > 0) {
     snippet = `…${snippet}`;
   }

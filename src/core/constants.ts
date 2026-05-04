@@ -39,6 +39,9 @@ export const DEFAULT_PUBLISH_SOURCE_PATH = '.fpf-upstream/FPF-Spec.md';
 export const HOSTED_STAGED_SOURCE_PATH = 'hosted/FPF-Spec.md';
 export const HOSTED_STAGED_ARTIFACT_DIR = 'hosted/fpf-index';
 
+export const HOSTED_MCP_ENDPOINT =
+  'https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp';
+
 export const ARTIFACT_FILENAMES = {
   snapshot: 'snapshot.json',
   buildAudit: 'build-audit.json',
@@ -57,6 +60,7 @@ export const PREFACE_ROUTE_CITATION = 'Preface/Where to start';
 export const ROUTE_INDEX_CITATION = 'J.4';
 
 export const PROJECT_ALIGNMENT_ROUTE_NAME = 'project alignment';
+export const BOUNDARY_BURDEN_ROUTE_NAME = 'boundary burden';
 
 export const MAX_HOPS = 6;
 export const MAX_SELECTED_ANCHORS = 12;

@@ -1,5 +1,5 @@
 import { parseLoggingConfig } from '../adapters/infra/config/env.js';
-import { getRuntimeLogger } from '../logging/runtime-logger.js';
+import { getRuntimeLogger } from '../adapters/infra/logging/runtime-logger.js';
 import { QueryAppService } from '../app/services/query-app-service.js';
 import { TraceAppService } from '../app/services/trace-app-service.js';
 import { InspectAppService } from '../app/services/inspect-app-service.js';

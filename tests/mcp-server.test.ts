@@ -311,6 +311,36 @@ describe('Mastra MCP server', () => {
     expect(readRouteDocPayload.nodeId).toBe('route:project-alignment');
     expect(readRouteDocPayload.markdown).toContain('# project alignment');
 
+    const readBoundaryRouteDoc = await harness.request('tools/call', {
+      name: 'read_fpf_doc',
+      arguments: {
+        selector: 'route:boundary-burden',
+        kind: 'route',
+      },
+    });
+    const readBoundaryRouteDocPayload = asToolPayload(readBoundaryRouteDoc);
+    expect(readBoundaryRouteDocPayload.resolvedAs).toBe('route');
+    expect(readBoundaryRouteDocPayload.nodeId).toBe('route:boundary-burden');
+    expect(readBoundaryRouteDocPayload.markdown).toContain('# boundary burden');
+
+    const reviewerQuery = await harness.request('tools/call', {
+      name: 'query_fpf_spec',
+      arguments: {
+        mode: 'compact',
+        question:
+          'For a PR/code reviewer checking an API contract change, return exact route or pattern IDs and acceptance checks without pasting the full FPF.',
+      },
+    });
+    const reviewerQueryPayload = asToolPayload(reviewerQuery);
+    expect(reviewerQueryPayload.status).toBe('ok');
+    expect((reviewerQueryPayload.ids as string[]).slice(0, 4)).toEqual([
+      'route:boundary-burden',
+      'A.6',
+      'A.6.B',
+      'A.6.C',
+    ]);
+    expect(reviewerQueryPayload.answer).toContain('route:boundary-burden');
+
     const ask = await harness.request('tools/call', {
       name: 'ask_fpf',
       arguments: {
@@ -319,8 +349,26 @@ describe('Mastra MCP server', () => {
     });
     const askPayload = asToolPayload(ask);
     expect(askPayload.mode).toBe('verbose');
+    expect(askPayload.ids).toContain('route:project-alignment');
     expect(askPayload.markdown).toContain('## Result');
     expect(askPayload.markdown).toContain('## Grounding');
+
+    const reviewerAsk = await harness.request('tools/call', {
+      name: 'ask_fpf',
+      arguments: {
+        mode: 'compact',
+        question:
+          'For a PR/code reviewer checking an API contract change, what bounded FPF route or IDs should they use, and what should they not load yet?',
+      },
+    });
+    const reviewerAskPayload = asToolPayload(reviewerAsk);
+    expect((reviewerAskPayload.ids as string[]).slice(0, 4)).toEqual([
+      'route:boundary-burden',
+      'A.6',
+      'A.6.B',
+      'A.6.C',
+    ]);
+    expect(reviewerAskPayload.markdown).toContain('route:boundary-burden');
   });
 
   it('defaults to public tools when FPF_MCP_SURFACE is unset', async () => {

@@ -7,6 +7,7 @@ import type {
   RouteRecord,
   Snapshot,
 } from './types.js';
+import { HOSTED_MCP_ENDPOINT } from './constants.js';
 import { normalizeForLookup, unique } from './text.js';
 
 export interface GeneratedDocPage {
@@ -337,9 +338,6 @@ function buildWelcomePage(
   };
 }
 
-const HOSTED_MCP_ENDPOINT =
-  'https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp';
-
 function renderHomeMarkdown(
   snapshot: Snapshot,
   manifest?: PublicationManifestSummary,
@@ -355,7 +353,7 @@ function renderHomeMarkdown(
     '',
     '## MCP endpoint',
     '',
-    'Point an MCP-aware client at the hosted endpoint to retrieve compact grounded slices on demand:',
+    'Point an MCP-aware client at the hosted endpoint to retrieve compact grounded slices on demand. See [Connect MCP](/connect-mcp) for client-by-client setup, and [MCP recipes](/mcp-recipes) for ready-made retrieval patterns.',
     '',
     '```text',
     HOSTED_MCP_ENDPOINT,

@@ -41,7 +41,7 @@ Name the work first, choose the smallest matching route or packet, then open gen
 
 ## MCP endpoint
 
-Point an MCP-aware client at the hosted endpoint to retrieve compact grounded slices on demand:
+Point an MCP-aware client at the hosted endpoint to retrieve compact grounded slices on demand. See [Connect MCP](/connect-mcp) for client-by-client setup, and [MCP recipes](/mcp-recipes) for ready-made retrieval patterns.
 
 ```text
 https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp
@@ -54,4 +54,4 @@ Tool catalog and local-surface setup: [README on GitHub](https://github.com/veni
 - **Channel:** `latest-published`
 - **Source hash:** `sha256:4bd579472278104ec472ad32f473b51a58d43e6066cc605f7693badcd2ca691d`
 - **Upstream ref:** `75536eb67fe58e6ffe5c87d21631403fd71c3e10`
-- **Published at:** 2026-04-17T19:28:48.527Z
+- **Published at:** 2026-05-03T23:49:38.957Z

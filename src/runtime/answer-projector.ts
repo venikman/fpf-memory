@@ -26,7 +26,12 @@ export function buildRouteAnswer(
   rebuilt: boolean,
 ): QueryResult {
   const route = snapshot.routeGraph.nodes[routeNodeId]!;
-  const ids = unique([...route.orderedIds, ...route.optionalIds, ...route.landingIds]);
+  const ids = unique([
+    routeNodeId,
+    ...route.orderedIds,
+    ...route.optionalIds,
+    ...route.landingIds,
+  ]);
   const idSet = new Set(ids);
   const relations = ids.flatMap((id) =>
     (snapshot.compiledNodes[id]?.neighborEdges ?? [])
@@ -40,7 +45,7 @@ export function buildRouteAnswer(
     ...(route.constraints ?? []),
   ];
   const answer = [
-    `${route.name} is the matched first-practical route.`,
+    `${route.id} (${route.name}) is the matched first-practical route.`,
     route.firstHonestBurden ? `Burden: ${route.firstHonestBurden}.` : '',
     route.orderedIds.length > 0
       ? `Ordered entry IDs: ${route.orderedIds.join(' -> ')}.`
@@ -49,6 +54,8 @@ export function buildRouteAnswer(
       ? `Conditional additions: ${route.optionalIds.join(', ')}.`
       : '',
     route.landingIds.length > 0 ? `Landing surface: ${route.landingIds.join(', ')}.` : '',
+    `Acceptance check: ${routeAcceptanceCheck(routeNodeId, route)}.`,
+    `Next move: ${routeNextMove(routeNodeId, route)}.`,
     route.routeSurfaces.length > 0
       ? `Route-bearing surfaces: ${route.routeSurfaces.join(', ')}.`
       : '',
@@ -82,6 +89,42 @@ export function buildRouteAnswer(
           ]
         : undefined,
   });
+}
+
+function routeAcceptanceCheck(
+  routeNodeId: string,
+  route: Snapshot['routeGraph']['nodes'][string],
+): string {
+  switch (routeNodeId) {
+    case 'route:project-alignment':
+      return 'a shared kickoff packet names the bounded context, actor roles, role/method/work split, first work-plan item, evidence to collect, and UTS-ready terms';
+    case 'route:boundary-burden':
+      return 'the boundary text is decomposed into layer-correct claims with named API/contract/protocol obligations, acceptance evidence, and owner handoff';
+    case 'route:boundary-unpacking':
+      return 'mixed boundary statements have stable claim IDs in a claim register and each atomic claim routes to one owner layer';
+    default:
+      return route.landingIds.length > 0
+        ? `the packet reaches ${route.landingIds.join(', ')} with one explicit next owner and no full-spec paste`
+        : 'the packet names the matched burden, ordered IDs, next owner, and one checkable output';
+  }
+}
+
+function routeNextMove(
+  routeNodeId: string,
+  route: Snapshot['routeGraph']['nodes'][string],
+): string {
+  switch (routeNodeId) {
+    case 'route:project-alignment':
+      return 'read A.1.1 and A.15 first, draft the kickoff worksheet, then add A.15.2/A.15.3 only when the plan/run split must be made explicit';
+    case 'route:boundary-burden':
+      return 'read A.6, A.6.B, and A.6.C against the concrete boundary sentence before deciding whether A.6.P/A.6.Q/A.6.A is needed';
+    case 'route:boundary-unpacking':
+      return 'create the claim register first, then open exact pattern pages only for claims whose owner layer remains unclear';
+    default:
+      return route.orderedIds.length > 0
+        ? `start with ${route.orderedIds[0]} and stop when the first bounded work packet is explicit`
+        : 'use the route page as the bounded packet and open exact pattern pages only as needed';
+  }
 }
 
 export function buildPatternAnswer(

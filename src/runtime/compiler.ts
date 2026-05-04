@@ -11,7 +11,10 @@
  * The public `compileFpfSource()` API is unchanged.
  */
 
-import { PROJECT_ALIGNMENT_ROUTE_NAME } from './constants.js';
+import {
+  BOUNDARY_BURDEN_ROUTE_NAME,
+  PROJECT_ALIGNMENT_ROUTE_NAME,
+} from './constants.js';
 import {
   buildExplicitReferenceRelations,
   buildLexiconRelations,
@@ -56,6 +59,7 @@ export function compileFpfSource(params: {
   sourcePath: string;
   sourceHash: string;
   builtAt: string;
+  compilerFingerprint?: string;
   sourceText: string;
 }): CompilerOutput {
   // Stage 1: SourceParser — markdown text → SourceIR
@@ -107,6 +111,7 @@ export function compileFpfSource(params: {
     sourcePath: params.sourcePath,
     sourceHash: params.sourceHash,
     builtAt: params.builtAt,
+    compilerFingerprint: params.compilerFingerprint,
     compilerMode: 'local_vectorless',
     indexRoots: indexMap.roots,
     indexMap: indexMap.nodes,
@@ -148,6 +153,7 @@ export {
   scorePatternQuery,
   scoreRouteQuery,
   selectBestAnchors,
+  selectFastRouteMatch,
 } from './query-helpers.js';
 
 function buildHeuristicSeedRules(
@@ -193,6 +199,49 @@ function buildHeuristicSeedRules(
       initialNodeIds: [],
       routeId: alignmentRoute.id,
       routeScore: 80,
+    });
+  }
+
+  const boundaryRoute = Object.values(routeNodes).find(
+    (r) => r.name.toLowerCase() === BOUNDARY_BURDEN_ROUTE_NAME,
+  );
+  const boundaryNodeIds = ['A.6', 'A.6.B', 'A.6.C', 'A.6.P', 'A.6.Q', 'A.6.A'].filter(
+    (id) => id in patternNodes || id in routeNodes,
+  );
+  if (boundaryRoute) {
+    boundaryRoute.constraints = [
+      'Start with A.6, A.6.B, and A.6.C for API, contract, protocol, CI/deploy gate, or acceptance-clause review.',
+      'Add A.6.P, A.6.Q, or A.6.A only when the review text hides overloaded relation, quality, or action-invitation language.',
+      'Do not open the whole FPF; read exact pattern pages only when a finding depends on wording.',
+    ];
+    rules.push({
+      name: 'boundary-review',
+      allOf: [['review', 'reviewer', 'reviewing', 'checking', 'check']],
+      anyOf: [
+        [
+          'api',
+          'contract',
+          'protocol',
+          'ci/cd',
+          'ci gate',
+          'ci pipeline',
+          'continuous integration',
+          'deploy',
+          'deploy gate',
+          'acceptance',
+          'acceptance clause',
+          'slo',
+          'sla',
+          'compliance',
+          'interface',
+        ],
+      ],
+      seedNodeIds: boundaryNodeIds,
+      seedScore: 24,
+      seedOrigin: 'route_expansion',
+      initialNodeIds: [],
+      routeId: boundaryRoute.id,
+      routeScore: 96,
     });
   }
 

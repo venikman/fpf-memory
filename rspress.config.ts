@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { defineConfig } from '@rspress/core';
 
 import { DEFAULT_SOURCE_PATH } from './src/core/constants.js';
-import { buildDocsNavigation } from './src/docs/projection.js';
+import { buildDocsNavigation } from './src/core/documents.js';
 import { compileFpfSource } from './src/runtime/compiler.js';
 
 const docsRoot = process.env.FPF_DOCS_ROOT ?? 'docs';
@@ -62,6 +62,8 @@ export default defineConfig({
   },
   themeConfig: {
     nav: [
+      // Reference plane first — the catalog IS the home, then routes,
+      // glossary, and change log lean on it.
       {
         text: 'Patterns',
         link: '/',
@@ -78,6 +80,10 @@ export default defineConfig({
         text: 'Change log',
         link: '/generated/patterns/I.3',
       },
+      // Adoption plane second — Welcome is the friendly landing; Start
+      // Here / Work Packets / MCP Recipes are the working surfaces. The
+      // Connect MCP and Vercel Proxy guides land at the end as
+      // operational/integration references.
       {
         text: 'Welcome',
         link: '/welcome',
@@ -93,6 +99,14 @@ export default defineConfig({
       {
         text: 'MCP Recipes',
         link: '/mcp-recipes',
+      },
+      {
+        text: 'Connect MCP',
+        link: '/connect-mcp',
+      },
+      {
+        text: 'Vercel Proxy',
+        link: '/vercel-proxy',
       },
     ],
     sidebar: {

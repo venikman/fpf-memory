@@ -10,18 +10,45 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # PRs share a group per PR number so a follow-up commit cancels the prior
+  # run. Pushes to `main` use the SHA so every commit gets its own group —
+  # otherwise GitHub's per-group queue (only one pending run is kept) would
+  # silently discard intermediate `main` commits when they land faster than
+  # CI can start, even with `cancel-in-progress: false`.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Single source of truth for the bun toolchain version. Used by setup-bun
+  # in every job and baked into the cache key so a version bump invalidates
+  # incompatible node_modules caches.
+  BUN_VERSION: '1.3.5'
 
 jobs:
-  ci:
+  setup:
+    name: Install + validate published
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.5
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - id: cache-key
+        # Include the bun version + runner arch so toolchain bumps and
+        # cross-arch runners don't restore an incompatible node_modules.
+        run: echo "key=bun-${{ env.BUN_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bun.lock') }}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ steps.cache-key.outputs.key }}
 
       - run: bun install --frozen-lockfile
 
@@ -33,27 +60,92 @@ jobs:
         # broken push doesn't reach the deploy job.
         run: bun run validate:published
 
-      - name: Lint
-        run: bun run lint
+  lint:
+    name: Lint + boundaries
+    runs-on: ubuntu-latest
+    needs: setup
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run check:boundaries
 
-      - name: Boundary check
-        run: bun run check:boundaries
+  typecheck:
+    name: Type check
+    runs-on: ubuntu-latest
+    needs: setup
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+      - run: bun install --frozen-lockfile
+      - run: bun run check
 
-      - name: Type check
-        run: bun run check
+  test:
+    name: Test (shard ${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    needs: setup
+    timeout-minutes: 15
+    strategy:
+      # Surface every failing shard, don't mask 2-4 because shard 1 broke.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+      - run: bun install --frozen-lockfile
+      # Run one shard per runner. The full FPF suite can push a single
+      # long-lived worker over the GitHub runner memory cliff even with
+      # `maxWorkers: 1`, so each shard gets a fresh process *and* a fresh
+      # runner.
+      - run: bunx rstest run --shard=${{ matrix.shard }}/4
 
-      - name: Test
-        # Run the CI suite in four fresh Rstest processes. The full FPF suite
-        # can push a single long-lived worker over the GitHub runner memory
-        # cliff even with `maxWorkers: 1`.
-        run: bun run test:ci
-
-      - name: Build docs
-        run: bun run docs:build
-
-      - name: Build MCP bundle
-        run: bun run build:mcp
-
+  build:
+    name: Build (docs + MCP + mastra dry-run)
+    runs-on: ubuntu-latest
+    needs: setup
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+      - run: bun install --frozen-lockfile
+      - run: bun run docs:build
+      - run: bun run build:mcp
       - name: Stage + mastra build (deploy dry-run)
         # Assemble the deploy bundle without uploading. Catches packaging
         # regressions (missing hosted files, broken `mastra build`) on
@@ -64,3 +156,27 @@ jobs:
           test -f .mastra/output/index.mjs
           test -f .mastra/output/hosted/FPF-Spec.md
           test -f .mastra/output/hosted/fpf-index/snapshot.json
+
+  # Single green check for branch protection: this is the only required
+  # status. It goes green iff every parallel job above succeeded. The job
+  # ID stays `ci` (no `name:` override) so the status-check context
+  # remains `CI / ci`, matching existing branch-protection rules.
+  ci:
+    runs-on: ubuntu-latest
+    needs: [setup, lint, typecheck, test, build]
+    if: always()
+    steps:
+      - name: Verify all required jobs succeeded
+        # Require every dependency result to be exactly `success`. Checking
+        # only for `failure`/`cancelled` would let a `skipped` result slip
+        # through as green if a future change adds an `if:` to a job.
+        run: |
+          results='${{ join(needs.*.result, ',') }}'
+          echo "Required job results: $results"
+          IFS=','
+          for r in $results; do
+            if [[ "$r" != "success" ]]; then
+              echo "::error::A required job did not succeed (got: '$r')."
+              exit 1
+            fi
+          done

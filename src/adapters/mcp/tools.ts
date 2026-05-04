@@ -36,7 +36,7 @@ import {
   searchFpfResultSchema,
   traceFpfPathInputSchema,
   traceResultSchema,
-} from './tool-contracts.js';
+} from '../../mcp/tool-contracts.js';
 
 export interface McpToolDependencies {
   defaultQueryMode: AnswerMode;

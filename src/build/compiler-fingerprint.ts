@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Files that directly determine the persisted snapshot semantics. Changes in
@@ -15,12 +16,18 @@ export const SNAPSHOT_COMPILER_FINGERPRINT_INPUTS = [
   'src/runtime/index-projector.ts',
   'src/runtime/validation-runner.ts',
   'src/runtime/text.ts',
+  'src/runtime/text-scan.ts',
 ] as const;
+
+export const DEFAULT_COMPILER_FINGERPRINT_ROOT = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  '../..',
+);
 
 export async function computeCompilerFingerprint(
   options: { cwd?: string } = {},
 ): Promise<string> {
-  const cwd = resolve(options.cwd ?? process.cwd());
+  const cwd = resolve(options.cwd ?? DEFAULT_COMPILER_FINGERPRINT_ROOT);
   const hash = createHash('sha256');
 
   for (const relativePath of SNAPSHOT_COMPILER_FINGERPRINT_INPUTS) {

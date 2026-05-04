@@ -8,12 +8,12 @@ import { promisify } from 'node:util';
 import { beforeAll, describe, expect, it } from '@rstest/core';
 
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
-import { generateDocsSite } from '../src/docs/generate.js';
+import { generateDocsSite } from '../src/adapters/docs/generate.js';
 import {
   buildDocsNavigation,
   buildDocsProjection,
   resolveDocTarget,
-} from '../src/docs/projection.js';
+} from '../src/core/documents.js';
 import { compileFpfSource } from '../src/runtime/compiler.js';
 import type { Snapshot } from '../src/runtime/types.js';
 
@@ -232,7 +232,9 @@ describe('docs projection', () => {
       // The adoption landing now lives at /welcome — Rspress `pageType: home`
       // layout with hero + 4-up feature grid. Hero actions point at the three
       // primary adoption surfaces; feature cards expose the catalog (Patterns
-      // pointing back to /, the new index URL).
+      // pointing back to /, the new index URL). The MCP endpoint body now
+      // points at both Connect MCP (client setup, added on main) and MCP
+      // recipes (retrieval patterns).
       const welcomePage = await readFile(resolve(docsRoot, 'welcome.md'), 'utf8');
       expect(welcomePage).toContain('pageType: home');
       expect(welcomePage).toContain('title: FPF Reference');
@@ -256,6 +258,8 @@ describe('docs projection', () => {
       expect(welcomePage).toContain('FPF specification change log from the published source');
       expect(welcomePage).toContain('## Methodology');
       expect(welcomePage).toContain('## MCP endpoint');
+      expect(welcomePage).toContain('[Connect MCP](/connect-mcp)');
+      expect(welcomePage).toContain('[MCP recipes](/mcp-recipes)');
       expect(welcomePage).toContain('fpf-memory.server.mastra.cloud');
       expect(welcomePage).toContain('https://github.com/venikman/fpf-memory#run-and-test-mcp');
       // Demo videos surface was removed — verify neither page references it.
@@ -357,6 +361,21 @@ describe('docs projection', () => {
       );
       expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
         'Review a PR without full-spec paste',
+      );
+      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
+        'Connect fpf-memory MCP',
+      );
+      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
+        'https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp',
+      );
+      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
+        'Codex CLI',
+      );
+      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
+        'Claude Code',
+      );
+      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
+        'Pi MCP extension',
       );
     } finally {
       await rm(tempRoot, { recursive: true, force: true });
