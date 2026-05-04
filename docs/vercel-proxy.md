@@ -16,10 +16,10 @@ Canonical MCP endpoint:
 https://fpf-memory.server.mastra.cloud/api/mcp/fpf_memory/mcp
 ```
 
-Vercel proxy project root:
+Vercel proxy config:
 
 ```txt
-deploy/vercel-proxy
+vercel.json
 ```
 
 The proxy preserves the MCP path:
@@ -31,7 +31,7 @@ https://<your-vercel-domain>/api/mcp/fpf_memory/mcp
 ## Vercel setup
 
 1. Create a Vercel project from this repository.
-2. Set the Vercel project root directory to `deploy/vercel-proxy`.
+2. Leave the project root directory at the repository root — `vercel.json` ships there. The config disables the install and build steps so the deploy is rewrite-only and does not need a `public/` directory.
 3. Attach the trusted custom domain, for example `mcp.<your-domain>`.
 4. Deploy a preview first.
 5. Smoke-test the preview URL before changing client docs or local configs.

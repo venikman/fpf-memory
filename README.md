@@ -232,7 +232,7 @@ Call ask_fpf with:
 
 For a proof-style grounded answer, add `mode: "proof"`. For the raw structured envelope, call `query_fpf_spec` instead. For a deterministic retrieval/debug trace, call `trace_fpf_path`.
 
-The Vercel trusted-domain proxy spike lives under `deploy/vercel-proxy`. In Vercel, create a separate project with that directory as the project root, attach the trusted domain, and run the smoke against the preview URL before changing the canonical endpoint references:
+The Vercel trusted-domain proxy spike is configured by the root `vercel.json`. Create a separate Vercel project from this repository (the config disables install + build so the deploy is rewrite-only), attach the trusted domain, and run the smoke against the preview URL before changing the canonical endpoint references:
 
 ```bash
 FPF_MCP_SMOKE_URL=https://mcp.<your-domain>/api/mcp/fpf_memory/mcp bun run smoke:mcp:http

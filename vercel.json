@@ -2,6 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "buildCommand": null,
+  "installCommand": null,
+  "outputDirectory": ".",
   "headers": [
     {
       "source": "/api/mcp/fpf_memory/mcp",
