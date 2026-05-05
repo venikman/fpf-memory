@@ -1,10 +1,10 @@
 {
   "channel": "latest-published",
   "sourceHash": "sha256:4bd579472278104ec472ad32f473b51a58d43e6066cc605f7693badcd2ca691d",
-  "compilerFingerprint": "sha256:dba1c3a9328d67167dacd79cfbda6a79a6681fde5a672fae5667a7f839e590d9",
+  "compilerFingerprint": "sha256:d8ad54b7e127597c64e32621b565d1dfc4f1f1a4577c011121e4c6675595b00f",
   "upstreamRef": "75536eb67fe58e6ffe5c87d21631403fd71c3e10",
   "specPath": "published/current/FPF-Spec.md",
   "snapshotPath": "published/current/fpf-index/snapshot.json",
   "specBytes": 5449072,
-  "publishedAt": "2026-05-04T13:13:33.997Z"
+  "publishedAt": "2026-05-05T13:09:38.615Z"
 }

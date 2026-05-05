@@ -158,6 +158,8 @@ function scoreAdoptionRouteIntent(normalizedQuestion: string, route: RouteRecord
       return scoreBoundaryBurdenIntent(normalizedQuestion);
     case 'route:boundary-unpacking':
       return scoreBoundaryUnpackingIntent(normalizedQuestion);
+    case 'route:writing-or-reviewing-patterns':
+      return scoreWritingOrReviewingPatternIntent(normalizedQuestion);
     default:
       return 0;
   }
@@ -174,6 +176,11 @@ function scoreProjectAlignmentIntent(normalizedQuestion: string): number {
     'align a project',
     'align a new project',
     'aligning a new project',
+    'project alignment',
+    'project review',
+    'starting a team project',
+    'start a team project',
+    'team project',
     'first shared work surface',
     'vocabulary is overloaded',
     'overloaded across teams',
@@ -195,19 +202,36 @@ function scoreProjectAlignmentIntent(normalizedQuestion: string): number {
 }
 
 function scoreBoundaryBurdenIntent(normalizedQuestion: string): number {
+  if (hasBoundaryReviewNegation(normalizedQuestion)) {
+    return 0;
+  }
+
   const boundarySignals = [
     'api',
     'boundary',
     'interface',
     'contract',
     'protocol',
+    'ci/cd',
+    'ci gate',
+    'ci pipeline',
+    'deploy gate',
+    'deployment gate',
+    'deploy promise',
+    'deployment promise',
     'slo',
     'sla',
-    'acceptance',
+    'acceptance clause',
+    'compliance text',
+    'compliance requirement',
     'compliance',
-    'ownership',
   ];
   const jobSignals = [
+    'review',
+    'reviewer',
+    'reviewing',
+    'checking',
+    'check',
     'kickoff',
     'project lead',
     'route',
@@ -221,6 +245,47 @@ function scoreBoundaryBurdenIntent(normalizedQuestion: string): number {
     jobSignals.some((signal) => normalizedQuestion.includes(signal))
   ) {
     return 92;
+  }
+  return 0;
+}
+
+function hasBoundaryReviewNegation(normalizedQuestion: string): boolean {
+  const negations = [
+    'do not treat this as an api contract review',
+    'do not treat this as a contract review',
+    'do not treat this as an api review',
+    'not an api contract review',
+    'not a contract review',
+    'not an api review',
+  ];
+  return negations.some((phrase) => normalizedQuestion.includes(phrase));
+}
+
+function scoreWritingOrReviewingPatternIntent(normalizedQuestion: string): number {
+  const directSignals = [
+    'spec writer',
+    'spec writing',
+    'fpf pattern',
+    'new fpf pattern',
+    'writing reviewing route',
+    'writing or reviewing patterns',
+    'authoring conventions',
+    'pattern quality gate',
+    'pattern quality gates',
+  ];
+  if (directSignals.some((signal) => normalizedQuestion.includes(signal))) {
+    return 88;
+  }
+  if (
+    normalizedQuestion.includes('pattern') &&
+    (normalizedQuestion.includes('write') ||
+      normalizedQuestion.includes('writing') ||
+      normalizedQuestion.includes('revise') ||
+      normalizedQuestion.includes('revising') ||
+      normalizedQuestion.includes('spec') ||
+      normalizedQuestion.includes('authoring'))
+  ) {
+    return 72;
   }
   return 0;
 }

@@ -181,7 +181,9 @@ describe('FpfRuntime', () => {
       'compact',
     );
     expect(projectReview.status).toBe('ok');
-    expect(projectReview.ids).toEqual(expect.arrayContaining(['E.8', 'A.15', 'E.19']));
+    expect(projectReview.ids).toEqual(
+      expect.arrayContaining(['route:project-alignment', 'A.1.1', 'A.15']),
+    );
     expect(projectReview.answer.length).toBeGreaterThan(0);
     expect(projectReview.citations.length).toBeGreaterThan(0);
 

@@ -225,6 +225,18 @@ describe('Query / Seed coverage stage', () => {
     expect(routeCandidate?.reasons ?? []).not.toContain('burden:boundary-review');
   });
 
+  it('does not seed the boundary route from generic acceptance-check wording', async () => {
+    const snapshot = await getSnapshot();
+    const normalized = normalizeQuery(
+      'For a new adopter doing a project kickoff, return the route ID, ordered IDs, acceptance check, and next move.',
+      snapshot,
+    );
+    const seeding = seedCandidates(normalized, snapshot);
+
+    const routeCandidate = seeding.candidateMap.get('route:boundary-burden');
+    expect(routeCandidate?.reasons ?? []).not.toContain('burden:boundary-review');
+  });
+
   it('does not seed punctuation-wrapped stop words as lexeme candidates', async () => {
     const snapshot = await getSnapshot();
     const normalized = normalizeQuery(
@@ -322,6 +334,42 @@ describe('Query / Ranker stage', () => {
 
     expect(ranking.routeWins).toBe(true);
     expect(ranking.initialNodeIds).toEqual(['route:project-alignment']);
+  });
+
+  it('selects project alignment for kickoff prompts with generic acceptance checks', async () => {
+    const snapshot = await getSnapshot();
+    const question =
+      'For a new adopter doing a project kickoff, return the route ID, ordered IDs, acceptance check, and next move.';
+    const normalized = normalizeQuery(question, snapshot);
+    const seeding = seedCandidates(normalized, snapshot);
+    const ranking = rankCandidates(question, seeding.candidateMap, snapshot);
+
+    expect(ranking.routeWins).toBe(true);
+    expect(ranking.initialNodeIds).toEqual(['route:project-alignment']);
+  });
+
+  it('honors negative API-contract disambiguation for project review prompts', async () => {
+    const snapshot = await getSnapshot();
+    const question =
+      'As a project lead, choose the next owner and acceptance check after healthy CI, Pages, and MCP deploy. Return a compact project review packet with route, IDs, operating questions, done condition, and next move. Do not paste the whole FPF. Do not treat this as an API contract review.';
+    const normalized = normalizeQuery(question, snapshot);
+    const seeding = seedCandidates(normalized, snapshot);
+    const ranking = rankCandidates(question, seeding.candidateMap, snapshot);
+
+    expect(ranking.routeWins).toBe(true);
+    expect(ranking.initialNodeIds).toEqual(['route:project-alignment']);
+  });
+
+  it('selects the writing or reviewing patterns route for spec-writer pattern work', async () => {
+    const snapshot = await getSnapshot();
+    const question =
+      'As a spec writer adding or revising a new FPF pattern, identify the writing/reviewing route, retrieve E.8 and E.19 as the initial IDs, give acceptance checks and the next action, and do not paste the full FPF.';
+    const normalized = normalizeQuery(question, snapshot);
+    const seeding = seedCandidates(normalized, snapshot);
+    const ranking = rankCandidates(question, seeding.candidateMap, snapshot);
+
+    expect(ranking.routeWins).toBe(true);
+    expect(ranking.initialNodeIds).toEqual(['route:writing-or-reviewing-patterns']);
   });
 
   it('selects boundary burden for API boundary kickoff questions', async () => {
