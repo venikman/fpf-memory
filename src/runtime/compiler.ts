@@ -30,6 +30,10 @@ import {
   buildLexicon,
 } from './index-projector.js';
 import { parseSource } from './source-parser.js';
+import {
+  BOUNDARY_BURDEN_SIGNALS,
+  BOUNDARY_REVIEW_RULE_JOB_SIGNALS,
+} from './route-intent-signals.js';
 import { buildValidation } from './validation-runner.js';
 import type {
   AnchorRef,
@@ -241,28 +245,8 @@ function buildHeuristicSeedRules(
     ];
     rules.push({
       name: 'boundary-review',
-      allOf: [['review', 'reviewer', 'reviewing', 'checking', 'check']],
-      anyOf: [
-        [
-          'api',
-          'contract',
-          'protocol',
-          'ci/cd',
-          'ci gate',
-          'ci pipeline',
-          'continuous integration',
-          'deploy gate',
-          'deployment gate',
-          'deploy promise',
-          'deployment promise',
-          'acceptance clause',
-          'slo',
-          'sla',
-          'compliance text',
-          'compliance requirement',
-          'interface',
-        ],
-      ],
+      allOf: [[...BOUNDARY_REVIEW_RULE_JOB_SIGNALS]],
+      anyOf: [[...BOUNDARY_BURDEN_SIGNALS, 'continuous integration']],
       seedNodeIds: boundaryNodeIds,
       seedScore: 24,
       seedOrigin: 'route_expansion',

@@ -10,6 +10,12 @@ import {
   unique,
 } from './text.js';
 import type { AnchorRef, LexiconEntry, PatternRecord, RouteRecord, SectionRole } from './types.js';
+import {
+  BOUNDARY_BURDEN_JOB_SIGNALS,
+  BOUNDARY_BURDEN_SIGNALS,
+  WRITING_OR_REVIEWING_PATTERN_SIGNALS,
+  hasBoundaryReviewNegation,
+} from './route-intent-signals.js';
 
 export interface FastRouteMatch {
   routeId: string;
@@ -206,74 +212,21 @@ function scoreBoundaryBurdenIntent(normalizedQuestion: string): number {
     return 0;
   }
 
-  const boundarySignals = [
-    'api',
-    'boundary',
-    'interface',
-    'contract',
-    'protocol',
-    'ci/cd',
-    'ci gate',
-    'ci pipeline',
-    'deploy gate',
-    'deployment gate',
-    'deploy promise',
-    'deployment promise',
-    'slo',
-    'sla',
-    'acceptance clause',
-    'compliance text',
-    'compliance requirement',
-    'compliance',
-  ];
-  const jobSignals = [
-    'review',
-    'reviewer',
-    'reviewing',
-    'checking',
-    'check',
-    'kickoff',
-    'project lead',
-    'route',
-    'smallest',
-    'work packet',
-    'decision',
-    'questions',
-  ];
   if (
-    boundarySignals.some((signal) => normalizedQuestion.includes(signal)) &&
-    jobSignals.some((signal) => normalizedQuestion.includes(signal))
+    BOUNDARY_BURDEN_SIGNALS.some((signal) => normalizedQuestion.includes(signal)) &&
+    BOUNDARY_BURDEN_JOB_SIGNALS.some((signal) => normalizedQuestion.includes(signal))
   ) {
     return 92;
   }
   return 0;
 }
 
-function hasBoundaryReviewNegation(normalizedQuestion: string): boolean {
-  const negations = [
-    'do not treat this as an api contract review',
-    'do not treat this as a contract review',
-    'do not treat this as an api review',
-    'not an api contract review',
-    'not a contract review',
-    'not an api review',
-  ];
-  return negations.some((phrase) => normalizedQuestion.includes(phrase));
-}
-
 function scoreWritingOrReviewingPatternIntent(normalizedQuestion: string): number {
-  const directSignals = [
-    'spec writer',
-    'spec writing',
-    'fpf pattern',
-    'new fpf pattern',
-    'writing reviewing route',
-    'writing or reviewing patterns',
-    'authoring conventions',
-    'pattern quality gate',
-    'pattern quality gates',
-  ];
-  if (directSignals.some((signal) => normalizedQuestion.includes(signal))) {
+  if (
+    WRITING_OR_REVIEWING_PATTERN_SIGNALS.some((signal) =>
+      normalizedQuestion.includes(signal),
+    )
+  ) {
     return 88;
   }
   if (

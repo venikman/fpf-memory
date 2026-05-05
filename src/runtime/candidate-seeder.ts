@@ -9,6 +9,7 @@ import {
   scoreOverlap,
   tokenize,
 } from './text.js';
+import { hasBoundaryReviewNegation } from './route-intent-signals.js';
 import type {
   FrontierCandidate,
   FrontierOrigin,
@@ -214,18 +215,6 @@ function addHeuristicSeeds(
       addCandidate(nodeId, rule.seedScore, rule.name, rule.seedOrigin);
     }
   }
-}
-
-function hasBoundaryReviewNegation(normalizedQuestion: string): boolean {
-  const negations = [
-    'do not treat this as an api contract review',
-    'do not treat this as a contract review',
-    'do not treat this as an api review',
-    'not an api contract review',
-    'not a contract review',
-    'not an api review',
-  ];
-  return negations.some((phrase) => normalizedQuestion.includes(phrase));
 }
 
 function shouldApplySessionContext(
