@@ -229,14 +229,15 @@ function scoreWritingOrReviewingPatternIntent(normalizedQuestion: string): numbe
   ) {
     return 88;
   }
+  const tokens = new Set(tokenize(normalizedQuestion));
   if (
     normalizedQuestion.includes('pattern') &&
-    (normalizedQuestion.includes('write') ||
-      normalizedQuestion.includes('writing') ||
-      normalizedQuestion.includes('revise') ||
-      normalizedQuestion.includes('revising') ||
-      normalizedQuestion.includes('spec') ||
-      normalizedQuestion.includes('authoring'))
+    (tokens.has('write') ||
+      tokens.has('writing') ||
+      tokens.has('revise') ||
+      tokens.has('revising') ||
+      tokens.has('spec') ||
+      tokens.has('authoring'))
   ) {
     return 72;
   }

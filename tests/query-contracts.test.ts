@@ -587,6 +587,27 @@ describe('Query / Projection stability stage', () => {
     expect(trace.retrievalHops).toHaveLength(1);
   });
 
+  it('does not fast-route specific pattern lookups to pattern-writing guidance', async () => {
+    const snapshot = await getSnapshot();
+    const engine = new QueryEngine(snapshot, false);
+    const trace = engine.trace('What is the specific pattern A.1.1?', 'compact');
+
+    expect(trace.routeWins).toBe(false);
+    expect(trace.selectedNodeIds[0]).toBe('A.1.1');
+    expect(trace.candidateScores[0]).toEqual(
+      expect.objectContaining({
+        nodeId: 'A.1.1',
+      }),
+    );
+    expect(trace.candidateScores).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          nodeId: 'route:writing-or-reviewing-patterns',
+        }),
+      ]),
+    );
+  });
+
   it('returns low confidence for completely unresolvable questions', async () => {
     const snapshot = await getSnapshot();
     const trace = assembleTrace('__FPFTEST_NONSENSE_999__', 'compact', snapshot);
