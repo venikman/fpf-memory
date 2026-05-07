@@ -608,6 +608,20 @@ describe('Query / Projection stability stage', () => {
     );
   });
 
+  it('does not fast-route spec-writer exact ID lookups to pattern-writing guidance', async () => {
+    const snapshot = await getSnapshot();
+    const engine = new QueryEngine(snapshot, false);
+    const trace = engine.trace('As a spec writer, what is A.1.1?', 'compact');
+
+    expect(trace.routeWins).toBe(false);
+    expect(trace.selectedNodeIds[0]).toBe('A.1.1');
+    expect(trace.candidateScores[0]).toEqual(
+      expect.objectContaining({
+        nodeId: 'A.1.1',
+      }),
+    );
+  });
+
   it('returns low confidence for completely unresolvable questions', async () => {
     const snapshot = await getSnapshot();
     const trace = assembleTrace('__FPFTEST_NONSENSE_999__', 'compact', snapshot);
