@@ -51,11 +51,7 @@ export const BOUNDARY_REVIEW_RULE_JOB_SIGNALS = [
 ] as const;
 
 export const AGENT_WORKFLOW_JOB_SIGNALS = [
-  'agent integrator',
-  'coding agent',
-  'agent workflow',
-  'agent conversation',
-  'connect mcp',
+  'agent',
   'mcp',
   'public tools',
 ] as const;

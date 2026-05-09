@@ -191,6 +191,14 @@ function scoreAdoptionRouteIntent(normalizedQuestion: string, route: RouteRecord
 }
 
 function scoreProjectAlignmentIntent(normalizedQuestion: string): number {
+  if (
+    AGENT_WORKFLOW_JOB_SIGNALS.some((signal) => normalizedQuestion.includes(signal)) &&
+    AGENT_WORKFLOW_BOUNDED_RETRIEVAL_SIGNALS.some((signal) =>
+      normalizedQuestion.includes(signal),
+    )
+  ) {
+    return 88;
+  }
   const projectSignals = [
     'project kickoff',
     'project lead',
@@ -212,14 +220,6 @@ function scoreProjectAlignmentIntent(normalizedQuestion: string): number {
   ];
   if (projectSignals.some((signal) => normalizedQuestion.includes(signal))) {
     return 76;
-  }
-  if (
-    AGENT_WORKFLOW_JOB_SIGNALS.some((signal) => normalizedQuestion.includes(signal)) &&
-    AGENT_WORKFLOW_BOUNDED_RETRIEVAL_SIGNALS.some((signal) =>
-      normalizedQuestion.includes(signal),
-    )
-  ) {
-    return 88;
   }
   if (
     normalizedQuestion.includes('project') &&

@@ -31,6 +31,8 @@ import {
 } from './index-projector.js';
 import { parseSource } from './source-parser.js';
 import {
+  AGENT_WORKFLOW_BOUNDED_RETRIEVAL_SIGNALS,
+  AGENT_WORKFLOW_JOB_SIGNALS,
   BOUNDARY_BURDEN_SIGNALS,
   BOUNDARY_REVIEW_RULE_JOB_SIGNALS,
 } from './route-intent-signals.js';
@@ -221,15 +223,8 @@ function buildHeuristicSeedRules(
     ];
     rules.push({
       name: 'agent-workflow-adoption',
-      allOf: [
-        ['agent', 'agentic', 'mcp'],
-        ['workflow', 'conversation', 'work packet'],
-      ],
-      anyOf: [
-        ['adoption', 'adopt'],
-        ['whole spec', 'pasting the whole spec', 'without pasting', 'full fpf'],
-        ['bounded context', 'public tools', 'connect mcp'],
-      ],
+      allOf: [[...AGENT_WORKFLOW_JOB_SIGNALS]],
+      anyOf: [[...AGENT_WORKFLOW_BOUNDED_RETRIEVAL_SIGNALS]],
       seedNodeIds: alignmentNodeIds,
       seedScore: 18,
       seedOrigin: 'route_expansion',
