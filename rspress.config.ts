@@ -172,6 +172,39 @@ observer.observe(document.body||document.documentElement,{childList:true,subtree
 window.addEventListener('resize',fixSidebarInert);
 window.addEventListener('transitionend',fixSidebarInert);
 })();</script>`,
+    // Vim-style keyboard navigation. Bare keys only — never with Cmd/Ctrl/Alt
+    // — and disabled while focus is in any input, textarea, contenteditable,
+    // or the search modal. The bindings are intentionally conservative:
+    // h/l navigate prev/next page (rspress emits .rp-prev-next-page__prev/next),
+    // j/k scroll, gg / G jump, / focuses search (clicks the .rp-search-button
+    // which opens the rspress search modal), ? toggles a help overlay, Esc
+    // closes the overlay. Mirrors the conventions in classic vim keybindings
+    // and most "g + key" docs sites; see the help overlay for the canonical
+    // list at runtime.
+    `<script>(function(){
+function isEditable(el){if(!el)return false;var t=el.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return true;if(el.isContentEditable)return true;return false;}
+function focusSearch(){var btn=document.querySelector('.rp-search-button');if(btn){btn.click();requestAnimationFrame(function(){var input=document.querySelector('[role="dialog"] input, .rp-search-input, input[placeholder*="earch"]');if(input)input.focus();});}}
+function clickNav(direction){var sel=direction==='prev'?'.rp-prev-next-page__prev':'.rp-prev-next-page__next';var link=document.querySelector(sel);if(link){link.click();return true;}return false;}
+var HELP_ID='fpf-keyhelp';
+function hideHelp(){var el=document.getElementById(HELP_ID);if(el)el.remove();}
+function showHelp(){if(document.getElementById(HELP_ID)){hideHelp();return;}var el=document.createElement('div');el.id=HELP_ID;el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','Keyboard shortcuts');el.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:grid;place-items:center;font:14px/1.45 system-ui,-apple-system,sans-serif;';var rows=[['h','previous page'],['l','next page'],['j','scroll down'],['k','scroll up'],['g g','jump to top'],['G','jump to bottom'],['/','focus search'],['?','toggle this help'],['Esc','close']];var html='<div style="background:var(--rp-c-bg,#fff);color:var(--rp-c-text-1,#111);padding:24px 28px;border-radius:10px;max-width:440px;box-shadow:0 8px 32px rgba(0,0,0,0.25);"><h2 style="margin:0 0 16px;font-size:16px;font-weight:600;">Keyboard shortcuts</h2><table style="width:100%;border-collapse:collapse;">';rows.forEach(function(r){html+='<tr><td style="padding:5px 0;width:96px;"><kbd style="font-family:ui-monospace,monospace;background:var(--rp-c-bg-soft,#f4f4f4);padding:2px 8px;border-radius:4px;border:1px solid var(--rp-c-divider,#ddd);">'+r[0]+'</kbd></td><td style="padding:5px 0;color:var(--rp-c-text-2,#555);">'+r[1]+'</td></tr>';});html+='</table><p style="margin:18px 0 0;font-size:12px;color:var(--rp-c-text-3,#888);">Bindings ignore typing in inputs. Press <kbd style="font-family:ui-monospace,monospace;">?</kbd> again or <kbd style="font-family:ui-monospace,monospace;">Esc</kbd> to close.</p></div>';el.innerHTML=html;el.addEventListener('click',function(e){if(e.target===el)hideHelp();});document.body.appendChild(el);}
+var lastG=0;
+document.addEventListener('keydown',function(e){
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.key==='Escape'){hideHelp();return;}
+  if(isEditable(document.activeElement))return;
+  var k=e.key;
+  if(k==='g'&&!e.shiftKey){var now=Date.now();if(now-lastG<500){lastG=0;e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});}else{lastG=now;}return;}
+  lastG=0;
+  if(k==='G'){e.preventDefault();window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'});return;}
+  if(k==='h'){if(clickNav('prev'))e.preventDefault();return;}
+  if(k==='l'){if(clickNav('next'))e.preventDefault();return;}
+  if(k==='j'){e.preventDefault();window.scrollBy({top:80,behavior:'auto'});return;}
+  if(k==='k'){e.preventDefault();window.scrollBy({top:-80,behavior:'auto'});return;}
+  if(k==='/'){e.preventDefault();focusSearch();return;}
+  if(k==='?'){e.preventDefault();showHelp();return;}
+});
+})();</script>`,
   ],
   route: {
     cleanUrls: true,
