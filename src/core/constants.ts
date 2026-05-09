@@ -10,9 +10,9 @@ export const DEFAULT_SOURCE_PATH = 'published/current/FPF-Spec.md';
 export const DEFAULT_ARTIFACT_DIR = '.runtime/fpf-index';
 
 /**
- * The committed publication surface. Owned by local pre-push; CI and
- * the docs pipeline consume it read-only. See the repo-shape section of
- * the implementation plan and `scripts/publish-current.ts`.
+ * The committed publication surface. Owned by local pre-push and the
+ * Sync FPF Publication workflow; CI and deploy pipelines consume it
+ * read-only. See `scripts/publish-current.ts`.
  */
 export const PUBLISHED_CHANNEL_DIR = 'published/current';
 export const PUBLISHED_SPEC_PATH = `${PUBLISHED_CHANNEL_DIR}/FPF-Spec.md`;
@@ -35,6 +35,7 @@ export const DEFAULT_PUBLISH_SOURCE_PATH = '.fpf-upstream/FPF-Spec.md';
  */
 export const HOSTED_STAGED_SOURCE_PATH = 'hosted/FPF-Spec.md';
 export const HOSTED_STAGED_ARTIFACT_DIR = 'hosted/fpf-index';
+export const HOSTED_STAGED_MANIFEST_PATH = 'hosted/manifest.json';
 export const SERVERLESS_ARTIFACT_DIR = '/tmp/fpf-memory/fpf-index';
 
 export const HOSTED_MCP_ENDPOINT =

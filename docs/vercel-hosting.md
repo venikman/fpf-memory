@@ -16,6 +16,12 @@ Canonical MCP endpoint:
 https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp
 ```
 
+Canonical status endpoint:
+
+```txt
+https://fpf-memory-mcp-vercel-origin.vercel.app/api/fpf/status
+```
+
 The direct Vercel origin is the only hosted endpoint documented for clients. The runtime uses the official MCP SDK directly and emits Vercel Build Output API files without an intermediate framework deployer.
 
 Validation snapshot on 2026-05-04:
@@ -29,13 +35,14 @@ The 75-call mixed sample still had read/query tail spikes, so treat p95 latency 
 ## Vercel setup
 
 The Vercel project runs the direct MCP runtime as a Vercel function.
-The repo-root `vercel.json` pins GitHub preview builds to `bun run vercel:origin:build`, which stages the hosted spec snapshot, creates the Vercel Build Output API bundle, and runs the bundle-size guard.
+The repo-root `vercel.json` pins GitHub preview builds to `bun run vercel:origin:build`, which stages the hosted spec, manifest, and snapshot, creates the Vercel Build Output API bundle, and runs the bundle-size guard.
 
 ```bash
 bun run vercel:origin:link
 bun run vercel:origin:build
 bun run vercel:origin:deploy:prod
 FPF_MCP_SMOKE_URL=https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp bun run smoke:mcp:http
+curl https://fpf-memory-mcp-vercel-origin.vercel.app/api/fpf/status
 ```
 
 Known direct-origin constraints:
@@ -44,6 +51,7 @@ Known direct-origin constraints:
 - Vercel functions can read the bundled `hosted/FPF-Spec.md` and seed the bundled snapshot into `/tmp`; mutable runtime artifacts and logs must use `/tmp`.
 - Preview deployments may be protected by Vercel Authentication; smoke the production alias or use an automation bypass token.
 - The generated `.vercel/output/functions/index.func` directory is the deployment artifact; keep the build-output shape covered by `bun run vercel:origin:build`.
+- `/api/fpf/status` is a plain JSON freshness endpoint. It reports `upstreamRef`, `sourceHash`, `publishedAt`, `specBytes`, and whether the bundled snapshot matches the bundled spec.
 
 ## Cost comparison
 
