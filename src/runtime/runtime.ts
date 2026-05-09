@@ -745,16 +745,14 @@ interface PartFilterResolution {
   suggestion?: string;
 }
 
+const availablePartsCache = new WeakMap<Snapshot, string[]>();
+
 function resolvePartFilter(part: string | undefined, snapshot: Snapshot): PartFilterResolution {
   if (!part?.trim()) {
     return {};
   }
 
-  const availableParts = unique(
-    Object.values(snapshot.compiledNodes)
-      .map((node) => node.part)
-      .filter((value): value is string => Boolean(value)),
-  ).sort((left, right) => left.localeCompare(right));
+  const availableParts = resolveAvailableParts(snapshot);
   const inputKey = normalizedCatalogFilterKey(part);
   for (const availablePart of availableParts) {
     if (partFilterKeys(availablePart).includes(inputKey)) {
@@ -764,6 +762,21 @@ function resolvePartFilter(part: string | undefined, snapshot: Snapshot): PartFi
 
   const suggestion = suggestPartFilter(inputKey, availableParts);
   return { value: part, suggestion };
+}
+
+function resolveAvailableParts(snapshot: Snapshot): string[] {
+  const cached = availablePartsCache.get(snapshot);
+  if (cached) {
+    return cached;
+  }
+
+  const availableParts = unique(
+    Object.values(snapshot.compiledNodes)
+      .map((node) => node.part)
+      .filter((value): value is string => Boolean(value)),
+  ).sort((left, right) => left.localeCompare(right));
+  availablePartsCache.set(snapshot, availableParts);
+  return availableParts;
 }
 
 function partFilterKeys(part: string): string[] {
@@ -799,8 +812,8 @@ function suggestPartFilter(inputKey: string, availableParts: string[]): string |
 }
 
 function levenshteinDistance(left: string, right: string): number {
-  const previous = Array.from({ length: right.length + 1 }, (_, index) => index);
-  const current = new Array<number>(right.length + 1);
+  let previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  let current = new Array<number>(right.length + 1);
   for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
     current[0] = leftIndex;
     for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
@@ -811,7 +824,9 @@ function levenshteinDistance(left: string, right: string): number {
         previous[rightIndex - 1]! + cost,
       );
     }
-    previous.splice(0, previous.length, ...current);
+    const nextPrevious = current;
+    current = previous;
+    previous = nextPrevious;
   }
   return previous[right.length] ?? Math.max(left.length, right.length);
 }

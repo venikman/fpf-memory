@@ -299,7 +299,7 @@ function summarizeHealthFailure(
 }
 
 function formatRemoteFailurePreview(body: string, maxLength = 300): string {
-  const collapsed = body.replace(/\s+/g, ' ').trim();
+  const collapsed = body.slice(0, maxLength * 2).replace(/\s+/g, ' ').trim();
   if (!collapsed) {
     return '<empty response body>';
   }

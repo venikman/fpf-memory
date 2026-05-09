@@ -564,6 +564,20 @@ describe('FpfRuntime', () => {
     );
   });
 
+  it('reuses session context for low-information implicit follow-up prompts', async () => {
+    await runtime.refresh();
+
+    const sessionId = 's-implicit-followup';
+    const first = await runtime.trace('What is U.BoundedContext?', 'compact', false, sessionId);
+    expect(first.selectedNodeIds).toContain('A.1.1');
+
+    const followup = await runtime.trace('Show examples', 'proof', false, sessionId);
+
+    expect(followup.sessionApplied).toBe(true);
+    expect(followup.sessionReusedNodeIds).toContain('A.1.1');
+    expect(followup.selectedNodeIds).toContain('A.1.1');
+  });
+
   it('does not let unrelated session context change top retrieval IDs', async () => {
     await runtime.refresh();
 
