@@ -340,9 +340,9 @@ describe('LmStudioSynthesizer', () => {
         traceLogPath: aiTraceLogPath,
         observabilityConfig: createObservabilityConfig(),
         fetchImpl: async () =>
-          new Response('server exploded', {
+          new Response('<h1>ngrok 404</h1>', {
             status: 500,
-            headers: { 'Content-Type': 'text/plain' },
+            headers: { 'Content-Type': 'text/html' },
           }),
       }),
     });
@@ -353,6 +353,8 @@ describe('LmStudioSynthesizer', () => {
     expect(result.candidateIds).toContain('A.1.1');
     expect(result.confidence).toBeNull();
     expect(result.gaps.some((gap) => gap.includes('Local synthesis skipped'))).toBe(true);
+    expect(result.gaps.join('\n')).toContain('HTML error response omitted');
+    expect(result.gaps.join('\n')).not.toContain('<h1>');
 
     const traceLog = await readFile(aiTraceLogPath, 'utf8');
     expect(traceLog).toContain('"phase":"response"');

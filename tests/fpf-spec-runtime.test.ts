@@ -584,15 +584,22 @@ describe('FpfRuntime', () => {
     const sessionId = 's-unrelated';
     await runtime.query('What is C.16 measurement template discipline?', 'compact', false, sessionId);
 
-    const question = 'How does evidence graph preserve provenance?';
-    const fresh = await runtime.trace(question, 'verbose');
-    const sessioned = await runtime.trace(question, 'verbose', false, sessionId);
+    const questions = [
+      'How does evidence graph preserve provenance?',
+      'Also, what is a holon?',
+      'How does evidence graph connect to provenance?',
+    ];
 
-    expect(sessioned.sessionApplied).toBe(false);
-    expect(sessioned.selectedNodeIds).toEqual(fresh.selectedNodeIds);
-    expect(sessioned.candidateScores.map((candidate) => candidate.nodeId)).toEqual(
-      fresh.candidateScores.map((candidate) => candidate.nodeId),
-    );
+    for (const question of questions) {
+      const fresh = await runtime.trace(question, 'verbose');
+      const sessioned = await runtime.trace(question, 'verbose', false, sessionId);
+
+      expect(sessioned.sessionApplied).toBe(false);
+      expect(sessioned.selectedNodeIds).toEqual(fresh.selectedNodeIds);
+      expect(sessioned.candidateScores.map((candidate) => candidate.nodeId)).toEqual(
+        fresh.candidateScores.map((candidate) => candidate.nodeId),
+      );
+    }
   });
 
   it('lists every Draft pattern in Part C grouped by cluster', async () => {

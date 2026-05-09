@@ -310,7 +310,11 @@ function formatRemoteFailurePreview(body: string, maxLength = 300): string {
 }
 
 function looksLikeHtml(value: string): boolean {
-  return /^<!doctype html\b/i.test(value) || /^<html\b/i.test(value) || /<body\b/i.test(value);
+  return (
+    /^<!doctype html\b/i.test(value) ||
+    /^<html\b/i.test(value) ||
+    /<\/?[a-z][a-z0-9-]*(?:\s[^>]*)?>/i.test(value)
+  );
 }
 
 export function createSynthesizerFromConfig(

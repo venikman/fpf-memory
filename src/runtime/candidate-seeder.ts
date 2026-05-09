@@ -232,7 +232,7 @@ function shouldApplySessionContext(
     return false;
   }
 
-  if (/\bit\b|\bthat\b|\bthose\b|\bthem\b|\bconnect\b|\brelate\b|\balso\b/.test(normalizedQuestion)) {
+  if (/\bit\b|\bthat\b|\bthose\b|\bthem\b/.test(normalizedQuestion)) {
     return true;
   }
 
@@ -241,6 +241,7 @@ function shouldApplySessionContext(
 
 const IMPLICIT_FOLLOW_UP_TOKENS = new Set([
   'about',
+  'also',
   'clarify',
   'continue',
   'definition',
