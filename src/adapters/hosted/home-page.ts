@@ -474,7 +474,7 @@ export function renderHostedHomePage(): string {
       </section>
 
       <footer>
-        Wiki reference: <a href="https://venikman.github.io/fpf-memory/connect-mcp">Connect MCP</a>.
+        Connect another client: <a href="/connect-mcp">/connect-mcp</a>.
         Source: <a href="https://github.com/venikman/fpf-memory">github.com/venikman/fpf-memory</a>.
       </footer>
     </main>

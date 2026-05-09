@@ -56,4 +56,41 @@ describe('hosted home page', () => {
     expect(html).toContain('<title>fpf-memory MCP</title>');
     expect(html).toContain(HOSTED_MCP_ENDPOINT);
   });
+
+  it('caches the home page at the edge and emits baseline security headers', async () => {
+    const { app } = createHostedComposition({
+      ...process.env,
+      PORT: '0',
+    } as NodeJS.ProcessEnv);
+
+    const response = await app.request('/');
+
+    expect(response.status).toBe(200);
+    const cacheControl = response.headers.get('Cache-Control') ?? '';
+    expect(cacheControl).toContain('public');
+    expect(cacheControl).toContain('s-maxage=86400');
+    expect(cacheControl).toContain('stale-while-revalidate=604800');
+    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
+    expect(response.headers.get('Referrer-Policy')).toBe('no-referrer');
+    expect(response.headers.get('X-Frame-Options')).toBe('DENY');
+    expect(response.headers.get('Strict-Transport-Security')).toContain('max-age=31536000');
+  });
+
+  it('keeps Cache-Control: no-store on the dynamic /api/fpf/status route', async () => {
+    const { app } = createHostedComposition({
+      ...process.env,
+      PORT: '0',
+    } as NodeJS.ProcessEnv);
+
+    const response = await app.request('/api/fpf/status');
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+    // The freshness endpoint should still get the baseline security headers.
+    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
+  });
+
+  it('points the footer at the same-origin connect page', () => {
+    const html = renderHostedHomePage();
+    expect(html).not.toContain('venikman.github.io/fpf-memory/connect-mcp');
+    expect(html).toContain('href="/connect-mcp"');
+  });
 });

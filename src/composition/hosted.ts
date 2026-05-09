@@ -27,8 +27,32 @@ export function createHostedComposition(env: NodeJS.ProcessEnv) {
       : mcpComposition.fpfMemoryPublic;
 
   const app = new Hono();
+
+  // Apply baseline security headers to every response. Values are conservative
+  // for an unauthenticated public docs endpoint: the MCP API is not credentialed
+  // and the home page is fully self-contained, so DENY/no-referrer don't break
+  // legitimate flows. Per-response Cache-Control overrides are still applied
+  // on routes below.
+  app.use('*', async (c, next) => {
+    await next();
+    c.header('X-Content-Type-Options', 'nosniff');
+    c.header('Referrer-Policy', 'no-referrer');
+    c.header('X-Frame-Options', 'DENY');
+    c.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  });
+
   for (const route of HOSTED_HOME_ROUTES) {
-    app.get(route, (c) => c.html(renderHostedHomePage()));
+    app.get(route, (c) => {
+      // Static HTML, regenerated only on deploy. Let the CDN serve it directly
+      // from the edge so the first visitor in each region doesn't pay the
+      // function cold-start tax. Vercel's deploy pipeline invalidates the
+      // cache on each new build.
+      c.header(
+        'Cache-Control',
+        'public, max-age=300, s-maxage=86400, stale-while-revalidate=604800',
+      );
+      return c.html(renderHostedHomePage());
+    });
   }
   app.get(HOSTED_FPF_STATUS_ROUTE, async (c) => {
     try {
