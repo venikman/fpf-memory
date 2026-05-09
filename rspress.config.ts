@@ -231,6 +231,11 @@ window.addEventListener('transitionend',fixSidebarInert);
         link: '/work-packets',
       },
       {
+        text: 'Index',
+        link: '/patterns',
+        activeMatch: '/patterns/?($|\\?|#)',
+      },
+      {
         text: 'MCP',
         items: [
           { text: 'Recipes', link: '/mcp-recipes' },
