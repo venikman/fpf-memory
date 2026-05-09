@@ -199,7 +199,7 @@ export const queryResultSchema = z
     relations: z.array(relationEdgeSchema),
     constraints: z.array(z.string()),
     citations: z.array(z.string()),
-    confidence: z.number(),
+    confidence: z.number().nullable(),
     gaps: z.array(z.string()),
     candidateIds: z.array(z.string()).optional(),
     snapshot: snapshotWithRebuildSchema,
@@ -217,7 +217,7 @@ export const askFpfResultSchema = z
     citations: z.array(z.string()),
     constraints: z.array(z.string()),
     gaps: z.array(z.string()),
-    confidence: z.number(),
+    confidence: z.number().nullable(),
     candidateIds: z.array(z.string()).optional(),
     status: answerStatusSchema,
     snapshot: snapshotWithRebuildSchema,
@@ -542,6 +542,12 @@ export const browseFpfCatalogResultSchema = z
         kind: nodeKindSchema.optional(),
       })
       .strict(),
+    didYouMean: z
+      .object({
+        part: z.string().optional(),
+      })
+      .strict()
+      .optional(),
     snapshot: z
       .object({
         sourceHash: z.string(),

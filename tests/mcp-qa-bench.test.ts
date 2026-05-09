@@ -152,7 +152,7 @@ describe('MCP Q&A benchmark harness', () => {
           bodyBytes: 2,
           structuredContent: {
             status: 'degraded',
-            confidence: 0.45,
+            confidence: null,
             ids: [],
             candidateIds: ['A.1.1'],
             gaps: ['Local synthesis skipped: configured local synthesizer reported unavailable.'],
@@ -174,6 +174,41 @@ describe('MCP Q&A benchmark harness', () => {
     );
 
     expect(result.ok).toBe(true);
+  });
+
+  it('requires degraded answers to null confidence', async () => {
+    const fakeClient = {
+      async callTool() {
+        return {
+          result: {},
+          httpStatus: 200,
+          contentType: 'application/json',
+          bodyBytes: 2,
+          structuredContent: {
+            status: 'degraded',
+            confidence: 0.45,
+            ids: [],
+            candidateIds: ['A.1.1'],
+            gaps: ['Local synthesis skipped: configured local synthesizer reported unavailable.'],
+          },
+        };
+      },
+    };
+
+    const result = await runQaCase(
+      fakeClient as never,
+      {
+        id: 'case',
+        question: 'question',
+        mode: 'verbose',
+        expectedIds: ['A.1.1'],
+        allowedStatuses: ['ok', 'degraded'],
+      },
+      new Set(['A.1.1']),
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.failures).toContain('degraded answer confidence was 0.45 instead of null');
   });
 
   it('formats markdown summaries', () => {

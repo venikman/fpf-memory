@@ -247,7 +247,7 @@ export class LmStudioSynthesizer implements LocalAnswerSynthesizer {
             responseText: body,
           });
           throw new Error(
-            `LM Studio synthesis failed with ${response.status}: ${body.slice(0, 300)}`,
+            `LM Studio synthesis failed with ${response.status}: ${formatRemoteFailurePreview(body)}`,
           );
         }
 
@@ -287,13 +287,30 @@ function summarizeHealthFailure(
     return `LM Studio ${phase} health check failed: ${result.error}`;
   }
   if (result.httpStatus !== undefined) {
-    const preview = result.responsePreview ? `: ${result.responsePreview.slice(0, 160)}` : '';
+    const preview = result.responsePreview
+      ? `: ${formatRemoteFailurePreview(result.responsePreview, 160)}`
+      : '';
     return `LM Studio ${phase} health check returned HTTP ${result.httpStatus}${preview}`;
   }
   if (result.listed === false) {
     return `LM Studio ${phase} health check did not list the configured model.`;
   }
   return `LM Studio ${phase} health check failed.`;
+}
+
+function formatRemoteFailurePreview(body: string, maxLength = 300): string {
+  const collapsed = body.replace(/\s+/g, ' ').trim();
+  if (!collapsed) {
+    return '<empty response body>';
+  }
+  if (looksLikeHtml(collapsed)) {
+    return 'HTML error response omitted';
+  }
+  return collapsed.slice(0, maxLength);
+}
+
+function looksLikeHtml(value: string): boolean {
+  return /^<!doctype html\b/i.test(value) || /^<html\b/i.test(value) || /<body\b/i.test(value);
 }
 
 export function createSynthesizerFromConfig(

@@ -28,6 +28,7 @@ const PATTERN_AUTHORING_ACTION_BEFORE_PATTERN =
 
 const PATTERN_AUTHORING_NOUN_AFTER_PATTERN =
   /\bpatterns?\s+(?:writing|authoring|review|reviewing|revision|revisions|draft|drafting)\b/;
+const TITLE_TOKEN_WEIGHT = 5;
 
 export function isPartCDraftQuery(question: string): boolean {
   const normalized = normalizeForLookup(question);
@@ -49,6 +50,11 @@ export function scorePatternQuery(
       if (overlap > 0) {
         score += overlap;
         reasons.push(`token-overlap:${overlap}`);
+      }
+      const titleOverlap = scoreOverlap(queryTokens, pattern.title);
+      if (titleOverlap > 0) {
+        score += titleOverlap * TITLE_TOKEN_WEIGHT;
+        reasons.push(`title-token-overlap:${titleOverlap * TITLE_TOKEN_WEIGHT}`);
       }
       if (exactIds.has(pattern.id)) {
         score += 100;
@@ -85,6 +91,11 @@ export function scoreRouteQuery(
       if (overlap > 0) {
         score += overlap;
         reasons.push(`token-overlap:${overlap}`);
+      }
+      const titleOverlap = scoreOverlap(queryTokens, route.name);
+      if (titleOverlap > 0) {
+        score += titleOverlap * TITLE_TOKEN_WEIGHT;
+        reasons.push(`route-title-token-overlap:${titleOverlap * TITLE_TOKEN_WEIGHT}`);
       }
       if (normalizedQuestion.includes(normalizeForLookup(route.name))) {
         score += 30;

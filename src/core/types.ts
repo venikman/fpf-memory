@@ -329,7 +329,7 @@ export interface QueryResult {
   relations: Array<Pick<RelationEdge, 'from' | 'relation' | 'to'>>;
   constraints: string[];
   citations: string[];
-  confidence: number;
+  confidence: number | null;
   gaps: string[];
   candidateIds?: string[];
   snapshot: {
@@ -349,7 +349,7 @@ export interface AskFpfResult {
   citations: string[];
   constraints: string[];
   gaps: string[];
-  confidence: number;
+  confidence: number | null;
   candidateIds?: string[];
   status: AnswerStatus;
   snapshot: {
@@ -625,6 +625,9 @@ export interface BrowseCatalogResult {
     part?: string;
     status?: string;
     kind?: NodeKind;
+  };
+  didYouMean?: {
+    part?: string;
   };
   snapshot: {
     sourceHash: string;

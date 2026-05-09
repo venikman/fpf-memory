@@ -213,6 +213,7 @@ describe('FpfRuntime', () => {
     expect(degradedAnswer.status).toBe('degraded');
     expect(degradedAnswer.ids).toEqual([]);
     expect(degradedAnswer.candidateIds).toContain('A.1.1');
+    expect(degradedAnswer.confidence).toBeNull();
 
     const creativity = await runtime.query(
       'How is creativity and open-ended search represented in FPF?',
@@ -560,6 +561,23 @@ describe('FpfRuntime', () => {
     expect(second.sessionReusedNodeIds).toContain('A.1.1');
     expect(second.selectedNodeIds).toEqual(
       expect.arrayContaining(['A.1.1', 'A.2.1', 'A.2.5']),
+    );
+  });
+
+  it('does not let unrelated session context change top retrieval IDs', async () => {
+    await runtime.refresh();
+
+    const sessionId = 's-unrelated';
+    await runtime.query('What is C.16 measurement template discipline?', 'compact', false, sessionId);
+
+    const question = 'How does evidence graph preserve provenance?';
+    const fresh = await runtime.trace(question, 'verbose');
+    const sessioned = await runtime.trace(question, 'verbose', false, sessionId);
+
+    expect(sessioned.sessionApplied).toBe(false);
+    expect(sessioned.selectedNodeIds).toEqual(fresh.selectedNodeIds);
+    expect(sessioned.candidateScores.map((candidate) => candidate.nodeId)).toEqual(
+      fresh.candidateScores.map((candidate) => candidate.nodeId),
     );
   });
 

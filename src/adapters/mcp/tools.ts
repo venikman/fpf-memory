@@ -336,7 +336,7 @@ function renderMarkdown(result: QueryResult): string {
     '',
     `- Mode: \`${result.mode}\``,
     `- Status: \`${result.status}\``,
-    `- Confidence: ${result.confidence}`,
+    `- Confidence: ${result.confidence ?? 'n/a'}`,
     `- IDs: ${formatCodeList(result.ids)}`,
     ...(result.candidateIds ? [`- Candidate IDs: ${formatCodeList(result.candidateIds)}`] : []),
     `- Citations: ${formatCodeList(result.citations)}`,

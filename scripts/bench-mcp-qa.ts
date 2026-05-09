@@ -57,7 +57,7 @@ interface QaCaseResult {
   ok: boolean;
   durationMs: number;
   status?: string;
-  confidence?: number;
+  confidence?: number | null;
   ids: string[];
   candidateIds: string[];
   expectedIds: string[];
@@ -233,7 +233,10 @@ export async function runQaCase(
   const ids = asStringArray(content.ids, 'ids', failures);
   const candidateIds = asStringArray(content.candidateIds ?? [], 'candidateIds', failures);
   const status = typeof content.status === 'string' ? content.status : undefined;
-  const confidence = typeof content.confidence === 'number' ? content.confidence : undefined;
+  const confidence =
+    typeof content.confidence === 'number' || content.confidence === null
+      ? content.confidence
+      : undefined;
   const gaps = asStringArray(content.gaps, 'gaps', warnings);
   const groundingIds = status === 'degraded' ? candidateIds : ids;
 
@@ -277,7 +280,14 @@ export async function runQaCase(
   if (status === 'degraded' && candidateIds.length === 0) {
     failures.push('degraded answer did not expose candidateIds');
   }
-  if (degraded && (confidence ?? 1) > (testCase.maxConfidenceWhenDegraded ?? 0.5)) {
+  if (status === 'degraded' && confidence !== null) {
+    failures.push(`degraded answer confidence was ${confidence ?? '<missing>'} instead of null`);
+  }
+  if (
+    degraded &&
+    typeof confidence === 'number' &&
+    confidence > (testCase.maxConfidenceWhenDegraded ?? 0.5)
+  ) {
     failures.push(
       `degraded synthesis confidence ${confidence ?? '<missing>'} exceeded ${testCase.maxConfidenceWhenDegraded ?? 0.5}`,
     );

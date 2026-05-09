@@ -206,6 +206,27 @@ function buildHeuristicSeedRules(
     });
   }
 
+  const agentWorkflowAdoptionNodeIds = ['E.8', 'E.19'].filter(
+    (id) => id in patternNodes || id in routeNodes,
+  );
+  if (agentWorkflowAdoptionNodeIds.length > 0) {
+    rules.push({
+      name: 'agent-workflow-adoption',
+      allOf: [
+        ['agent', 'agentic'],
+        ['workflow'],
+      ],
+      anyOf: [
+        ['adoption', 'adopt'],
+        ['whole spec', 'pasting the whole spec', 'without pasting'],
+      ],
+      seedNodeIds: agentWorkflowAdoptionNodeIds,
+      seedScore: 72,
+      seedOrigin: 'lexical',
+      initialNodeIds: agentWorkflowAdoptionNodeIds.filter((id) => id in patternNodes),
+    });
+  }
+
   const alignmentRoute = Object.values(routeNodes).find(
     (r) => r.name.toLowerCase() === PROJECT_ALIGNMENT_ROUTE_NAME,
   );

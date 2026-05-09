@@ -22,6 +22,7 @@ export async function synthesizeAnswer(
     if (!available) {
       return degradedSynthesisResult(
         deterministicResult,
+        trace,
         'configured local synthesizer reported unavailable',
       );
     }
@@ -46,18 +47,24 @@ export async function synthesizeAnswer(
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'Local synthesizer failed with an unknown error.';
-    return degradedSynthesisResult(deterministicResult, message);
+    return degradedSynthesisResult(deterministicResult, trace, message);
   }
 }
 
+const MAX_DEGRADED_CANDIDATE_IDS = 8;
+
 function degradedSynthesisResult(
   deterministicResult: QueryResult,
+  trace: TraceResult,
   reason: string,
 ): QueryResult {
   const candidateIds = unique([
+    ...trace.candidateScores
+      .slice(0, MAX_DEGRADED_CANDIDATE_IDS)
+      .map((candidate) => candidate.nodeId),
     ...(deterministicResult.candidateIds ?? []),
     ...deterministicResult.ids,
-  ]);
+  ]).slice(0, MAX_DEGRADED_CANDIDATE_IDS);
   return {
     ...deterministicResult,
     answer:
@@ -66,7 +73,7 @@ function degradedSynthesisResult(
         : 'Local synthesis is unavailable, so no synthesized answer was committed.',
     ids: [],
     candidateIds,
-    confidence: Math.min(deterministicResult.confidence, 0.45),
+    confidence: null,
     gaps: unique([
       ...deterministicResult.gaps,
       `Local synthesis skipped: ${reason}`,

@@ -40,7 +40,7 @@ import type {
   Snapshot,
   TraceResult,
 } from './types.js';
-import { normalizeForLookup, tokenize, scoreOverlap } from './text.js';
+import { normalizeForLookup, tokenize, scoreOverlap, unique } from './text.js';
 
 export interface FpfRuntimeOptions {
   sourcePath?: string;
@@ -360,7 +360,8 @@ export class FpfRuntime {
     await this.refresh(options.forceRefresh ?? false);
     const snapshot = await this.requireSnapshot();
 
-    const partLower = options.part?.toLowerCase();
+    const partFilter = resolvePartFilter(options.part, snapshot);
+    const partLower = partFilter.value?.toLowerCase();
     const statusLower = options.status?.toLowerCase();
     const limit = Math.min(options.limit ?? 200, 500);
 
@@ -382,14 +383,20 @@ export class FpfRuntime {
       ? entries.slice(0, limit)
       : interleaveBrowseEntries(entries, limit);
 
+    const didYouMean =
+      entries.length === 0 && partFilter.suggestion
+        ? { part: partFilter.suggestion }
+        : undefined;
+
     return {
       entries: trimmed,
       total: entries.length,
       filters: {
-        part: options.part,
+        part: partFilter.value ?? options.part,
         status: options.status,
         kind: options.kind,
       },
+      ...(didYouMean ? { didYouMean } : {}),
       snapshot: { sourceHash: snapshot.sourceHash, builtAt: snapshot.builtAt },
     };
   }
@@ -412,7 +419,9 @@ export class FpfRuntime {
         continue;
       }
 
-      const score = scoreOverlap(queryTokens, node.searchableText);
+      const score =
+        scoreOverlap(queryTokens, node.searchableText)
+        + scoreOverlap(queryTokens, node.title) * SEARCH_TITLE_TOKEN_WEIGHT;
       if (score <= 0) {
         continue;
       }
@@ -731,6 +740,82 @@ function interleaveBrowseEntries(entries: CatalogEntry[], limit: number): Catalo
   return capped;
 }
 
+interface PartFilterResolution {
+  value?: string;
+  suggestion?: string;
+}
+
+function resolvePartFilter(part: string | undefined, snapshot: Snapshot): PartFilterResolution {
+  if (!part?.trim()) {
+    return {};
+  }
+
+  const availableParts = unique(
+    Object.values(snapshot.compiledNodes)
+      .map((node) => node.part)
+      .filter((value): value is string => Boolean(value)),
+  ).sort((left, right) => left.localeCompare(right));
+  const inputKey = normalizedCatalogFilterKey(part);
+  for (const availablePart of availableParts) {
+    if (partFilterKeys(availablePart).includes(inputKey)) {
+      return { value: availablePart };
+    }
+  }
+
+  const suggestion = suggestPartFilter(inputKey, availableParts);
+  return { value: part, suggestion };
+}
+
+function partFilterKeys(part: string): string[] {
+  const keys = [normalizedCatalogFilterKey(part)];
+  const match = /^part\s+([a-z])\b/i.exec(part.trim());
+  if (match?.[1]) {
+    const letter = match[1].toLowerCase();
+    keys.push(letter, `part${letter}`);
+  }
+  return unique(keys);
+}
+
+function normalizedCatalogFilterKey(value: string): string {
+  return normalizeForLookup(value).replace(/[^a-z0-9]+/g, '');
+}
+
+function suggestPartFilter(inputKey: string, availableParts: string[]): string | undefined {
+  if (!inputKey || /^part[a-z]$/i.test(inputKey) || /^[a-z]$/i.test(inputKey)) {
+    return undefined;
+  }
+
+  let best: { part: string; distance: number } | undefined;
+  for (const availablePart of availableParts) {
+    const candidateDistance = Math.min(
+      ...partFilterKeys(availablePart).map((key) => levenshteinDistance(inputKey, key)),
+    );
+    if (!best || candidateDistance < best.distance) {
+      best = { part: availablePart, distance: candidateDistance };
+    }
+  }
+
+  return best && best.distance <= 2 ? best.part : undefined;
+}
+
+function levenshteinDistance(left: string, right: string): number {
+  const previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  const current = new Array<number>(right.length + 1);
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    current[0] = leftIndex;
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      const cost = left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1;
+      current[rightIndex] = Math.min(
+        current[rightIndex - 1]! + 1,
+        previous[rightIndex]! + 1,
+        previous[rightIndex - 1]! + cost,
+      );
+    }
+    previous.splice(0, previous.length, ...current);
+  }
+  return previous[right.length] ?? Math.max(left.length, right.length);
+}
+
 function nodeToCatalogEntry(
   node: import('./types.js').CompiledNode,
   snapshot: Snapshot,
@@ -759,6 +844,7 @@ function nodeToCatalogEntry(
   };
 }
 
+const SEARCH_TITLE_TOKEN_WEIGHT = 5;
 const SNIPPET_RADIUS = 80;
 
 function extractSnippet(searchableText: string, queryTokens: string[]): string {

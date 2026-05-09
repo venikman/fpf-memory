@@ -81,6 +81,22 @@ describe('Discovery layer', () => {
       expect(filtered.entries.length).toBe(filteredLower.entries.length);
     });
 
+    it('canonicalizes part aliases before filtering', async () => {
+      const filtered = await runtime.browse({ part: 'C', limit: 500 });
+
+      expect(filtered.entries.length).toBeGreaterThan(0);
+      expect(filtered.filters.part).toMatch(/^Part C\b/);
+      expect(filtered.entries.every((entry) => entry.part?.startsWith('Part C'))).toBe(true);
+    });
+
+    it('returns a part suggestion for near-miss filters', async () => {
+      const filtered = await runtime.browse({ part: 'prt c', limit: 500 });
+
+      expect(filtered.entries).toEqual([]);
+      expect(filtered.total).toBe(0);
+      expect(filtered.didYouMean?.part).toMatch(/^Part C\b/);
+    });
+
     it('respects the limit parameter', async () => {
       const limited = await runtime.browse({ limit: 3 });
       expect(limited.entries.length).toBe(3);
@@ -167,6 +183,13 @@ describe('Discovery layer', () => {
       const result = await runtime.search('A.1.1');
       expect(result.hits.length).toBeGreaterThan(0);
       expect(result.hits[0]!.id).toBe('A.1.1');
+    });
+
+    it('weights title tokens above body token density', async () => {
+      const result = await runtime.search('evidence graph', { kind: 'pattern', limit: 5 });
+
+      expect(result.hits.length).toBeGreaterThan(0);
+      expect(result.hits[0]!.id).toBe('A.10');
     });
   });
 });

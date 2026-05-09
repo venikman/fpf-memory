@@ -722,7 +722,7 @@ describe('Query / Synthesis isolation stage', () => {
     expect(result.status).toBe('degraded');
     expect(result.ids).toEqual([]);
     expect(result.candidateIds).toContain('A.1.1');
-    expect(result.confidence).toBeLessThanOrEqual(0.45);
+    expect(result.confidence).toBeNull();
     expect(result.answer).toContain('no synthesized answer was committed');
   });
 
@@ -750,7 +750,7 @@ describe('Query / Synthesis isolation stage', () => {
     expect(result.status).toBe('degraded');
     expect(result.ids).toEqual([]);
     expect(result.candidateIds).toContain('A.1.1');
-    expect(result.confidence).toBeLessThanOrEqual(0.45);
+    expect(result.confidence).toBeNull();
     expect(result.gaps.some((gap) => gap.includes('synthesis skipped') || gap.includes('synthesizer crashed'))).toBe(true);
   });
 
@@ -776,7 +776,9 @@ describe('Query / Synthesis isolation stage', () => {
     );
 
     expect(failedSynthResult.ids).toEqual([]);
-    expect(failedSynthResult.candidateIds).toEqual(deterministicResult.ids);
+    expect(failedSynthResult.candidateIds).toEqual(
+      expect.arrayContaining(deterministicResult.ids),
+    );
     expect(failedSynthResult.citations).toEqual(deterministicResult.citations);
     expect(failedSynthResult.relations).toEqual(deterministicResult.relations);
     expect(failedSynthResult.constraints).toEqual(deterministicResult.constraints);
