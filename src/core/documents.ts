@@ -366,8 +366,9 @@ function buildPatternsAliasPage(snapshot: Snapshot): GeneratedDocPage {
 /**
  * The site root (`/`) is the orientation/welcome surface. First-time
  * visitors land here and choose a path; the full Pattern Catalog lives one
- * click away at `/patterns`. Rendered with Rspress's `pageType: home`
- * layout (hero + 4-up feature grid).
+ * click away at `/patterns`. Rendered as authored markdown + scoped CSS so
+ * the first screen can use the Doorway model instead of Rspress's stock home
+ * hero, whose layout centers against the docs column rather than the viewport.
  */
 function buildRootIndexPage(
   snapshot: Snapshot,
@@ -384,104 +385,120 @@ function buildRootIndexPage(
 
 function renderHomeMarkdown(
   snapshot: Snapshot,
-  // The manifest parameter is intentionally unused since rspress's
-  // home layout drops body markdown — provenance now renders via
-  // the inline shim reading <meta> tags. Kept on the signature so
-  // call sites in `buildDocsProjection` don't need to change shape.
-  _manifest?: PublicationManifestSummary,
+  manifest?: PublicationManifestSummary,
 ): string {
   const patternCount = Object.keys(snapshot.patternGraph.nodes).length;
+  const provenanceDetail = renderHomeProvenanceDetail(manifest);
+  const patternCountLabel = `${patternCount} generated pattern pages across the published parts.`;
 
-  const lines: string[] = [renderHomeFrontMatter(patternCount)];
-
-  // The "Published from" provenance line is injected client-side by the
-  // a11y shim in rspress.config.ts (PR #72 design review). We can't put
-  // it in this markdown body because rspress's `pageType: home` layout
-  // drops body content entirely — only the frontmatter (hero + features)
-  // renders. The shim reads `<meta name="fpf-source-hash">` etc. and
-  // injects a `.fpf-home-byline` element directly under the hero.
-  // The body markdown below is kept for non-home tooling that consumes
-  // the projection (search index, MCP, etc.) and harmless on the home
-  // page itself since the layout ignores it.
+  const lines: string[] = [
+    renderFrontMatter({
+      title: 'FPF Reference',
+      description: 'Compiler-backed reference for the latest published FPF, projected as a slim wiki.',
+      outline: false,
+    }),
+  ];
 
   lines.push(
     '',
-    '## Methodology',
+    '<div class="fpf-doorway-home" aria-label="FPF Reference homepage">',
+    '  <section class="fpf-doorway-hero" aria-labelledby="doorway-home-title">',
+    '    <div class="fpf-doorway-hero__copy">',
+    '      <p class="fpf-doorway-kicker">FPF Reference</p>',
+    '      <h1 id="doorway-home-title">The doorway, then the source.</h1>',
+    '      <p>Use the full First Principles Framework without loading the whole specification first. Start with the work, choose the smallest grounded surface, and open exact IDs only when wording matters.</p>',
+    '      <nav class="fpf-doorway-actions" aria-label="Primary site paths">',
+    '        <a class="fpf-doorway-button fpf-doorway-button--primary" href="/start-here">Start here</a>',
+    '        <a class="fpf-doorway-button" href="/patterns">Open the index</a>',
+    '        <a class="fpf-doorway-button" href="/connect-mcp">Connect MCP</a>',
+    '      </nav>',
+    '    </div>',
+    '    <aside class="fpf-doorway-principle" aria-label="Operating rule">',
+    '      <span>Operating rule</span>',
+    '      <strong>Smallest useful surface first.</strong>',
+    '      <p>Move from human orientation to route work, exact generated pages, and MCP retrieval only when the task needs precision.</p>',
+    '    </aside>',
+    '  </section>',
     '',
-    'Name the work first, choose the smallest matching route or packet, then open generated pattern pages only when exact wording matters. Keep the full FPF intact as the canonical source while retrieving only the slice needed for the task.',
+    '  <section class="fpf-doorway-surfaces" aria-label="Core reference surfaces">',
+    '    <a href="/generated/routes/index"><span>routes</span><strong>Choose the work before the pattern.</strong><em>Generated working paths for alignment, review, feedback, and boundary work.</em></a>',
+    `    <a href="/patterns"><span>index</span><strong>A curated shelf before the full catalog.</strong><em>${escapeHtml(patternCountLabel)}</em></a>`,
+    '    <a href="/connect-mcp"><span>mcp</span><strong>The utility desk for agents.</strong><em>Hosted endpoint, client setup, tool names, and first prompts.</em></a>',
+    '    <a href="/work-packets"><span>packets</span><strong>Task-sized operating surfaces.</strong><em>Review, product-role feedback, and adoption packets for repeated work.</em></a>',
+    '  </section>',
     '',
-    '## MCP endpoint',
+    '  <section class="fpf-doorway-routes" aria-labelledby="doorway-route-title">',
+    '    <div class="fpf-doorway-section-head">',
+    '      <p>Work lanes</p>',
+    '      <h2 id="doorway-route-title">Fast route selection for known work shapes.</h2>',
+    '    </div>',
+    '    <div class="fpf-doorway-route-grid">',
+    '      <a href="/generated/routes/route_project-alignment"><span>Alignment</span><strong>Set the shared operating frame.</strong><em>Context, roles, method, and first surface.</em></a>',
+    '      <a href="/generated/routes/route_writing-or-reviewing-patterns"><span>Review</span><strong>Make critique replayable.</strong><em>Findings tied to IDs, constraints, risks, and tests.</em></a>',
+    '      <a href="/work-packets#product-role-feedback-packet"><span>Feedback</span><strong>Translate role friction into an artifact.</strong><em>Observed job, failed expectation, and proposed improvement.</em></a>',
+    '      <a href="/generated/routes/route_boundary-burden"><span>Boundary</span><strong>Separate claims from obligations.</strong><em>Promises, duties, evidence needs, and handoff risks.</em></a>',
+    '    </div>',
+    '  </section>',
     '',
-    'Point an MCP-aware client at the hosted endpoint to retrieve compact grounded slices on demand. See [Connect MCP](/connect-mcp) for client-by-client setup, and [MCP recipes](/mcp-recipes) for ready-made retrieval patterns.',
+    '  <section class="fpf-doorway-reference" aria-labelledby="doorway-reference-title">',
+    '    <div class="fpf-doorway-section-head">',
+    '      <p>Reference access</p>',
+    '      <h2 id="doorway-reference-title">The full framework stays close, but not first.</h2>',
+    '    </div>',
+    '    <div class="fpf-doorway-reference-grid">',
+    '      <a href="/generated/patterns/E.14"><span>E.14</span><strong>Human-Centric Working-Model</strong></a>',
+    '      <a href="/generated/patterns/E.8"><span>E.8</span><strong>Authoring Conventions</strong></a>',
+    '      <a href="/generated/patterns/E.10"><span>E.10</span><strong>LEX-BUNDLE</strong></a>',
+    '      <a href="/generated/patterns/F.17"><span>F.17</span><strong>Unified Term Sheet</strong></a>',
+    '      <a href="/generated/patterns/F.9"><span>F.9</span><strong>Alignment & Bridge</strong></a>',
+    '      <a href="/generated/patterns/E.19"><span>E.19</span><strong>Pattern Quality Gates</strong></a>',
+    '    </div>',
+    '  </section>',
     '',
-    '```text',
-    HOSTED_MCP_ENDPOINT,
-    '```',
+    '  <section class="fpf-doorway-mcp" aria-labelledby="doorway-mcp-title">',
+    '    <div>',
+    '      <p class="fpf-doorway-kicker">Agent path</p>',
+    '      <h2 id="doorway-mcp-title">Ask for a slice, not the whole spec.</h2>',
+    '      <p>Connect an MCP-aware client and retrieve compact, grounded context when the work needs FPF.</p>',
+    '    </div>',
+    '    <div class="fpf-doorway-endpoint">',
+    `      <code>${escapeHtml(HOSTED_MCP_ENDPOINT)}</code>`,
+    '      <nav aria-label="MCP links">',
+    '        <a href="/connect-mcp">Connect clients</a>',
+    '        <a href="/mcp-recipes">Use recipes</a>',
+    '      </nav>',
+    '    </div>',
+    '  </section>',
     '',
-    'Tool catalog and local-surface setup: [README on GitHub](https://github.com/venikman/fpf-memory#run-and-test-mcp).',
+    '  <section class="fpf-doorway-provenance" aria-label="Source and provenance promise">',
+    '    <p>Projection of the latest published FPF.</p>',
+    '    <strong>Human-readable first, generated-reference exact, source status visible.</strong>',
+    `    <span>${escapeHtml(provenanceDetail)}</span>`,
+    '  </section>',
+    '</div>',
   );
 
   return `${lines.join('\n')}\n`;
 }
 
-function renderHomeFrontMatter(patternCount: number): string {
-  return [
-    '---',
-    'pageType: home',
-    'title: FPF Reference',
-    'description: Compiler-backed reference for the latest published FPF, projected as a slim wiki.',
-    'hero:',
-    // The "name" slot renders as the small mono kicker above the H1.
-    // Extended per PR #72 design review to carry the static framing
-    // ("projection of the latest published spec") so the kicker reads
-    // as both brand + role.
-    '  name: "FPF Reference · Projection of the latest published spec"',
-    '  text: Small, grounded entry points to the framework.',
-    // Tagline tightened per design review — closes with "the doorways"
-    // to forward-link to the index list of stable anchors below.
-    '  tagline: Use the full First Principles Framework instead of pasting the whole specification into every conversation. Not the spec, not a release page — the doorways.',
-    '  actions:',
-    // Primary CTA carries an inline arrow + verb ("Open the adoption
-    // guide") so it reads as the action it is. Secondary actions stay
-    // as plain text links — the arrow on those was redundant once the
-    // primary already had one.
-    '    - theme: brand',
-    '      text: "→ Open the adoption guide"',
-    '      link: /start-here',
-    '    - theme: alt',
-    '      text: Pattern Index',
-    '      link: /patterns',
-    '    - theme: alt',
-    '      text: Work packets',
-    '      link: /work-packets',
-    '    - theme: alt',
-    '      text: MCP recipes',
-    '      link: /mcp-recipes',
-    'features:',
-    '  - title: Pattern Index',
-    `    details: "The clickable FPF pattern index: ${patternCount} patterns across parts A–K. Open an exact ID, audit the full reference, or compare neighboring patterns by Part."`,
-    // The Pattern Index and Routes cards each cover a catalog of items —
-    // using a real ID like `A.1` or `F.1` as the chip (R5-P2-007)
-    // misleads users into thinking those IDs *are* "all patterns" or
-    // "all routes". Use a category badge instead. H.1 and I.3 chips stay
-    // because those IDs *are* the canonical glossary and change-log anchors.
-    '    icon: A–K',
-    '    link: /patterns',
-    '  - title: Routes',
-    '    details: Generated working paths through pattern IDs. Use a route when the work shape is known but the exact patterns are not.',
-    '    icon: "route:"',
-    '    link: /generated/routes/index',
-    '  - title: Glossary',
-    '    details: H.1 is the published glossary anchor — a stable selector for term lookups. Treat it as a starting point for vocabulary, not a complete A–Z list.',
-    '    icon: H.1',
-    '    link: /generated/patterns/H.1',
-    '  - title: Change log',
-    '    details: I.3 is the published change-log anchor — a stable selector for spec version history. Treat it as a starting point, not a release-note feed.',
-    '    icon: I.3',
-    '    link: /generated/patterns/I.3',
-    '---',
-    '',
-  ].join('\n');
+function renderHomeProvenanceDetail(manifest?: PublicationManifestSummary): string {
+  if (!manifest) {
+    return 'Generated reference pages, route IDs, and source status remain discoverable in the site chrome and reference catalog.';
+  }
+
+  const shortHash = manifest.sourceHash.replace(/^sha256:/, '').slice(0, 8);
+  const shortRef = manifest.upstreamRef.slice(0, 8);
+  const publishedAt = formatPublishedDate(manifest.publishedAt);
+  return `Published ${publishedAt} · upstream ${shortRef} · source ${shortHash}.`;
+}
+
+function formatPublishedDate(value: string): string {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  const year = parsed.getUTCFullYear();
+  const month = `${parsed.getUTCMonth() + 1}`.padStart(2, '0');
+  const day = `${parsed.getUTCDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function buildRouteIndexPage(snapshot: Snapshot): GeneratedDocPage {

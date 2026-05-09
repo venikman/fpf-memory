@@ -228,44 +228,28 @@ describe('docs projection', () => {
       expect(
         await readFile(resolve(docsRoot, 'generated/patterns/index.md'), 'utf8'),
       ).toContain('# Pattern Catalog');
-      // The site root `/` is the orientation/welcome page (Rspress
-      // pageType: home with hero + 4-up feature grid). The Pattern
-      // Catalog moved to `/patterns` per FU-P2-001 so first-time
-      // visitors get an adoption surface, not a 237-link reference wall.
+      // The site root `/` is the authored Doorway orientation page. The
+      // Pattern Catalog stays at `/patterns` so first-time visitors get an
+      // adoption surface, not a 237-link reference wall.
       const rootIndex = await readFile(resolve(docsRoot, 'index.md'), 'utf8');
-      expect(rootIndex).toContain('pageType: home');
-      expect(rootIndex).toContain('title: FPF Reference');
-      // Kicker now carries brand + role per PR #72 design review.
+      expect(rootIndex).toContain('title: "FPF Reference"');
+      expect(rootIndex).not.toContain('pageType: home');
+      expect(rootIndex).toContain('class="fpf-doorway-home"');
+      expect(rootIndex).toContain('The doorway, then the source.');
       expect(rootIndex).toContain('FPF Reference');
-      expect(rootIndex).toContain('Projection of the latest published spec');
-      expect(rootIndex).toContain('Small, grounded entry points to the framework');
-      // Primary CTA verb-prefixed; secondary actions stay as plain text.
-      expect(rootIndex).toContain('Open the adoption guide');
-      expect(rootIndex).toContain('link: /start-here');
-      expect(rootIndex).toMatch(/text: Pattern Index[\s\S]*?link: \/patterns/);
-      expect(rootIndex).toContain('text: Work packets');
-      expect(rootIndex).toContain('link: /work-packets');
-      expect(rootIndex).toContain('text: MCP recipes');
-      expect(rootIndex).toContain('link: /mcp-recipes');
-      expect(rootIndex).toContain('  - title: Pattern Index');
-      // Index feature card points at the short Pattern Catalog
-      // URL `/patterns`, not the deep-link `/generated/patterns/index`.
-      expect(rootIndex).toMatch(/- title: Pattern Index[\s\S]*?link: \/patterns/);
-      expect(rootIndex).toContain('  - title: Routes');
-      expect(rootIndex).toContain('link: /generated/routes/index');
-      // Card titles dropped the "anchor" suffix per PR #72 design
-      // review (the chip already telegraphs that the title is an FPF
-      // identifier — repeating "anchor" in the label was redundant).
-      expect(rootIndex).toContain('  - title: Glossary');
-      expect(rootIndex).toContain('link: /generated/patterns/H.1');
-      expect(rootIndex).toContain('  - title: Change log');
-      expect(rootIndex).toContain('link: /generated/patterns/I.3');
-      expect(rootIndex).toContain('## Methodology');
-      expect(rootIndex).toContain('## MCP endpoint');
+      expect(rootIndex).toContain('Projection of the latest published FPF');
+      expect(rootIndex).toContain('Smallest useful surface first.');
+      expect(rootIndex).toContain('href="/start-here">Start here</a>');
+      expect(rootIndex).toContain('href="/patterns">Open the index</a>');
+      expect(rootIndex).toContain('href="/connect-mcp">Connect MCP</a>');
+      expect(rootIndex).toContain('href="/generated/routes/index"');
+      expect(rootIndex).toContain('href="/generated/routes/route_project-alignment"');
+      expect(rootIndex).toContain('href="/generated/routes/route_boundary-burden"');
+      expect(rootIndex).toContain('href="/generated/patterns/E.14"');
+      expect(rootIndex).toContain('href="/generated/patterns/E.19"');
       expect(rootIndex).toContain('fpf-memory-mcp-vercel-origin.vercel.app');
-      expect(rootIndex).toContain('https://github.com/venikman/fpf-memory#run-and-test-mcp');
-      expect(rootIndex).toContain('[Connect MCP](/connect-mcp)');
-      expect(rootIndex).toContain('[MCP recipes](/mcp-recipes)');
+      expect(rootIndex).toContain('Connect clients');
+      expect(rootIndex).toContain('Use recipes');
 
       // Pattern Catalog short-URL alias at /patterns — same content as
       // /generated/patterns/index. Carries the orientation-page back-pointer
@@ -324,13 +308,13 @@ describe('docs projection', () => {
         },
       );
 
-      // `/` is the orientation/welcome page (pageType: home with hero +
-      // feature grid). Hero copy + adoption-guide CTA should be present.
+      // `/` is the authored Doorway orientation page. Hero copy + primary
+      // CTA should be present.
       const indexHtml = await readFile(resolve(outDir, 'index.html'), 'utf8');
       expect(indexHtml).toContain('FPF Reference');
-      // Primary CTA copy now reads "Open the adoption guide" with a
-      // leading arrow per PR #72 design review.
-      expect(indexHtml).toContain('Open the adoption guide');
+      expect(indexHtml).toContain('The doorway, then the source.');
+      expect(indexHtml).toContain('Start here');
+      expect(indexHtml).toContain('Smallest useful surface first.');
 
       // `/patterns` is the short-URL Pattern Catalog. Verify it lists Part A
       // Role Taxonomy and points back at the orientation page.

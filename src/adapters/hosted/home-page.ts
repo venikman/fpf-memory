@@ -116,15 +116,22 @@ export function renderHostedHomePage(): string {
     <style>
       :root {
         color-scheme: light;
-        --bg: #f7f8fa;
-        --panel: #ffffff;
-        --text: #1c2430;
-        --muted: #576474;
-        --line: #d9dee7;
-        --accent: #0b6bcb;
-        --accent-strong: #084f97;
-        --code-bg: #111827;
-        --code-text: #f8fafc;
+        --bg: #f6efe5;
+        --panel: #fffaf2;
+        --panel-soft: #f2eadf;
+        --text: #20241e;
+        --muted: #62685e;
+        --faint: #7a766b;
+        --line: rgb(37 43 36 / 18%);
+        --line-strong: #252b24;
+        --accent: #a23b2e;
+        --green: #28513f;
+        --gold: #c2923a;
+        --code-bg: #12160f;
+        --code-text: #d7b36a;
+        --font-display: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-serif: Georgia, "Times New Roman", serif;
+        --font-mono: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
       }
 
       * {
@@ -135,9 +142,10 @@ export function renderHostedHomePage(): string {
         margin: 0;
         background: var(--bg);
         color: var(--text);
-        font-family:
-          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: var(--font-display);
         line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
       }
 
       a {
@@ -147,35 +155,49 @@ export function renderHostedHomePage(): string {
       }
 
       a:hover {
-        color: var(--accent-strong);
+        color: var(--green);
       }
 
       main {
-        width: min(1120px, calc(100% - 32px));
+        width: min(1180px, calc(100% - 40px));
         margin: 0 auto;
-        padding: 40px 0 56px;
+        padding: 46px 0 58px;
       }
 
       .hero {
         display: grid;
-        gap: 20px;
-        padding: 32px 0 28px;
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 0.7fr);
+        min-height: 470px;
+        border: 1px solid var(--line-strong);
+        background: var(--panel);
+      }
+
+      .hero > * {
+        margin-left: clamp(30px, 5vw, 64px);
+        margin-right: clamp(30px, 5vw, 64px);
+      }
+
+      .hero .eyebrow {
+        align-self: end;
+        margin-top: clamp(30px, 5vw, 64px);
       }
 
       .eyebrow {
         margin: 0;
-        color: var(--accent-strong);
-        font-size: 0.78rem;
-        font-weight: 700;
+        color: var(--accent);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 600;
         letter-spacing: 0;
-        text-transform: uppercase;
       }
 
       h1 {
         margin: 0;
-        max-width: 820px;
-        font-size: clamp(2.25rem, 5vw, 4.5rem);
-        line-height: 1;
+        max-width: 10ch;
+        font-family: var(--font-serif);
+        font-size: clamp(4rem, 7vw, 7rem);
+        font-weight: 500;
+        line-height: 0.9;
         letter-spacing: 0;
       }
 
@@ -185,62 +207,77 @@ export function renderHostedHomePage(): string {
       }
 
       .lead {
-        max-width: 780px;
+        max-width: 44rem;
         margin: 0;
         color: var(--muted);
-        font-size: 1.1rem;
+        font-size: 1.05rem;
+        line-height: 1.55;
       }
 
       .endpoint {
         display: grid;
-        gap: 10px;
+        grid-column: 2;
+        grid-row: 1 / span 4;
+        align-content: center;
+        gap: 14px;
         padding: 18px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--panel);
+        border-left: 1px solid var(--line-strong);
+        border-radius: 0;
+        background: #12160f;
       }
 
       .endpoint span {
-        color: var(--muted);
-        font-size: 0.92rem;
-        font-weight: 650;
+        color: var(--accent);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 600;
       }
 
       code,
       pre {
-        font-family:
-          "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-family: var(--font-mono);
       }
 
       .endpoint code {
         overflow-wrap: anywhere;
-        color: var(--text);
-        font-size: 0.98rem;
+        padding: 18px;
+        border: 1px solid rgb(246 239 229 / 18%);
+        background: #0c100a;
+        color: var(--gold);
+        font-size: 0.82rem;
+        line-height: 1.55;
       }
 
       .quick {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 14px;
-        margin: 8px 0 28px;
+        gap: 0;
+        margin: 0 0 34px;
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
       }
 
       .quick div,
       .client,
       .tools,
       .prompt {
-        border: 1px solid var(--line);
-        border-radius: 8px;
+        border: 0;
+        border-radius: 0;
         background: var(--panel);
       }
 
       .quick div {
-        padding: 16px;
+        padding: 20px;
+        border-right: 1px solid var(--line);
       }
 
       .quick strong {
         display: block;
         margin-bottom: 6px;
+        color: var(--green);
+        font-size: 1.25rem;
+        line-height: 1.08;
       }
 
       .quick p {
@@ -249,26 +286,38 @@ export function renderHostedHomePage(): string {
       }
 
       .section-title {
-        margin: 36px 0 12px;
-        font-size: 1.4rem;
+        margin: 42px 0 14px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line-strong);
+        color: var(--text);
+        font-family: var(--font-serif);
+        font-size: clamp(2.4rem, 4vw, 4rem);
+        font-weight: 500;
+        line-height: 0.94;
       }
 
       .clients {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
+        gap: 0;
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
       }
 
       .client {
         display: grid;
         gap: 12px;
         align-content: start;
-        padding: 18px;
+        padding: 22px;
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
       }
 
       .client h3 {
         margin: 0;
-        font-size: 1.02rem;
+        color: var(--green);
+        font-size: clamp(1.4rem, 2.2vw, 2rem);
+        line-height: 1;
       }
 
       .client p {
@@ -290,7 +339,8 @@ export function renderHostedHomePage(): string {
         margin: 0;
         padding: 14px;
         overflow-x: auto;
-        border-radius: 8px;
+        border: 1px solid rgb(246 239 229 / 18%);
+        border-radius: 0;
         background: var(--code-bg);
         color: var(--code-text);
         font-size: 0.86rem;
@@ -299,6 +349,7 @@ export function renderHostedHomePage(): string {
 
       .tools,
       .prompt {
+        border: 1px solid var(--line-strong);
         padding: 18px;
       }
 
@@ -323,6 +374,7 @@ export function renderHostedHomePage(): string {
       footer {
         margin-top: 34px;
         color: var(--muted);
+        font-family: var(--font-mono);
         font-size: 0.92rem;
       }
 
@@ -339,7 +391,32 @@ export function renderHostedHomePage(): string {
         }
 
         .hero {
-          padding-top: 20px;
+          grid-template-columns: 1fr;
+          min-height: auto;
+        }
+
+        .hero > * {
+          margin-left: 28px;
+          margin-right: 28px;
+        }
+
+        .endpoint {
+          grid-column: auto;
+          grid-row: auto;
+          margin: 28px 0 0;
+          border-top: 1px solid var(--line-strong);
+          border-left: 0;
+          border-radius: 0;
+        }
+
+        h1 {
+          font-size: 48px;
+          line-height: 0.94;
+        }
+
+        .quick div,
+        .client {
+          border-right: 0;
         }
       }
     </style>
