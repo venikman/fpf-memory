@@ -50,6 +50,13 @@ export interface FpfRuntimeOptions {
   maxSessions?: number;
   persistSessionCache?: boolean;
   observability?: RuntimeStatus['observability'];
+  /**
+   * Pre-computed compiler fingerprint to use instead of attempting to derive
+   * one from on-disk source files. Required in bundled environments (e.g. the
+   * Vercel function) where the compiler source is not on disk and the default
+   * `computeCompilerFingerprint()` path would otherwise fail silently.
+   */
+  compilerFingerprint?: string;
 }
 
 interface SourceFingerprint {
@@ -65,6 +72,8 @@ export class FpfRuntime {
   private readonly synthesizer?: LocalAnswerSynthesizer;
   private readonly sessionCache: SessionCache;
   private readonly observabilitySummary: RuntimeStatus['observability'];
+  private readonly configuredCompilerFingerprint?: string;
+  private snapshotIntegrityVerified = false;
   private cachedSnapshot?: Snapshot;
   private cachedAudit?: BuildAudit;
   private cachedSourceFingerprint?: SourceFingerprint;
@@ -106,6 +115,7 @@ export class FpfRuntime {
       }
     }
     this.synthesizer = options.synthesizer;
+    this.configuredCompilerFingerprint = options.compilerFingerprint;
     this.observabilitySummary =
       options.observability ?? {
         configured: false,
@@ -150,7 +160,7 @@ export class FpfRuntime {
     const currentCompilerFingerprint =
       typeof options === 'object' && Object.hasOwn(options, 'compilerFingerprint')
         ? options.compilerFingerprint
-        : await readCurrentCompilerFingerprint();
+        : await this.readCurrentCompilerFingerprint();
     await this.loadSessionCacheOnce(currentSourceHash);
     const existingSnapshot = await this.loadSnapshot();
     const staleSnapshotShape = existingSnapshot
@@ -279,7 +289,7 @@ export class FpfRuntime {
 
   async status(): Promise<RuntimeStatus> {
     let existingSnapshot = await this.loadSnapshot();
-    const currentCompilerFingerprint = await readCurrentCompilerFingerprint();
+    const currentCompilerFingerprint = await this.readCurrentCompilerFingerprint();
     if (!existingSnapshot || snapshotNeedsRebuild(existingSnapshot, currentCompilerFingerprint)) {
       await this.refresh(false, { compilerFingerprint: currentCompilerFingerprint }).catch(
         (error) => {
@@ -495,6 +505,13 @@ export class FpfRuntime {
     return this.readJsonFile(this.artifactPaths.indexingView);
   }
 
+  private async readCurrentCompilerFingerprint(): Promise<string | undefined> {
+    if (this.configuredCompilerFingerprint) {
+      return this.configuredCompilerFingerprint;
+    }
+    return readSourceCompilerFingerprint();
+  }
+
   private async requireSnapshot(): Promise<Snapshot> {
     if (this.cachedSnapshot && !snapshotNeedsRebuild(this.cachedSnapshot)) {
       return this.cachedSnapshot;
@@ -503,8 +520,25 @@ export class FpfRuntime {
     if (!snapshot) {
       throw new Error('Compiled snapshot is missing after refresh.');
     }
+    this.assertSnapshotMatchesConfiguredFingerprint(snapshot);
     this.cachedSnapshot = snapshot;
     return snapshot;
+  }
+
+  private assertSnapshotMatchesConfiguredFingerprint(snapshot: Snapshot): void {
+    if (
+      this.snapshotIntegrityVerified ||
+      !this.configuredCompilerFingerprint ||
+      !snapshot.compilerFingerprint
+    ) {
+      return;
+    }
+    if (snapshot.compilerFingerprint !== this.configuredCompilerFingerprint) {
+      throw new Error(
+        `Compiled snapshot compilerFingerprint ${snapshot.compilerFingerprint} does not match the configured fingerprint ${this.configuredCompilerFingerprint}. Refusing to serve a snapshot built by a different compiler.`,
+      );
+    }
+    this.snapshotIntegrityVerified = true;
   }
 
   private rememberSnapshot(
@@ -653,7 +687,7 @@ function refreshReasonForRebuild(params: {
   throw new Error('refreshReasonForRebuild called without a rebuild reason');
 }
 
-async function readCurrentCompilerFingerprint(): Promise<string | undefined> {
+async function readSourceCompilerFingerprint(): Promise<string | undefined> {
   try {
     return await computeCompilerFingerprint();
   } catch {
