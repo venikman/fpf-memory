@@ -16,6 +16,12 @@ export interface BuildVercelOriginOptions {
 
 const OUTPUT_DIR = '.vercel/output';
 const FUNCTION_DIR = `${OUTPUT_DIR}/functions/index.func`;
+const HOSTED_FPF_STATUS_ROUTE = '/api/fpf/status';
+
+export interface VercelOriginOutputConfig {
+  version: 3;
+  routes: Array<{ src: string; dest: string }>;
+}
 
 export async function buildVercelOrigin(
   options: BuildVercelOriginOptions = {},
@@ -55,14 +61,19 @@ async function bundleFunction(rootDir: string, functionDir: string): Promise<voi
 
 async function writeVercelConfig(outputDir: string): Promise<void> {
   await mkdir(outputDir, { recursive: true });
-  await writeJson(resolve(outputDir, 'config.json'), {
+  await writeJson(resolve(outputDir, 'config.json'), createVercelOriginOutputConfig());
+}
+
+export function createVercelOriginOutputConfig(): VercelOriginOutputConfig {
+  return {
     version: 3,
     routes: [
       { src: '^/$', dest: '/index' },
       { src: '^/connect-mcp$', dest: '/index' },
+      { src: `^${HOSTED_FPF_STATUS_ROUTE}$`, dest: '/index' },
       { src: '^/api/mcp/fpf_memory/mcp$', dest: '/index' },
     ],
-  });
+  };
 }
 
 async function writeFunctionConfig(functionDir: string): Promise<void> {

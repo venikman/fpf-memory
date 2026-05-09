@@ -3,6 +3,9 @@ import { resolve } from 'node:path';
 
 import { describe, expect, it } from '@rstest/core';
 
+import { HOSTED_FPF_STATUS_ROUTE } from '../src/adapters/hosted/status-page.js';
+import { createVercelOriginOutputConfig } from '../src/build/vercel-origin-build.js';
+
 interface VercelConfig {
   buildCommand?: string | null;
 }
@@ -32,5 +35,14 @@ describe('Vercel MCP origin config', () => {
     expect(
       Object.keys(packageJson.scripts).some((script) => script.startsWith(retiredScriptPrefix)),
     ).toBe(false);
+  });
+
+  it('routes the hosted freshness status endpoint through the Vercel origin function', () => {
+    const config = createVercelOriginOutputConfig();
+
+    expect(config.routes).toContainEqual({
+      src: `^${HOSTED_FPF_STATUS_ROUTE}$`,
+      dest: '/index',
+    });
   });
 });
