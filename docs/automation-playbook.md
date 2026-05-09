@@ -141,8 +141,8 @@ fpf-memory compiles the published FPF spec into deterministic lookup surfaces so
 
 Useful for PR review, project alignment, spec writing, and adoption UX checks.
 
-Docs: https://venikman.github.io/fpf-memory/
-Connect MCP: https://venikman.github.io/fpf-memory/connect-mcp
+Docs: https://fpf.sh/
+Connect MCP: https://fpf.sh/connect-mcp
 
 Caveat: deterministic retrieval first; synthesis is optional.
 ```
@@ -164,8 +164,8 @@ I have a compact artifact that may be relevant to your agent/MCP work.
 fpf-memory is a compiler-backed runtime for the published First Principles Framework spec. The basic idea is to avoid pasting the whole framework into agents. Instead, the agent can retrieve exact FPF routes, IDs, generated docs, and bounded context through MCP or CLI.
 
 The current material:
-- Website: https://venikman.github.io/fpf-memory/
-- Connect MCP: https://venikman.github.io/fpf-memory/connect-mcp
+- Website: https://fpf.sh/
+- Connect MCP: https://fpf.sh/connect-mcp
 - Hosted endpoint: https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp
 
 The claim I am comfortable making right now is narrow: it is useful for bounded FPF lookup and agent workflows that need evidence-backed framework context. I am not claiming broad adoption or benchmark superiority yet.

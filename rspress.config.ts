@@ -78,7 +78,11 @@ try {
 export default defineConfig({
   root: docsRoot,
   outDir,
-  base: '/fpf-memory/',
+  // Apex custom domain (fpf.sh) means the site is served at root.
+  // The CNAME file is written into the deploy artifact by the
+  // `Deploy Docs to GitHub Pages` workflow so GH Pages picks up the
+  // custom domain on every build.
+  base: '/',
   title: 'FPF Reference',
   description: 'Compiler-backed FPF reference docs generated from the configured spec source.',
   globalStyles: resolve(process.cwd(), 'src/docs/theme.css'),

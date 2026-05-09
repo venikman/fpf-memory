@@ -40,6 +40,12 @@ jobs:
           FPF_SPEC_SOURCE_PATH: published/current/FPF-Spec.md
         run: bun run docs:build
 
+      - name: Write GitHub Pages CNAME for fpf.sh
+        # Apex custom domain — written into the artifact root so every deploy
+        # reasserts the domain. If the domain ever needs to change, edit it
+        # here; do not rely on the GH Pages UI's separate CNAME branch state.
+        run: echo "fpf.sh" > doc_build/CNAME
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: doc_build

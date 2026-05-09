@@ -1,12 +1,12 @@
 # FPF Spec Runtime
 
-> **Quick links:** [Website](https://venikman.github.io/fpf-memory/) · [Connect MCP](https://venikman.github.io/fpf-memory/connect-mcp) · [Hosted MCP endpoint](https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp)
+> **Quick links:** [Website](https://fpf.sh/) · [Connect MCP](https://fpf.sh/connect-mcp) · [Hosted MCP endpoint](https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp)
 >
-> **📖 Live reference:** [venikman.github.io/fpf-memory](https://venikman.github.io/fpf-memory/) — searchable pattern catalog, routes, and preface. Type an ID like `A.2` or `route:project-alignment` in the search box to jump in.
+> **📖 Live reference:** [fpf.sh](https://fpf.sh/) — searchable pattern catalog, routes, and preface. Type an ID like `A.2` or `route:project-alignment` in the search box to jump in.
 >
 > **🤖 Working with this repo as an agent?** See [`AGENTS.md`](./AGENTS.md) for the MCP tool guide and workspace conventions.
 >
-> **🧭 Coordinating repo automation?** See the [Automation Playbook](https://venikman.github.io/fpf-memory/automation-playbook) for role boundaries, access rules, merge authority, and draft-only publishing packets.
+> **🧭 Coordinating repo automation?** See the [Automation Playbook](https://fpf.sh/automation-playbook) for role boundaries, access rules, merge authority, and draft-only publishing packets.
 
 ## What is this?
 
