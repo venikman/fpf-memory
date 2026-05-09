@@ -181,19 +181,34 @@ window.addEventListener('transitionend',fixSidebarInert);
     // closes the overlay. Mirrors the conventions in classic vim keybindings
     // and most "g + key" docs sites; see the help overlay for the canonical
     // list at runtime.
+    //
+    // Toggle: an Enabled/Disabled switch lives inside the help overlay and
+    // persists in localStorage under "fpf:vim-keys" (default "1" = on). When
+    // the toggle is off, only ? (open help) and Esc (close help) fire — every
+    // navigation key is dormant — so users who don't want bare-key navigation
+    // can opt out without losing the ability to re-enable it.
     `<script>(function(){
+var STORE_KEY='fpf:vim-keys';
+function readEnabled(){try{var v=localStorage.getItem(STORE_KEY);return v===null?true:v==='1';}catch(e){return true;}}
+function writeEnabled(on){try{localStorage.setItem(STORE_KEY,on?'1':'0');}catch(e){}}
+var enabled=readEnabled();
 function isEditable(el){if(!el)return false;var t=el.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return true;if(el.isContentEditable)return true;return false;}
 function focusSearch(){var btn=document.querySelector('.rp-search-button');if(btn){btn.click();requestAnimationFrame(function(){var input=document.querySelector('[role="dialog"] input, .rp-search-input, input[placeholder*="earch"]');if(input)input.focus();});}}
 function clickNav(direction){var sel=direction==='prev'?'.rp-prev-next-page__prev':'.rp-prev-next-page__next';var link=document.querySelector(sel);if(link){link.click();return true;}return false;}
 var HELP_ID='fpf-keyhelp';
 function hideHelp(){var el=document.getElementById(HELP_ID);if(el)el.remove();}
-function showHelp(){if(document.getElementById(HELP_ID)){hideHelp();return;}var el=document.createElement('div');el.id=HELP_ID;el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','Keyboard shortcuts');el.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:grid;place-items:center;font:14px/1.45 system-ui,-apple-system,sans-serif;';var rows=[['h','previous page'],['l','next page'],['j','scroll down'],['k','scroll up'],['g g','jump to top'],['G','jump to bottom'],['/','focus search'],['?','toggle this help'],['Esc','close']];var html='<div style="background:var(--rp-c-bg,#fff);color:var(--rp-c-text-1,#111);padding:24px 28px;border-radius:10px;max-width:440px;box-shadow:0 8px 32px rgba(0,0,0,0.25);"><h2 style="margin:0 0 16px;font-size:16px;font-weight:600;">Keyboard shortcuts</h2><table style="width:100%;border-collapse:collapse;">';rows.forEach(function(r){html+='<tr><td style="padding:5px 0;width:96px;"><kbd style="font-family:ui-monospace,monospace;background:var(--rp-c-bg-soft,#f4f4f4);padding:2px 8px;border-radius:4px;border:1px solid var(--rp-c-divider,#ddd);">'+r[0]+'</kbd></td><td style="padding:5px 0;color:var(--rp-c-text-2,#555);">'+r[1]+'</td></tr>';});html+='</table><p style="margin:18px 0 0;font-size:12px;color:var(--rp-c-text-3,#888);">Bindings ignore typing in inputs. Press <kbd style="font-family:ui-monospace,monospace;">?</kbd> again or <kbd style="font-family:ui-monospace,monospace;">Esc</kbd> to close.</p></div>';el.innerHTML=html;el.addEventListener('click',function(e){if(e.target===el)hideHelp();});document.body.appendChild(el);}
+function renderToggle(){return '<button id="fpf-keyhelp-toggle" type="button" aria-pressed="'+(enabled?'true':'false')+'" style="appearance:none;cursor:pointer;font:inherit;padding:6px 12px;border-radius:6px;border:1px solid var(--rp-c-divider,#ccc);background:'+(enabled?'var(--rp-c-brand,#2466ff)':'var(--rp-c-bg-soft,#f4f4f4)')+';color:'+(enabled?'#fff':'var(--rp-c-text-1,#111)')+';">'+(enabled?'Enabled':'Disabled')+'</button>';}
+function showHelp(){if(document.getElementById(HELP_ID)){hideHelp();return;}var el=document.createElement('div');el.id=HELP_ID;el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','Keyboard shortcuts');el.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:grid;place-items:center;font:14px/1.45 system-ui,-apple-system,sans-serif;';var rows=[['h','previous page'],['l','next page'],['j','scroll down'],['k','scroll up'],['g g','jump to top'],['G','jump to bottom'],['/','focus search'],['?','toggle this help'],['Esc','close']];var rowsHtml='';rows.forEach(function(r){rowsHtml+='<tr><td style="padding:5px 0;width:96px;"><kbd style="font-family:ui-monospace,monospace;background:var(--rp-c-bg-soft,#f4f4f4);padding:2px 8px;border-radius:4px;border:1px solid var(--rp-c-divider,#ddd);">'+r[0]+'</kbd></td><td style="padding:5px 0;color:var(--rp-c-text-2,#555);">'+r[1]+'</td></tr>';});var html='<div style="background:var(--rp-c-bg,#fff);color:var(--rp-c-text-1,#111);padding:24px 28px;border-radius:10px;max-width:440px;box-shadow:0 8px 32px rgba(0,0,0,0.25);"><div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 16px;"><h2 style="margin:0;font-size:16px;font-weight:600;">Keyboard shortcuts</h2>'+renderToggle()+'</div><table style="width:100%;border-collapse:collapse;">'+rowsHtml+'</table><p style="margin:18px 0 0;font-size:12px;color:var(--rp-c-text-3,#888);">Bindings ignore typing in inputs. Press <kbd style="font-family:ui-monospace,monospace;">?</kbd> again or <kbd style="font-family:ui-monospace,monospace;">Esc</kbd> to close. The toggle persists across sessions.</p></div>';el.innerHTML=html;el.addEventListener('click',function(e){if(e.target===el)hideHelp();});var btn=el.querySelector('#fpf-keyhelp-toggle');if(btn)btn.addEventListener('click',function(){enabled=!enabled;writeEnabled(enabled);btn.setAttribute('aria-pressed',enabled?'true':'false');btn.textContent=enabled?'Enabled':'Disabled';btn.style.background=enabled?'var(--rp-c-brand,#2466ff)':'var(--rp-c-bg-soft,#f4f4f4)';btn.style.color=enabled?'#fff':'var(--rp-c-text-1,#111)';});document.body.appendChild(el);}
 var lastG=0;
 document.addEventListener('keydown',function(e){
   if(e.metaKey||e.ctrlKey||e.altKey)return;
   if(e.key==='Escape'){hideHelp();return;}
   if(isEditable(document.activeElement))return;
   var k=e.key;
+  // ? always opens the help overlay so users can re-enable navigation when
+  // it's off. Every other navigation key is gated by the toggle.
+  if(k==='?'){e.preventDefault();showHelp();return;}
+  if(!enabled)return;
   if(k==='g'&&!e.shiftKey){var now=Date.now();if(now-lastG<500){lastG=0;e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});}else{lastG=now;}return;}
   lastG=0;
   if(k==='G'){e.preventDefault();window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'});return;}
@@ -202,7 +217,6 @@ document.addEventListener('keydown',function(e){
   if(k==='j'){e.preventDefault();window.scrollBy({top:80,behavior:'auto'});return;}
   if(k==='k'){e.preventDefault();window.scrollBy({top:-80,behavior:'auto'});return;}
   if(k==='/'){e.preventDefault();focusSearch();return;}
-  if(k==='?'){e.preventDefault();showHelp();return;}
 });
 })();</script>`,
   ],
