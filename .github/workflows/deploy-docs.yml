@@ -27,7 +27,8 @@ jobs:
       - run: bun install --frozen-lockfile
 
       # No spec:download here — the wiki is a projection of the committed
-      # published/current/** surface, owned by the local pre-push hook.
+      # published/current/** surface, owned by the local pre-push hook and
+      # the Sync FPF Publication workflow.
       - name: Assert published/current is populated
         run: |
           test -f published/current/FPF-Spec.md

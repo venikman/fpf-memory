@@ -5,6 +5,7 @@ import { parseBuildConfig } from '../adapters/infra/config/env.js';
 import {
   ARTIFACT_FILENAMES,
   HOSTED_STAGED_ARTIFACT_DIR,
+  HOSTED_STAGED_MANIFEST_PATH,
   HOSTED_STAGED_SOURCE_PATH,
 } from '../core/constants.js';
 
@@ -90,17 +91,21 @@ async function copyHostedStage(
     HOSTED_STAGED_ARTIFACT_DIR,
     ARTIFACT_FILENAMES.snapshot,
   );
+  const stagedManifest = resolve(stagedRoot, HOSTED_STAGED_MANIFEST_PATH);
   const functionSource = resolve(functionDir, HOSTED_STAGED_SOURCE_PATH);
   const functionSnapshot = resolve(
     functionDir,
     HOSTED_STAGED_ARTIFACT_DIR,
     ARTIFACT_FILENAMES.snapshot,
   );
+  const functionManifest = resolve(functionDir, HOSTED_STAGED_MANIFEST_PATH);
 
   await mkdir(dirname(functionSource), { recursive: true });
   await mkdir(dirname(functionSnapshot), { recursive: true });
+  await mkdir(dirname(functionManifest), { recursive: true });
   await copyStagedFile(stagedSource, functionSource, 'spec');
   await copyStagedFile(stagedSnapshot, functionSnapshot, 'snapshot');
+  await copyStagedFile(stagedManifest, functionManifest, 'manifest');
 }
 
 async function copyStagedFile(source: string, target: string, label: string): Promise<void> {

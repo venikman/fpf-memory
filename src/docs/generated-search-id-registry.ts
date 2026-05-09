@@ -128,12 +128,17 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.3.CR",
-      "title": "ConservativeRetextualization — same-described-entity textual re-expression",
+      "title": "ConservativeRetextualization - same-described-entity textual re-expression",
       "staticPath": "/generated/patterns/A.6.3.CR"
     },
     {
+      "id": "A.6.3.CSC",
+      "title": "Controlled Semantic Coarsening",
+      "staticPath": "/generated/patterns/A.6.3.CSC"
+    },
+    {
       "id": "A.6.3.RT",
-      "title": "RepresentationTransduction — same-described-entity representation-scheme transition",
+      "title": "RepresentationTransduction - same-described-entity representation-scheme transition",
       "staticPath": "/generated/patterns/A.6.3.RT"
     },
     {
@@ -197,6 +202,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.6.Q"
     },
     {
+      "id": "A.6.RSIG",
+      "title": "Recognition Signatures for Descriptions",
+      "staticPath": "/generated/patterns/A.6.RSIG"
+    },
+    {
       "id": "A.6.S",
       "title": "U.SignatureEngineeringPair — Constructive signature engineering (ConstructorSignature + TargetSignature)",
       "staticPath": "/generated/patterns/A.6.S"
@@ -243,7 +253,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.15",
-      "title": "Role–Method–Work Alignment (Contextual Enactment)",
+      "title": "Role-Method-Work Alignment (Contextual Enactment)",
       "staticPath": "/generated/patterns/A.15"
     },
     {
@@ -293,7 +303,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.19",
-      "title": "A.CHR-SPACE — CharacteristicSpace & Dynamics hook",
+      "title": "CharacteristicSpace & Dynamics Hook (A.CHR-SPACE)",
       "staticPath": "/generated/patterns/A.19"
     },
     {
@@ -623,7 +633,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.11",
-      "title": "Decision Theory (Decsn‑CAL)",
+      "title": "Decision Theory (Decsn-CAL)",
       "staticPath": "/generated/patterns/C.11"
     },
     {
@@ -708,8 +718,38 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.25",
-      "title": "Q-Bundle — Structured Treatment of \"-ilities\" (Quality Families)",
+      "title": "Q-Bundle: Authoring \"-ilities\" as Structured Quality Bundles",
       "staticPath": "/generated/patterns/C.25"
+    },
+    {
+      "id": "C.26",
+      "title": "Quantum-Like Modeling Lens",
+      "staticPath": "/generated/patterns/C.26"
+    },
+    {
+      "id": "C.26.1",
+      "title": "Probe-Coupled Boundary Interaction",
+      "staticPath": "/generated/patterns/C.26.1"
+    },
+    {
+      "id": "C.26.2",
+      "title": "Enacted Distributed State Evidence",
+      "staticPath": "/generated/patterns/C.26.2"
+    },
+    {
+      "id": "C.26.3",
+      "title": "Viability-Envelope Boundary Regulation",
+      "staticPath": "/generated/patterns/C.26.3"
+    },
+    {
+      "id": "C.27",
+      "title": "Temporal Claim Adequacy: State Readings, Temporal Trends, and Intervention-Sensitive Temporal Change",
+      "staticPath": "/generated/patterns/C.27"
+    },
+    {
+      "id": "C.28",
+      "title": "CausalUse-CAL: Causal-Use Questions, Causality-Ladder Rungs, Identification and Realizability",
+      "staticPath": "/generated/patterns/C.28"
     },
     {
       "id": "D.1",
@@ -843,7 +883,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.8",
-      "title": "FPF Authoring Conventions & Style Guide",
+      "title": "FPF Authoring Conventions and Style Guide",
       "staticPath": "/generated/patterns/E.8"
     },
     {
@@ -870,6 +910,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "E.10.P",
       "title": "Conceptual Prefixes (policy & registry)",
       "staticPath": "/generated/patterns/E.10.P"
+    },
+    {
+      "id": "E.11",
+      "title": "First-Practical Entry and Pattern-Use Discoverability Discipline",
+      "staticPath": "/generated/patterns/E.11"
     },
     {
       "id": "E.12",
@@ -933,12 +978,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.17.EFP",
-      "title": "ExplanationFaithfulnessProfile — explanation classification over existing MVPK faces",
+      "title": "ExplanationFaithfulnessProfile - explanation classification over existing MVPK faces",
       "staticPath": "/generated/patterns/E.17.EFP"
     },
     {
       "id": "E.17.ID.CR",
-      "title": "InterpretationDiscipline / ComparativeReading — bounded comparative reading over comparative review units",
+      "title": "ComparativeReading - bounded comparative reading over comparative review units",
       "staticPath": "/generated/patterns/E.17.ID.CR"
     },
     {
@@ -948,7 +993,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.19",
-      "title": "Pattern Quality Gates: Review & Refresh Profiles",
+      "title": "Pattern Quality Gates: Review and Refresh Profiles",
       "staticPath": "/generated/patterns/E.19"
     },
     {
@@ -1148,7 +1193,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "I.2",
-      "title": "Detailed Walk‑throughs",
+      "title": "Detailed Walk-throughs",
       "staticPath": "/generated/patterns/I.2"
     },
     {
@@ -1178,7 +1223,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "J.4",
-      "title": "First Practical Entry Route Index",
+      "title": "First Practical Entry Neighborhood Index",
       "staticPath": "/generated/patterns/J.4"
     },
     {
@@ -1190,63 +1235,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "K.2",
       "title": "Migration Debt from A.2.6 (USM)",
       "staticPath": "/generated/patterns/K.2"
+    },
+    {
+      "id": "K.3",
+      "title": "Temporal Claim Lexical Debt from C.27",
+      "staticPath": "/generated/patterns/K.3"
     }
   ],
-  "routes": [
-    {
-      "slug": "boundary-burden",
-      "title": "boundary burden",
-      "staticPath": "/generated/routes/route_boundary-burden"
-    },
-    {
-      "slug": "boundary-unpacking",
-      "title": "Boundary unpacking",
-      "staticPath": "/generated/routes/route_boundary-unpacking"
-    },
-    {
-      "slug": "generator-sota-portfolio-kit",
-      "title": "Generator / SoTA / portfolio kit",
-      "staticPath": "/generated/routes/route_generator-sota-portfolio-kit"
-    },
-    {
-      "slug": "lawful-comparison-or-portfolio-selection",
-      "title": "lawful comparison or portfolio selection",
-      "staticPath": "/generated/routes/route_lawful-comparison-or-portfolio-selection"
-    },
-    {
-      "slug": "lawful-comparison-selection",
-      "title": "Lawful comparison / selection",
-      "staticPath": "/generated/routes/route_lawful-comparison-selection"
-    },
-    {
-      "slug": "partly-said-language-state-discovery",
-      "title": "Partly-said / language-state discovery",
-      "staticPath": "/generated/routes/route_partly-said-language-state-discovery"
-    },
-    {
-      "slug": "project-alignment",
-      "title": "project alignment",
-      "staticPath": "/generated/routes/route_project-alignment"
-    },
-    {
-      "slug": "reusable-generator-sota-portfolio-kit",
-      "title": "reusable generator / SoTA / portfolio kit",
-      "staticPath": "/generated/routes/route_reusable-generator-sota-portfolio-kit"
-    },
-    {
-      "slug": "same-entity-rewrite-explanation-comparative-reading",
-      "title": "Same-entity rewrite / explanation / comparative reading",
-      "staticPath": "/generated/routes/route_same-entity-rewrite-explanation-comparative-reading"
-    },
-    {
-      "slug": "we-know-something-is-there-but-it-is-still-only-partly-said",
-      "title": "\"we know something is there, but it is still only partly said\"",
-      "staticPath": "/generated/routes/route_we-know-something-is-there-but-it-is-still-only-partly-said"
-    },
-    {
-      "slug": "writing-or-reviewing-patterns",
-      "title": "writing or reviewing patterns",
-      "staticPath": "/generated/routes/route_writing-or-reviewing-patterns"
-    }
-  ]
+  "routes": []
 };

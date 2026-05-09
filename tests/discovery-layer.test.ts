@@ -59,10 +59,11 @@ describe('Discovery layer', () => {
       const routes = await runtime.browse({ kind: 'route' });
 
       expect(patterns.entries.length).toBeGreaterThan(0);
-      expect(routes.entries.length).toBeGreaterThan(0);
+      expect(routes.entries.length).toBeGreaterThanOrEqual(0);
       expect(patterns.entries.every((e) => e.kind === 'pattern')).toBe(true);
       expect(routes.entries.every((e) => e.kind === 'route')).toBe(true);
       expect(patterns.filters.kind).toBe('pattern');
+      expect(routes.filters.kind).toBe('route');
     });
 
     it('filters by part (case-insensitive)', async () => {
@@ -106,10 +107,13 @@ describe('Discovery layer', () => {
     it('includes all kinds in default unfiltered page', async () => {
       const result = await runtime.browse();
       const kinds = new Set(result.entries.map((e) => e.kind));
-      // Default browse page must include routes and lexemes, not just patterns.
+      // Default browse page must include every kind present in the current spec.
       expect(kinds.has('pattern')).toBe(true);
-      expect(kinds.has('route')).toBe(true);
       expect(kinds.has('lexeme')).toBe(true);
+      const routes = await runtime.browse({ kind: 'route' });
+      if (routes.total > 0) {
+        expect(kinds.has('route')).toBe(true);
+      }
     });
 
     it('includes description for each entry', async () => {

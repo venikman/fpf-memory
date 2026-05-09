@@ -22,7 +22,7 @@ Goal: make a project legible enough to decide the next work move.
 
 Use:
 
-- [route:project-alignment](/generated/routes/route_project-alignment)
+- `route:project-alignment` via [Routes](/generated/routes/index)
 - [A.1.1 U.BoundedContext](/generated/patterns/A.1.1)
 - [A.15 — Role-Method-Work Alignment](/generated/patterns/A.15) — use as the role / method / work stratification packet
 - [F.11 Method Quartet Harmonisation](/generated/patterns/F.11)
@@ -46,8 +46,8 @@ Use:
 
 - [E.8 Authoring conventions](/generated/patterns/E.8) for FPF pattern or specification wording changes
 - [E.19 — Pattern Quality Gates: Review & Refresh Profiles](/generated/patterns/E.19) as the pattern change-record gate
-- [route:writing-or-reviewing-patterns](/generated/routes/route_writing-or-reviewing-patterns) only when the PR changes FPF pattern or specification text
-- [route:boundary-burden](/generated/routes/route_boundary-burden) for APIs, contracts, protocols, or CI/deploy gates
+- `route:writing-or-reviewing-patterns` via [Routes](/generated/routes/index) only when the PR changes FPF pattern or specification text
+- `route:boundary-burden` via [Routes](/generated/routes/index) for APIs, contracts, protocols, or CI/deploy gates
 - Otherwise use this packet as the review checklist and retrieve exact IDs only when a finding depends on FPF wording
 
 Packet:
@@ -67,7 +67,7 @@ Goal: act as one concrete user role and turn product friction into evidence-back
 Use:
 
 - [E.12 — Didactic Primacy & Cognitive Ergonomics](/generated/patterns/E.12) — use as the human feedback-loop packet
-- [route:project-alignment](/generated/routes/route_project-alignment)
+- `route:project-alignment` via [Routes](/generated/routes/index)
 - [A.1.1 U.BoundedContext](/generated/patterns/A.1.1)
 - [A.15 — Role-Method-Work Alignment](/generated/patterns/A.15) — use as the role / method / work stratification packet
 - [A.2.2 U.Capability](/generated/patterns/A.2.2)
@@ -135,7 +135,7 @@ Goal: let an agent use FPF without loading the whole FPF.
 Use:
 
 - [MCP recipes](/mcp-recipes)
-- [route:project-alignment](/generated/routes/route_project-alignment)
+- `route:project-alignment` via [Routes](/generated/routes/index)
 - [E.8 Authoring conventions](/generated/patterns/E.8)
 - [E.19 — Pattern Quality Gates: Review & Refresh Profiles](/generated/patterns/E.19) — use as the pattern change-record gate
 

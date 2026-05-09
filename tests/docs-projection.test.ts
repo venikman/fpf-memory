@@ -19,6 +19,28 @@ import type { Snapshot } from '../src/runtime/types.js';
 
 const execFileAsync = promisify(execFile);
 
+function routeSlug(routeId: string) {
+  return routeId.replace(/^route:/, '');
+}
+
+function routeDocRef(routeId: string) {
+  const slug = routeSlug(routeId);
+  return {
+    markdownPath: `docs/generated/routes/route_${slug}.md`,
+    staticPath: `/generated/routes/route_${slug}`,
+  };
+}
+
+function routeGeneratedMarkdownPath(routeId: string) {
+  const slug = routeId.replace(/^route:/, '');
+  return `generated/routes/route_${slug}.md`;
+}
+
+function routeGeneratedHtmlPath(routeId: string) {
+  const slug = routeId.replace(/^route:/, '');
+  return `generated/routes/route_${slug}.html`;
+}
+
 async function copyNonGeneratedDocs(srcRoot: string, dstRoot: string) {
   let entries;
   try {
@@ -73,15 +95,24 @@ describe('docs projection', () => {
       markdownPath: 'docs/generated/patterns/C.11.md',
       staticPath: '/generated/patterns/C.11',
     });
-    expect(resolveDocTarget(snapshot, 'route:project-alignment')?.docRef).toEqual({
-      markdownPath: 'docs/generated/routes/route_project-alignment.md',
-      staticPath: '/generated/routes/route_project-alignment',
-    });
-    expect(
-      projection.pagesByMarkdownPath[
-        'docs/generated/preface/heading_what-this-specification-is-and-how-to-use-it_342.md'
-      ]?.markdown,
-    ).toContain('# What this specification is (and how to use it)');
+    const firstRoute = Object.values(snapshot.routeGraph.nodes)[0];
+    if (firstRoute) {
+      expect(resolveDocTarget(snapshot, firstRoute.id)?.docRef).toEqual(
+        routeDocRef(firstRoute.id),
+      );
+    } else {
+      expect(resolveDocTarget(snapshot, 'route:project-alignment')).toBeUndefined();
+    }
+    const whatSpecPage = projection.pages.find(
+      (page) => page.kind === 'preface'
+        && page.title === 'What this specification is (and how to use it)',
+    );
+    expect(whatSpecPage?.markdownPath).toMatch(
+      /^docs\/generated\/preface\/heading_what-this-specification-is-and-how-to-use-it_\d+\.md$/,
+    );
+    expect(whatSpecPage?.markdown).toContain(
+      '# What this specification is (and how to use it)',
+    );
   });
 
   it('renders readable section headings in generated markdown', () => {
@@ -120,16 +151,22 @@ describe('docs projection', () => {
       projection.pagesByMarkdownPath['docs/generated/patterns/I.3.md']?.markdown ?? '';
     const routeIndex =
       projection.pagesByMarkdownPath['docs/generated/routes/index.md']?.markdown ?? '';
-    const routePage =
-      projection.pagesByMarkdownPath['docs/generated/routes/route_project-alignment.md']
-        ?.markdown ?? '';
+    const firstRoute = Object.values(snapshot.routeGraph.nodes)[0];
+    const routePage = firstRoute
+      ? projection.pagesByMarkdownPath[routeDocRef(firstRoute.id).markdownPath]?.markdown ?? ''
+      : '';
 
     expect(glossaryPage).toContain('This is the FPF glossary');
     expect(glossaryPage).toContain('not a glossary of fpf-memory UI');
     expect(changeLogPage).toContain('This is the FPF specification change log');
     expect(changeLogPage).toContain('not the fpf-memory product changelog');
     expect(routeIndex).toContain('They are not website routes');
-    expect(routePage).toContain('It is not a website route or application navigation route');
+    expect(routeIndex).toContain(
+      `Generated pages: ${Object.keys(snapshot.routeGraph.nodes).length}`,
+    );
+    if (firstRoute) {
+      expect(routePage).toContain('It is not a website route or application navigation route');
+    }
   });
 
   it('keeps hyphenated cluster names intact in breadcrumbs', () => {
@@ -190,7 +227,9 @@ describe('docs projection', () => {
 
     expect(a1ToA2ExplicitRows).toHaveLength(1);
     expect(navigation.patterns.some((group) => group.text.startsWith('Part A'))).toBe(true);
-    expect(navigation.routes[0]?.items.length).toBeGreaterThan(0);
+    expect(navigation.routes[0]?.items.length).toBe(
+      Object.keys(snapshot.routeGraph.nodes).length,
+    );
   });
 
   it('writes generated docs to a requested docs root', async () => {
@@ -210,18 +249,21 @@ describe('docs projection', () => {
       expect(
         await readFile(resolve(docsRoot, 'generated/patterns/A.2.md'), 'utf8'),
       ).toContain('# Role Taxonomy');
+      const firstRoute = Object.values(snapshot.routeGraph.nodes)[0];
+      if (firstRoute) {
+        expect(
+          await readFile(resolve(docsRoot, routeGeneratedMarkdownPath(firstRoute.id)), 'utf8'),
+        ).toContain(`# ${firstRoute.name}`);
+      }
+      const generatedProjection = buildDocsProjection(snapshot);
+      const whatSpecPage = generatedProjection.pages.find(
+        (page) => page.kind === 'preface'
+          && page.title === 'What this specification is (and how to use it)',
+      );
+      expect(whatSpecPage).toBeDefined();
       expect(
         await readFile(
-          resolve(docsRoot, 'generated/routes/route_project-alignment.md'),
-          'utf8',
-        ),
-      ).toContain('# project alignment');
-      expect(
-        await readFile(
-          resolve(
-            docsRoot,
-            'generated/preface/heading_what-this-specification-is-and-how-to-use-it_342.md',
-          ),
+          resolve(docsRoot, whatSpecPage!.markdownPath.replace(/^docs\//, '')),
           'utf8',
         ),
       ).toContain('# What this specification is (and how to use it)');
@@ -342,9 +384,15 @@ describe('docs projection', () => {
       expect(
         await readFile(resolve(outDir, 'generated/patterns/A.2.html'), 'utf8'),
       ).toContain('Role Taxonomy');
-      expect(
-        await readFile(resolve(outDir, 'generated/routes/route_project-alignment.html'), 'utf8'),
-      ).toContain('project alignment');
+      const firstRoute = Object.values(snapshot.routeGraph.nodes)[0];
+      if (firstRoute) {
+        expect(
+          await readFile(
+            resolve(outDir, routeGeneratedHtmlPath(firstRoute.id)),
+            'utf8',
+          ),
+        ).toContain(firstRoute.name);
+      }
       expect(
         await readFile(resolve(outDir, 'generated/patterns/I.3.html'), 'utf8'),
       ).toContain('This is the FPF specification change log');

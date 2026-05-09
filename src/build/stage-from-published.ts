@@ -6,6 +6,7 @@ import { parseBuildConfig } from '../adapters/infra/config/env.js';
 import {
   ARTIFACT_FILENAMES,
   HOSTED_STAGED_ARTIFACT_DIR,
+  HOSTED_STAGED_MANIFEST_PATH,
   HOSTED_STAGED_SOURCE_PATH,
   PUBLISHED_ARTIFACT_DIR,
   PUBLISHED_MANIFEST_PATH,
@@ -41,6 +42,7 @@ export async function stageFromPublished(
   const hostedRuntimeDir = resolve(hostedPublicDir, HOSTED_STAGED_ARTIFACT_DIR);
   const stagedSourcePath = resolve(hostedPublicDir, HOSTED_STAGED_SOURCE_PATH);
   const stagedSnapshotPath = resolve(hostedRuntimeDir, ARTIFACT_FILENAMES.snapshot);
+  const stagedManifestPath = resolve(hostedPublicDir, HOSTED_STAGED_MANIFEST_PATH);
 
   const publishedSurface = await validatePublishedSurface({
     cwd,
@@ -58,8 +60,10 @@ export async function stageFromPublished(
 
   await mkdir(hostedRuntimeDir, { recursive: true });
   await mkdir(dirname(stagedSourcePath), { recursive: true });
+  await mkdir(dirname(stagedManifestPath), { recursive: true });
   await copyFile(publishedSpecPath, stagedSourcePath);
   await copyFile(publishedSnapshotPath, stagedSnapshotPath);
+  await copyFile(publishedSurface.paths.publishedManifestPath, stagedManifestPath);
 
   return {
     builtAt: new Date().toISOString(),
@@ -76,6 +80,12 @@ export async function stageFromPublished(
         kind: 'runtime_snapshot',
         sourcePath: publishedSnapshotPath,
         outputPath: stagedSnapshotPath,
+        consumer: 'hosted',
+      },
+      {
+        kind: 'runtime_manifest',
+        sourcePath: publishedSurface.paths.publishedManifestPath,
+        outputPath: stagedManifestPath,
         consumer: 'hosted',
       },
     ],

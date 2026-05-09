@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it } from '@rstest/core';
 import {
   ARTIFACT_FILENAMES,
   HOSTED_STAGED_ARTIFACT_DIR,
+  HOSTED_STAGED_MANIFEST_PATH,
   HOSTED_STAGED_SOURCE_PATH,
 } from '../src/core/constants.js';
 import { computeCompilerFingerprint } from '../src/build/compiler-fingerprint.js';
@@ -103,6 +104,12 @@ describe('stageFromPublished', () => {
         ),
         consumer: 'hosted',
       },
+      {
+        kind: 'runtime_manifest',
+        sourcePath: publishedManifestPath,
+        outputPath: resolve(hostedPublicDir, HOSTED_STAGED_MANIFEST_PATH),
+        consumer: 'hosted',
+      },
     ]);
 
     expect(await readFile(resolve(hostedPublicDir, HOSTED_STAGED_SOURCE_PATH), 'utf8')).toBe(
@@ -121,6 +128,18 @@ describe('stageFromPublished', () => {
         compilerFingerprint,
       })}\n`,
     );
+    expect(await readFile(resolve(hostedPublicDir, HOSTED_STAGED_MANIFEST_PATH), 'utf8')).toBe(
+      `${JSON.stringify({
+        channel: 'latest-published',
+        sourceHash: SOURCE_HASH,
+        compilerFingerprint,
+        upstreamRef: 'test-ref',
+        publishedAt: '2026-04-16T00:00:00.000Z',
+        specPath: 'published/current/FPF-Spec.md',
+        snapshotPath: 'published/current/fpf-index/snapshot.json',
+        specBytes: Buffer.byteLength(SPEC_TEXT),
+      })}\n`,
+    );
     await expect(readFile(resolve(hostedPublicDir, 'FPF-spec.md'), 'utf8')).rejects.toThrow(
       /ENOENT/,
     );
@@ -132,11 +151,15 @@ describe('stageFromPublished', () => {
     // the hosted bundle zip step doesn't silently drop them.
     expect(HOSTED_STAGED_SOURCE_PATH.startsWith('.')).toBe(false);
     expect(HOSTED_STAGED_ARTIFACT_DIR.startsWith('.')).toBe(false);
+    expect(HOSTED_STAGED_MANIFEST_PATH.startsWith('.')).toBe(false);
     expect(
       HOSTED_STAGED_SOURCE_PATH.split('/').every((segment) => !segment.startsWith('.')),
     ).toBe(true);
     expect(
       HOSTED_STAGED_ARTIFACT_DIR.split('/').every((segment) => !segment.startsWith('.')),
+    ).toBe(true);
+    expect(
+      HOSTED_STAGED_MANIFEST_PATH.split('/').every((segment) => !segment.startsWith('.')),
     ).toBe(true);
   });
 

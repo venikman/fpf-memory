@@ -1,5 +1,7 @@
 # FPF Spec Runtime
 
+> **Quick links:** [Website](https://venikman.github.io/fpf-memory/) · [Connect MCP](https://venikman.github.io/fpf-memory/connect-mcp) · [Hosted MCP endpoint](https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp)
+>
 > **📖 Live reference:** [venikman.github.io/fpf-memory](https://venikman.github.io/fpf-memory/) — searchable pattern catalog, routes, and preface. Type an ID like `A.2` or `route:project-alignment` in the search box to jump in.
 >
 > **🤖 Working with this repo as an agent?** See [`AGENTS.md`](./AGENTS.md) for the MCP tool guide and workspace conventions.
@@ -72,6 +74,26 @@ Out:
 - any Python code
 - a validation/tuning corpus inside the runtime path
 
+## Automated publication refresh
+
+`.github/workflows/sync-fpf.yml` keeps both public surfaces current when FPF changes upstream in [fpf-sync](https://github.com/venikman/fpf-sync):
+
+- Fast path: `fpf-sync` can send this repo a `repository_dispatch` event named `fpf-sync-updated` with `client_payload.sha`/`after`, `client_payload.ref`/`branch`, or `client_payload.spec_url`.
+- Backstops: the workflow also runs every 6 hours and can be triggered manually with a branch, tag, commit SHA, or raw spec URL.
+- Work performed: download `FPF/FPF-Spec.md`, run `publish:current`, validate `published/current/**`, build the GitHub Pages website, build the Vercel-origin MCP bundle, deploy the website, and commit the publication files only when they changed.
+- Hosted MCP handoff: the resulting `main` push gives Vercel's Git integration the refreshed bundle inputs. If the repository secret `VERCEL_DEPLOY_HOOK_URL` is configured, the workflow also triggers that deploy hook after the publication commit.
+
+Minimal dispatch payload from `fpf-sync`:
+
+```json
+{
+  "event_type": "fpf-sync-updated",
+  "client_payload": {
+    "sha": "<fpf-sync commit sha>"
+  }
+}
+```
+
 ## Configuration
 
 Copy `.env.example` to `.env`. The most common settings:
@@ -93,7 +115,7 @@ Copy `.env.example` to `.env`. The most common settings:
 <details>
 <summary>Detailed notes on these variables</summary>
 
-`FPF_SPEC_SOURCE_PATH` must be a **local filesystem path** — the runtime does not fetch `https://` URLs. The default is the committed publication surface: `published/current/FPF-Spec.md`. Local memory preparation uses `FPF_PUBLISH_SOURCE_PATH`, which defaults to `.fpf-upstream/FPF-Spec.md` after `bun run spec:download`. You can instead point `FPF_PUBLISH_SOURCE_PATH` at a local checkout of [github.com/venikman/fpf-sync](https://github.com/venikman/fpf-sync) such as [`FPF/FPF-Spec.md`](https://github.com/venikman/fpf-sync/blob/main/FPF/FPF-Spec.md). Override the download URL or output path with `FPF_UPSTREAM_SPEC_URL` and `FPF_DOWNLOAD_SPEC_OUTPUT`. Keep `FPF_SPEC_SOURCE_PATH` aligned across `.env`, your shell, and any MCP config (`server.json` `env`) so every runtime/docs entrypoint agrees on the published file it should read.
+`FPF_SPEC_SOURCE_PATH` must be a **local filesystem path** — the runtime does not fetch `https://` URLs. The default is the committed publication surface: `published/current/FPF-Spec.md`. Local memory preparation uses `FPF_PUBLISH_SOURCE_PATH`, which defaults to `.fpf-upstream/FPF-Spec.md` after `bun run spec:download`. You can instead point `FPF_PUBLISH_SOURCE_PATH` at a local checkout of [github.com/venikman/fpf-sync](https://github.com/venikman/fpf-sync) such as [`FPF/FPF-Spec.md`](https://github.com/venikman/fpf-sync/blob/main/FPF/FPF-Spec.md). `bun run spec:download` tracks `fpf-sync` `main` by default; the sync workflow resolves that moving branch to an exact commit SHA before writing `published/current/manifest.json`. Override the download URL or output path with `FPF_UPSTREAM_SPEC_URL` and `FPF_DOWNLOAD_SPEC_OUTPUT`. Keep `FPF_SPEC_SOURCE_PATH` aligned across `.env`, your shell, and any MCP config (`server.json` `env`) so every runtime/docs entrypoint agrees on the published file it should read.
 
 `FPF_QUERY_DEFAULT_MODE` applies to `query_fpf_spec` and `ask_fpf` when `mode` is omitted. `trace_fpf_path` stays `compact` by default.
 
@@ -161,6 +183,14 @@ bun run bench:mcp:qa             # hosted Q&A correctness gate
 bun run bench:mcp                # hosted latency/correctness benchmark
 bun run vercel:origin:build      # prebuild the direct Vercel-origin bundle
 ```
+
+Public hosted status endpoint:
+
+```text
+/api/fpf/status
+```
+
+This returns the published `upstreamRef`, `sourceHash`, `publishedAt`, `specBytes`, and runtime freshness evidence for the same bundled FPF source and snapshot used by the hosted MCP endpoint.
 
 ## FPF work evaluation
 
@@ -244,6 +274,12 @@ bun run vercel:origin:deploy:prod
 FPF_MCP_SMOKE_URL=https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp bun run smoke:mcp:http
 
 bun run bench:mcp:qa -- --name vercel-origin --url https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp --format markdown
+```
+
+Status API:
+
+```text
+https://fpf-memory-mcp-vercel-origin.vercel.app/api/fpf/status
 ```
 
 ## MCP tools

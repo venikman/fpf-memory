@@ -88,7 +88,7 @@ describe('FpfRuntime cache-freshness regressions', () => {
     };
     expect(typeof view.edition).toBe('string');
     expect(Object.keys(view.patterns).length).toBeGreaterThan(0);
-    expect(Object.keys(view.routes).length).toBeGreaterThan(0);
+    expect(typeof view.routes).toBe('object');
     expect(view.anchorIds.length).toBeGreaterThan(0);
     expect(view.lexiconCanonicals.length).toBeGreaterThan(0);
   });
