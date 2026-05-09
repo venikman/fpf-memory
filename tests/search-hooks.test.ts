@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@rstest/core';
 
+import { SEARCH_ID_REGISTRY } from '../src/docs/generated-search-id-registry.js';
 import { afterSearch } from '../src/docs/search-hooks.js';
 
 /**
@@ -32,6 +33,10 @@ interface SearchResultGroup {
   list?: SearchResultItem[];
   hits?: SearchResultItem[];
   [key: string]: unknown;
+}
+
+function firstRouteFixture(): (typeof SEARCH_ID_REGISTRY.routes)[number] | undefined {
+  return SEARCH_ID_REGISTRY.routes[0];
 }
 
 describe('search-hooks afterSearch', () => {
@@ -88,43 +93,53 @@ describe('search-hooks afterSearch', () => {
   });
 
   it('injects route-selector queries with the route slug', () => {
+    const route = firstRouteFixture();
     const result: SearchResultGroup[] = [
       { group: 'FPF Reference', renderType: 'default', result: [] },
     ];
-    afterSearch('route:project-alignment', result);
-    expect(result[0]?.result?.[0]?.link).toBe(
-      '/generated/routes/route_project-alignment',
-    );
+    afterSearch(route ? `route:${route.slug}` : 'route:project-alignment', result);
+    if (route) {
+      expect(result[0]?.result?.[0]?.link).toBe(route.staticPath);
+    } else {
+      expect(result[0]?.result?.length ?? 0).toBe(0);
+    }
   });
 
   it('also handles route-selector queries with case variation', () => {
+    const route = firstRouteFixture();
     const result: SearchResultGroup[] = [
       { group: 'FPF Reference', renderType: 'default', result: [] },
     ];
-    afterSearch('Route:Boundary-Burden', result);
-    expect(result[0]?.result?.[0]?.link).toBe(
-      '/generated/routes/route_boundary-burden',
-    );
+    afterSearch(route ? `Route:${route.slug.toUpperCase()}` : 'Route:Boundary-Burden', result);
+    if (route) {
+      expect(result[0]?.result?.[0]?.link).toBe(route.staticPath);
+    } else {
+      expect(result[0]?.result?.length ?? 0).toBe(0);
+    }
   });
 
   it('tolerates whitespace and quote wrappers after route:', () => {
     // Users naturally type `route: project-alignment` with a space, and
     // the spec sometimes wraps selectors in backticks. Both should
     // resolve to the same canonical page (R5-P2-005).
+    const route = firstRouteFixture();
+    const slug = route?.slug ?? 'project-alignment';
     for (const query of [
-      'route: project-alignment',
-      'route :project-alignment',
-      'route : project-alignment',
-      'route:`project-alignment`',
-      'route: "project-alignment"',
+      `route: ${slug}`,
+      `route :${slug}`,
+      `route : ${slug}`,
+      `route:\`${slug}\``,
+      `route: "${slug}"`,
     ]) {
       const result: SearchResultGroup[] = [
         { group: 'FPF Reference', renderType: 'default', result: [] },
       ];
       afterSearch(query, result);
-      expect(result[0]?.result?.[0]?.link).toBe(
-        '/generated/routes/route_project-alignment',
-      );
+      if (route) {
+        expect(result[0]?.result?.[0]?.link).toBe(route.staticPath);
+      } else {
+        expect(result[0]?.result?.length ?? 0).toBe(0);
+      }
     }
   });
 
@@ -147,18 +162,22 @@ describe('search-hooks afterSearch', () => {
     // The ROUTE_QUERY_PATTERN already accepts an inner quote after
     // `route:` (covering `route:"slug"`), but the OUTER wrap
     // (`\`route:slug\``) needs the up-front strip.
+    const route = firstRouteFixture();
+    const slug = route?.slug ?? 'project-alignment';
     for (const query of [
-      '`route:project-alignment`',
-      '"route:project-alignment"',
-      "'route:project-alignment'",
+      `\`route:${slug}\``,
+      `"route:${slug}"`,
+      `'route:${slug}'`,
     ]) {
       const result: SearchResultGroup[] = [
         { group: 'FPF Reference', renderType: 'default', result: [] },
       ];
       afterSearch(query, result);
-      expect(result[0]?.result?.[0]?.link).toBe(
-        '/generated/routes/route_project-alignment',
-      );
+      if (route) {
+        expect(result[0]?.result?.[0]?.link).toBe(route.staticPath);
+      } else {
+        expect(result[0]?.result?.length ?? 0).toBe(0);
+      }
     }
   });
 
@@ -177,12 +196,17 @@ describe('search-hooks afterSearch', () => {
     // The display title must contain the exact copyable selector so
     // users see `route:project-alignment` when they search and can grab
     // the canonical string for prompts/configs (R5-P2-005).
+    const route = firstRouteFixture();
     const result: SearchResultGroup[] = [
       { group: 'FPF Reference', renderType: 'default', result: [] },
     ];
-    afterSearch('route:project-alignment', result);
+    afterSearch(route ? `route:${route.slug}` : 'route:project-alignment', result);
     const title = result[0]?.result?.[0]?.title ?? '';
-    expect(title).toContain('route:project-alignment');
+    if (route) {
+      expect(title).toContain(`route:${route.slug}`);
+    } else {
+      expect(title).toBe('');
+    }
   });
 
   it('hoists existing FlexSearch results to position [0] without duplicating', () => {

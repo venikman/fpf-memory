@@ -20,7 +20,14 @@ import {
 } from '../src/runtime/answer-projector.js';
 import { synthesizeAnswer } from '../src/runtime/synthesis-adapter.js';
 import { MAX_EXCLUDED } from '../src/runtime/constants.js';
-import type { CompiledNode, LocalAnswerSynthesizer, Snapshot, TraceResult } from '../src/runtime/types.js';
+import type {
+  CompiledNode,
+  LocalAnswerSynthesizer,
+  RelationEdge,
+  RouteRecord,
+  Snapshot,
+  TraceResult,
+} from '../src/runtime/types.js';
 
 /**
  * Stage-local contract tests for the query pipeline.
@@ -35,6 +42,7 @@ import type { CompiledNode, LocalAnswerSynthesizer, Snapshot, TraceResult } from
  */
 
 let cachedSnapshot: Snapshot | undefined;
+let cachedRouteFixtureSnapshot: Snapshot | undefined;
 
 async function getSnapshot(): Promise<Snapshot> {
   if (cachedSnapshot) {
@@ -51,6 +59,123 @@ async function getSnapshot(): Promise<Snapshot> {
   });
   cachedSnapshot = output.snapshot;
   return cachedSnapshot;
+}
+
+async function getSnapshotWithRouteFixtures(): Promise<Snapshot> {
+  if (cachedRouteFixtureSnapshot) {
+    return cachedRouteFixtureSnapshot;
+  }
+  cachedRouteFixtureSnapshot = addRouteFixtures(await getSnapshot());
+  return cachedRouteFixtureSnapshot;
+}
+
+function addRouteFixtures(baseSnapshot: Snapshot): Snapshot {
+  const snapshot = structuredClone(baseSnapshot) as Snapshot;
+
+  const addRoute = (
+    id: string,
+    name: string,
+    description: string,
+    orderedIds: string[],
+    optionalIds: string[],
+    landingIds: string[],
+  ): void => {
+    const anchorId = `fixture:${id}`;
+    const stepEdges: RelationEdge[] = [
+      ...orderedIds.map((to): RelationEdge => ({ from: id, relation: 'route_step', to, source: anchorId })),
+      ...optionalIds.map((to): RelationEdge => ({ from: id, relation: 'route_step', to, source: anchorId })),
+      ...landingIds.map((to): RelationEdge => ({ from: id, relation: 'landing_on', to, source: anchorId })),
+    ].filter((edge) => Boolean(snapshot.compiledNodes[edge.to]));
+    const route: RouteRecord = {
+      id,
+      name,
+      description,
+      firstHonestBurden: description,
+      orderedIds: orderedIds.filter((nodeId) => Boolean(snapshot.compiledNodes[nodeId])),
+      optionalIds: optionalIds.filter((nodeId) => Boolean(snapshot.compiledNodes[nodeId])),
+      landingIds: landingIds.filter((nodeId) => Boolean(snapshot.compiledNodes[nodeId])),
+      routeSurfaces: ['fixture'],
+      nextOwners: ['fixture owner'],
+      reroutes: [],
+      citations: [anchorId],
+      anchorIds: [anchorId],
+      searchableText: `${id} ${name} ${description} ${orderedIds.join(' ')}`,
+      constraints: [
+        'Do not open the whole FPF; read exact pattern pages only when a finding depends on wording.',
+      ],
+    };
+
+    snapshot.anchorMap[anchorId] = {
+      id: anchorId,
+      nodeId: id,
+      heading: name,
+      lineStart: 0,
+      lineEnd: 1,
+      path: ['Route fixtures', name],
+      text: description,
+      plainText: description,
+      role: 'route_surface',
+    };
+    snapshot.routeGraph.nodes[id] = route;
+    snapshot.routeGraph.relations.push(...stepEdges);
+    snapshot.relationGraph.push(...stepEdges);
+    snapshot.compiledNodes[id] = {
+      id,
+      kind: 'route',
+      title: name,
+      aliases: [],
+      anchorIds: [anchorId],
+      neighborEdges: stepEdges,
+      searchableText: route.searchableText,
+      details: route,
+    };
+  };
+
+  addRoute(
+    'route:project-alignment',
+    'project alignment',
+    'First route for project kickoff when vocabulary is overloaded across teams.',
+    ['A.1.1', 'A.15', 'B.5.1'],
+    ['A.15.2', 'A.15.3'],
+    ['F.17'],
+  );
+  addRoute(
+    'route:boundary-burden',
+    'boundary burden',
+    'First route for API boundary, contract, protocol, and reviewer work.',
+    ['A.6', 'A.6.B', 'A.6.C'],
+    ['A.6.P', 'A.6.Q', 'A.6.A'],
+    ['A.6'],
+  );
+  addRoute(
+    'route:writing-or-reviewing-patterns',
+    'writing or reviewing patterns',
+    'First route for spec writers adding or reviewing FPF patterns.',
+    ['E.8', 'E.19'],
+    [],
+    ['E.8'],
+  );
+
+  snapshot.heuristicSeedRules = [
+    ...(snapshot.heuristicSeedRules ?? []),
+    {
+      name: 'boundary-review',
+      allOf: [
+        ['api contract', 'contract change', 'api boundary'],
+        ['reviewer', 'code reviewer', 'pr'],
+      ],
+      anyOf: [['api', 'contract', 'boundary']],
+      seedNodeIds: ['A.6', 'A.6.B', 'A.6.C'],
+      seedScore: 20,
+      seedOrigin: 'lexical',
+      initialNodeIds: [],
+      routeId: 'route:boundary-burden',
+      routeScore: 95,
+    },
+  ];
+
+  snapshot.validation.parsedRoutes = Object.keys(snapshot.routeGraph.nodes).length;
+  return snapshot;
 }
 
 /**
@@ -130,7 +255,7 @@ describe('Query / Normalizer stage', () => {
   });
 
   it('detects route names when mentioned in the question', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const routeNames = Object.values(snapshot.routeGraph.nodes).map((r) => r.name);
 
     expect(routeNames.length).toBeGreaterThan(0);
@@ -186,7 +311,7 @@ describe('Query / Seed coverage stage', () => {
   });
 
   it('seeds route expansion candidates for route-bearing queries', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const normalized = normalizeQuery(
       'What is the first practical route when vocabulary is overloaded across teams?',
       snapshot,
@@ -200,7 +325,7 @@ describe('Query / Seed coverage stage', () => {
   });
 
   it('seeds the boundary route for reviewer API contract prompts', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const normalized = normalizeQuery(
       'For a PR/code reviewer checking an API contract change, return exact route or pattern IDs and acceptance checks without pasting the full FPF.',
       snapshot,
@@ -214,7 +339,7 @@ describe('Query / Seed coverage stage', () => {
   });
 
   it('does not seed the boundary route from substring-only change or ci matches', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const normalized = normalizeQuery(
       'What practices should change for specification compliance?',
       snapshot,
@@ -226,7 +351,7 @@ describe('Query / Seed coverage stage', () => {
   });
 
   it('does not seed the boundary route from generic acceptance-check wording', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const normalized = normalizeQuery(
       'For a new adopter doing a project kickoff, return the route ID, ordered IDs, acceptance check, and next move.',
       snapshot,
@@ -300,7 +425,7 @@ describe('Query / Ranker stage', () => {
   });
 
   it('selects a route node when route intent is clear', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const question = 'What is the first practical route when vocabulary is overloaded across teams?';
     const normalized = normalizeQuery(question, snapshot);
     const seeding = seedCandidates(normalized, snapshot);
@@ -314,7 +439,7 @@ describe('Query / Ranker stage', () => {
   });
 
   it('pins the project-alignment route when the route selector is explicit', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const question =
       'Using route:project-alignment, give a compact project kickoff work packet.';
     const normalized = normalizeQuery(question, snapshot);
@@ -326,7 +451,7 @@ describe('Query / Ranker stage', () => {
   });
 
   it('selects project alignment for project kickoff and information-system modeling', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const question = 'Give me a checklist for how to model my project information system.';
     const normalized = normalizeQuery(question, snapshot);
     const seeding = seedCandidates(normalized, snapshot);
@@ -337,7 +462,7 @@ describe('Query / Ranker stage', () => {
   });
 
   it('selects project alignment for kickoff prompts with generic acceptance checks', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const question =
       'For a new adopter doing a project kickoff, return the route ID, ordered IDs, acceptance check, and next move.';
     const normalized = normalizeQuery(question, snapshot);
@@ -349,7 +474,7 @@ describe('Query / Ranker stage', () => {
   });
 
   it('honors negative API-contract disambiguation for project review prompts', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const question =
       'As a project lead, choose the next owner and acceptance check after healthy CI, Pages, and MCP deploy. Return a compact project review packet with route, IDs, operating questions, done condition, and next move. Do not paste the whole FPF. Do not treat this as an API contract review.';
     const normalized = normalizeQuery(question, snapshot);
@@ -361,7 +486,7 @@ describe('Query / Ranker stage', () => {
   });
 
   it('selects the writing or reviewing patterns route for spec-writer pattern work', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const question =
       'As a spec writer adding or revising a new FPF pattern, identify the writing/reviewing route, retrieve E.8 and E.19 as the initial IDs, give acceptance checks and the next action, and do not paste the full FPF.';
     const normalized = normalizeQuery(question, snapshot);
@@ -373,7 +498,7 @@ describe('Query / Ranker stage', () => {
   });
 
   it('selects boundary burden for API boundary kickoff questions', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const question =
       'As a project lead, what small FPF route should I use to run a 30-minute project kickoff about an API boundary decision?';
     const normalized = normalizeQuery(question, snapshot);
@@ -385,7 +510,7 @@ describe('Query / Ranker stage', () => {
   });
 
   it('selects the boundary route for PR reviewer API contract prompts', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const question =
       'For a PR/code reviewer checking an API contract change, return exact route or pattern IDs and acceptance checks without pasting the full FPF.';
     const normalized = normalizeQuery(question, snapshot);
@@ -544,7 +669,7 @@ describe('Query / Projection stability stage', () => {
   });
 
   it('projects route answers with route ID, acceptance check, and next move', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const question = 'Give me a checklist for how to model my project information system.';
     const trace = assembleTrace(question, 'compact', snapshot);
 
@@ -567,7 +692,7 @@ describe('Query / Projection stability stage', () => {
   });
 
   it('uses a compact route trace shortcut for adoption kickoff queries', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const engine = new QueryEngine(snapshot, false);
     const trace = engine.trace(
       'Project kickoff: align a project information system with roles and adoption next steps',
@@ -588,7 +713,7 @@ describe('Query / Projection stability stage', () => {
   });
 
   it('does not fast-route specific pattern lookups to pattern-writing guidance', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const engine = new QueryEngine(snapshot, false);
     const trace = engine.trace('What is the specific pattern A.1.1?', 'compact');
 
@@ -609,7 +734,7 @@ describe('Query / Projection stability stage', () => {
   });
 
   it('does not fast-route spec-writer exact ID lookups to pattern-writing guidance', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const engine = new QueryEngine(snapshot, false);
     const trace = engine.trace('As a spec writer, what is A.1.1?', 'compact');
 
@@ -623,7 +748,7 @@ describe('Query / Projection stability stage', () => {
   });
 
   it('does not fast-route pattern-content lookups to pattern-writing guidance', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const engine = new QueryEngine(snapshot, false);
     const questions = [
       'Tell me about FPF patterns.',
@@ -642,7 +767,7 @@ describe('Query / Projection stability stage', () => {
   });
 
   it('still fast-routes explicit pattern-authoring work to pattern-writing guidance', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const engine = new QueryEngine(snapshot, false);
     const trace = engine.trace('Please help me write a new FPF pattern.', 'compact');
 
@@ -651,7 +776,7 @@ describe('Query / Projection stability stage', () => {
   });
 
   it('does not fast-route generic compliance review wording to boundary burden', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const engine = new QueryEngine(snapshot, false);
     const questions = [
       'Please review this compliance documentation for our team.',
@@ -811,7 +936,7 @@ describe('Query / Synthesis isolation stage', () => {
   });
 
   it('skips synthesis for compact route answers even when a synthesizer is available', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const question =
       'Using route:project-alignment, give a compact project kickoff work packet.';
     const trace = assembleTrace(question, 'compact', snapshot);
@@ -842,7 +967,7 @@ describe('Query / Synthesis isolation stage', () => {
   });
 
   it('still allows synthesis for non-compact route answers', async () => {
-    const snapshot = await getSnapshot();
+    const snapshot = await getSnapshotWithRouteFixtures();
     const question =
       'Using route:project-alignment, explain the project kickoff work packet.';
     const trace = assembleTrace(question, 'verbose', snapshot);

@@ -13,9 +13,10 @@ import { FpfRuntime } from '../src/runtime/runtime.js';
  *
  * We do not pin exact counts (the upstream spec drifts between releases),
  * but we pin structural invariants that regressions would silently break:
- *   - all three node kinds are produced
- *   - canonical route / pattern IDs still resolve to their documented titles
- *   - every relation kind the retrieval layer depends on is emitted
+ *   - pattern and lexeme node kinds are produced; route nodes are valid when
+ *     present but optional in synced specs
+ *   - canonical pattern IDs still resolve to their documented titles
+ *   - every non-route relation kind the retrieval layer depends on is emitted
  *   - artefact projections stay consistent with the snapshot
  *
  * A "soft golden" like this catches real compiler regressions (dropped
@@ -67,7 +68,8 @@ describe('compiled index golden snapshot', () => {
 
     const snapshot = await readArtifact<Snapshot>(ARTIFACT_FILENAMES.snapshot);
 
-    // Kinds — every retrieval code path assumes all three exist.
+    // Kinds — route nodes are optional in the synced spec, but pattern and
+    // lexeme nodes are required by every retrieval code path.
     const byKind = Object.values(snapshot.compiledNodes).reduce<Record<string, number>>(
       (acc, node) => {
         acc[node.kind] = (acc[node.kind] ?? 0) + 1;
@@ -76,12 +78,12 @@ describe('compiled index golden snapshot', () => {
       {},
     );
     expect(byKind.pattern).toBeGreaterThanOrEqual(200);
-    expect(byKind.route).toBeGreaterThanOrEqual(10);
+    const routeCount = byKind.route ?? 0;
     expect(byKind.lexeme).toBeGreaterThanOrEqual(1000);
 
     // Projection parity — the split artefacts must agree with the snapshot.
     expect(Object.keys(snapshot.patternGraph.nodes).length).toBe(byKind.pattern);
-    expect(Object.keys(snapshot.routeGraph.nodes).length).toBe(byKind.route);
+    expect(Object.keys(snapshot.routeGraph.nodes).length).toBe(routeCount);
     expect(Object.keys(snapshot.lexicon).length).toBe(byKind.lexeme);
 
     // Anchors and index map must cover every pattern-bearing heading.
@@ -111,7 +113,7 @@ describe('compiled index golden snapshot', () => {
       },
       'J.4': {
         kind: 'pattern',
-        titlePrefix: 'First Practical Entry Route Index',
+        titlePrefix: 'First Practical Entry Neighborhood Index',
         part: 'Part J - Indexes & Navigation Aids',
       },
     };
@@ -124,8 +126,8 @@ describe('compiled index golden snapshot', () => {
     }
 
     // Relation kinds — retrieval (candidate seeding + frontier expansion)
-    // fans out over these edges. If one goes missing, answers silently
-    // lose explanatory depth.
+    // fans out over these edges. Route-specific edges are checked only when
+    // the current synced spec publishes route nodes.
     const relationKinds = new Set(snapshot.relationGraph.map((edge) => edge.relation));
     for (const expected of [
       'builds_on',
@@ -134,10 +136,6 @@ describe('compiled index golden snapshot', () => {
       'constrains',
       'refines',
       'used_by',
-      'route_step',
-      'route_hint',
-      'current_route_surface',
-      'typical_next_owner',
       'outline_child',
       'outline_parent',
       'outline_next_sibling',
@@ -147,10 +145,20 @@ describe('compiled index golden snapshot', () => {
     ]) {
       expect(relationKinds.has(expected), `missing relation kind: ${expected}`).toBe(true);
     }
+    if (routeCount > 0) {
+      for (const expected of [
+        'route_step',
+        'route_hint',
+        'current_route_surface',
+        'typical_next_owner',
+      ]) {
+        expect(relationKinds.has(expected), `missing relation kind: ${expected}`).toBe(true);
+      }
+    }
 
     // Validation summary — the compiler must report sane counts.
     expect(audit.validation.parsedPatterns).toBeGreaterThanOrEqual(200);
-    expect(audit.validation.parsedRoutes).toBeGreaterThanOrEqual(10);
+    expect(audit.validation.parsedRoutes).toBe(routeCount);
     expect(audit.validation.parsedLexiconEntries).toBeGreaterThanOrEqual(1000);
     expect(audit.validation.brokenRoutes).toEqual([]);
   });
