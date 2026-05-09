@@ -444,7 +444,7 @@ describe('docs projection', () => {
         'Connect fpf-memory MCP',
       );
       expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
-        'https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp',
+        'https://mcp.fpf.sh/api/mcp/fpf_memory/mcp',
       );
       expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
         'Codex CLI',

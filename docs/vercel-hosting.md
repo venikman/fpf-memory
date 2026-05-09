@@ -13,13 +13,13 @@ Use this page to operate the direct Vercel-hosted fpf-memory MCP endpoint.
 Canonical MCP endpoint:
 
 ```txt
-https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp
+https://mcp.fpf.sh/api/mcp/fpf_memory/mcp
 ```
 
 Canonical status endpoint:
 
 ```txt
-https://fpf-memory-mcp-vercel-origin.vercel.app/api/fpf/status
+https://mcp.fpf.sh/api/fpf/status
 ```
 
 The direct Vercel origin is the only hosted endpoint documented for clients. The runtime uses the official MCP SDK directly and emits Vercel Build Output API files without an intermediate framework deployer.
@@ -41,8 +41,8 @@ The repo-root `vercel.json` pins GitHub preview builds to `bun run vercel:origin
 bun run vercel:origin:link
 bun run vercel:origin:build
 bun run vercel:origin:deploy:prod
-FPF_MCP_SMOKE_URL=https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp bun run smoke:mcp:http
-curl https://fpf-memory-mcp-vercel-origin.vercel.app/api/fpf/status
+FPF_MCP_SMOKE_URL=https://mcp.fpf.sh/api/mcp/fpf_memory/mcp bun run smoke:mcp:http
+curl https://mcp.fpf.sh/api/fpf/status
 ```
 
 Known direct-origin constraints:
@@ -120,7 +120,7 @@ Current pick: keep deterministic answers as the hosted default. Use LM Studio fo
 Run the hosted HTTP smoke against the canonical Vercel origin:
 
 ```bash
-FPF_MCP_SMOKE_URL=https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp bun run smoke:mcp:http
+FPF_MCP_SMOKE_URL=https://mcp.fpf.sh/api/mcp/fpf_memory/mcp bun run smoke:mcp:http
 ```
 
 The smoke verifies:
@@ -136,7 +136,7 @@ The smoke verifies:
 Run the benchmark after the smoke test passes:
 
 ```bash
-bun run bench:mcp -- --name vercel-origin --url https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp --clients 5 --requests 75
+bun run bench:mcp -- --name vercel-origin --url https://mcp.fpf.sh/api/mcp/fpf_memory/mcp --clients 5 --requests 75
 ```
 
 Useful benchmark knobs:
@@ -152,7 +152,7 @@ Treat a benchmark as invalid if any measured call fails, returns `isError=true`,
 For cold-start, idle, and soak checks, run repeated bench-lite samples instead of a single burst:
 
 ```bash
-bun run bench:mcp:series -- --name vercel-origin --url https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp --iterations 6 --interval-ms 300000 --format jsonl --output reports/mcp-origin-soak.jsonl
+bun run bench:mcp:series -- --name vercel-origin --url https://mcp.fpf.sh/api/mcp/fpf_memory/mcp --iterations 6 --interval-ms 300000 --format jsonl --output reports/mcp-origin-soak.jsonl
 ```
 
 Series-specific knobs:
@@ -167,7 +167,7 @@ Each series iteration defaults to `--requests 12 --clients 1 --warmup 0`; pass t
 Run the Q&A benchmark as the correctness gate for hosted deployment:
 
 ```bash
-bun run bench:mcp:qa -- --name vercel-origin --url https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp --format markdown
+bun run bench:mcp:qa -- --name vercel-origin --url https://mcp.fpf.sh/api/mcp/fpf_memory/mcp --format markdown
 ```
 
 The Q&A gate accepts `status: "degraded"` only when the answer exposes expected retrieval candidates in `candidateIds`, keeps committed `ids` empty, and confidence stays low. Deterministic citations, relations, and constraints remain valid evidence in degraded answers. A synthesis failure with `status: "ok"` is a benchmark failure.

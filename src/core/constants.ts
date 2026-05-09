@@ -39,7 +39,7 @@ export const HOSTED_STAGED_MANIFEST_PATH = 'hosted/manifest.json';
 export const SERVERLESS_ARTIFACT_DIR = '/tmp/fpf-memory/fpf-index';
 
 export const HOSTED_MCP_ENDPOINT =
-  'https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp';
+  'https://mcp.fpf.sh/api/mcp/fpf_memory/mcp';
 
 export const ARTIFACT_FILENAMES = {
   snapshot: 'snapshot.json',
