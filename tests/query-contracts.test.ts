@@ -622,6 +622,52 @@ describe('Query / Projection stability stage', () => {
     );
   });
 
+  it('does not fast-route pattern-content lookups to pattern-writing guidance', async () => {
+    const snapshot = await getSnapshot();
+    const engine = new QueryEngine(snapshot, false);
+    const questions = [
+      'Tell me about FPF patterns.',
+      'What are the authoring conventions?',
+      'What are pattern quality gates?',
+      'What is the pattern for authoring docs?',
+    ];
+
+    for (const question of questions) {
+      const trace = engine.trace(question, 'compact');
+
+      expect(trace.routeWins).toBe(false);
+      expect(trace.selectedNodeIds[0]).not.toBe('route:writing-or-reviewing-patterns');
+      expect(trace.candidateScores[0]?.nodeId).not.toBe('route:writing-or-reviewing-patterns');
+    }
+  });
+
+  it('still fast-routes explicit pattern-authoring work to pattern-writing guidance', async () => {
+    const snapshot = await getSnapshot();
+    const engine = new QueryEngine(snapshot, false);
+    const trace = engine.trace('Please help me write a new FPF pattern.', 'compact');
+
+    expect(trace.routeWins).toBe(true);
+    expect(trace.selectedNodeIds[0]).toBe('route:writing-or-reviewing-patterns');
+  });
+
+  it('does not fast-route generic compliance review wording to boundary burden', async () => {
+    const snapshot = await getSnapshot();
+    const engine = new QueryEngine(snapshot, false);
+    const questions = [
+      'Please review this compliance documentation for our team.',
+      'specification compliance review',
+      'What is the compliance check process?',
+    ];
+
+    for (const question of questions) {
+      const trace = engine.trace(question, 'compact');
+
+      expect(trace.routeWins).toBe(false);
+      expect(trace.selectedNodeIds[0]).not.toBe('route:boundary-burden');
+      expect(trace.candidateScores[0]?.nodeId).not.toBe('route:boundary-burden');
+    }
+  });
+
   it('returns low confidence for completely unresolvable questions', async () => {
     const snapshot = await getSnapshot();
     const trace = assembleTrace('__FPFTEST_NONSENSE_999__', 'compact', snapshot);

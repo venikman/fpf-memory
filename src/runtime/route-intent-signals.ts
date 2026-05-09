@@ -25,7 +25,6 @@ export const BOUNDARY_BURDEN_SIGNALS = [
   'acceptance clause',
   'compliance text',
   'compliance requirement',
-  'compliance',
 ] as const;
 
 export const BOUNDARY_BURDEN_JOB_SIGNALS = [
@@ -54,14 +53,9 @@ export const BOUNDARY_REVIEW_RULE_JOB_SIGNALS = [
 export const WRITING_OR_REVIEWING_PATTERN_SIGNALS = [
   'spec writer',
   'spec writing',
-  'fpf pattern',
-  'new fpf pattern',
   'writing/reviewing route',
   'writing or reviewing route',
   'writing or reviewing patterns',
-  'authoring conventions',
-  'pattern quality gate',
-  'pattern quality gates',
 ] as const;
 
 export function hasBoundaryReviewNegation(normalizedQuestion: string): boolean {

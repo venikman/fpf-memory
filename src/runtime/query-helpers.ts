@@ -23,6 +23,12 @@ export interface FastRouteMatch {
   reason: string;
 }
 
+const PATTERN_AUTHORING_ACTION_BEFORE_PATTERN =
+  /\b(?:add|adding|draft|drafting|write|writing|revise|revising|author|authoring|review|reviewing)\b(?:\s+(?:a|an|the|new|existing|fpf|spec))*\s+patterns?\b/;
+
+const PATTERN_AUTHORING_NOUN_AFTER_PATTERN =
+  /\bpatterns?\s+(?:writing|authoring|review|reviewing|revision|revisions|draft|drafting)\b/;
+
 export function isPartCDraftQuery(question: string): boolean {
   const normalized = normalizeForLookup(question);
   return normalized.includes('draft') && normalized.includes('part c');
@@ -229,15 +235,9 @@ function scoreWritingOrReviewingPatternIntent(normalizedQuestion: string): numbe
   ) {
     return 88;
   }
-  const tokens = new Set(tokenize(normalizedQuestion));
   if (
-    normalizedQuestion.includes('pattern') &&
-    (tokens.has('write') ||
-      tokens.has('writing') ||
-      tokens.has('revise') ||
-      tokens.has('revising') ||
-      tokens.has('spec') ||
-      tokens.has('authoring'))
+    PATTERN_AUTHORING_ACTION_BEFORE_PATTERN.test(normalizedQuestion) ||
+    PATTERN_AUTHORING_NOUN_AFTER_PATTERN.test(normalizedQuestion)
   ) {
     return 72;
   }
