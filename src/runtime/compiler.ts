@@ -206,27 +206,6 @@ function buildHeuristicSeedRules(
     });
   }
 
-  const agentWorkflowAdoptionNodeIds = ['E.8', 'E.19'].filter(
-    (id) => id in patternNodes || id in routeNodes,
-  );
-  if (agentWorkflowAdoptionNodeIds.length > 0) {
-    rules.push({
-      name: 'agent-workflow-adoption',
-      allOf: [
-        ['agent', 'agentic'],
-        ['workflow'],
-      ],
-      anyOf: [
-        ['adoption', 'adopt'],
-        ['whole spec', 'pasting the whole spec', 'without pasting'],
-      ],
-      seedNodeIds: agentWorkflowAdoptionNodeIds,
-      seedScore: 72,
-      seedOrigin: 'lexical',
-      initialNodeIds: agentWorkflowAdoptionNodeIds.filter((id) => id in patternNodes),
-    });
-  }
-
   const alignmentRoute = Object.values(routeNodes).find(
     (r) => r.name.toLowerCase() === PROJECT_ALIGNMENT_ROUTE_NAME,
   );
@@ -238,7 +217,26 @@ function buildHeuristicSeedRules(
     alignmentRoute.constraints = [
       'Add F.11 and F.9 only when method/work vocabulary is explicitly at stake in the question.',
       'Land on F.17 early rather than escalating to F.11 unless the asker names a cross-team mismatch.',
+      'Do not paste the whole FPF; use the route packet first and open exact pattern pages only when wording or boundary detail is actually needed.',
     ];
+    rules.push({
+      name: 'agent-workflow-adoption',
+      allOf: [
+        ['agent', 'agentic', 'mcp'],
+        ['workflow', 'conversation', 'work packet'],
+      ],
+      anyOf: [
+        ['adoption', 'adopt'],
+        ['whole spec', 'pasting the whole spec', 'without pasting', 'full fpf'],
+        ['bounded context', 'public tools', 'connect mcp'],
+      ],
+      seedNodeIds: alignmentNodeIds,
+      seedScore: 18,
+      seedOrigin: 'route_expansion',
+      initialNodeIds: [],
+      routeId: alignmentRoute.id,
+      routeScore: 88,
+    });
     rules.push({
       name: 'vocabulary-alignment',
       allOf: [['vocabulary']],

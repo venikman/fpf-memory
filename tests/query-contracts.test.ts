@@ -348,6 +348,18 @@ describe('Query / Ranker stage', () => {
     expect(ranking.initialNodeIds).toEqual(['route:project-alignment']);
   });
 
+  it('selects project alignment for MCP agent work-packet prompts', async () => {
+    const snapshot = await getSnapshot();
+    const question =
+      'Use fpf_memory MCP to build an agent work packet without pasting the full FPF. Return route/doc selector, IDs, what not to load, acceptance check, and next move.';
+    const normalized = normalizeQuery(question, snapshot);
+    const seeding = seedCandidates(normalized, snapshot);
+    const ranking = rankCandidates(question, seeding.candidateMap, snapshot);
+
+    expect(ranking.routeWins).toBe(true);
+    expect(ranking.initialNodeIds).toEqual(['route:project-alignment']);
+  });
+
   it('honors negative API-contract disambiguation for project review prompts', async () => {
     const snapshot = await getSnapshot();
     const question =

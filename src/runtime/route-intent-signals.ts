@@ -50,6 +50,28 @@ export const BOUNDARY_REVIEW_RULE_JOB_SIGNALS = [
   'check',
 ] as const;
 
+export const AGENT_WORKFLOW_JOB_SIGNALS = [
+  'agent integrator',
+  'coding agent',
+  'agent workflow',
+  'agent conversation',
+  'connect mcp',
+  'mcp',
+  'public tools',
+] as const;
+
+export const AGENT_WORKFLOW_BOUNDED_RETRIEVAL_SIGNALS = [
+  'work packet',
+  'bounded context',
+  'whole spec',
+  'whole fpf',
+  'full spec',
+  'full fpf',
+  'without pasting',
+  'do not paste',
+  'instead of pasting',
+] as const;
+
 export const WRITING_OR_REVIEWING_PATTERN_SIGNALS = [
   'spec writer',
   'spec writing',
