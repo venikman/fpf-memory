@@ -93,21 +93,28 @@ async function writeVercelConfig(outputDir: string): Promise<void> {
 
 export function createVercelOriginOutputConfig(): VercelOriginOutputConfig {
   const dest = '/index';
-  // Phase order matters. The `handle: "filesystem"` marker must come first so
-  // Vercel checks `.vercel/output/static/` for an exact path match (e.g.
-  // `/`, `/start-here`, `/generated/patterns/A.6.9.html`) before falling
-  // through to function routes. Without this marker the routes are evaluated
-  // linearly with no static fallback and any path that doesn't match below
-  // returns the function's response (or 404) — which is how the unified-deploy
-  // preview accidentally shadowed every static page in PR #106's first push.
+  // Phase order in `routes` is significant. The flow we want for every
+  // request is:
   //
-  // Only API surfaces route to the function. Everything else stays static.
+  //   1. Try the static tree exactly (`/index.html`, `/start-here.html`,
+  //      `/generated/patterns/A.6.9.html`). Vercel resolves bare `/` to
+  //      `index.html` for free in this phase.
+  //   2. If still unmatched, send /api/* surfaces to the function.
+  //   3. If still unmatched, rewrite `/foo` → `/foo.html` and run the
+  //      filesystem phase again. This is Rspress's clean-URL contract:
+  //      built pages live at `<slug>.html` but the published URLs drop
+  //      the extension. `vercel.json`'s `cleanUrls: true` is ignored for
+  //      Build Output API deployments, so we emit the equivalent route
+  //      pair here instead.
+  //   4. If still nothing, Vercel returns 404 (rspress's 404.html).
   return {
     version: 3,
     routes: [
       { handle: 'filesystem' },
       { src: `^${HOSTED_FPF_STATUS_ROUTE}$`, dest },
       { src: `^${HOSTED_MCP_ROUTE}$`, dest },
+      { src: '^/(.*)$', dest: '/$1.html', check: true },
+      { handle: 'filesystem' },
     ],
   };
 }
