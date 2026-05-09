@@ -242,16 +242,15 @@ describe('docs projection', () => {
       // Primary CTA verb-prefixed; secondary actions stay as plain text.
       expect(rootIndex).toContain('Open the adoption guide');
       expect(rootIndex).toContain('link: /start-here');
-      expect(rootIndex).toContain('text: Index');
-      expect(rootIndex).toContain('link: /patterns');
+      expect(rootIndex).toMatch(/text: Pattern Index[\s\S]*?link: \/patterns/);
       expect(rootIndex).toContain('text: Work packets');
       expect(rootIndex).toContain('link: /work-packets');
       expect(rootIndex).toContain('text: MCP recipes');
       expect(rootIndex).toContain('link: /mcp-recipes');
-      expect(rootIndex).toContain('  - title: Index');
+      expect(rootIndex).toContain('  - title: Pattern Index');
       // Index feature card points at the short Pattern Catalog
       // URL `/patterns`, not the deep-link `/generated/patterns/index`.
-      expect(rootIndex).toMatch(/- title: Index[\s\S]*?link: \/patterns/);
+      expect(rootIndex).toMatch(/- title: Pattern Index[\s\S]*?link: \/patterns/);
       expect(rootIndex).toContain('  - title: Routes');
       expect(rootIndex).toContain('link: /generated/routes/index');
       // Card titles dropped the "anchor" suffix per PR #72 design

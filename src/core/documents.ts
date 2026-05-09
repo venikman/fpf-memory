@@ -449,7 +449,7 @@ function renderHomeFrontMatter(patternCount: number): string {
     '      text: "→ Open the adoption guide"',
     '      link: /start-here',
     '    - theme: alt',
-    '      text: Index',
+    '      text: Pattern Index',
     '      link: /patterns',
     '    - theme: alt',
     '      text: Work packets',
@@ -458,13 +458,13 @@ function renderHomeFrontMatter(patternCount: number): string {
     '      text: MCP recipes',
     '      link: /mcp-recipes',
     'features:',
-    '  - title: Index',
-    `    details: The clickable FPF pattern index: ${patternCount} patterns across parts A–K. Open an exact ID, audit the full reference, or compare neighboring patterns by Part.`,
-    // Index and Routes are categories — using a real ID like `A.1`
-    // or `F.1` as the chip (R5-P2-007) misleads users into thinking
-    // those IDs *are* "all patterns" or "all routes". Use a category
-    // badge instead. H.1 and I.3 chips stay because those IDs *are*
-    // the canonical glossary and change-log anchors.
+    '  - title: Pattern Index',
+    `    details: "The clickable FPF pattern index: ${patternCount} patterns across parts A–K. Open an exact ID, audit the full reference, or compare neighboring patterns by Part."`,
+    // The Pattern Index and Routes cards each cover a catalog of items —
+    // using a real ID like `A.1` or `F.1` as the chip (R5-P2-007)
+    // misleads users into thinking those IDs *are* "all patterns" or
+    // "all routes". Use a category badge instead. H.1 and I.3 chips stay
+    // because those IDs *are* the canonical glossary and change-log anchors.
     '    icon: A–K',
     '    link: /patterns',
     '  - title: Routes',

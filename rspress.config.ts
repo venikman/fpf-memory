@@ -231,7 +231,7 @@ window.addEventListener('transitionend',fixSidebarInert);
         link: '/work-packets',
       },
       {
-        text: 'Index',
+        text: 'Pattern Index',
         link: '/patterns',
         activeMatch: '/patterns/?($|\\?|#)',
       },
@@ -246,11 +246,6 @@ window.addEventListener('transitionend',fixSidebarInert);
       {
         text: 'Reference',
         items: [
-          // `activeMatch` anchors the regex so `/patterns` doesn't fire as
-          // active on every `/generated/patterns/*` pattern page (R3-P2-003).
-          // Rspress's matchNavbar uses `RegExp(activeMatch || link).test(path)`
-          // and a bare `/patterns` would substring-match `/generated/patterns/H.1`.
-          { text: 'Pattern catalog', link: '/patterns', activeMatch: '/patterns/?($|\\?|#)' },
           { text: 'Routes', link: '/generated/routes/index' },
           { text: 'Glossary', link: '/generated/patterns/H.1' },
           { text: 'Change log', link: '/generated/patterns/I.3' },
