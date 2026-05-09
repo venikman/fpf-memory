@@ -98,7 +98,12 @@ async function writeFunctionConfig(functionDir: string): Promise<void> {
     regions: ['iad1'],
     supportsResponseStreaming: true,
     launcherType: 'Nodejs',
-    shouldAddHelpers: true,
+    // Vercel's launcher consumes the request body to populate `req.body`
+    // when helpers are enabled. The MCP Streamable HTTP transport reads the
+    // raw IncomingMessage stream itself, so a pre-consumed body leaves it
+    // waiting forever and the function hits maxDuration (504). Keep helpers
+    // off so the request stream stays readable for the transport.
+    shouldAddHelpers: false,
     shouldAddSourcemapSupport: true,
   });
 }
