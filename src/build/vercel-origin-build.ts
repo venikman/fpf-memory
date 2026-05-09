@@ -1,4 +1,4 @@
-import { copyFile, mkdir, rm, stat, writeFile } from 'node:fs/promises';
+import { copyFile, cp, mkdir, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 import { parseBuildConfig } from '../adapters/infra/config/env.js';
@@ -10,7 +10,6 @@ import {
 } from '../core/constants.js';
 import {
   HOSTED_FPF_STATUS_ROUTE,
-  HOSTED_HOME_ROUTES,
   HOSTED_MCP_ROUTE,
 } from '../composition/hosted.js';
 
@@ -21,6 +20,8 @@ export interface BuildVercelOriginOptions {
 
 const OUTPUT_DIR = '.vercel/output';
 const FUNCTION_DIR = `${OUTPUT_DIR}/functions/index.func`;
+const STATIC_DIR = `${OUTPUT_DIR}/static`;
+const DOCS_BUILD_DIR = process.env.FPF_DOCS_OUT_DIR ?? 'doc_build';
 
 export interface VercelOriginOutputConfig {
   version: 3;
@@ -44,6 +45,8 @@ export async function buildVercelOrigin(
   const buildConfig = parseBuildConfig(env);
   const outputDir = resolve(rootDir, OUTPUT_DIR);
   const functionDir = resolve(rootDir, FUNCTION_DIR);
+  const staticDir = resolve(rootDir, STATIC_DIR);
+  const docsBuildDir = resolve(rootDir, DOCS_BUILD_DIR);
 
   await rm(outputDir, { recursive: true, force: true });
   await mkdir(functionDir, { recursive: true });
@@ -52,6 +55,7 @@ export async function buildVercelOrigin(
   await writeVercelConfig(outputDir);
   await writeFunctionConfig(functionDir);
   await copyHostedStage(rootDir, buildConfig.hostedPublicDir, functionDir);
+  await copyDocsToStatic(docsBuildDir, staticDir);
 }
 
 async function bundleFunction(rootDir: string, functionDir: string): Promise<void> {
@@ -79,10 +83,16 @@ async function writeVercelConfig(outputDir: string): Promise<void> {
 
 export function createVercelOriginOutputConfig(): VercelOriginOutputConfig {
   const dest = '/index';
+  // Only API surfaces route to the function. Everything else falls through
+  // to .vercel/output/static which contains the Rspress-built docs site, so
+  // visitors hit fpf.sh/, /start-here, /generated/patterns/A.6.9, etc. as
+  // static HTML — no cold-start tax for docs reads, and the same Vercel
+  // project owns both. This unifies hosting (one project, one deploy, one
+  // PR-preview URL) so docs changes get the same automatic preview the MCP
+  // function does.
   return {
     version: 3,
     routes: [
-      ...HOSTED_HOME_ROUTES.map((route) => ({ src: `^${route}$`, dest })),
       { src: `^${HOSTED_FPF_STATUS_ROUTE}$`, dest },
       { src: `^${HOSTED_MCP_ROUTE}$`, dest },
     ],
@@ -135,6 +145,25 @@ async function copyHostedStage(
   await copyStagedFile(stagedSource, functionSource, 'spec');
   await copyStagedFile(stagedSnapshot, functionSnapshot, 'snapshot');
   await copyStagedFile(stagedManifest, functionManifest, 'manifest');
+}
+
+async function copyDocsToStatic(docsBuildDir: string, staticDir: string): Promise<void> {
+  // Rspress emits the built site to `doc_build/` (configurable via
+  // FPF_DOCS_OUT_DIR). Copy that whole tree into Vercel's static-files
+  // directory so the deploy serves the docs at the project root.
+  try {
+    const stats = await stat(docsBuildDir);
+    if (!stats.isDirectory()) {
+      throw new Error('not a directory');
+    }
+  } catch (error) {
+    throw new Error(
+      `Vercel origin bundle: missing built docs at ${docsBuildDir}. Did \`bun run docs:build\` run first?`,
+      { cause: error },
+    );
+  }
+  await mkdir(staticDir, { recursive: true });
+  await cp(docsBuildDir, staticDir, { recursive: true });
 }
 
 async function copyStagedFile(source: string, target: string, label: string): Promise<void> {

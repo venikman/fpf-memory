@@ -28,7 +28,7 @@ describe('Vercel MCP origin config', () => {
       'vercel link --project fpf-memory-mcp-vercel-origin',
     );
     expect(packageJson.scripts['vercel:origin:build']).toBe(
-      'bun run predeploy && bun run build:vercel-origin && bun run bench:vercel:function-size',
+      'bun run predeploy && bun run docs:build && bun run build:vercel-origin && bun run bench:vercel:function-size',
     );
     expect(packageJson.scripts.deploy).toBe('bun run vercel:origin:deploy:prod');
     const retiredScriptPrefix = ['vercel', 'pro' + 'xy'].join(':');
@@ -44,5 +44,18 @@ describe('Vercel MCP origin config', () => {
       src: `^${HOSTED_FPF_STATUS_ROUTE}$`,
       dest: '/index',
     });
+  });
+
+  it('only sends API surfaces to the function — everything else falls through to static docs', () => {
+    const config = createVercelOriginOutputConfig();
+    // The function only owns /api/* surfaces. Home and /connect-mcp are now
+    // served from the Rspress build output in .vercel/output/static, so
+    // they must NOT be listed in routes (otherwise Vercel routes them to
+    // the function and the static page is shadowed).
+    const dests = config.routes.map((route) => route.src);
+    expect(dests).not.toContain('^/$');
+    expect(dests).not.toContain('^/connect-mcp$');
+    // API routes remain.
+    expect(dests).toContain('^/api/mcp/fpf_memory/mcp$');
   });
 });

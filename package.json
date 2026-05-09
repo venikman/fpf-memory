@@ -23,7 +23,7 @@
     "bench:mcp:series": "bun scripts/bench-hosted-mcp-series.ts",
     "bench:vercel:function-size": "bun scripts/check-vercel-function-size.ts",
     "vercel:origin:link": "vercel link --project fpf-memory-mcp-vercel-origin",
-    "vercel:origin:build": "bun run predeploy && bun run build:vercel-origin && bun run bench:vercel:function-size",
+    "vercel:origin:build": "bun run predeploy && bun run docs:build && bun run build:vercel-origin && bun run bench:vercel:function-size",
     "vercel:origin:deploy": "bun run vercel:origin:build && vercel deploy --prebuilt --yes",
     "vercel:origin:deploy:prod": "bun run vercel:origin:build && vercel deploy --prebuilt --prod --yes",
     "build": "bun run build:runtime && bun run build:mcp",
