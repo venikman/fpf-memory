@@ -52,10 +52,29 @@ describe('Vercel MCP origin config', () => {
     // served from the Rspress build output in .vercel/output/static, so
     // they must NOT be listed in routes (otherwise Vercel routes them to
     // the function and the static page is shadowed).
-    const dests = config.routes.map((route) => route.src);
-    expect(dests).not.toContain('^/$');
-    expect(dests).not.toContain('^/connect-mcp$');
+    const srcRoutes = config.routes.flatMap((route) =>
+      'src' in route ? [route.src] : [],
+    );
+    expect(srcRoutes).not.toContain('^/$');
+    expect(srcRoutes).not.toContain('^/connect-mcp$');
     // API routes remain.
-    expect(dests).toContain('^/api/mcp/fpf_memory/mcp$');
+    expect(srcRoutes).toContain('^/api/mcp/fpf_memory/mcp$');
+  });
+
+  it('runs the filesystem phase before function routes so static docs win', () => {
+    const config = createVercelOriginOutputConfig();
+    // Vercel evaluates `routes` in order. To let .vercel/output/static
+    // serve `/`, `/start-here`, `/generated/patterns/A.6.9.html`, etc.
+    // before any function route fires, the filesystem-phase marker must
+    // come first. PR #106's initial push omitted this and the static
+    // tree was shadowed by the function — guard against regression.
+    const filesystemIndex = config.routes.findIndex(
+      (route) => 'handle' in route && route.handle === 'filesystem',
+    );
+    expect(filesystemIndex).toBe(0);
+    const firstFunctionRouteIndex = config.routes.findIndex(
+      (route) => 'src' in route,
+    );
+    expect(firstFunctionRouteIndex).toBeGreaterThan(filesystemIndex);
   });
 });

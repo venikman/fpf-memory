@@ -23,18 +23,28 @@ const FUNCTION_DIR = `${OUTPUT_DIR}/functions/index.func`;
 const STATIC_DIR = `${OUTPUT_DIR}/static`;
 const DOCS_BUILD_DIR = process.env.FPF_DOCS_OUT_DIR ?? 'doc_build';
 
+export type VercelOriginRoute =
+  | {
+      // Phase marker — `handle: "filesystem"` tells Vercel to try the
+      // .vercel/output/static/ tree before evaluating the routes that follow.
+      // Without this, function routes that don't match still fall through to
+      // an implicit "send to /index" instead of the static fallback we want.
+      handle: 'filesystem' | 'miss' | 'rewrite' | 'hit' | 'error' | 'resource';
+    }
+  | {
+      src: string;
+      dest?: string;
+      headers?: Record<string, string>;
+      methods?: string[];
+      status?: number;
+      continue?: boolean;
+      check?: boolean;
+      caseSensitive?: boolean;
+    };
+
 export interface VercelOriginOutputConfig {
   version: 3;
-  routes: Array<{
-    src: string;
-    dest?: string;
-    headers?: Record<string, string>;
-    methods?: string[];
-    status?: number;
-    continue?: boolean;
-    check?: boolean;
-    caseSensitive?: boolean;
-  }>;
+  routes: VercelOriginRoute[];
 }
 
 export async function buildVercelOrigin(
@@ -83,16 +93,19 @@ async function writeVercelConfig(outputDir: string): Promise<void> {
 
 export function createVercelOriginOutputConfig(): VercelOriginOutputConfig {
   const dest = '/index';
-  // Only API surfaces route to the function. Everything else falls through
-  // to .vercel/output/static which contains the Rspress-built docs site, so
-  // visitors hit fpf.sh/, /start-here, /generated/patterns/A.6.9, etc. as
-  // static HTML — no cold-start tax for docs reads, and the same Vercel
-  // project owns both. This unifies hosting (one project, one deploy, one
-  // PR-preview URL) so docs changes get the same automatic preview the MCP
-  // function does.
+  // Phase order matters. The `handle: "filesystem"` marker must come first so
+  // Vercel checks `.vercel/output/static/` for an exact path match (e.g.
+  // `/`, `/start-here`, `/generated/patterns/A.6.9.html`) before falling
+  // through to function routes. Without this marker the routes are evaluated
+  // linearly with no static fallback and any path that doesn't match below
+  // returns the function's response (or 404) — which is how the unified-deploy
+  // preview accidentally shadowed every static page in PR #106's first push.
+  //
+  // Only API surfaces route to the function. Everything else stays static.
   return {
     version: 3,
     routes: [
+      { handle: 'filesystem' },
       { src: `^${HOSTED_FPF_STATUS_ROUTE}$`, dest },
       { src: `^${HOSTED_MCP_ROUTE}$`, dest },
     ],
