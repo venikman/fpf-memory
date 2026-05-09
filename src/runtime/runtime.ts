@@ -410,7 +410,9 @@ export class FpfRuntime {
 
     // Tokenize the raw query first so camelCase splits (e.g. BoundedContext →
     // bounded + context) are preserved; tokenize() handles lowercasing internally.
-    const queryTokens = tokenize(query);
+    // Cap the token count so a pathological query can't drive scoreOverlap into
+    // O(tokens × nodes × textLen) on the public unauthenticated endpoint.
+    const queryTokens = tokenize(query).slice(0, SEARCH_MAX_QUERY_TOKENS);
     const limit = Math.min(options.limit ?? 20, 100);
 
     const hits: SearchHit[] = [];
@@ -860,6 +862,9 @@ function nodeToCatalogEntry(
 }
 
 const SEARCH_TITLE_TOKEN_WEIGHT = 5;
+// Schema caps the query string at 1000 chars; even pathological tokenizations
+// won't exceed this token count for a legitimate query.
+const SEARCH_MAX_QUERY_TOKENS = 64;
 const SNIPPET_RADIUS = 80;
 
 function extractSnippet(searchableText: string, queryTokens: string[]): string {

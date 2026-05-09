@@ -1,5 +1,16 @@
 import { z } from 'zod';
 
+// Public, unauthenticated MCP tools accept user-supplied strings; without
+// caps a single 4 MB payload can drive the runtime into Vercel's 5-minute
+// `maxDuration` ceiling. These limits are generous for legitimate use
+// (a 2000-character question is far longer than anything a person types)
+// and refuse pathological input at the schema boundary.
+const MAX_QUESTION_LENGTH = 2_000;
+const MAX_SEARCH_QUERY_LENGTH = 1_000;
+const MAX_SELECTOR_LENGTH = 256;
+const MAX_FILTER_LENGTH = 64;
+const MAX_CITATION_COUNT = 50;
+
 export const answerModeSchema = z.enum(['compact', 'verbose', 'proof']);
 export const nodeKindSchema = z.enum(['pattern', 'route', 'lexeme']);
 export const selectorKindSchema = z.enum(['auto', 'id', 'route', 'lexeme']);
@@ -438,19 +449,19 @@ export const refreshFpfIndexInputSchema = z
 
 export const queryFpfSpecInputSchema = z
   .object({
-    question: z.string().min(1),
+    question: z.string().min(1).max(MAX_QUESTION_LENGTH),
     mode: answerModeSchema.optional(),
     forceRefresh: z.boolean().optional(),
-    sessionId: z.string().min(1).optional(),
+    sessionId: z.string().min(1).max(MAX_SELECTOR_LENGTH).optional(),
   })
   .strict();
 
 export const askFpfInputSchema = z
   .object({
-    question: z.string().min(1),
+    question: z.string().min(1).max(MAX_QUESTION_LENGTH),
     mode: answerModeSchema.optional(),
     forceRefresh: z.boolean().optional(),
-    sessionId: z.string().min(1).optional(),
+    sessionId: z.string().min(1).max(MAX_SELECTOR_LENGTH).optional(),
   })
   .strict();
 
@@ -458,7 +469,7 @@ export const getFpfIndexStatusInputSchema = z.object({}).strict();
 
 export const inspectFpfNodeInputSchema = z
   .object({
-    selector: z.string().min(1),
+    selector: z.string().min(1).max(MAX_SELECTOR_LENGTH),
     kind: selectorKindSchema.optional(),
     forceRefresh: z.boolean().optional(),
   })
@@ -466,7 +477,7 @@ export const inspectFpfNodeInputSchema = z
 
 export const readFpfDocInputSchema = z
   .object({
-    selector: z.string().min(1),
+    selector: z.string().min(1).max(MAX_SELECTOR_LENGTH),
     kind: selectorKindSchema.optional(),
     forceRefresh: z.boolean().optional(),
   })
@@ -474,24 +485,27 @@ export const readFpfDocInputSchema = z
 
 export const inspectFpfAnchorInputSchema = z
   .object({
-    anchorId: z.string().min(1),
+    anchorId: z.string().min(1).max(MAX_SELECTOR_LENGTH),
     forceRefresh: z.boolean().optional(),
   })
   .strict();
 
 export const expandFpfCitationsInputSchema = z
   .object({
-    citationIds: z.array(z.string().min(1)).min(1),
+    citationIds: z
+      .array(z.string().min(1).max(MAX_SELECTOR_LENGTH))
+      .min(1)
+      .max(MAX_CITATION_COUNT),
     forceRefresh: z.boolean().optional(),
   })
   .strict();
 
 export const traceFpfPathInputSchema = z
   .object({
-    question: z.string().min(1),
+    question: z.string().min(1).max(MAX_QUESTION_LENGTH),
     mode: answerModeSchema.optional(),
     forceRefresh: z.boolean().optional(),
-    sessionId: z.string().min(1).optional(),
+    sessionId: z.string().min(1).max(MAX_SELECTOR_LENGTH).optional(),
   })
   .strict();
 
@@ -523,8 +537,8 @@ export const catalogEntrySchema = z
 
 export const browseFpfCatalogInputSchema = z
   .object({
-    part: z.string().optional(),
-    status: z.string().optional(),
+    part: z.string().max(MAX_FILTER_LENGTH).optional(),
+    status: z.string().max(MAX_FILTER_LENGTH).optional(),
     kind: nodeKindSchema.optional(),
     limit: z.number().int().min(1).max(500).optional(),
     forceRefresh: z.boolean().optional(),
@@ -571,7 +585,7 @@ export const searchHitSchema = z
 
 export const searchFpfInputSchema = z
   .object({
-    query: z.string().min(1),
+    query: z.string().min(1).max(MAX_SEARCH_QUERY_LENGTH),
     kind: nodeKindSchema.optional(),
     limit: z.number().int().min(1).max(100).optional(),
     forceRefresh: z.boolean().optional(),
