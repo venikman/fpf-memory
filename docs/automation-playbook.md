@@ -33,12 +33,12 @@ The main safety rule is simple: discovery roles stay read-only, implementation r
 | Dogfood/product scout | Act as one product user role and report friction. | Try docs, MCP, CLI, evaluator, deploy evidence, and onboarding flows. | Edit repo files, create PRs, open issues, comment, merge, or post externally. | Role/job report with evidence, friction, severity, and handoffs. |
 | Discussion steward | Keep GitHub Discussions actionable. | Inspect discussions, issues, and PRs; dedupe signals; maintain a Top 3 work list. | Implement fixes or create noisy new threads by default. | Discussion change report and issue-conversion recommendation. |
 | Implementation PR agent | Turn one ready item into a bounded PR. | Edit code/docs, validate, open or update one PR. | Self-merge or perform broad product scouting. | PR with source links, validation output, and residual risk. |
-| PR review and merge captain | Keep PRs moving with independent judgement. | Review PRs, check CI/reviews/mergeability, comment on blockers, merge when policy is met. | Implement fixes or silently wait on blocked PRs. | Merge/no-merge decision with evidence. |
+| PR review and merge captain | Keep PRs moving with independent judgment. | Review PRs, check CI/reviews/mergeability, comment on blockers, merge when policy is met. | Implement fixes or silently wait on blocked PRs. | Merge/no-merge decision with evidence. |
 | Manager brief | Compress automation state for the user. | Read automation memory, repo state, PRs, discussions, docs, and hosted MCP health. | Replace the specialist roles or make external commitments. | Product readiness, changed, validated, Top 3 next actions, decisions needed. |
-| Technical architect | Make periodic system-level judgement. | Review MCP server, index/runtime, docs/adoption UX, CLI, evaluator, packaging/deploy, CI, and automation health. | Create implementation work unless explicitly asked. | Architecture state, risks, recommendations, handoffs, and stop/replan triggers. |
+| Technical architect | Make periodic system-level judgment. | Review MCP server, index/runtime, docs/adoption UX, CLI, evaluator, packaging/deploy, CI, and automation health. | Create implementation work unless explicitly asked. | Architecture state, risks, recommendations, handoffs, and stop/replan triggers. |
 | Growth and publishing scout | Turn validated evidence into draft public material. | Draft Medium/Substack posts, short social posts, README/forum blurbs, and outreach notes. | Publish, email, DM, post, or log into external accounts without explicit approval. | Share packet with audience, proof points, caveats, links, and call to action. |
 
-## Work flow
+## Workflow
 
 ```txt
 Dogfood/product scout
