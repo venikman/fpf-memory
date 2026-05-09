@@ -135,6 +135,7 @@ Goal: let an agent use FPF without loading the whole FPF.
 Use:
 
 - [MCP recipes](/mcp-recipes)
+- [Automation Playbook](/automation-playbook) when the work needs role boundaries, access rules, merge authority, or draft-only publishing packets
 - `route:project-alignment` via [Routes](/generated/routes/index)
 - [E.8 Authoring conventions](/generated/patterns/E.8)
 - [E.19 — Pattern Quality Gates: Review & Refresh Profiles](/generated/patterns/E.19) — use as the pattern change-record gate
@@ -142,6 +143,7 @@ Use:
 Packet:
 
 - Ask the agent to name the work type first.
+- Assign the work to a role before giving it write, merge, or publishing authority.
 - Retrieve the route or 3-8 exact IDs through MCP.
 - Ask for assumptions, model, options, pick, tests, risks, and next move.
 - Require citations to FPF IDs when the framework changes a decision.

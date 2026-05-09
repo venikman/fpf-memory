@@ -240,6 +240,7 @@ window.addEventListener('transitionend',fixSidebarInert);
         items: [
           { text: 'Recipes', link: '/mcp-recipes' },
           { text: 'Connect to clients', link: '/connect-mcp' },
+          { text: 'Automation playbook', link: '/automation-playbook' },
           { text: 'Vercel hosting', link: '/vercel-hosting' },
         ],
       },

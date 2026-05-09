@@ -5,6 +5,8 @@
 > **📖 Live reference:** [venikman.github.io/fpf-memory](https://venikman.github.io/fpf-memory/) — searchable pattern catalog, routes, and preface. Type an ID like `A.2` or `route:project-alignment` in the search box to jump in.
 >
 > **🤖 Working with this repo as an agent?** See [`AGENTS.md`](./AGENTS.md) for the MCP tool guide and workspace conventions.
+>
+> **🧭 Coordinating repo automation?** See the [Automation Playbook](https://venikman.github.io/fpf-memory/automation-playbook) for role boundaries, access rules, merge authority, and draft-only publishing packets.
 
 ## What is this?
 
