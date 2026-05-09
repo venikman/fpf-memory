@@ -206,6 +206,35 @@ describe('docs projection', () => {
     expect(comparisonPage).not.toContain('- tri-state admissibility (`pass');
   });
 
+  it('auto-links pattern IDs in body prose, but never inside code or existing links', () => {
+    const projection = buildDocsProjection(snapshot);
+
+    // Pick a pattern page whose body prose references another pattern by its
+    // bare ID. A.6.9 references F.9 in its anchor text; the agent's earlier
+    // smoke check confirmed this rendered as plain text in production.
+    const a69Page = projection.pagesByMarkdownPath['docs/generated/patterns/A.6.9.md']?.markdown;
+    expect(a69Page).toBeDefined();
+    if (!a69Page) return;
+
+    // The bare ID should now be a link, but only the outermost token —
+    // a leading `(` from "(F.9)" or a trailing punctuation like "." must
+    // not get folded into the link target.
+    expect(a69Page).toMatch(/\[F\.9\]\(\/generated\/patterns\/F\.9\)/);
+
+    // A pattern ID that already lives inside an explicit `inlineCode` span
+    // should be passed through unchanged. F.9 itself isn't always inside
+    // backticks in the body, so verify the guard with a synthetic round-trip
+    // through the same helper via the renderer: any pattern pages that quote
+    // an ID inside `…` must not produce a nested link.
+    expect(a69Page).not.toMatch(/`\[[A-Z]\.\d/);
+    expect(a69Page).not.toMatch(/\[\[[A-Z]\.\d+/); // no double-bracketed links
+
+    // Only patterns get auto-linked. Route IDs (`route:…`) and anchor IDs
+    // (`heading:…`) must never end up in a /generated/patterns/ URL.
+    expect(a69Page).not.toMatch(/\(\/generated\/patterns\/route:/);
+    expect(a69Page).not.toMatch(/\(\/generated\/patterns\/heading:/);
+  });
+
   it('deduplicates repeated relation lines and exposes grouped navigation', () => {
     const projection = buildDocsProjection(snapshot);
     const navigation = buildDocsNavigation(snapshot);

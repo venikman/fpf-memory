@@ -645,11 +645,11 @@ function renderPatternPage(snapshot: Snapshot, pattern: PatternRecord): string {
   appendPatternContext(lines, pattern);
 
   if (introText) {
-    lines.push('', introText);
+    lines.push('', autolinkPatternIds(snapshot, introText));
   }
 
   if (leadExcerpt) {
-    lines.push('', leadExcerpt);
+    lines.push('', autolinkPatternIds(snapshot, leadExcerpt));
   }
 
   if (catalogReminder) {
@@ -789,7 +789,7 @@ function renderRoutePage(snapshot: Snapshot, route: RouteRecord): string {
   }
 
   if (route.description) {
-    lines.push('', route.description);
+    lines.push('', autolinkPatternIds(snapshot, route.description));
   }
 
   appendNodeIdList(lines, snapshot, 'Ordered steps', route.orderedIds, true);
@@ -842,7 +842,7 @@ function renderPrefacePage(snapshot: Snapshot, sectionId: string): string {
   if (anchor.text.trim() || section.childIds.length > 0) {
     lines.push('', '## Content');
     if (anchor.text.trim()) {
-      lines.push('', anchor.text.trim());
+      lines.push('', autolinkPatternIds(snapshot, anchor.text.trim()));
     }
     const childLines = renderSectionTree(snapshot, sectionId);
     if (childLines.length > 0) {
@@ -881,7 +881,7 @@ function renderSection(
   const headingLevel = Math.max(2, section.level - baseLevel + 1);
   lines.push(`${'#'.repeat(headingLevel)} ${displaySectionTitle(section.title)}`, '');
   if (anchor.text.trim()) {
-    lines.push(anchor.text.trim(), '');
+    lines.push(autolinkPatternIds(snapshot, anchor.text.trim()), '');
   }
 
   for (const childId of section.childIds) {
@@ -917,6 +917,55 @@ function appendNodeIdList(
 // treats as valid IDs.
 function isPatternIdShape(nodeId: string): boolean {
   return /^[A-Z]\.\d+(?:\.[A-Za-z0-9]+)*(?::[A-Za-z0-9.]+)?$/u.test(nodeId);
+}
+
+// Same shape as `ID_PATTERN`/`isPatternIdShape`, but global so we can rewrite
+// every match inside body markdown.
+const PATTERN_ID_TOKEN_PATTERN =
+  /\b[A-Z]\.\d+(?:\.[A-Za-z0-9]+)*(?::[A-Za-z0-9.]+)?\b/g;
+
+/**
+ * Replace each bare pattern-ID token (`A.6.9`, `B.1.2`, etc.) in a markdown
+ * body with a link to its canonical generated page, while leaving IDs that
+ * are already inside code, an existing markdown link, or an HTML attribute
+ * untouched.
+ *
+ * Pattern-only by design: route IDs like `route:project-alignment` and
+ * lexicon IDs are handled elsewhere (relations panels, structured lists),
+ * and lookalike strings that aren't compiled patterns are passed through
+ * unchanged so we never link to a 404.
+ */
+function autolinkPatternIds(snapshot: Snapshot, body: string): string {
+  if (!body || !body.includes('.')) {
+    return body;
+  }
+
+  const guards: Array<[number, number]> = [];
+  const guardSources: RegExp[] = [
+    /```[\s\S]*?```/g, // fenced code blocks
+    /`[^`\n]+`/g, // inline code spans
+    /\[[^\]]+\]\([^)]+\)/g, // existing markdown links [text](url)
+    /<[^>]+>/g, // HTML tags (don't link inside attributes)
+  ];
+  for (const re of guardSources) {
+    for (const match of body.matchAll(re)) {
+      const start = match.index ?? 0;
+      guards.push([start, start + match[0].length]);
+    }
+  }
+  const isGuarded = (offset: number): boolean =>
+    guards.some(([start, end]) => offset >= start && offset < end);
+
+  return body.replace(PATTERN_ID_TOKEN_PATTERN, (match: string, offset: number) => {
+    if (typeof offset !== 'number' || isGuarded(offset)) {
+      return match;
+    }
+    const node = snapshot.compiledNodes[match];
+    if (!node || node.kind !== 'pattern') {
+      return match;
+    }
+    return `[${match}](${patternDocRef(match).staticPath})`;
+  });
 }
 
 function formatRelation(snapshot: Snapshot, relation: RelationEdge): string {
