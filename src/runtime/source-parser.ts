@@ -788,18 +788,37 @@ export function derivePrefaceRouteName(line: string): string | undefined {
   return normalizeLabel(candidate);
 }
 
+// Recent FPF spec revisions renamed the preface verbs ("start with" →
+// "inspect") and route-table heading ("Route Index" → "Neighborhood Index").
+// The compiler accepts both wordings so route extraction survives spec
+// vocabulary churn. If the upstream phrasing changes again, extend these
+// arrays rather than swapping them — the older form may still appear in
+// archived snapshots that get replayed for drift checks.
+const ORDERED_LIST_VERBS = ['inspect', 'start with'];
+const ADDITIONAL_LIST_VERBS = ['Consider', 'Land on'];
+
+function findFirstIndex(line: string, needles: string[]): number {
+  let earliest = -1;
+  for (const needle of needles) {
+    const index = line.indexOf(needle);
+    if (index < 0) continue;
+    if (earliest < 0 || index < earliest) earliest = index;
+  }
+  return earliest;
+}
+
 export function extractOrderedIds(line: string): string[] {
-  const startWithIndex = line.indexOf('start with');
-  if (startWithIndex < 0) {
+  const startIndex = findFirstIndex(line, ORDERED_LIST_VERBS);
+  if (startIndex < 0) {
     return [];
   }
-  const endIndex = line.indexOf('Land on');
-  const segment = line.slice(startWithIndex, endIndex > 0 ? endIndex : undefined);
+  const endIndex = findFirstIndex(line, ADDITIONAL_LIST_VERBS);
+  const segment = line.slice(startIndex, endIndex > startIndex ? endIndex : undefined);
   return extractIds(segment);
 }
 
 export function extractLandingIds(line: string): string[] {
-  const landingIndex = line.indexOf('Land on');
+  const landingIndex = findFirstIndex(line, ADDITIONAL_LIST_VERBS);
   if (landingIndex < 0) {
     return [];
   }

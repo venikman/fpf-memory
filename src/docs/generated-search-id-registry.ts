@@ -1242,5 +1242,71 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/K.3"
     }
   ],
-  "routes": []
+  "routes": [
+    {
+      "slug": "boundary-unpacking",
+      "title": "boundary unpacking",
+      "staticPath": "/generated/routes/route_boundary-unpacking"
+    },
+    {
+      "slug": "boundary-unpacking-claim-routing",
+      "title": "Boundary unpacking / claim routing",
+      "staticPath": "/generated/routes/route_boundary-unpacking-claim-routing"
+    },
+    {
+      "slug": "causal-use-counterfactual-support-repair",
+      "title": "Causal-use / counterfactual-support repair",
+      "staticPath": "/generated/routes/route_causal-use-counterfactual-support-repair"
+    },
+    {
+      "slug": "generator-sota-portfolio-kit",
+      "title": "Generator / SoTA / portfolio kit",
+      "staticPath": "/generated/routes/route_generator-sota-portfolio-kit"
+    },
+    {
+      "slug": "lawful-comparison-pool-selection-selected-set-publication",
+      "title": "lawful comparison / pool / selection / selected-set publication",
+      "staticPath": "/generated/routes/route_lawful-comparison-pool-selection-selected-set-publication"
+    },
+    {
+      "slug": "partly-said-language-state-discovery",
+      "title": "partly-said / language-state discovery",
+      "staticPath": "/generated/routes/route_partly-said-language-state-discovery"
+    },
+    {
+      "slug": "project-alignment",
+      "title": "project alignment",
+      "staticPath": "/generated/routes/route_project-alignment"
+    },
+    {
+      "slug": "reusable-generator-sota-portfolio-kit",
+      "title": "reusable generator / SoTA / portfolio kit",
+      "staticPath": "/generated/routes/route_reusable-generator-sota-portfolio-kit"
+    },
+    {
+      "slug": "same-entity-rewrite-explanation-comparative-reading",
+      "title": "Same-entity rewrite / explanation / comparative reading",
+      "staticPath": "/generated/routes/route_same-entity-rewrite-explanation-comparative-reading"
+    },
+    {
+      "slug": "same-entity-rewrite-explanation-representation-change-repair-or-bounded-comparative-reading",
+      "title": "same-entity rewrite, explanation, representation change, repair, or bounded comparative reading",
+      "staticPath": "/generated/routes/route_same-entity-rewrite-explanation-representation-change-repair-or-bounded-comparative-reading"
+    },
+    {
+      "slug": "temporal-claim-adequacy-under-effort-window-resistance",
+      "title": "Temporal claim adequacy under effort/window/resistance",
+      "staticPath": "/generated/routes/route_temporal-claim-adequacy-under-effort-window-resistance"
+    },
+    {
+      "slug": "why",
+      "title": "why",
+      "staticPath": "/generated/routes/route_why"
+    },
+    {
+      "slug": "writing-or-reviewing-patterns",
+      "title": "writing or reviewing patterns",
+      "staticPath": "/generated/routes/route_writing-or-reviewing-patterns"
+    }
+  ]
 };

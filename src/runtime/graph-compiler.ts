@@ -309,39 +309,24 @@ function parsePrefaceRoutes(
 ): RouteRecord[] {
   const routes: RouteRecord[] = [];
   let inPrefaceRouteList = false;
+  let currentBullet: string | null = null;
 
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed === '**Where to start**') {
-      inPrefaceRouteList = true;
-      continue;
+  const finalizeBullet = (bullet: string | null): void => {
+    if (!bullet) return;
+    // Accept either legacy ("start with") or current ("inspect") verbs.
+    if (!bullet.includes('start with') && !bullet.includes('inspect')) {
+      return;
     }
-    if (!inPrefaceRouteList) {
-      continue;
-    }
-    if (trimmed.startsWith('Everything in the Core')) {
-      break;
-    }
-    if (!trimmed.startsWith('- ')) {
-      continue;
-    }
-    if (!trimmed.includes('start with')) {
-      continue;
-    }
-
-    const routeName = derivePrefaceRouteName(trimmed);
-    if (!routeName) {
-      continue;
-    }
-
+    const routeName = derivePrefaceRouteName(bullet);
+    if (!routeName) return;
     const id = routeKey(routeName);
-    const orderedIds = extractOrderedIds(trimmed);
-    const landingIds = extractLandingIds(trimmed);
-    const allIds = extractIds(trimmed);
+    const orderedIds = extractOrderedIds(bullet);
+    const landingIds = extractLandingIds(bullet);
+    const allIds = extractIds(bullet);
     routes.push({
       id,
       name: routeName,
-      description: cleanMarkdown(trimmed.replace(/^- /, '')),
+      description: cleanMarkdown(bullet.replace(/^- /, '')),
       firstHonestBurden: undefined,
       orderedIds,
       optionalIds: allIds.filter(
@@ -353,21 +338,75 @@ function parsePrefaceRoutes(
       reroutes: [],
       citations: [PREFACE_ROUTE_CITATION],
       anchorIds: anchorMap[PREFACE_ROUTE_CITATION] ? [PREFACE_ROUTE_CITATION] : [],
-      searchableText: cleanMarkdown(trimmed),
+      searchableText: cleanMarkdown(bullet),
       constraints: [],
     });
+  };
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed === '**Where to start**') {
+      inPrefaceRouteList = true;
+      continue;
+    }
+    if (!inPrefaceRouteList) {
+      continue;
+    }
+    if (trimmed.startsWith('Everything in the Core')) {
+      finalizeBullet(currentBullet);
+      currentBullet = null;
+      break;
+    }
+
+    if (trimmed.startsWith('- ')) {
+      // New bullet — finalize the previous one (if any) and start collecting.
+      finalizeBullet(currentBullet);
+      currentBullet = trimmed;
+      continue;
+    }
+
+    if (currentBullet !== null) {
+      // Indented continuation lines belong to the current bullet. The spec
+      // wraps long preface bullets across multiple lines (e.g. for "project
+      // alignment"), so we need to glue them back together before scanning
+      // for the verb / IDs.
+      if (line.startsWith(' ') || line.startsWith('\t')) {
+        currentBullet = `${currentBullet} ${trimmed}`;
+        continue;
+      }
+      // Blank line or non-indented prose: bullet ended.
+      finalizeBullet(currentBullet);
+      currentBullet = null;
+    }
   }
+
+  // Tail bullet, if the section runs to EOF without the "Everything in the
+  // Core" terminator.
+  finalizeBullet(currentBullet);
 
   return routes;
 }
+
+// Either heading is valid: the spec was renamed from "Route Index" to
+// "Neighborhood Index" but the table shape (≥6 columns, name in cell 0,
+// burden in cell 1, candidates in cell 2, description in cell 3) is unchanged.
+const J4_HEADING_PREFIXES = [
+  '## J.4 - First Practical Entry Route Index',
+  '## J.4 - First Practical Entry Neighborhood Index',
+];
+// Header-row first cells we should skip — both the old "Route" header and
+// the new "Entry neighborhood" header. Compared via `normalizeForLookup`
+// so casing/whitespace differences don't leak through.
+const J4_HEADER_CELL_VALUES = new Set(['route', 'entry neighborhood']);
 
 function parseJ4Routes(
   lines: string[],
   anchorMap: Record<string, AnchorRef>,
 ): RouteRecord[] {
-  const headingIndex = lines.findIndex((line) =>
-    line.trim().startsWith('## J.4 - First Practical Entry Route Index'),
-  );
+  const headingIndex = lines.findIndex((line) => {
+    const trimmed = line.trim();
+    return J4_HEADING_PREFIXES.some((prefix) => trimmed.startsWith(prefix));
+  });
   if (headingIndex < 0) {
     return [];
   }
@@ -396,7 +435,7 @@ function parseJ4Routes(
     if (cells.length < 6 || isMarkdownSeparatorRow(cells)) {
       continue;
     }
-    if (normalizeForLookup(cells[0] ?? '') === 'route') {
+    if (J4_HEADER_CELL_VALUES.has(normalizeForLookup(cells[0] ?? ''))) {
       continue;
     }
     const name = normalizeLabel(cells[0] ?? '');
