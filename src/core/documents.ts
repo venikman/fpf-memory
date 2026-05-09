@@ -7,7 +7,6 @@ import type {
   RouteRecord,
   Snapshot,
 } from './types.js';
-import { HOSTED_MCP_ENDPOINT } from './constants.js';
 import { normalizeForLookup, unique } from './text.js';
 
 export interface GeneratedDocPage {
@@ -289,14 +288,6 @@ function renderPatternCatalogMarkdown(
     heading?: string;
   },
 ): string {
-  const groups = new Map<string, PatternRecord[]>();
-  for (const pattern of sortedPatterns(snapshot)) {
-    const key = pattern.part ?? pattern.cluster ?? 'Ungrouped';
-    const bucket = groups.get(key) ?? [];
-    bucket.push(pattern);
-    groups.set(key, bucket);
-  }
-
   const lines = [
     renderFrontMatter({
       title: options.title,
@@ -314,6 +305,29 @@ function renderPatternCatalogMarkdown(
     `Generated pages: ${Object.keys(snapshot.patternGraph.nodes).length}`,
   ];
 
+  appendPatternCatalogChapters(lines, snapshot);
+
+  return `${lines.join('\n')}\n`;
+}
+
+/**
+ * Append a flat by-Part chapter listing for every compiled pattern. Used by
+ * the pattern catalog at `/patterns` and by the site index at `/`, so both
+ * surfaces present the same information in the same order. No curation, no
+ * mix-and-match — readers can scan a single chapter list and click through
+ * to any pattern by ID.
+ */
+function appendPatternCatalogChapters(
+  lines: string[],
+  snapshot: Snapshot,
+): void {
+  const groups = new Map<string, PatternRecord[]>();
+  for (const pattern of sortedPatterns(snapshot)) {
+    const key = pattern.part ?? pattern.cluster ?? 'Ungrouped';
+    const bucket = groups.get(key) ?? [];
+    bucket.push(pattern);
+    groups.set(key, bucket);
+  }
   for (const [group, patterns] of groups.entries()) {
     lines.push('', `## ${group}`, '');
     for (const pattern of patterns) {
@@ -321,8 +335,6 @@ function renderPatternCatalogMarkdown(
       lines.push(`- [${pattern.id} - ${pattern.title}](${docRef.staticPath})`);
     }
   }
-
-  return `${lines.join('\n')}\n`;
 }
 
 /**
@@ -364,11 +376,11 @@ function buildPatternsAliasPage(snapshot: Snapshot): GeneratedDocPage {
 }
 
 /**
- * The site root (`/`) is the orientation/welcome surface. First-time
- * visitors land here and choose a path; the full Pattern Catalog lives one
- * click away at `/patterns`. Rendered as authored markdown + scoped CSS so
- * the first screen can use the Doorway model instead of Rspress's stock home
- * hero, whose layout centers against the docs column rather than the viewport.
+ * The site root (`/`) is the orientation/welcome surface. It now reads as a
+ * plain chapter list: a slim header (title, intro line, three CTAs, the
+ * provenance line), followed by the same Part-by-Part chapter listing as
+ * `/patterns`. Same information, no curation — visitors scan one list and
+ * click straight through to any pattern.
  */
 function buildRootIndexPage(
   snapshot: Snapshot,
@@ -389,7 +401,6 @@ function renderHomeMarkdown(
 ): string {
   const patternCount = Object.keys(snapshot.patternGraph.nodes).length;
   const provenanceDetail = renderHomeProvenanceDetail(manifest);
-  const patternCountLabel = `${patternCount} generated pattern pages across the published parts.`;
 
   const lines: string[] = [
     renderFrontMatter({
@@ -397,86 +408,17 @@ function renderHomeMarkdown(
       description: 'Compiler-backed reference for the latest published FPF, projected as a slim wiki.',
       outline: false,
     }),
+    '',
+    '# FPF Reference',
+    '',
+    `*Projection of the latest published FPF — ${patternCount} generated pattern pages across the published parts.*`,
+    '',
+    '[Start here](/start-here) · [Connect MCP](/connect-mcp) · [Open the catalog](/patterns) · [Routes](/generated/routes/index)',
+    '',
+    `> ${provenanceDetail}`,
   ];
 
-  lines.push(
-    '',
-    '<div class="fpf-doorway-home" aria-label="FPF Reference homepage">',
-    '  <section class="fpf-doorway-hero" aria-labelledby="doorway-home-title">',
-    '    <div class="fpf-doorway-hero__copy">',
-    '      <p class="fpf-doorway-kicker">FPF Reference</p>',
-    '      <h1 id="doorway-home-title">The doorway, then the source.</h1>',
-    '      <p>Use the full First Principles Framework without loading the whole specification first. Start with the work, choose the smallest grounded surface, and open exact IDs only when wording matters.</p>',
-    '      <nav class="fpf-doorway-actions" aria-label="Primary site paths">',
-    '        <a class="fpf-doorway-button fpf-doorway-button--primary" href="/start-here">Start here</a>',
-    '        <a class="fpf-doorway-button" href="/patterns">Open the index</a>',
-    '        <a class="fpf-doorway-button" href="/connect-mcp">Connect MCP</a>',
-    '      </nav>',
-    '    </div>',
-    '    <aside class="fpf-doorway-principle" aria-label="Operating rule">',
-    '      <span>Operating rule</span>',
-    '      <strong>Smallest useful surface first.</strong>',
-    '      <p>Move from human orientation to route work, exact generated pages, and MCP retrieval only when the task needs precision.</p>',
-    '    </aside>',
-    '  </section>',
-    '',
-    '  <section class="fpf-doorway-surfaces" aria-label="Core reference surfaces">',
-    '    <a href="/generated/routes/index"><span>routes</span><strong>Choose the work before the pattern.</strong><em>Generated working paths for alignment, review, feedback, and boundary work.</em></a>',
-    `    <a href="/patterns"><span>index</span><strong>A curated shelf before the full catalog.</strong><em>${escapeHtml(patternCountLabel)}</em></a>`,
-    '    <a href="/connect-mcp"><span>mcp</span><strong>The utility desk for agents.</strong><em>Hosted endpoint, client setup, tool names, and first prompts.</em></a>',
-    '    <a href="/work-packets"><span>packets</span><strong>Task-sized operating surfaces.</strong><em>Review, product-role feedback, and adoption packets for repeated work.</em></a>',
-    '  </section>',
-    '',
-    '  <section class="fpf-doorway-routes" aria-labelledby="doorway-route-title">',
-    '    <div class="fpf-doorway-section-head">',
-    '      <p>Work lanes</p>',
-    '      <h2 id="doorway-route-title">Fast route selection for known work shapes.</h2>',
-    '    </div>',
-    '    <div class="fpf-doorway-route-grid">',
-    '      <a href="/generated/routes/route_project-alignment"><span>Alignment</span><strong>Set the shared operating frame.</strong><em>Context, roles, method, and first surface.</em></a>',
-    '      <a href="/generated/routes/route_writing-or-reviewing-patterns"><span>Review</span><strong>Make critique replayable.</strong><em>Findings tied to IDs, constraints, risks, and tests.</em></a>',
-    '      <a href="/work-packets#product-role-feedback-packet"><span>Feedback</span><strong>Translate role friction into an artifact.</strong><em>Observed job, failed expectation, and proposed improvement.</em></a>',
-    '      <a href="/generated/routes/route_boundary-burden"><span>Boundary</span><strong>Separate claims from obligations.</strong><em>Promises, duties, evidence needs, and handoff risks.</em></a>',
-    '    </div>',
-    '  </section>',
-    '',
-    '  <section class="fpf-doorway-reference" aria-labelledby="doorway-reference-title">',
-    '    <div class="fpf-doorway-section-head">',
-    '      <p>Reference access</p>',
-    '      <h2 id="doorway-reference-title">The full framework stays close, but not first.</h2>',
-    '    </div>',
-    '    <div class="fpf-doorway-reference-grid">',
-    '      <a href="/generated/patterns/E.14"><span>E.14</span><strong>Human-Centric Working-Model</strong></a>',
-    '      <a href="/generated/patterns/E.8"><span>E.8</span><strong>Authoring Conventions</strong></a>',
-    '      <a href="/generated/patterns/E.10"><span>E.10</span><strong>LEX-BUNDLE</strong></a>',
-    '      <a href="/generated/patterns/F.17"><span>F.17</span><strong>Unified Term Sheet</strong></a>',
-    '      <a href="/generated/patterns/F.9"><span>F.9</span><strong>Alignment & Bridge</strong></a>',
-    '      <a href="/generated/patterns/E.19"><span>E.19</span><strong>Pattern Quality Gates</strong></a>',
-    '    </div>',
-    '  </section>',
-    '',
-    '  <section class="fpf-doorway-mcp" aria-labelledby="doorway-mcp-title">',
-    '    <div>',
-    '      <p class="fpf-doorway-kicker">Agent path</p>',
-    '      <h2 id="doorway-mcp-title">Ask for a slice, not the whole spec.</h2>',
-    '      <p>Connect an MCP-aware client and retrieve compact, grounded context when the work needs FPF.</p>',
-    '    </div>',
-    '    <div class="fpf-doorway-endpoint">',
-    `      <code>${escapeHtml(HOSTED_MCP_ENDPOINT)}</code>`,
-    '      <nav aria-label="MCP links">',
-    '        <a href="/connect-mcp">Connect clients</a>',
-    '        <a href="/mcp-recipes">Use recipes</a>',
-    '      </nav>',
-    '    </div>',
-    '  </section>',
-    '',
-    '  <section class="fpf-doorway-provenance" aria-label="Source and provenance promise">',
-    '    <p>Projection of the latest published FPF.</p>',
-    '    <strong>Human-readable first, generated-reference exact, source status visible.</strong>',
-    `    <span>${escapeHtml(provenanceDetail)}</span>`,
-    '  </section>',
-    '</div>',
-  );
+  appendPatternCatalogChapters(lines, snapshot);
 
   return `${lines.join('\n')}\n`;
 }

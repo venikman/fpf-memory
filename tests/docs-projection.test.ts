@@ -270,28 +270,27 @@ describe('docs projection', () => {
       expect(
         await readFile(resolve(docsRoot, 'generated/patterns/index.md'), 'utf8'),
       ).toContain('# Pattern Catalog');
-      // The site root `/` is the authored Doorway orientation page. The
-      // Pattern Catalog stays at `/patterns` so first-time visitors get an
-      // adoption surface, not a 237-link reference wall.
+      // The site root `/` is now a plain chapter list: a slim header (title,
+      // intro line, three CTAs, provenance line) followed by the same
+      // Part-by-Part chapter listing as `/patterns`. Same information, no
+      // curation — visitors scan one list and click straight through.
       const rootIndex = await readFile(resolve(docsRoot, 'index.md'), 'utf8');
       expect(rootIndex).toContain('title: "FPF Reference"');
       expect(rootIndex).not.toContain('pageType: home');
-      expect(rootIndex).toContain('class="fpf-doorway-home"');
-      expect(rootIndex).toContain('The doorway, then the source.');
-      expect(rootIndex).toContain('FPF Reference');
+      expect(rootIndex).not.toContain('class="fpf-doorway-home"');
+      expect(rootIndex).not.toContain('The doorway, then the source.');
+      expect(rootIndex).toContain('# FPF Reference');
       expect(rootIndex).toContain('Projection of the latest published FPF');
-      expect(rootIndex).toContain('Smallest useful surface first.');
-      expect(rootIndex).toContain('href="/start-here">Start here</a>');
-      expect(rootIndex).toContain('href="/patterns">Open the index</a>');
-      expect(rootIndex).toContain('href="/connect-mcp">Connect MCP</a>');
-      expect(rootIndex).toContain('href="/generated/routes/index"');
-      expect(rootIndex).toContain('href="/generated/routes/route_project-alignment"');
-      expect(rootIndex).toContain('href="/generated/routes/route_boundary-burden"');
-      expect(rootIndex).toContain('href="/generated/patterns/E.14"');
-      expect(rootIndex).toContain('href="/generated/patterns/E.19"');
-      expect(rootIndex).toContain('fpf-memory-mcp-vercel-origin.vercel.app');
-      expect(rootIndex).toContain('Connect clients');
-      expect(rootIndex).toContain('Use recipes');
+      expect(rootIndex).toContain('[Start here](/start-here)');
+      expect(rootIndex).toContain('[Connect MCP](/connect-mcp)');
+      expect(rootIndex).toContain('[Open the catalog](/patterns)');
+      expect(rootIndex).toContain('[Routes](/generated/routes/index)');
+      // Chapter list — at least Part A through the last canonical Part should
+      // be present as ## headings.
+      expect(rootIndex).toMatch(/^## Part A\b/m);
+      // Every pattern in the snapshot should be reachable as a list item from
+      // the home page (same source as the catalog body).
+      expect(rootIndex).toContain('](/generated/patterns/A.2)');
 
       // Pattern Catalog short-URL alias at /patterns — same content as
       // /generated/patterns/index. Carries the orientation-page back-pointer
@@ -350,13 +349,15 @@ describe('docs projection', () => {
         },
       );
 
-      // `/` is the authored Doorway orientation page. Hero copy + primary
-      // CTA should be present.
+      // `/` now renders as a plain chapter list. The headline title, the
+      // three CTAs, and at least one Part heading should be present in the
+      // built HTML.
       const indexHtml = await readFile(resolve(outDir, 'index.html'), 'utf8');
       expect(indexHtml).toContain('FPF Reference');
-      expect(indexHtml).toContain('The doorway, then the source.');
       expect(indexHtml).toContain('Start here');
-      expect(indexHtml).toContain('Smallest useful surface first.');
+      expect(indexHtml).toContain('Connect MCP');
+      expect(indexHtml).toContain('Open the catalog');
+      expect(indexHtml).toContain('Part A');
 
       // `/patterns` is the short-URL Pattern Catalog. Verify it lists Part A
       // Role Taxonomy and points back at the orientation page.
