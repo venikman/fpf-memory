@@ -49,7 +49,8 @@ export interface McpToolDependencies {
 
 export interface FpfMcpTool<
   TInputSchema extends z.ZodType = z.ZodType,
-  TOutputSchema extends z.ZodType = z.ZodType,
+  TOutput extends Record<string, unknown> = Record<string, unknown>,
+  TOutputSchema extends z.ZodType<TOutput> = z.ZodType<TOutput>,
 > {
   id: string;
   description: string;
@@ -62,8 +63,11 @@ export type FpfMcpToolMap = Record<string, FpfMcpTool>;
 
 function createFpfMcpTool<
   TInputSchema extends z.ZodType,
-  TOutputSchema extends z.ZodType,
->(tool: FpfMcpTool<TInputSchema, TOutputSchema>): FpfMcpTool<TInputSchema, TOutputSchema> {
+  TOutput extends Record<string, unknown>,
+  TOutputSchema extends z.ZodType<TOutput>,
+>(
+  tool: FpfMcpTool<TInputSchema, TOutput, TOutputSchema>,
+): FpfMcpTool<TInputSchema, TOutput, TOutputSchema> {
   return tool;
 }
 

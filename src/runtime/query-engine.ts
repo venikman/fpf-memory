@@ -242,6 +242,10 @@ export class QueryEngine {
       return undefined;
     }
 
+    if (extractIds(question).length > 0) {
+      return undefined;
+    }
+
     const match = selectFastRouteMatch(question, this.snapshot.routeGraph.nodes);
     if (!match) {
       return undefined;

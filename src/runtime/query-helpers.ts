@@ -10,12 +10,24 @@ import {
   unique,
 } from './text.js';
 import type { AnchorRef, LexiconEntry, PatternRecord, RouteRecord, SectionRole } from './types.js';
+import {
+  BOUNDARY_BURDEN_JOB_SIGNALS,
+  BOUNDARY_BURDEN_SIGNALS,
+  WRITING_OR_REVIEWING_PATTERN_SIGNALS,
+  hasBoundaryReviewNegation,
+} from './route-intent-signals.js';
 
 export interface FastRouteMatch {
   routeId: string;
   score: number;
   reason: string;
 }
+
+const PATTERN_AUTHORING_ACTION_BEFORE_PATTERN =
+  /\b(?:add|adding|draft|drafting|write|writing|revise|revising|author|authoring|review|reviewing)\b(?:\s+(?:a|an|the|new|existing|fpf|spec))*\s+patterns?\b/;
+
+const PATTERN_AUTHORING_NOUN_AFTER_PATTERN =
+  /\bpatterns?\s+(?:writing|authoring|review|reviewing|revision|revisions|draft|drafting)\b/;
 
 export function isPartCDraftQuery(question: string): boolean {
   const normalized = normalizeForLookup(question);
@@ -158,6 +170,8 @@ function scoreAdoptionRouteIntent(normalizedQuestion: string, route: RouteRecord
       return scoreBoundaryBurdenIntent(normalizedQuestion);
     case 'route:boundary-unpacking':
       return scoreBoundaryUnpackingIntent(normalizedQuestion);
+    case 'route:writing-or-reviewing-patterns':
+      return scoreWritingOrReviewingPatternIntent(normalizedQuestion);
     default:
       return 0;
   }
@@ -174,6 +188,11 @@ function scoreProjectAlignmentIntent(normalizedQuestion: string): number {
     'align a project',
     'align a new project',
     'aligning a new project',
+    'project alignment',
+    'project review',
+    'starting a team project',
+    'start a team project',
+    'team project',
     'first shared work surface',
     'vocabulary is overloaded',
     'overloaded across teams',
@@ -195,32 +214,32 @@ function scoreProjectAlignmentIntent(normalizedQuestion: string): number {
 }
 
 function scoreBoundaryBurdenIntent(normalizedQuestion: string): number {
-  const boundarySignals = [
-    'api',
-    'boundary',
-    'interface',
-    'contract',
-    'protocol',
-    'slo',
-    'sla',
-    'acceptance',
-    'compliance',
-    'ownership',
-  ];
-  const jobSignals = [
-    'kickoff',
-    'project lead',
-    'route',
-    'smallest',
-    'work packet',
-    'decision',
-    'questions',
-  ];
+  if (hasBoundaryReviewNegation(normalizedQuestion)) {
+    return 0;
+  }
+
   if (
-    boundarySignals.some((signal) => normalizedQuestion.includes(signal)) &&
-    jobSignals.some((signal) => normalizedQuestion.includes(signal))
+    BOUNDARY_BURDEN_SIGNALS.some((signal) => normalizedQuestion.includes(signal)) &&
+    BOUNDARY_BURDEN_JOB_SIGNALS.some((signal) => normalizedQuestion.includes(signal))
   ) {
     return 92;
+  }
+  return 0;
+}
+
+function scoreWritingOrReviewingPatternIntent(normalizedQuestion: string): number {
+  if (
+    WRITING_OR_REVIEWING_PATTERN_SIGNALS.some((signal) =>
+      normalizedQuestion.includes(signal),
+    )
+  ) {
+    return 88;
+  }
+  if (
+    PATTERN_AUTHORING_ACTION_BEFORE_PATTERN.test(normalizedQuestion) ||
+    PATTERN_AUTHORING_NOUN_AFTER_PATTERN.test(normalizedQuestion)
+  ) {
+    return 72;
   }
   return 0;
 }

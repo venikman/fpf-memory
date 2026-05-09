@@ -24,6 +24,8 @@ export class FpfMcpServer {
     const transport = new WebStandardStreamableHTTPServerTransport({
       enableJsonResponse: true,
     });
+    // The SDK Protocol owns exactly one transport and throws on reconnect,
+    // so each Streamable HTTP request gets a distinct server instance.
     const server = this.createSdkServer();
     await server.connect(transport);
     return transport.handleRequest(request);
@@ -76,13 +78,13 @@ function registerFpfTool(server: McpServer, tool: FpfMcpTool): void {
       outputSchema: tool.outputSchema,
     },
     async (input) => {
-      const structuredContent = asStructuredContent(await tool.execute(input));
+      const structuredContent = await tool.execute(input);
       return {
         structuredContent,
         content: [
           {
             type: 'text',
-            text: JSON.stringify(structuredContent, null, 2),
+            text: renderToolContent(tool.id, structuredContent),
           },
         ],
       } satisfies CallToolResult;
@@ -90,9 +92,26 @@ function registerFpfTool(server: McpServer, tool: FpfMcpTool): void {
   );
 }
 
-function asStructuredContent(value: unknown): Record<string, unknown> {
-  if (value && typeof value === 'object' && !Array.isArray(value)) {
-    return value as Record<string, unknown>;
+function renderToolContent(
+  toolId: string,
+  structuredContent: Record<string, unknown>,
+): string {
+  const markdown = structuredContent.markdown;
+  if (typeof markdown === 'string' && toolId === 'ask_fpf') {
+    return markdown;
   }
-  return { value };
+
+  const answer = structuredContent.answer;
+  if (typeof answer === 'string') {
+    return answer;
+  }
+
+  const nodeId = structuredContent.nodeId;
+  if (toolId === 'read_fpf_doc' && typeof nodeId === 'string') {
+    return `read_fpf_doc returned markdown for ${nodeId} in structuredContent.markdown.`;
+  }
+
+  const status = structuredContent.status;
+  const summary = status ? ` status=${String(status)}` : '';
+  return `${toolId} returned structured content.${summary}`;
 }

@@ -1,4 +1,4 @@
-import { copyFile, mkdir, rm, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 import { parseBuildConfig } from '../adapters/infra/config/env.js';
@@ -99,8 +99,23 @@ async function copyHostedStage(
 
   await mkdir(dirname(functionSource), { recursive: true });
   await mkdir(dirname(functionSnapshot), { recursive: true });
-  await copyFile(stagedSource, functionSource);
-  await copyFile(stagedSnapshot, functionSnapshot);
+  await copyStagedFile(stagedSource, functionSource, 'spec');
+  await copyStagedFile(stagedSnapshot, functionSnapshot, 'snapshot');
+}
+
+async function copyStagedFile(source: string, target: string, label: string): Promise<void> {
+  try {
+    const sourceStats = await stat(source);
+    if (!sourceStats.isFile()) {
+      throw new Error('not a file');
+    }
+  } catch (error) {
+    throw new Error(
+      `Vercel origin bundle: missing staged ${label} at ${source}. Did \`bun run stage:from-published\` run first?`,
+      { cause: error },
+    );
+  }
+  await copyFile(source, target);
 }
 
 async function writeJson(path: string, value: unknown): Promise<void> {

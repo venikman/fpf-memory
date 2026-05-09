@@ -9,6 +9,7 @@ import {
   scoreOverlap,
   tokenize,
 } from './text.js';
+import { hasBoundaryReviewNegation } from './route-intent-signals.js';
 import type {
   FrontierCandidate,
   FrontierOrigin,
@@ -201,6 +202,9 @@ function addHeuristicSeeds(
   addCandidate: (nodeId: string, delta: number, reason: string, origin: FrontierOrigin) => void,
 ): void {
   for (const rule of snapshot.heuristicSeedRules ?? []) {
+    if (rule.name === 'boundary-review' && hasBoundaryReviewNegation(normalizedQuestion)) {
+      continue;
+    }
     if (!matchesSeedRule(normalizedQuestion, rule)) {
       continue;
     }

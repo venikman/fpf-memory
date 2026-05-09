@@ -1,6 +1,10 @@
 import { Hono } from 'hono';
 
-import { parseHostedConfig } from '../adapters/infra/config/env.js';
+import {
+  parseHostedConfig,
+  parseLoggingConfig,
+} from '../adapters/infra/config/env.js';
+import { getRuntimeLogger } from '../adapters/infra/logging/runtime-logger.js';
 import { renderHostedHomePage } from '../adapters/hosted/home-page.js';
 import { applyHostedEnvDefaults } from './hosted-env.js';
 import { getSharedMcpComposition } from './mcp.js';
@@ -29,4 +33,8 @@ export function createHostedComposition(env: NodeJS.ProcessEnv) {
     app,
     mcpServer,
   };
+}
+
+export function createHostedErrorLogger(env: NodeJS.ProcessEnv) {
+  return getRuntimeLogger(parseLoggingConfig(env));
 }

@@ -1,9 +1,11 @@
-import { writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 
 import { resolveLogPath } from '../../../logging/file-paths.js';
 import type { ObservabilityConfig } from '../config/types.js';
 
 const DEFAULT_LOG_FILE = 'runtime-observability.json';
+const MAX_RECORDED_SPANS = 1_000;
 
 export const RuntimeSpanType = {
   ModelGeneration: 'model_generation',
@@ -66,6 +68,7 @@ class RuntimeObservabilityRecorder {
       metadata: sanitizeRecord(options.metadata),
     };
     this.spans.push(span);
+    this.pruneSpans();
     return span;
   }
 
@@ -97,11 +100,14 @@ class RuntimeObservabilityRecorder {
 
   async flush(): Promise<void> {
     const writeOperation = this.writeChain.then(() =>
-      writeFile(
-        this.summary.filePath,
-        `${JSON.stringify(this.snapshot(), null, 2)}\n`,
-        'utf8',
-      ),
+      mkdir(dirname(this.summary.filePath), { recursive: true })
+        .then(() =>
+          writeFile(
+            this.summary.filePath,
+            `${JSON.stringify(this.snapshot(), null, 2)}\n`,
+            'utf8',
+          ),
+        ),
     );
     this.writeChain = writeOperation.catch(() => undefined);
     await writeOperation;
@@ -131,6 +137,13 @@ class RuntimeObservabilityRecorder {
       (span) =>
         !(this.summary.excludeModelChunks && span.type === RuntimeSpanType.ModelChunk),
     );
+  }
+
+  private pruneSpans(): void {
+    if (this.spans.length <= MAX_RECORDED_SPANS) {
+      return;
+    }
+    this.spans.splice(0, this.spans.length - MAX_RECORDED_SPANS);
   }
 }
 

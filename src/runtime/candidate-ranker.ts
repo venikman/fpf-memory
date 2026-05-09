@@ -94,6 +94,13 @@ function doesRouteWin(
     normalizedQuestion.includes('across teams') ||
     normalizedQuestion.includes('burden');
 
+  const routeHasAdoptionIntent = routeCandidate.reasons.some((reason) =>
+    reason.includes('adoption-route-intent'),
+  );
+  if (routeIntent && routeHasAdoptionIntent && routeCandidate.score >= 80) {
+    return true;
+  }
+
   if (routeIntent) {
     return routeCandidate.score >= (bestPattern?.score ?? 0) - 4;
   }

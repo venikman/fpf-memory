@@ -1,4 +1,5 @@
-import { appendFileSync } from 'node:fs';
+import { appendFile, mkdir } from 'node:fs/promises';
+import { dirname } from 'node:path';
 
 import { resolveLogPath } from '../../../logging/file-paths.js';
 import type { LoggingConfig } from '../config/types.js';
@@ -17,9 +18,14 @@ export interface RuntimeLogger {
   info(message: string, data?: Record<string, unknown>): void;
   warn(message: string, data?: Record<string, unknown>): void;
   error(message: string, data?: Record<string, unknown>): void;
+  flush?(): Promise<void>;
 }
 
 class JsonFileRuntimeLogger implements RuntimeLogger {
+  private directoryReady: Promise<void> | undefined;
+  private writeChain = Promise.resolve();
+  private fileWriterDisabled = false;
+
   constructor(
     private readonly filePath: string,
     private readonly config: LoggingConfig,
@@ -46,18 +52,42 @@ class JsonFileRuntimeLogger implements RuntimeLogger {
       return;
     }
 
-    appendFileSync(
-      this.filePath,
-      `${JSON.stringify({
-        time: new Date().toISOString(),
-        level,
-        message,
-        service: this.config.serviceName,
-        logFile: this.filePath,
-        ...(data ?? {}),
-      })}\n`,
-      'utf8',
+    const payload = {
+      time: new Date().toISOString(),
+      level,
+      message,
+      service: this.config.serviceName,
+      logFile: this.filePath,
+      ...(data ? { data } : {}),
+    };
+
+    if (isVercelRuntime() || this.fileWriterDisabled) {
+      writeConsolePayload(level, payload);
+      return;
+    }
+
+    const writeOperation = this.writeChain
+      .then(() => this.ensureDirectoryReady())
+      .then(() => appendFile(this.filePath, `${JSON.stringify(payload)}\n`, 'utf8'))
+      .catch((error) => {
+        this.fileWriterDisabled = true;
+        writeConsolePayload(level, {
+          ...payload,
+          loggerError: normalizeError(error),
+        });
+      });
+    this.writeChain = writeOperation;
+  }
+
+  async flush(): Promise<void> {
+    await this.writeChain;
+  }
+
+  private ensureDirectoryReady(): Promise<void> {
+    this.directoryReady ??= mkdir(dirname(this.filePath), { recursive: true }).then(
+      () => undefined,
     );
+    return this.directoryReady;
   }
 }
 
@@ -75,4 +105,36 @@ export function getRuntimeLogger(config: LoggingConfig): RuntimeLogger {
   cachedLogger = new JsonFileRuntimeLogger(filePath, config);
   cachedKey = cacheKey;
   return cachedLogger;
+}
+
+export async function resetRuntimeLoggerForTests(): Promise<void> {
+  await cachedLogger?.flush?.().catch(() => undefined);
+  cachedLogger = undefined;
+  cachedKey = undefined;
+}
+
+function isVercelRuntime(): boolean {
+  return process.env.VERCEL === '1';
+}
+
+function writeConsolePayload(level: LogLevel, payload: Record<string, unknown>): void {
+  const line = `${JSON.stringify(payload)}\n`;
+  if (level === 'error' || level === 'warn') {
+    process.stderr.write(line);
+    return;
+  }
+  process.stdout.write(line);
+}
+
+function normalizeError(error: unknown): Record<string, unknown> {
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    };
+  }
+  return {
+    message: String(error),
+  };
 }

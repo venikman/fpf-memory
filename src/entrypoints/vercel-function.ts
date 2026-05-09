@@ -1,18 +1,46 @@
 import type { IncomingHttpHeaders, IncomingMessage, ServerResponse } from 'node:http';
 import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 
-import { createHostedComposition } from '../composition/hosted.js';
+import {
+  createHostedComposition,
+  createHostedErrorLogger,
+} from '../composition/hosted.js';
 
-const { app } = createHostedComposition(process.env);
+type HostedComposition = ReturnType<typeof createHostedComposition>;
+
+let hostedCompositionPromise: Promise<HostedComposition> | undefined;
 
 export default async function handler(
   request: IncomingMessage,
   response: ServerResponse,
 ): Promise<void> {
-  const webRequest = toWebRequest(request);
-  const webResponse = await app.fetch(webRequest);
-  await sendWebResponse(response, webResponse);
+  try {
+    const { app } = await getHostedComposition();
+    const webRequest = toWebRequest(request);
+    const webResponse = await app.fetch(webRequest);
+    await sendWebResponse(response, webResponse);
+  } catch (error) {
+    await logHandlerError(error);
+    if (!response.headersSent) {
+      response.statusCode = 500;
+      response.setHeader('content-type', 'application/json; charset=utf-8');
+      response.end(JSON.stringify({ error: 'internal_server_error' }));
+      return;
+    }
+    response.destroy(error instanceof Error ? error : undefined);
+  }
+}
+
+function getHostedComposition(): Promise<HostedComposition> {
+  hostedCompositionPromise ??= Promise.resolve()
+    .then(() => createHostedComposition(process.env))
+    .catch((error) => {
+      hostedCompositionPromise = undefined;
+      throw error;
+    });
+  return hostedCompositionPromise;
 }
 
 function toWebRequest(request: IncomingMessage): Request {
@@ -71,14 +99,32 @@ async function sendWebResponse(
   const nodeStream = Readable.fromWeb(
     webResponse.body as unknown as NodeReadableStream,
   );
-  await new Promise<void>((resolve, reject) => {
-    nodeStream.on('error', reject);
-    response.on('error', reject);
-    response.on('finish', resolve);
-    nodeStream.pipe(response);
-  });
+  await pipeline(nodeStream, response);
 }
 
 function firstHeader(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
+}
+
+async function logHandlerError(error: unknown): Promise<void> {
+  const logger = createHostedErrorLogger(process.env);
+  logger.error('Vercel MCP function failed', {
+    error: normalizeErrorMessage(error),
+    cause: error instanceof Error ? error.stack ?? error : error,
+  });
+  await logger.flush?.();
+}
+
+function normalizeErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
 }

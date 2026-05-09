@@ -48,8 +48,19 @@ export function parseRuntimeCoreConfig(
 
 export function parseLoggingConfig(env: NodeJS.ProcessEnv): LoggingConfig {
   return {
-    filePath: parseString(env.FPF_RUNTIME_LOG_PATH, '.runtime/logs/fpf-runtime.log'),
-    level: parseEnum(env.FPF_RUNTIME_LOG_LEVEL, loggingLevelSchema, 'info'),
+    filePath: parseStringWithLegacy(
+      env,
+      'FPF_RUNTIME_LOG_PATH',
+      'FPF_MASTRA_LOG_PATH',
+      '.runtime/logs/fpf-runtime.log',
+    ),
+    level: parseEnumWithLegacy(
+      env,
+      'FPF_RUNTIME_LOG_LEVEL',
+      'FPF_MASTRA_LOG_LEVEL',
+      loggingLevelSchema,
+      'info',
+    ),
     serviceName: 'fpf-spec-runtime',
   };
 }
@@ -58,26 +69,36 @@ export function parseObservabilityConfig(
   env: NodeJS.ProcessEnv,
 ): ObservabilityConfig {
   return {
-    filePath: parseString(
-      env.FPF_RUNTIME_OBSERVABILITY_PATH,
+    filePath: parseStringWithLegacy(
+      env,
+      'FPF_RUNTIME_OBSERVABILITY_PATH',
+      'FPF_MASTRA_OBSERVABILITY_PATH',
       '.runtime/logs/runtime-observability.json',
     ),
-    format: parseEnum(
-      env.FPF_RUNTIME_OBSERVABILITY_FORMAT,
+    format: parseEnumWithLegacy(
+      env,
+      'FPF_RUNTIME_OBSERVABILITY_FORMAT',
+      'FPF_MASTRA_OBSERVABILITY_FORMAT',
       observabilityFormatSchema,
       'flat',
     ),
-    includeInternalSpans: parseBoolean(
-      env.FPF_RUNTIME_OBSERVABILITY_INCLUDE_INTERNAL_SPANS,
+    includeInternalSpans: parseBooleanWithLegacy(
+      env,
+      'FPF_RUNTIME_OBSERVABILITY_INCLUDE_INTERNAL_SPANS',
+      'FPF_MASTRA_OBSERVABILITY_INCLUDE_INTERNAL_SPANS',
       true,
     ),
-    logLevel: parseEnum(
-      env.FPF_RUNTIME_OBSERVABILITY_LOG_LEVEL,
+    logLevel: parseEnumWithLegacy(
+      env,
+      'FPF_RUNTIME_OBSERVABILITY_LOG_LEVEL',
+      'FPF_MASTRA_OBSERVABILITY_LOG_LEVEL',
       observabilityLogLevelSchema,
       'info',
     ),
-    excludeModelChunks: !parseBoolean(
-      env.FPF_RUNTIME_OBSERVABILITY_INCLUDE_MODEL_CHUNKS,
+    excludeModelChunks: !parseBooleanWithLegacy(
+      env,
+      'FPF_RUNTIME_OBSERVABILITY_INCLUDE_MODEL_CHUNKS',
+      'FPF_MASTRA_OBSERVABILITY_INCLUDE_MODEL_CHUNKS',
       false,
     ),
     serviceName: 'fpf-spec-runtime',
@@ -148,6 +169,17 @@ function parseString(value: string | undefined, fallback: string): string {
   return normalizeOptionalString(value) ?? fallback;
 }
 
+function parseStringWithLegacy(
+  env: NodeJS.ProcessEnv,
+  currentName: string,
+  legacyName: string,
+  fallback: string,
+): string {
+  return normalizeOptionalString(env[currentName])
+    ?? readLegacyEnv(env, currentName, legacyName)
+    ?? fallback;
+}
+
 function normalizeOptionalString(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
   return trimmed ? trimmed : undefined;
@@ -168,6 +200,19 @@ function parseBoolean(value: string | undefined, fallback: boolean): boolean {
     default:
       return fallback;
   }
+}
+
+function parseBooleanWithLegacy(
+  env: NodeJS.ProcessEnv,
+  currentName: string,
+  legacyName: string,
+  fallback: boolean,
+): boolean {
+  return parseBoolean(
+    normalizeOptionalString(env[currentName])
+      ?? readLegacyEnv(env, currentName, legacyName),
+    fallback,
+  );
 }
 
 function parsePositiveInteger(value: string | undefined, fallback: number): number {
@@ -191,4 +236,39 @@ function parseEnum<TValue extends string>(
   const normalized = normalizeOptionalString(value);
   const parsed = normalized ? schema.safeParse(normalized.toLowerCase()) : undefined;
   return parsed?.success ? parsed.data : fallback;
+}
+
+function parseEnumWithLegacy<TValue extends string>(
+  env: NodeJS.ProcessEnv,
+  currentName: string,
+  legacyName: string,
+  schema: z.ZodType<TValue>,
+  fallback: TValue,
+): TValue {
+  return parseEnum(
+    normalizeOptionalString(env[currentName])
+      ?? readLegacyEnv(env, currentName, legacyName),
+    schema,
+    fallback,
+  );
+}
+
+const warnedLegacyEnvNames = new Set<string>();
+
+function readLegacyEnv(
+  env: NodeJS.ProcessEnv,
+  currentName: string,
+  legacyName: string,
+): string | undefined {
+  const legacyValue = normalizeOptionalString(env[legacyName]);
+  if (!legacyValue) {
+    return undefined;
+  }
+  if (!warnedLegacyEnvNames.has(legacyName)) {
+    warnedLegacyEnvNames.add(legacyName);
+    process.stderr.write(
+      `${legacyName} is deprecated; use ${currentName} instead.\n`,
+    );
+  }
+  return legacyValue;
 }

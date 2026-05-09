@@ -44,10 +44,11 @@ Goal: find behavioral risk, missing evidence, or semantic drift.
 
 Use:
 
-- [route:writing-or-reviewing-patterns](/generated/routes/route_writing-or-reviewing-patterns)
-- [E.8 Authoring conventions](/generated/patterns/E.8)
-- [E.19 — Pattern Quality Gates: Review & Refresh Profiles](/generated/patterns/E.19) — use as the pattern change-record gate
+- [E.8 Authoring conventions](/generated/patterns/E.8) for FPF pattern or specification wording changes
+- [E.19 — Pattern Quality Gates: Review & Refresh Profiles](/generated/patterns/E.19) as the pattern change-record gate
+- [route:writing-or-reviewing-patterns](/generated/routes/route_writing-or-reviewing-patterns) only when the PR changes FPF pattern or specification text
 - [route:boundary-burden](/generated/routes/route_boundary-burden) for APIs, contracts, protocols, or CI/deploy gates
+- Otherwise use this packet as the review checklist and retrieve exact IDs only when a finding depends on FPF wording
 
 Packet:
 

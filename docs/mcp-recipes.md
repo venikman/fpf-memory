@@ -93,7 +93,8 @@ Use only the fpf_memory MCP server plus the PR diff, local files, and CI evidenc
 
 Good retrieval shape:
 
-- Start with `query_fpf_spec` for `route:writing-or-reviewing-patterns`.
+- For ordinary code review, start from the local diff, CI evidence, and the PR/code review packet rather than forcing a route.
+- Use `route:writing-or-reviewing-patterns` only when the PR changes FPF pattern or specification text.
 - Add `route:boundary-burden` only when the change touches an API, contract, workflow, protocol, CI gate, or deploy promise.
 - Read exact pattern pages only when a finding depends on the wording.
 - Keep the verdict tied to evidence: merge, fix first, or split scope.
