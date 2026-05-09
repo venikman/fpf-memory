@@ -1,7 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 
 import type { createMcpTools, FpfMcpTool, FpfMcpToolMap } from './tools.js';
 
@@ -29,6 +31,21 @@ export class FpfMcpServer {
     const server = this.createSdkServer();
     await server.connect(transport);
     return transport.handleRequest(request);
+  }
+
+  async handleNodeStreamableHttp(
+    request: IncomingMessage,
+    response: ServerResponse,
+  ): Promise<void> {
+    const transport = new StreamableHTTPServerTransport({
+      enableJsonResponse: true,
+    });
+    // Vercel functions expose Node request/response objects. Use the SDK's
+    // Node adapter there so streaming headers and request bodies are flushed
+    // through the platform's native path instead of a manual Web conversion.
+    const server = this.createSdkServer();
+    await server.connect(transport);
+    await transport.handleRequest(request, response);
   }
 
   createSdkServer(): McpServer {

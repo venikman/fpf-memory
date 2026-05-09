@@ -6,6 +6,7 @@ import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import {
   createHostedComposition,
   createHostedErrorLogger,
+  HOSTED_MCP_ROUTE,
 } from '../composition/hosted.js';
 
 type HostedComposition = ReturnType<typeof createHostedComposition>;
@@ -17,7 +18,12 @@ export default async function handler(
   response: ServerResponse,
 ): Promise<void> {
   try {
-    const { app } = await getHostedComposition();
+    const { app, mcpServer } = await getHostedComposition();
+    if (isMcpRoute(request)) {
+      await mcpServer.handleNodeStreamableHttp(request, response);
+      return;
+    }
+
     const webRequest = toWebRequest(request);
     const webResponse = await app.fetch(webRequest);
     await sendWebResponse(response, webResponse);
@@ -41,6 +47,11 @@ function getHostedComposition(): Promise<HostedComposition> {
       throw error;
     });
   return hostedCompositionPromise;
+}
+
+function isMcpRoute(request: IncomingMessage): boolean {
+  const url = new URL(request.url ?? '/', 'https://localhost');
+  return url.pathname === HOSTED_MCP_ROUTE;
 }
 
 function toWebRequest(request: IncomingMessage): Request {

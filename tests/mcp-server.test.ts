@@ -1,5 +1,6 @@
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
+import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import readline from 'node:readline';
@@ -8,6 +9,7 @@ import { afterEach, describe, expect, it } from '@rstest/core';
 
 import { createHostedComposition } from '../src/composition/hosted.js';
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
+import vercelHandler from '../src/entrypoints/vercel-function.js';
 
 interface JsonRpcResponse {
   jsonrpc: '2.0';
@@ -394,6 +396,70 @@ describe('direct MCP server', () => {
     } as NodeJS.ProcessEnv);
     const response = await app.request('/');
     expect(response.status).toBe(200);
+  });
+
+  it('initializes hosted MCP through the Vercel Node adapter', async () => {
+    const server = createServer((request, response) => {
+      vercelHandler(request, response).catch((error: unknown) => {
+        response.statusCode = 500;
+        response.end(error instanceof Error ? error.message : String(error));
+      });
+    });
+
+    await new Promise<void>((resolveListen) => {
+      server.listen(0, '127.0.0.1', resolveListen);
+    });
+
+    try {
+      const address = server.address();
+      expect(typeof address).toBe('object');
+      expect(address).not.toBeNull();
+      const port = (address as { port: number }).port;
+      const response = await fetch(
+        `http://127.0.0.1:${port}/api/mcp/fpf_memory/mcp`,
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            accept: 'application/json, text/event-stream',
+            'MCP-Protocol-Version': '2025-06-18',
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'initialize',
+            params: {
+              protocolVersion: '2025-06-18',
+              capabilities: {},
+              clientInfo: {
+                name: 'rstest-vercel-node-adapter',
+                version: '1.0.0',
+              },
+            },
+          }),
+          signal: AbortSignal.timeout(5_000),
+        },
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('content-type')).toContain('application/json');
+      const payload = await response.json() as JsonRpcResponse;
+      expect(payload.error).toBeUndefined();
+      expect(payload.result?.serverInfo).toEqual({
+        name: 'fpf_memory',
+        version: '1.0.0',
+      });
+    } finally {
+      await new Promise<void>((resolveClose, rejectClose) => {
+        server.close((error) => {
+          if (error) {
+            rejectClose(error);
+            return;
+          }
+          resolveClose();
+        });
+      });
+    }
   });
 });
 
