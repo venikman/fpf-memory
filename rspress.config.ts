@@ -172,6 +172,63 @@ observer.observe(document.body||document.documentElement,{childList:true,subtree
 window.addEventListener('resize',fixSidebarInert);
 window.addEventListener('transitionend',fixSidebarInert);
 })();</script>`,
+    // Vim-style keyboard navigation. Bare keys, never with Cmd/Ctrl/Alt,
+    // and ignored while focus is in any input. Emitted as a raw-string
+    // <script> entry like the existing accessibility shim — rspress's
+    // 3-tuple `['script', attrs, body]` shape isn't supported by the
+    // head config type, so a string is the only path for inline scripts.
+    //
+    // PR #105's earlier attempt got its opening <script> tag stripped
+    // somewhere in the head emit pipeline. The smoking gun was almost
+    // certainly an `el.innerHTML = '<...>'` literal HTML inside the JS
+    // string body, which an over-eager HTML pre-processor parsed as real
+    // tags. This rewrite uses createElement / setAttribute / textContent
+    // exclusively — no embedded HTML markup inside the JS source — so
+    // there's nothing for the pre-processor to misread, and the new
+    // `tests/e2e/keybindings.spec.ts` would fail loud if it regresses.
+    //
+    // Bindings:
+    //   h / l        previous / next page (clicks .rp-prev-next-page__prev/next)
+    //   j / k        scroll down / up (80px steps)
+    //   g g          jump to top of page (smooth scroll)
+    //   G            jump to bottom (smooth scroll)
+    //   /            focus search (clicks the .rp-search-button trigger)
+    //   ?            toggle help overlay
+    //   Esc          close help overlay (always works, even when toggle is off)
+    //
+    // The Enabled/Disabled toggle lives inside the help overlay and persists
+    // in localStorage under "fpf:vim-keys" (default "1" = on). When the
+    // toggle is off, only ? and Esc fire — every navigation key is dormant.
+    `<script>(function(){
+var STORE_KEY='fpf:vim-keys';
+function readEnabled(){try{var v=localStorage.getItem(STORE_KEY);return v===null?true:v==='1';}catch(e){return true;}}
+function writeEnabled(on){try{localStorage.setItem(STORE_KEY,on?'1':'0');}catch(e){}}
+var enabled=readEnabled();
+function isEditable(el){if(!el)return false;var t=el.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return true;if(el.isContentEditable)return true;return false;}
+function focusSearch(){var btn=document.querySelector('.rp-search-button');if(btn){btn.click();requestAnimationFrame(function(){var input=document.querySelector('[role="dialog"] input, .rp-search-input, input[placeholder*="earch"]');if(input)input.focus();});}}
+function clickNav(direction){var sel=direction==='prev'?'.rp-prev-next-page__prev':'.rp-prev-next-page__next';var link=document.querySelector(sel);if(link){link.click();return true;}return false;}
+var HELP_ID='fpf-keyhelp';
+function hideHelp(){var el=document.getElementById(HELP_ID);if(el)el.remove();}
+function renderToggleButton(){var btn=document.createElement('button');btn.id='fpf-keyhelp-toggle';btn.type='button';btn.setAttribute('aria-pressed',enabled?'true':'false');btn.textContent=enabled?'Enabled':'Disabled';btn.style.cssText='appearance:none;cursor:pointer;font:inherit;padding:6px 12px;border-radius:6px;border:1px solid var(--rp-c-divider,#ccc);background:'+(enabled?'var(--rp-c-brand,#2466ff)':'var(--rp-c-bg-soft,#f4f4f4)')+';color:'+(enabled?'#fff':'var(--rp-c-text-1,#111)');btn.addEventListener('click',function(){enabled=!enabled;writeEnabled(enabled);btn.setAttribute('aria-pressed',enabled?'true':'false');btn.textContent=enabled?'Enabled':'Disabled';btn.style.background=enabled?'var(--rp-c-brand,#2466ff)':'var(--rp-c-bg-soft,#f4f4f4)';btn.style.color=enabled?'#fff':'var(--rp-c-text-1,#111)';});return btn;}
+function showHelp(){if(document.getElementById(HELP_ID)){hideHelp();return;}var rows=[['h','previous page'],['l','next page'],['j','scroll down'],['k','scroll up'],['g g','jump to top'],['G','jump to bottom'],['/','focus search'],['?','toggle this help'],['Esc','close']];var overlay=document.createElement('div');overlay.id=HELP_ID;overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','Keyboard shortcuts');overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:grid;place-items:center;font:14px/1.45 system-ui,-apple-system,sans-serif;';var panel=document.createElement('div');panel.style.cssText='background:var(--rp-c-bg,#fff);color:var(--rp-c-text-1,#111);padding:24px 28px;border-radius:10px;max-width:440px;box-shadow:0 8px 32px rgba(0,0,0,0.25);';var head=document.createElement('div');head.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 16px;';var title=document.createElement('h2');title.textContent='Keyboard shortcuts';title.style.cssText='margin:0;font-size:16px;font-weight:600;';head.appendChild(title);head.appendChild(renderToggleButton());panel.appendChild(head);var table=document.createElement('table');table.style.cssText='width:100%;border-collapse:collapse;';for(var i=0;i<rows.length;i++){var r=rows[i];var tr=document.createElement('tr');var k=document.createElement('td');k.style.cssText='padding:5px 0;width:96px;';var kbd=document.createElement('kbd');kbd.textContent=r[0];kbd.style.cssText='font-family:ui-monospace,monospace;background:var(--rp-c-bg-soft,#f4f4f4);padding:2px 8px;border-radius:4px;border:1px solid var(--rp-c-divider,#ddd);';k.appendChild(kbd);var d=document.createElement('td');d.textContent=r[1];d.style.cssText='padding:5px 0;color:var(--rp-c-text-2,#555);';tr.appendChild(k);tr.appendChild(d);table.appendChild(tr);}panel.appendChild(table);var hint=document.createElement('p');hint.textContent='Bindings ignore typing in inputs. Press ? again or Esc to close. The toggle persists across sessions.';hint.style.cssText='margin:18px 0 0;font-size:12px;color:var(--rp-c-text-3,#888);';panel.appendChild(hint);overlay.appendChild(panel);overlay.addEventListener('click',function(e){if(e.target===overlay)hideHelp();});document.body.appendChild(overlay);}
+var lastG=0;
+document.addEventListener('keydown',function(e){
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.key==='Escape'){hideHelp();return;}
+  if(isEditable(document.activeElement))return;
+  var k=e.key;
+  if(k==='?'){e.preventDefault();showHelp();return;}
+  if(!enabled)return;
+  if(k==='g'&&!e.shiftKey){var now=Date.now();if(now-lastG<500){lastG=0;e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});}else{lastG=now;}return;}
+  lastG=0;
+  if(k==='G'){e.preventDefault();window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'});return;}
+  if(k==='h'){if(clickNav('prev'))e.preventDefault();return;}
+  if(k==='l'){if(clickNav('next'))e.preventDefault();return;}
+  if(k==='j'){e.preventDefault();window.scrollBy({top:80,behavior:'auto'});return;}
+  if(k==='k'){e.preventDefault();window.scrollBy({top:-80,behavior:'auto'});return;}
+  if(k==='/'){e.preventDefault();focusSearch();return;}
+});
+})();</script>`,
   ],
   route: {
     cleanUrls: true,
