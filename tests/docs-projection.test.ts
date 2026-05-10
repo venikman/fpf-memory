@@ -301,6 +301,40 @@ describe('docs projection', () => {
     expect(catalog).not.toMatch(/\[[^\]]*\[[AI]\][^\]]*\]\(\/generated/);
   });
 
+  it('auto-links bare canonical phrases like "Start Here" to handwritten docs pages', () => {
+    // The Preface Catalog intro hardcodes "return to Start Here, a route, or
+    // a work packet" — that bare "Start Here" used to be plain text, leaving
+    // the reader without a navigational hint. The canonical-phrase autolinker
+    // wraps it in a link to `/start-here`, while leaving lowercase variants
+    // ("a route", "a work packet") alone so the writer's intent is preserved.
+    const projection = buildDocsProjection(snapshot);
+    const catalog =
+      projection.pagesByMarkdownPath[
+        'docs/generated/preface/index.md'
+      ]?.markdown ?? '';
+
+    expect(catalog).toMatch(/\[Start Here\]\(\/start-here\)/);
+    // Lowercase singular forms in the same sentence stay as plain text —
+    // the writer means "any route" / "any work packet", not a catalog page.
+    expect(catalog).not.toMatch(/\[a route\]\(/);
+    expect(catalog).not.toMatch(/\[a work packet\]\(/);
+  });
+
+  it('canonical-phrase autolinker links each phrase at most once per body', () => {
+    // First-occurrence-only on purpose — repeated mentions of the same
+    // canonical phrase in one body would otherwise add link noise, so the
+    // autolinker stops after the first match. The Preface Catalog intro
+    // only mentions "Start Here" once, so we expect exactly one link.
+    const projection = buildDocsProjection(snapshot);
+    const catalog =
+      projection.pagesByMarkdownPath[
+        'docs/generated/preface/index.md'
+      ]?.markdown ?? '';
+    const startHereLinks =
+      catalog.match(/\[Start Here\]\(\/start-here\)/g) ?? [];
+    expect(startHereLinks).toHaveLength(1);
+  });
+
   it('deduplicates repeated relation lines and exposes grouped navigation', () => {
     const projection = buildDocsProjection(snapshot);
     const navigation = buildDocsNavigation(snapshot);

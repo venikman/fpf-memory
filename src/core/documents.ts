@@ -515,7 +515,9 @@ function buildPrefaceIndexPage(snapshot: Snapshot): GeneratedDocPage {
     '',
     '## Methodology',
     '',
-    'Use these pages when you need interpretation guidance before applying a route or pattern. For active work, return to Start Here, a route, or a work packet after the reading burden is clear.',
+    autolinkCanonicalPhrases(
+      'Use these pages when you need interpretation guidance before applying a route or pattern. For active work, return to Start Here, a route, or a work packet after the reading burden is clear.',
+    ),
   ];
 
   for (const [group, items] of groups.entries()) {
@@ -592,11 +594,17 @@ function renderPatternPage(snapshot: Snapshot, pattern: PatternRecord): string {
   appendPatternContext(lines, pattern);
 
   if (introText) {
-    lines.push('', autolinkPatternIds(snapshot, introText));
+    lines.push(
+      '',
+      autolinkCanonicalPhrases(autolinkPatternIds(snapshot, introText)),
+    );
   }
 
   if (leadExcerpt) {
-    lines.push('', autolinkPatternIds(snapshot, leadExcerpt));
+    lines.push(
+      '',
+      autolinkCanonicalPhrases(autolinkPatternIds(snapshot, leadExcerpt)),
+    );
   }
 
   if (catalogReminder) {
@@ -736,7 +744,10 @@ function renderRoutePage(snapshot: Snapshot, route: RouteRecord): string {
   }
 
   if (route.description) {
-    lines.push('', autolinkPatternIds(snapshot, route.description));
+    lines.push(
+      '',
+      autolinkCanonicalPhrases(autolinkPatternIds(snapshot, route.description)),
+    );
   }
 
   appendNodeIdList(lines, snapshot, 'Ordered steps', route.orderedIds, true);
@@ -791,7 +802,9 @@ function renderPrefacePage(snapshot: Snapshot, sectionId: string): string {
     if (anchor.text.trim()) {
       const linked = autolinkPatternIdsInTableCells(
         snapshot,
-        autolinkPatternIds(snapshot, anchor.text.trim()),
+        autolinkCanonicalPhrases(
+          autolinkPatternIds(snapshot, anchor.text.trim()),
+        ),
       );
       lines.push('', linked);
     }
@@ -834,7 +847,9 @@ function renderSection(
   if (anchor.text.trim()) {
     const linked = autolinkPatternIdsInTableCells(
       snapshot,
-      autolinkPatternIds(snapshot, anchor.text.trim()),
+      autolinkCanonicalPhrases(
+        autolinkPatternIds(snapshot, anchor.text.trim()),
+      ),
     );
     lines.push(linked, '');
   }
@@ -968,6 +983,87 @@ function autolinkPatternIdsInTableCells(
     );
   }
   return lines.join('\n');
+}
+
+/**
+ * Bare canonical phrases in prose that point to handwritten fpf-memory
+ * docs pages (those under `docs/`, not the spec-derived `/generated/`
+ * tree). Multi-word and case-sensitive on purpose: matching exactly the
+ * canonical capitalization keeps "you can start here…" prose untouched
+ * and only links references to the page by its proper name.
+ *
+ * Single-word matches like "Routes" are deliberately excluded — too
+ * many false-positive surfaces in pattern descriptions and headings.
+ */
+const CANONICAL_PHRASE_LINKS: ReadonlyArray<{ phrase: string; url: string }> = [
+  { phrase: 'Start Here', url: '/start-here' },
+  { phrase: 'Connect MCP', url: '/connect-mcp' },
+  { phrase: 'Pattern Catalog', url: '/patterns' },
+  { phrase: 'MCP Recipes', url: '/mcp-recipes' },
+  { phrase: 'Automation Playbook', url: '/automation-playbook' },
+  { phrase: 'Work Packets', url: '/work-packets' },
+  { phrase: 'Vercel MCP Hosting', url: '/vercel-hosting' },
+];
+
+const CANONICAL_PHRASE_TOKEN_PATTERN = new RegExp(
+  `\\b(?:${CANONICAL_PHRASE_LINKS.map(({ phrase }) =>
+    phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+  ).join('|')})\\b`,
+  'g',
+);
+
+/**
+ * Link the FIRST occurrence of each allow-listed canonical phrase in a
+ * markdown body to its docs page, while honoring the same guards as
+ * `autolinkPatternIds` (no rewriting inside code, existing links, or
+ * HTML attributes).
+ *
+ * First-occurrence-only — repeated mentions of the same phrase in one
+ * body skip linking so the second-and-later instances don't add link
+ * noise to prose that already pointed the reader at the page.
+ */
+function autolinkCanonicalPhrases(body: string): string {
+  if (!body) {
+    return body;
+  }
+
+  const guards: Array<[number, number]> = [];
+  const guardSources: RegExp[] = [
+    /```[\s\S]*?```/g,
+    /`[^`\n]+`/g,
+    /\[[^\]]+\]\([^)]+\)/g,
+    /<[^>]+>/g,
+  ];
+  for (const re of guardSources) {
+    for (const match of body.matchAll(re)) {
+      const start = match.index ?? 0;
+      guards.push([start, start + match[0].length]);
+    }
+  }
+  const isGuarded = (offset: number): boolean =>
+    guards.some(([start, end]) => offset >= start && offset < end);
+
+  const linked = new Set<string>();
+  return body.replace(
+    CANONICAL_PHRASE_TOKEN_PATTERN,
+    (match: string, offset: number) => {
+      if (
+        typeof offset !== 'number' ||
+        isGuarded(offset) ||
+        linked.has(match)
+      ) {
+        return match;
+      }
+      const entry = CANONICAL_PHRASE_LINKS.find(
+        ({ phrase }) => phrase === match,
+      );
+      if (!entry) {
+        return match;
+      }
+      linked.add(match);
+      return `[${match}](${entry.url})`;
+    },
+  );
 }
 
 function formatRelation(snapshot: Snapshot, relation: RelationEdge): string {
