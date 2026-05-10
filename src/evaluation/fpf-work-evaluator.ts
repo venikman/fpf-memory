@@ -345,7 +345,7 @@ function scoreSurfaceSplit(
     !contains(facts, 'deployDocsWorkflow', 'bun run spec:download');
   const vercelOriginStagesPublished =
     contains(facts, 'ciWorkflow', 'bun run vercel:origin:build') &&
-    contains(facts, 'ciWorkflow', '.vercel/output/functions/index.func') &&
+    contains(facts, 'ciWorkflow', '.vercel/output/functions/_origin.func') &&
     contains(facts, 'packageJson', '"vercel:origin:build"') &&
     contains(facts, 'packageJson', 'bun run predeploy');
 
@@ -430,7 +430,7 @@ function scorePlanRunSplit(
     !contains(facts, 'packageJson', ['vercel', 'pro' + 'xy'].join(':'));
   const ciDoesDryRun =
     (contains(facts, 'ciWorkflow', 'bun run vercel:origin:build') &&
-      contains(facts, 'ciWorkflow', '.vercel/output/functions/index.func'));
+      contains(facts, 'ciWorkflow', '.vercel/output/functions/_origin.func'));
   const localPublishOwner =
     contains(facts, 'prePushHook', 'bun run publish:current') ||
     contains(facts, 'prePushHook', 'publishing ./published/current/');

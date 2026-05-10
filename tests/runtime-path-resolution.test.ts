@@ -18,7 +18,7 @@ describe('resolveRuntimePath', () => {
   it('falls back to the bundled module location when cwd does not contain staged assets', async () => {
     const root = await createTempRoot('fpf-runtime-paths-');
     const appRoot = resolve(root, 'app');
-    const bundleRoot = resolve(appRoot, '.vercel/output/functions/index.func');
+    const bundleRoot = resolve(appRoot, '.vercel/output/functions/_origin.func');
     const sourcePath = resolve(bundleRoot, DEFAULT_SOURCE_PATH);
 
     await mkdir(dirname(sourcePath), { recursive: true });
@@ -38,7 +38,7 @@ describe('resolveRuntimePath', () => {
   it('uses the discovered source root as the artifact fallback root', async () => {
     const root = await createTempRoot('fpf-runtime-artifacts-');
     const appRoot = resolve(root, 'app');
-    const bundleRoot = resolve(appRoot, '.vercel/output/functions/index.func');
+    const bundleRoot = resolve(appRoot, '.vercel/output/functions/_origin.func');
     const sourcePath = resolve(bundleRoot, DEFAULT_SOURCE_PATH);
 
     await mkdir(dirname(sourcePath), { recursive: true });

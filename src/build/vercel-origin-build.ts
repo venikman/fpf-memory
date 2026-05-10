@@ -19,7 +19,18 @@ export interface BuildVercelOriginOptions {
 }
 
 const OUTPUT_DIR = '.vercel/output';
-const FUNCTION_DIR = `${OUTPUT_DIR}/functions/index.func`;
+// Mount the MCP origin function at `/_origin` rather than `/index` so it
+// can't shadow the static `index.html` that Rspress emits at the project
+// root. Vercel's filesystem-resolution for bare `/` was matching the
+// `functions/index.func/` directory before falling through to
+// `static/index.html`, sending docs visitors to the function's hosted
+// landing instead of the chapter list. The leading underscore signals an
+// internal route — direct visits to `/_origin` aren't advertised, and the
+// Hono app inside the function 404s anything outside its registered
+// `/api/...` handlers.
+const FUNCTION_NAME = '_origin';
+const FUNCTION_DIR = `${OUTPUT_DIR}/functions/${FUNCTION_NAME}.func`;
+const FUNCTION_DEST = `/${FUNCTION_NAME}`;
 const STATIC_DIR = `${OUTPUT_DIR}/static`;
 const DOCS_BUILD_DIR = process.env.FPF_DOCS_OUT_DIR ?? 'doc_build';
 
@@ -92,7 +103,7 @@ async function writeVercelConfig(outputDir: string): Promise<void> {
 }
 
 export function createVercelOriginOutputConfig(): VercelOriginOutputConfig {
-  const dest = '/index';
+  const dest = FUNCTION_DEST;
   // Phase order in `routes` is significant. Flow for every request:
   //
   //   1. `handle: "filesystem"` — try static exact match

@@ -2,7 +2,7 @@ import { readdir, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const BYTES_PER_MB = 1_000_000;
-const DEFAULT_FUNCTION_PATH = '.vercel/output/functions/index.func';
+const DEFAULT_FUNCTION_PATH = '.vercel/output/functions/_origin.func';
 const DEFAULT_WARN_MB = 235;
 const DEFAULT_FAIL_MB = 240;
 

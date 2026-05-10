@@ -42,7 +42,7 @@ describe('Vercel MCP origin config', () => {
 
     expect(config.routes).toContainEqual({
       src: `^${HOSTED_FPF_STATUS_ROUTE}$`,
-      dest: '/index',
+      dest: '/_origin',
     });
   });
 

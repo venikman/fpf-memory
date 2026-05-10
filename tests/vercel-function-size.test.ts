@@ -16,7 +16,7 @@ describe('Vercel function bundle size budget', () => {
 
   beforeEach(async () => {
     tempRoot = await mkdtemp(resolve(tmpdir(), 'fpf-vercel-function-size-'));
-    functionDir = resolve(tempRoot, '.vercel/output/functions/index.func');
+    functionDir = resolve(tempRoot, '.vercel/output/functions/_origin.func');
     await mkdir(resolve(functionDir, 'nested'), { recursive: true });
   });
 
@@ -48,7 +48,7 @@ describe('Vercel function bundle size budget', () => {
     await expect(
       measureBundleBudget(
         {
-          functionPath: '.vercel/output/functions/index.func',
+          functionPath: '.vercel/output/functions/_origin.func',
           warnBytes: 20,
           failBytes: 30,
         },
@@ -62,7 +62,7 @@ describe('Vercel function bundle size budget', () => {
     await expect(
       measureBundleBudget(
         {
-          functionPath: '.vercel/output/functions/index.func',
+          functionPath: '.vercel/output/functions/_origin.func',
           warnBytes: 10,
           failBytes: 30,
         },
@@ -76,7 +76,7 @@ describe('Vercel function bundle size budget', () => {
     await expect(
       measureBundleBudget(
         {
-          functionPath: '.vercel/output/functions/index.func',
+          functionPath: '.vercel/output/functions/_origin.func',
           warnBytes: 10,
           failBytes: 12,
         },
@@ -91,7 +91,7 @@ describe('Vercel function bundle size budget', () => {
   it('formats budget output with the configured thresholds', () => {
     expect(
       formatBundleBudgetResult({
-        functionPath: '.vercel/output/functions/index.func',
+        functionPath: '.vercel/output/functions/_origin.func',
         sizeBytes: 236_000_000,
         sizeMb: 236,
         warnMb: 235,
@@ -101,7 +101,7 @@ describe('Vercel function bundle size budget', () => {
     ).toContain('WARN: bundle exceeds the configured warning threshold.');
     expect(
       formatBundleBudgetResult({
-        functionPath: '.vercel/output/functions/index.func',
+        functionPath: '.vercel/output/functions/_origin.func',
         sizeBytes: 236_000_000,
         sizeMb: 236,
         warnMb: 235,
