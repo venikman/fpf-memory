@@ -202,6 +202,14 @@ export const buildAuditSchema = z
   })
   .strict();
 
+const requestedShapeSchema = z.enum([
+  'template',
+  'checklist',
+  'table',
+  'matrix',
+  'compare',
+]);
+
 export const queryResultSchema = z
   .object({
     mode: answerModeSchema,
@@ -214,6 +222,8 @@ export const queryResultSchema = z
     confidence: z.number().nullable(),
     gaps: z.array(z.string()),
     candidateIds: z.array(z.string()).optional(),
+    requestedShape: requestedShapeSchema.optional(),
+    shapeProduced: z.boolean().optional(),
     snapshot: snapshotWithRebuildSchema,
     status: answerStatusSchema,
     groundingChain: z.array(z.string()).optional(),
@@ -231,6 +241,8 @@ export const askFpfResultSchema = z
     gaps: z.array(z.string()),
     confidence: z.number().nullable(),
     candidateIds: z.array(z.string()).optional(),
+    requestedShape: requestedShapeSchema.optional(),
+    shapeProduced: z.boolean().optional(),
     status: answerStatusSchema,
     snapshot: snapshotWithRebuildSchema,
     groundingChain: z.array(z.string()).optional(),

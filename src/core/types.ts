@@ -330,6 +330,19 @@ export interface BuildAudit {
   artifacts: Record<string, string>;
 }
 
+/**
+ * Output shapes a caller may request in their question (e.g. "give me
+ * a checklist for…", "compare A and B", "template for FPF kickoff").
+ * Surfaced on QueryResult.requestedShape so the renderer / caller can
+ * tell whether the requested shape was honored.
+ */
+export type RequestedShape =
+  | 'template'
+  | 'checklist'
+  | 'table'
+  | 'matrix'
+  | 'compare';
+
 export interface QueryResult {
   mode: AnswerMode;
   question: string;
@@ -341,6 +354,15 @@ export interface QueryResult {
   confidence: number | null;
   gaps: string[];
   candidateIds?: string[];
+  /** Output shape detected in the question (e.g. "checklist", "table"). */
+  requestedShape?: RequestedShape;
+  /**
+   * Whether the projector produced output that matches `requestedShape`.
+   * `false` when the shape was asked for but only prose was returned —
+   * caller should treat that as a usability gap, not a satisfied
+   * answer.
+   */
+  shapeProduced?: boolean;
   snapshot: {
     sourceHash: string;
     builtAt: string;
@@ -360,6 +382,8 @@ export interface AskFpfResult {
   gaps: string[];
   confidence: number | null;
   candidateIds?: string[];
+  requestedShape?: RequestedShape;
+  shapeProduced?: boolean;
   status: AnswerStatus;
   snapshot: {
     sourceHash: string;

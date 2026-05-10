@@ -107,6 +107,31 @@ export class QueryEngine {
       });
     }
 
+    // Thin / vague query (audit item #3): the trace flagged the
+    // question as too tiny to express clear intent. Don't ride a
+    // high retrieval score into a confident answer; surface a
+    // clarification gap and the candidate IDs the retriever guessed
+    // at, so the caller can either refine or pick from those.
+    if (trace.status === 'unsupported') {
+      const candidateIds = trace.selectedNodeIds.slice(0, 5);
+      return this.result(question, mode, {
+        answer:
+          'The question is too short or generic to ground a confident answer. Add an FPF pattern ID, route name, or topic word, or pick a candidate ID below.',
+        ids: [],
+        relations: [],
+        constraints: [],
+        citations: [],
+        confidence: 0.2,
+        candidateIds,
+        gaps: [
+          candidateIds.length > 0
+            ? `Closest retrieval candidates: ${candidateIds.join(', ')}. Re-ask with one of these IDs or with a route / topic word.`
+            : 'Re-ask with an FPF pattern ID, route name, or topic word.',
+        ],
+        status: 'unsupported',
+      });
+    }
+
     const routeNodeId = trace.routeWins
       ? trace.selectedNodeIds.find(
           (nodeId) => this.snapshot.compiledNodes[nodeId]?.kind === 'route',
@@ -200,14 +225,35 @@ export class QueryEngine {
     const sessionReusedNodeIds = this.sessionState
       ? selectedNodeIds.filter((nodeId) => this.sessionState?.lastSelectedNodeIds.includes(nodeId))
       : [];
+    // Determine status. Two-token / no-FPF-term queries (e.g. "messy
+    // project", "?") shouldn't ride high retrieval scores into a
+    // confident "ok"; mark them `unsupported` so callers can ask the
+    // user to clarify instead of treating the closest-pattern guess
+    // as a real answer.
+    const meaningfulTokens = question
+      .trim()
+      .split(/\s+/)
+      .filter((token) => token.length > 1);
+    const recognizedFpfTerm =
+      normalized.detected.ids.length > 0 ||
+      normalized.detected.lexemes.length > 0 ||
+      normalized.detected.routeNames.length > 0 ||
+      normalized.detected.familyTerms.length > 0 ||
+      normalized.detected.statusTerms.length > 0;
+    const thinQuery =
+      meaningfulTokens.length < 3 ||
+      (!recognizedFpfTerm && meaningfulTokens.length < 6);
+
     const status =
       selectedNodeIds.length === 0
         ? 'not_found'
-        : ranking.routeWins
-          ? 'ok'
-          : isAmbiguous(question, ranking.candidates)
-            ? 'ambiguous'
-            : 'ok';
+        : thinQuery
+          ? 'unsupported'
+          : ranking.routeWins
+            ? 'ok'
+            : isAmbiguous(question, ranking.candidates)
+              ? 'ambiguous'
+              : 'ok';
 
     return {
       mode,

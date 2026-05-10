@@ -308,6 +308,8 @@ export function renderAskFpfResult(result: QueryResult): AskFpfResult {
     gaps: result.gaps,
     confidence: result.confidence,
     candidateIds: result.candidateIds,
+    requestedShape: result.requestedShape,
+    shapeProduced: result.shapeProduced,
     status: result.status,
     snapshot: result.snapshot,
     groundingChain: result.groundingChain,

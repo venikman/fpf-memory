@@ -1,11 +1,13 @@
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { copyFile, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
-import { describe, expect, it } from '@rstest/core';
+import { afterEach, beforeEach, describe, expect, it } from '@rstest/core';
 
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
 import { compileFpfSource } from '../src/runtime/compiler.js';
+import { FpfRuntime } from '../src/runtime/runtime.js';
 import { normalizeQuery } from '../src/runtime/query-normalizer.js';
 import { seedCandidates } from '../src/runtime/candidate-seeder.js';
 import { isAmbiguous, rankCandidates } from '../src/runtime/candidate-ranker.js';
@@ -1017,5 +1019,72 @@ describe('Query / Trace determinism', () => {
     const trace2 = assembleTrace('How does bounded context relate to role assignment?', 'verbose', snapshot);
 
     expect(JSON.stringify(trace1)).toBe(JSON.stringify(trace2));
+  });
+});
+
+describe('Query / Quality + shape gating', () => {
+  const canonicalSourcePath = resolve(process.cwd(), DEFAULT_SOURCE_PATH);
+  let runtime: FpfRuntime;
+  let tempRoot: string;
+  let sourcePath: string;
+  let artifactDir: string;
+
+  beforeEach(async () => {
+    tempRoot = await mkdtemp(resolve(tmpdir(), 'fpf-quality-'));
+    sourcePath = resolve(tempRoot, 'FPF-spec.md');
+    artifactDir = resolve(tempRoot, 'artifacts');
+    await copyFile(canonicalSourcePath, sourcePath);
+    runtime = new FpfRuntime({ sourcePath, artifactDir });
+  });
+
+  afterEach(async () => {
+    await rm(tempRoot, { recursive: true, force: true });
+  });
+
+  it('returns status: "unsupported" with low confidence for a thin two-token query', async () => {
+    // Audit item #3: queries like "messy project" used to ride high
+    // retrieval scores into a confident "ok" answer. They should now
+    // surface as unsupported with a clarification gap and the closest
+    // candidate IDs so the caller can refine.
+    const result = await runtime.query('messy project');
+    expect(result.status).toBe('unsupported');
+    expect(result.confidence).not.toBeNull();
+    expect(result.confidence!).toBeLessThanOrEqual(0.3);
+    expect(result.ids).toEqual([]);
+    expect(result.gaps.length).toBeGreaterThan(0);
+    // At least one gap should mention how to re-ask.
+    expect(result.gaps.some((gap) => /re-ask|refine|candidate/i.test(gap))).toBe(true);
+  });
+
+  it('returns status: "unsupported" for a near-empty query like "?"', async () => {
+    const result = await runtime.query('?');
+    expect(result.status).toBe('unsupported');
+    expect(result.confidence!).toBeLessThanOrEqual(0.3);
+  });
+
+  it('flags requestedShape and shapeProduced when caller asks for a template', async () => {
+    // Audit item #2: caller asks for a template; default projection
+    // returns prose. The response should expose `requestedShape:
+    // "template"` and `shapeProduced: false`, surface a gap about the
+    // mismatch, and reduce confidence.
+    const result = await runtime.query(
+      'Give me a template for measurement-template work',
+      'compact',
+    );
+    expect(result.requestedShape).toBe('template');
+    expect(result.shapeProduced).toBe(false);
+    expect(result.gaps.some((gap) => /template/i.test(gap) && /shape/i.test(gap))).toBe(true);
+    expect(result.confidence!).toBeLessThanOrEqual(0.85);
+  });
+
+  it('marks a checklist request as produced because the bullet projection satisfies it', async () => {
+    // Bullet lists ARE checklists for the purposes of this surface;
+    // shapeProduced should be true and confidence should be untouched.
+    const result = await runtime.query(
+      'Give me a checklist for project alignment kickoff',
+      'compact',
+    );
+    expect(result.requestedShape).toBe('checklist');
+    expect(result.shapeProduced).toBe(true);
   });
 });

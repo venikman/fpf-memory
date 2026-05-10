@@ -11,11 +11,79 @@ import type {
   AnswerMode,
   AnswerSlice,
   QueryResult,
+  RequestedShape,
   Snapshot,
   TraceResult,
 } from './types.js';
 
 import { MAX_SYNTHESIS_SLICES } from './constants.js';
+
+/**
+ * Detect a requested output shape in a natural-language question.
+ * Used to flag cases where a caller asks for a template / checklist
+ * / table / matrix / comparison and the projector currently returns
+ * prose. Order matters — more-specific phrasings are matched first.
+ */
+export function detectRequestedShape(
+  question: string,
+): RequestedShape | undefined {
+  const q = question.toLowerCase();
+  if (/\bdecision[\s-]?matrix\b|\beval(?:uation)?\s+matrix\b/.test(q)) {
+    return 'matrix';
+  }
+  if (
+    /\b(comparison\s+(table|chart|matrix)|side[\s-]?by[\s-]?side|compare\s+and\s+contrast)\b/
+      .test(q)
+  ) {
+    return 'compare';
+  }
+  if (/\bas\s+a\s+table\b|\bin\s+(?:a\s+)?table\b|\btable\s+of\b/.test(q)) {
+    return 'table';
+  }
+  if (/\bchecklist\b/.test(q)) {
+    return 'checklist';
+  }
+  if (/\btemplate\b/.test(q)) {
+    return 'template';
+  }
+  return undefined;
+}
+
+/**
+ * Whether the projector's prose-with-bullets answer satisfies the
+ * requested shape. Today only `checklist` is satisfied (a bullet
+ * list IS a checklist); the others surface as a gap so the caller
+ * sees the shape-mismatch instead of getting a falsely confident
+ * prose response.
+ */
+function shapeSatisfiedByDefaultProjection(
+  shape: RequestedShape | undefined,
+): boolean {
+  return shape === 'checklist' || shape === undefined;
+}
+
+/**
+ * A thin / semantically tiny question — too short to express intent,
+ * with no FPF terms detected. These should not return high-confidence
+ * answers regardless of how the retriever scored.
+ */
+export function isThinQuery(question: string, trace: TraceResult): boolean {
+  const meaningfulTokens = question
+    .trim()
+    .split(/\s+/)
+    .filter((token) => token.length > 1);
+  if (meaningfulTokens.length < 3) {
+    return true;
+  }
+  const detected = trace.detected;
+  const recognizedAnyFpfTerm =
+    detected.ids.length > 0 ||
+    detected.lexemes.length > 0 ||
+    detected.routeNames.length > 0 ||
+    detected.familyTerms.length > 0 ||
+    detected.statusTerms.length > 0;
+  return !recognizedAnyFpfTerm && meaningfulTokens.length < 6;
+}
 
 export function buildRouteAnswer(
   question: string,
@@ -68,15 +136,27 @@ export function buildRouteAnswer(
     .filter(Boolean)
     .join(' ');
 
+  const requestedShape = detectRequestedShape(question);
+  const shapeProduced = shapeSatisfiedByDefaultProjection(requestedShape);
+  const shapeGaps =
+    requestedShape && !shapeProduced
+      ? [
+          `Requested "${requestedShape}" output shape, but the FPF projection returns prose with bullets. Open the cited pattern pages to author the ${requestedShape} from the source wording.`,
+        ]
+      : [];
+  const adjustedConfidence =
+    requestedShape && !shapeProduced ? 0.65 : 0.92;
+
   return buildResult(question, mode, rebuilt, snapshot, {
     answer,
     ids,
     relations,
     constraints,
     citations: unique(route.citations),
-    confidence: 0.92,
-    gaps: [],
+    confidence: adjustedConfidence,
+    gaps: shapeGaps,
     status: 'ok',
+    ...(requestedShape ? { requestedShape, shapeProduced } : {}),
     groundingChain:
       mode === 'proof'
         ? [
@@ -184,15 +264,25 @@ export function buildPatternAnswer(
       .map((edge) => ({ from: edge.from, relation: edge.relation, to: edge.to })),
   );
 
+  const requestedShape = detectRequestedShape(question);
+  const shapeProduced = shapeSatisfiedByDefaultProjection(requestedShape);
+  const shapeGaps =
+    requestedShape && !shapeProduced
+      ? [
+          `Requested "${requestedShape}" output shape, but the FPF projection returns prose with bullets. Open the cited pattern pages to author the ${requestedShape} from the source wording.`,
+        ]
+      : [];
+
   return buildResult(question, mode, rebuilt, snapshot, {
     answer,
     ids: patternIds,
     relations,
     constraints,
     citations,
-    confidence: confidenceFromTrace(trace),
-    gaps: gapsFromTrace(trace),
+    confidence: confidenceFromTrace(trace, question, requestedShape, shapeProduced),
+    gaps: [...gapsFromTrace(trace), ...shapeGaps],
     status: trace.status,
+    ...(requestedShape ? { requestedShape, shapeProduced } : {}),
     groundingChain:
       mode === 'proof'
         ? [
@@ -275,12 +365,36 @@ export function prepareSynthesisSlices(trace: TraceResult, snapshot: Snapshot): 
     }));
 }
 
-export function confidenceFromTrace(trace: TraceResult): number {
+export function confidenceFromTrace(
+  trace: TraceResult,
+  question?: string,
+  requestedShape?: RequestedShape,
+  shapeProduced?: boolean,
+): number {
   const top = trace.candidateScores[0]?.score ?? 0;
   const ambiguous = trace.status === 'ambiguous';
   const base = Math.min(0.98, 0.45 + top / 20);
-  const adjusted = trace.sufficient ? base : base - 0.1;
-  return ambiguous ? Math.max(0.35, adjusted - 0.2) : Math.max(0.3, adjusted);
+  let adjusted = trace.sufficient ? base : base - 0.1;
+
+  // Penalty: shape requested but the prose projection couldn't
+  // satisfy it. The retriever might have found relevant IDs, but
+  // the answer doesn't carry the shape the caller asked for.
+  if (requestedShape && shapeProduced === false) {
+    adjusted -= 0.2;
+  }
+
+  // Penalty: query is too thin / vague to express clear intent.
+  // High retrieval scores against a 2-token query are usually false
+  // confidence — the retriever picked the closest pattern, not the
+  // right one. Drop the floor so callers see "this is a guess."
+  if (question && isThinQuery(question, trace)) {
+    adjusted = Math.min(adjusted, 0.4);
+  }
+
+  if (ambiguous) {
+    return Math.max(0.2, adjusted - 0.2);
+  }
+  return Math.max(0.2, adjusted);
 }
 
 export function gapsFromTrace(trace: TraceResult): string[] {
