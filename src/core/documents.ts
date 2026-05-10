@@ -1131,7 +1131,6 @@ const CANONICAL_PHRASE_LINKS: ReadonlyArray<{ phrase: string; url: string }> = [
   { phrase: 'MCP Recipes', url: '/mcp-recipes' },
   { phrase: 'Automation Playbook', url: '/automation-playbook' },
   { phrase: 'Work Packets', url: '/work-packets' },
-  { phrase: 'Vercel MCP Hosting', url: '/vercel-hosting' },
 ];
 
 const CANONICAL_PHRASE_TOKEN_PATTERN = new RegExp(

@@ -306,7 +306,6 @@ document.addEventListener('keydown',function(e){
           { text: 'Recipes', link: '/mcp-recipes' },
           { text: 'Connect to clients', link: '/connect-mcp' },
           { text: 'Automation Playbook', link: '/automation-playbook' },
-          { text: 'Vercel hosting', link: '/vercel-hosting' },
         ],
       },
     ],
@@ -316,9 +315,9 @@ document.addEventListener('keydown',function(e){
       //     full pattern tree.
       //   - `/generated/routes/...` get the routes tree.
       //   - The root `/` and authored pages (start-here, work-packets,
-      //     mcp-recipes, connect-mcp, automation-playbook, vercel-hosting)
-      //     get NO sidebar so the orientation surface stays focused on its
-      //     own task-first cards.
+      //     mcp-recipes, connect-mcp, automation-playbook) get NO sidebar
+      //     so the orientation surface stays focused on its own
+      //     task-first cards.
       '/patterns': [
         {
           text: 'Patterns',

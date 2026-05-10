@@ -383,9 +383,9 @@ body:has(.rp-doc-layout__sidebar:empty) .rp-doc-layout__menu {
 }
 
 /* Cap top-level prose at the readable measure so guidance pages
-   (start-here, work-packets, mcp-recipes, connect-mcp, vercel-hosting)
-   stop running 95–105 char lines on wide desktops. Tables, code blocks,
-   pre, and nested lists keep the full container width. */
+   (start-here, work-packets, mcp-recipes, connect-mcp) stop running
+   95–105 char lines on wide desktops. Tables, code blocks, pre, and
+   nested lists keep the full container width. */
 .rspress-doc-container .rspress-doc > p,
 .rspress-doc-container .rspress-doc > blockquote,
 .rspress-doc-container .rspress-doc > ul,
