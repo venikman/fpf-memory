@@ -177,6 +177,35 @@ describe('Compiler / Graph closure stage', () => {
     );
   });
 
+  it('exposes section IDs that two source headings collided on', async () => {
+    const { snapshot } = await getCompilerOutput();
+    const { validation } = snapshot;
+
+    // The FPF source authors a few section IDs twice; the index-map
+    // build silently keeps the last writer. Surfacing those collisions
+    // lets the validation reader see the silent merges instead of
+    // having to diff line numbers by hand. Stays small in the current
+    // spec; pin it as bounded rather than empty so a regression that
+    // hides the surface (e.g. losing the field on the schema) shows up.
+    expect(Array.isArray(validation.duplicateHeadings)).toBe(true);
+    expect(validation.duplicateHeadings.length).toBeGreaterThan(0);
+    expect(validation.duplicateHeadings.length).toBeLessThan(20);
+  });
+
+  it('does not count `.x` / `.y` placeholders or section anchors as unresolved', async () => {
+    const { snapshot } = await getCompilerOutput();
+    const { validation } = snapshot;
+
+    // Pseudo-IDs (`B.1.x`, `E.10.y`) mark unwritten extension points
+    // in the spec; section-anchor IDs (`A.19:0`, `E.18:5.9`) live in
+    // indexMap with full position info. Both used to drown out real
+    // forward-ref findings — neither should appear in unresolved.
+    for (const target of validation.unresolvedReferences) {
+      expect(target).not.toMatch(/\.[xy]$/);
+      expect(snapshot.indexMap[target]).toBeUndefined();
+    }
+  });
+
   it('has no broken routes', async () => {
     const { snapshot } = await getCompilerOutput();
     const { validation } = snapshot;

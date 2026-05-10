@@ -913,7 +913,14 @@ function autolinkPatternIds(snapshot: Snapshot, body: string): string {
   const guards: Array<[number, number]> = [];
   const guardSources: RegExp[] = [
     /```[\s\S]*?```/g, // fenced code blocks
-    /`[^`\n]+`/g, // inline code spans
+    // Inline code spans. CommonMark allows code-span content to span
+    // newlines (newlines render as spaces inside the span); the source
+    // spec uses this pattern frequently, e.g.
+    //   `F.17 / F.18 /\n  E.10`
+    // The `[^`]+?` body catches these multi-line spans so pattern IDs
+    // inside intended-code text aren't autolinked. Single-line spans
+    // are still matched as a strict subset.
+    /`[^`]+?`/g,
     /\[[^\]]+\]\([^)]+\)/g, // existing markdown links [text](url)
     /<[^>]+>/g, // HTML tags (don't link inside attributes)
   ];
@@ -1030,7 +1037,7 @@ function autolinkCanonicalPhrases(body: string): string {
   const guards: Array<[number, number]> = [];
   const guardSources: RegExp[] = [
     /```[\s\S]*?```/g,
-    /`[^`\n]+`/g,
+    /`[^`]+?`/g, // inline code spans, multi-line allowed
     /\[[^\]]+\]\([^)]+\)/g,
     /<[^>]+>/g,
   ];

@@ -182,6 +182,7 @@ export const buildAuditSchema = z
         missingRequiredFields: z.number(),
         unresolvedReferences: z.array(z.string()),
         duplicateIds: z.array(z.string()),
+        duplicateHeadings: z.array(z.string()),
         brokenRoutes: z.array(z.string()),
       })
       .strict(),

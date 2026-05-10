@@ -14,7 +14,11 @@ export function buildValidation(
   patternNodes: Record<string, PatternRecord>,
   routeNodes: Record<string, RouteRecord>,
   lexicon: Record<string, LexiconEntry>,
-  indexMap: { roots: string[]; nodes: Record<string, IndexMapNode> },
+  indexMap: {
+    roots: string[];
+    nodes: Record<string, IndexMapNode>;
+    duplicateHeadings: string[];
+  },
   relationGraph: RelationEdge[],
 ): BuildValidation {
   const duplicateIds = findDuplicateIds([
@@ -24,7 +28,17 @@ export function buildValidation(
   const unresolvedReferences = unique(
     relationGraph
       .map((edge) => edge.to)
-      .filter((target) => !compiledNodes[target]),
+      .filter((target) => !compiledNodes[target])
+      // A target that lives in `indexMap.nodes` is a section anchor
+      // (e.g. `A.19:0`, `E.18:5.9`) — it has a parent pattern + a
+      // line range, so it's resolvable to `parent#anchor`. Treat
+      // those as resolved instead of polluting the unresolved bucket.
+      .filter((target) => !indexMap.nodes[target])
+      // Filter `.x` / `.y` placeholder IDs (e.g. `B.1.x`, `E.10.y`)
+      // — they are spec-source pseudo-IDs marking unwritten extension
+      // points, not unresolved references. Counting them here drowned
+      // out real forward-ref findings.
+      .filter((target) => !/\.[xy]$/.test(target)),
   );
   const missingRequiredFields = Object.values(patternNodes).reduce((count, pattern) => {
     const requiredFields = [
@@ -53,6 +67,7 @@ export function buildValidation(
     missingRequiredFields,
     unresolvedReferences,
     duplicateIds,
+    duplicateHeadings: indexMap.duplicateHeadings,
     brokenRoutes,
   };
 }

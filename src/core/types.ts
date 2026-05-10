@@ -193,6 +193,15 @@ export interface BuildValidation {
   missingRequiredFields: number;
   unresolvedReferences: string[];
   duplicateIds: string[];
+  /**
+   * Section IDs encountered more than once during index-map
+   * construction — the second-and-later occurrences silently
+   * overwrote the first, so the index resolves to the last writer.
+   * Currently non-zero in published spec snapshots; surfacing the
+   * count here keeps the silent merges visible without changing
+   * the merge behavior.
+   */
+  duplicateHeadings: string[];
   brokenRoutes: string[];
 }
 

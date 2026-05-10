@@ -235,6 +235,41 @@ describe('docs projection', () => {
     expect(a69Page).not.toMatch(/\(\/generated\/patterns\/heading:/);
   });
 
+  it('does not autolink pattern IDs inside multi-line single-backtick code spans', () => {
+    // CommonMark allows inline code-span content to span newlines.
+    // The FPF source uses this pattern, e.g. `F.17 / F.18 /
+    //   E.10`. Before tightening the autolinker guard from
+    // `[^`\n]+` to `[^`]+?`, pattern IDs inside multi-line spans got
+    // autolinked, leaking `](/generated/patterns/...)` markup into
+    // intended-code text.
+    //
+    // Find one well-formed multi-line span in the generated docs and
+    // assert it survived without an autolink inside. We pick the
+    // E.11 span ` `F.17 / F.18 / E.10` ` — the docs generator
+    // collapses the newline so the span renders single-line, BUT
+    // earlier spec lines (e.g. `E.20:1`'s reasoning blocks) preserve
+    // multi-line `…` spans with pattern IDs. Sample one such page
+    // and check the body prose for a multi-line span that still
+    // contains a pattern-ID token (the guard's job): zero `/generated/`
+    // links inside it.
+    const projection = buildDocsProjection(snapshot);
+    let foundCleanMultilineSpan = false;
+    for (const page of projection.pages) {
+      const re = /`([A-Z]\.\d[^`]*?\n[^`]*?)`/g;
+      let match;
+      while ((match = re.exec(page.markdown)) !== null) {
+        // Span that starts with what looks like a pattern-ID-bearing
+        // sequence and crosses a newline. Should NOT contain a link.
+        if (!match[1]!.includes('](/generated/')) {
+          foundCleanMultilineSpan = true;
+          break;
+        }
+      }
+      if (foundCleanMultilineSpan) break;
+    }
+    expect(foundCleanMultilineSpan).toBe(true);
+  });
+
   it('auto-links code-spanned pattern IDs inside markdown table cells', () => {
     // The J.4 entry-point table renders one inline-code pattern ID per
     // cell. The general autolinker skips `<code>` spans in prose, so

@@ -29,10 +29,12 @@ export function buildIndexMap(
 ): {
   roots: string[];
   nodes: Record<string, IndexMapNode>;
+  duplicateHeadings: string[];
 } {
   const { sections, catalogDescriptions } = ir;
   const nodes: Record<string, IndexMapNode> = {};
   const roots: string[] = [];
+  const duplicateHeadings = new Set<string>();
   const routeBearingPatternIds = new Set(
     Object.values(routeNodes).flatMap((route) => [
       ...route.orderedIds,
@@ -46,6 +48,9 @@ export function buildIndexMap(
   for (const section of sections) {
     const pattern = section.patternId ? patternNodes[section.patternId] : undefined;
     const description = describeIndexNode(section, catalogDescriptions, pattern);
+    if (Object.hasOwn(nodes, section.id)) {
+      duplicateHeadings.add(section.id);
+    }
     nodes[section.id] = {
       id: section.id,
       title: section.heading,
@@ -72,7 +77,7 @@ export function buildIndexMap(
       roots.push(section.id);
     }
   }
-  return { roots, nodes };
+  return { roots, nodes, duplicateHeadings: Array.from(duplicateHeadings) };
 }
 
 export function buildLexicon(
