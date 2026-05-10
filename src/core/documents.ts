@@ -510,22 +510,29 @@ function renderHomeMarkdown(
   manifest?: PublicationManifestSummary,
 ): string {
   const patternCount = Object.keys(snapshot.patternGraph.nodes).length;
+  const routeCount = Object.keys(snapshot.routeGraph.nodes).length;
   const provenanceDetail = renderHomeProvenanceDetail(manifest);
 
   const lines: string[] = [
     renderFrontMatter({
       title: 'FPF Reference',
-      description: 'Compiler-backed reference for the latest published FPF, projected as a slim wiki.',
+      description: 'Compiler-backed reference for the First Principles Framework (FPF) — Anatoly Levenchuk\'s structured framework for thinking and coordinating work, projected as a slim wiki.',
       outline: false,
     }),
     '',
     '# FPF Reference',
     '',
-    `*Projection of the latest published FPF — ${patternCount} generated pattern pages across the published parts.*`,
+    'The **First Principles Framework (FPF)** is a structured framework for thinking and coordinating work. It reads like a technical specification rather than a management book — named patterns, definitions, and review rules — with the goal of helping teams model complex work, make reasoning inspectable, and keep decisions stable across engineering, research, and management.',
+    '',
+    '> FPF helps when raw insight is not enough: meanings, claims, alternatives, evidence, boundaries, and outputs must remain stable across contexts, time, people, tools, or AI agents.',
+    '',
+    `FPF is authored by [Anatoly Levenchuk](https://github.com/ailev) — the canonical source is [\`github.com/ailev/FPF\`](https://github.com/ailev/FPF). This site is a slim wiki projection of the published spec: ${patternCount} pattern pages, ${routeCount} working routes, and the preface, all addressable by stable FPF IDs and queryable through the [hosted MCP server](/connect-mcp).`,
     '',
     '[Start here](/start-here) · [Connect MCP](/connect-mcp) · [Open the catalog](/patterns) · [Routes](/generated/routes/index)',
     '',
     `> ${provenanceDetail}`,
+    '',
+    '> **Cite this spec.** If you use FPF, please cite: Levenchuk, Anatoly. *First Principles Framework (FPF).* GitHub repository: <https://github.com/ailev/FPF>',
   ];
 
   appendPatternCatalogChapters(lines, snapshot);

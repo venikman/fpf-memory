@@ -447,7 +447,13 @@ describe('docs projection', () => {
       expect(rootIndex).not.toContain('class="fpf-doorway-home"');
       expect(rootIndex).not.toContain('The doorway, then the source.');
       expect(rootIndex).toContain('# FPF Reference');
-      expect(rootIndex).toContain('Projection of the latest published FPF');
+      // Home introduces FPF, attributes it, and links the canonical
+      // upstream so a first-time reader who landed without context
+      // knows what they're looking at.
+      expect(rootIndex).toContain('First Principles Framework (FPF)');
+      expect(rootIndex).toContain('Anatoly Levenchuk');
+      expect(rootIndex).toContain('https://github.com/ailev/FPF');
+      expect(rootIndex).toContain('Cite this spec');
       expect(rootIndex).toContain('[Start here](/start-here)');
       expect(rootIndex).toContain('[Connect MCP](/connect-mcp)');
       expect(rootIndex).toContain('[Open the catalog](/patterns)');
