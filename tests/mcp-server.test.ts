@@ -334,15 +334,17 @@ describe('direct MCP server', () => {
     const readBoundaryRouteDoc = await harness.request('tools/call', {
       name: 'read_fpf_doc',
       arguments: {
-        selector: 'route:boundary-burden',
+        selector: 'route:boundary-unpacking-claim-routing',
         kind: 'route',
       },
     });
     const readBoundaryRouteDocPayload = asToolPayload(readBoundaryRouteDoc);
-    if (routeIds.has('route:boundary-burden')) {
+    if (routeIds.has('route:boundary-unpacking-claim-routing')) {
       expect(readBoundaryRouteDocPayload.resolvedAs).toBe('route');
-      expect(readBoundaryRouteDocPayload.nodeId).toBe('route:boundary-burden');
-      expect(readBoundaryRouteDocPayload.markdown).toContain('# boundary burden');
+      expect(readBoundaryRouteDocPayload.nodeId).toBe('route:boundary-unpacking-claim-routing');
+      expect(readBoundaryRouteDocPayload.markdown).toContain(
+        '# Boundary unpacking / claim routing',
+      );
     } else {
       expect(readBoundaryRouteDocPayload.status).toBe('not_found');
       expect(readBoundaryRouteDocPayload.resolvedAs).toBe('not_found');
@@ -358,14 +360,14 @@ describe('direct MCP server', () => {
     });
     const reviewerQueryPayload = asToolPayload(reviewerQuery);
     expect(reviewerQueryPayload.status).toBe('ok');
-    if (routeIds.has('route:boundary-burden')) {
+    if (routeIds.has('route:boundary-unpacking-claim-routing')) {
       expect((reviewerQueryPayload.ids as string[]).slice(0, 4)).toEqual([
-        'route:boundary-burden',
+        'route:boundary-unpacking-claim-routing',
         'A.6',
         'A.6.B',
         'A.6.C',
       ]);
-      expect(reviewerQueryPayload.answer).toContain('route:boundary-burden');
+      expect(reviewerQueryPayload.answer).toContain('route:boundary-unpacking-claim-routing');
     } else {
       expect((reviewerQueryPayload.ids as string[]).every((id) => !id.startsWith('route:'))).toBe(
         true,
@@ -397,14 +399,14 @@ describe('direct MCP server', () => {
       },
     });
     const reviewerAskPayload = asToolPayload(reviewerAsk);
-    if (routeIds.has('route:boundary-burden')) {
+    if (routeIds.has('route:boundary-unpacking-claim-routing')) {
       expect((reviewerAskPayload.ids as string[]).slice(0, 4)).toEqual([
-        'route:boundary-burden',
+        'route:boundary-unpacking-claim-routing',
         'A.6',
         'A.6.B',
         'A.6.C',
       ]);
-      expect(reviewerAskPayload.markdown).toContain('route:boundary-burden');
+      expect(reviewerAskPayload.markdown).toContain('route:boundary-unpacking-claim-routing');
     } else {
       expect((reviewerAskPayload.ids as string[]).every((id) => !id.startsWith('route:'))).toBe(
         true,

@@ -140,8 +140,8 @@ function addRouteFixtures(baseSnapshot: Snapshot): Snapshot {
     ['F.17'],
   );
   addRoute(
-    'route:boundary-burden',
-    'boundary burden',
+    'route:boundary-unpacking-claim-routing',
+    'boundary unpacking / claim routing',
     'First route for API boundary, contract, protocol, and reviewer work.',
     ['A.6', 'A.6.B', 'A.6.C'],
     ['A.6.P', 'A.6.Q', 'A.6.A'],
@@ -169,7 +169,7 @@ function addRouteFixtures(baseSnapshot: Snapshot): Snapshot {
       seedScore: 20,
       seedOrigin: 'lexical',
       initialNodeIds: [],
-      routeId: 'route:boundary-burden',
+      routeId: 'route:boundary-unpacking-claim-routing',
       routeScore: 95,
     },
   ];
@@ -332,7 +332,7 @@ describe('Query / Seed coverage stage', () => {
     );
     const seeding = seedCandidates(normalized, snapshot);
 
-    const routeCandidate = seeding.candidateMap.get('route:boundary-burden');
+    const routeCandidate = seeding.candidateMap.get('route:boundary-unpacking-claim-routing');
     expect(routeCandidate).toBeDefined();
     expect(routeCandidate!.reasons).toContain('burden:boundary-review');
     expect(routeCandidate!.score).toBeGreaterThanOrEqual(90);
@@ -346,7 +346,7 @@ describe('Query / Seed coverage stage', () => {
     );
     const seeding = seedCandidates(normalized, snapshot);
 
-    const routeCandidate = seeding.candidateMap.get('route:boundary-burden');
+    const routeCandidate = seeding.candidateMap.get('route:boundary-unpacking-claim-routing');
     expect(routeCandidate?.reasons ?? []).not.toContain('burden:boundary-review');
   });
 
@@ -358,7 +358,7 @@ describe('Query / Seed coverage stage', () => {
     );
     const seeding = seedCandidates(normalized, snapshot);
 
-    const routeCandidate = seeding.candidateMap.get('route:boundary-burden');
+    const routeCandidate = seeding.candidateMap.get('route:boundary-unpacking-claim-routing');
     expect(routeCandidate?.reasons ?? []).not.toContain('burden:boundary-review');
   });
 
@@ -509,7 +509,7 @@ describe('Query / Ranker stage', () => {
     expect(ranking.initialNodeIds).toEqual(['route:writing-or-reviewing-patterns']);
   });
 
-  it('selects boundary burden for API boundary kickoff questions', async () => {
+  it('selects boundary unpacking / claim routing for API boundary kickoff questions', async () => {
     const snapshot = await getSnapshotWithRouteFixtures();
     const question =
       'As a project lead, what small FPF route should I use to run a 30-minute project kickoff about an API boundary decision?';
@@ -518,7 +518,7 @@ describe('Query / Ranker stage', () => {
     const ranking = rankCandidates(question, seeding.candidateMap, snapshot);
 
     expect(ranking.routeWins).toBe(true);
-    expect(ranking.initialNodeIds).toEqual(['route:boundary-burden']);
+    expect(ranking.initialNodeIds).toEqual(['route:boundary-unpacking-claim-routing']);
   });
 
   it('selects the boundary route for PR reviewer API contract prompts', async () => {
@@ -530,7 +530,7 @@ describe('Query / Ranker stage', () => {
     const ranking = rankCandidates(question, seeding.candidateMap, snapshot);
 
     expect(ranking.routeWins).toBe(true);
-    expect(ranking.initialNodeIds).toEqual(['route:boundary-burden']);
+    expect(ranking.initialNodeIds).toEqual(['route:boundary-unpacking-claim-routing']);
   });
 
   it('selects C.16 for measurement template characteristic scale evidence prompts', async () => {
@@ -787,7 +787,7 @@ describe('Query / Projection stability stage', () => {
     expect(trace.selectedNodeIds[0]).toBe('route:writing-or-reviewing-patterns');
   });
 
-  it('does not fast-route generic compliance review wording to boundary burden', async () => {
+  it('does not fast-route generic compliance review wording to boundary unpacking / claim routing', async () => {
     const snapshot = await getSnapshotWithRouteFixtures();
     const engine = new QueryEngine(snapshot, false);
     const questions = [
@@ -800,8 +800,8 @@ describe('Query / Projection stability stage', () => {
       const trace = engine.trace(question, 'compact');
 
       expect(trace.routeWins).toBe(false);
-      expect(trace.selectedNodeIds[0]).not.toBe('route:boundary-burden');
-      expect(trace.candidateScores[0]?.nodeId).not.toBe('route:boundary-burden');
+      expect(trace.selectedNodeIds[0]).not.toBe('route:boundary-unpacking-claim-routing');
+      expect(trace.candidateScores[0]?.nodeId).not.toBe('route:boundary-unpacking-claim-routing');
     }
   });
 

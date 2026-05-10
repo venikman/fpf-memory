@@ -16,6 +16,16 @@ https://mcp.fpf.sh/api/mcp/fpf_memory/mcp
 
 This endpoint is the direct Vercel-hosted MCP origin over streamable HTTP. It exposes the public fpf-memory tools for catalog browsing, search, compact answers, exact generated doc reads, and index health.
 
+It is a JSON-RPC endpoint, not a web page. A bare browser GET returns **406 Not Acceptable** because the MCP server requires `Accept: application/json, text/event-stream`. Paste the URL into your client's MCP config; do not open it in a tab.
+
+For a browser-readable health check, use the freshness page instead:
+
+```txt
+https://mcp.fpf.sh/api/fpf/status
+```
+
+It returns JSON the browser will render — source hash, snapshot age, and the upstream ref the index was built from.
+
 Public tools:
 
 - `browse_fpf_catalog`

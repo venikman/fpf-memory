@@ -179,8 +179,8 @@ function scoreAdoptionRouteIntent(normalizedQuestion: string, route: RouteRecord
   switch (route.id) {
     case 'route:project-alignment':
       return scoreProjectAlignmentIntent(normalizedQuestion);
-    case 'route:boundary-burden':
-      return scoreBoundaryBurdenIntent(normalizedQuestion);
+    case 'route:boundary-unpacking-claim-routing':
+      return scoreBoundaryUnpackingClaimRoutingIntent(normalizedQuestion);
     case 'route:boundary-unpacking':
       return scoreBoundaryUnpackingIntent(normalizedQuestion);
     case 'route:writing-or-reviewing-patterns':
@@ -234,7 +234,7 @@ function scoreProjectAlignmentIntent(normalizedQuestion: string): number {
   return 0;
 }
 
-function scoreBoundaryBurdenIntent(normalizedQuestion: string): number {
+function scoreBoundaryUnpackingClaimRoutingIntent(normalizedQuestion: string): number {
   if (hasBoundaryReviewNegation(normalizedQuestion)) {
     return 0;
   }

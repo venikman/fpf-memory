@@ -1421,11 +1421,19 @@ function inlineCode(value: string): string {
   return `\`${value}\``;
 }
 
-// Escape `[` and `]` inside markdown link text so titles that contain
-// bracket labels (e.g. "C.3.A:Annex A [A/I]") render as a single anchor
-// instead of unbalanced markdown.
+// Replace `[` and `]` inside markdown link text with `(` and `)` so
+// titles that contain bracket labels (e.g. "C.3.A:Annex A [A/I]")
+// render as a single anchor.
+//
+// Backslash-escapes (`\[`, `\]`) — what CommonMark prescribes — and
+// numeric HTML entities (`&#91;` / `&#93;`) both fail to round-trip
+// through Rspress's MDX pipeline: the parser breaks the link text at
+// the inner `[` (backslash form) or HTML-escapes the leading `&`
+// (entity form), each producing visibly broken output. Parens carry
+// the same "this is a label" cue, are unambiguous to the markdown
+// parser inside link text, and pass through to HTML unchanged.
 function escapeMarkdownLinkText(text: string): string {
-  return text.replace(/\[/g, '\\[').replace(/\]/g, '\\]');
+  return text.replace(/\[/g, '(').replace(/\]/g, ')');
 }
 
 function stripRepeatedLeadMetadata(text: string): string {

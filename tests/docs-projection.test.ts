@@ -284,20 +284,23 @@ describe('docs projection', () => {
     ).toBe(true);
   });
 
-  it('escapes bracket labels in preface catalog link titles', () => {
+  it('rewrites bracket labels to parens in preface catalog link titles', () => {
     // Some published preface section titles include "[I]" / "[A/I]"
-    // labels. Markdown link grammar can't nest unescaped brackets,
-    // so the catalog rendered those rows as literal text. The titles
-    // must now appear with escaped brackets inside link text.
+    // labels. Markdown link grammar can't nest unescaped brackets, so
+    // the catalog rendered those rows as a malformed anchor with a
+    // dangling `]</a>` and the inner `[A/I]` orphaned. Backslash
+    // escapes and HTML entities both fail to round-trip Rspress's
+    // MDX pipeline; rewriting the brackets to parens keeps the label
+    // legible and the link as a single anchor.
     const projection = buildDocsProjection(snapshot);
     const catalog =
       projection.pagesByMarkdownPath[
         'docs/generated/preface/index.md'
       ]?.markdown ?? '';
-    // Round-trip a known offending title shape (we don't hardcode the
-    // exact title — just assert the escape pattern is present).
-    expect(catalog).toMatch(/\\\[[AI]\\\]/);
-    // And no unescaped `[I]` / `[A/I]` labels remain inside link text.
+    // The "(A/I)" / "(I)" label survives inside link text.
+    expect(catalog).toMatch(/\([AI](?:\/I)?\)\]\(\/generated/);
+    // No bracket labels remain inside link text — those would have
+    // produced malformed nested anchors.
     expect(catalog).not.toMatch(/\[[^\]]*\[[AI]\][^\]]*\]\(\/generated/);
   });
 
