@@ -1,45 +1,42 @@
 name: Sync FPF Publication
 
+# Polls the canonical FPF spec at github.com/ailev/FPF (Anatoly
+# Levenchuk's repository, the original source) once a day. If the
+# upstream main HEAD differs from `published/current/manifest.json`,
+# rebuilds the snapshot, commits, and triggers a Vercel redeploy.
+#
+# We don't own ailev/FPF, so push events aren't available — the
+# schedule is the trigger. `workflow_dispatch` lets a maintainer kick
+# a sync manually (e.g. after a urgent upstream edit).
 on:
-  repository_dispatch:
-    types: [fpf-sync-updated]
+  schedule:
+    # Daily at 06:00 UTC (~02:00 EST / 23:00 PST). Off-peak for both
+    # GitHub Actions runners and the Vercel deploy that follows.
+    - cron: '0 6 * * *'
   workflow_dispatch:
     inputs:
       upstream_ref:
-        description: 'fpf-sync branch, tag, or commit SHA to publish'
+        description: 'ailev/FPF branch, tag, or commit SHA to publish'
         required: false
         default: 'main'
-      upstream_spec_url:
-        description: 'Optional raw FPF-Spec.md URL override'
-        required: false
-  schedule:
-    # Repository dispatch from fpf-sync is the fast path. The schedule is a
-    # durability backstop for missed webhooks, token failures, or manual
-    # upstream edits that did not emit a dispatch event.
-    - cron: '17 */6 * * *'
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
+# A single sync at a time. If a manual run starts mid-cron, the cron
+# waits — we don't want two jobs racing on `published/current/`.
 concurrency:
-  group: pages
+  group: sync-fpf
   cancel-in-progress: false
 
 env:
   BUN_VERSION: '1.3.5'
-  FPF_SYNC_REPO: venikman/fpf-sync
-  FPF_SYNC_SPEC_PATH: FPF/FPF-Spec.md
 
 jobs:
   refresh:
-    name: Refresh published/current from fpf-sync
+    name: Refresh published/current from ailev/FPF
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     env:
       VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
     steps:
@@ -53,83 +50,29 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - name: Resolve upstream spec
-        id: upstream
-        env:
-          DISPATCH_REF: ${{ github.event.client_payload.ref || github.event.client_payload.branch || '' }}
-          DISPATCH_SHA: ${{ github.event.client_payload.sha || github.event.client_payload.after || '' }}
-          DISPATCH_SPEC_URL: ${{ github.event.client_payload.spec_url || github.event.client_payload.raw_url || '' }}
-          MANUAL_REF: ${{ inputs.upstream_ref || '' }}
-          MANUAL_SPEC_URL: ${{ inputs.upstream_spec_url || '' }}
-        run: |
-          set -euo pipefail
-
-          repo="${FPF_SYNC_REPO}"
-          spec_path="${FPF_SYNC_SPEC_PATH}"
-          ref="${DISPATCH_SHA:-${DISPATCH_REF:-${MANUAL_REF:-main}}}"
-          spec_url="${DISPATCH_SPEC_URL:-${MANUAL_SPEC_URL:-}}"
-
-          if [ -n "$spec_url" ]; then
-            upstream_ref="${DISPATCH_SHA:-$ref}"
-            raw_url="$spec_url"
-          else
-            if [[ "$ref" =~ ^[0-9a-f]{40}$ ]]; then
-              upstream_ref="$ref"
-            else
-              query_ref="$ref"
-              if [[ "$query_ref" != refs/* ]]; then
-                query_ref="refs/heads/$query_ref"
-              fi
-              upstream_ref="$(git ls-remote "https://github.com/${repo}.git" "$query_ref" | awk '{print $1}' | head -n1)"
-              if [ -z "$upstream_ref" ]; then
-                upstream_ref="$(git ls-remote "https://github.com/${repo}.git" "$ref" | awk '{print $1}' | head -n1)"
-              fi
-              if [ -z "$upstream_ref" ]; then
-                echo "::error::Unable to resolve fpf-sync ref '$ref'."
-                exit 1
-              fi
-            fi
-            raw_url="https://raw.githubusercontent.com/${repo}/${upstream_ref}/${spec_path}"
-          fi
-
-          {
-            echo "raw_url=$raw_url"
-            echo "upstream_ref=$upstream_ref"
-          } >> "$GITHUB_OUTPUT"
-          echo "Publishing ${raw_url}"
-          echo "Recording upstream ref ${upstream_ref}"
-
-      - name: Download FPF spec from fpf-sync
-        env:
-          FPF_UPSTREAM_SPEC_URL: ${{ steps.upstream.outputs.raw_url }}
+      - name: Download upstream spec from ailev/FPF
         run: bun run spec:download
 
       - name: Publish current channel
         env:
           FPF_PUBLISH_SOURCE_PATH: .fpf-upstream/FPF-Spec.md
-          FPF_UPSTREAM_REF: ${{ steps.upstream.outputs.upstream_ref }}
+          FPF_UPSTREAM_REF: ${{ inputs.upstream_ref || 'main' }}
         run: bun run publish:current
 
       - name: Validate published surface
         run: bun run validate:published
 
-      - name: Build website projection
-        env:
-          FPF_SPEC_SOURCE_PATH: published/current/FPF-Spec.md
-        run: bun run docs:build
-
       - name: Build hosted MCP server bundle
         run: |
           bun run vercel:origin:build
-          test -d .vercel/output/functions/index.func
-          test -f .vercel/output/functions/index.func/index.mjs
-          test -f .vercel/output/functions/index.func/hosted/FPF-Spec.md
-          test -f .vercel/output/functions/index.func/hosted/manifest.json
-          test -f .vercel/output/functions/index.func/hosted/fpf-index/snapshot.json
+          test -d .vercel/output/functions/_origin.func
+          test -f .vercel/output/functions/_origin.func/index.mjs
+          test -f .vercel/output/functions/_origin.func/hosted/FPF-Spec.md
+          test -f .vercel/output/functions/_origin.func/hosted/manifest.json
+          test -f .vercel/output/functions/_origin.func/hosted/fpf-index/snapshot.json
 
       - name: Commit publication update
-        env:
-          UPSTREAM_REF: ${{ steps.upstream.outputs.upstream_ref }}
+        id: commit
         run: |
           set -euo pipefail
 
@@ -142,26 +85,24 @@ jobs:
                   src/docs/generated-search-id-registry.ts
 
           if git diff --cached --quiet; then
-            echo "published/current already represents fpf-sync ${UPSTREAM_REF}."
+            echo "published/current already represents ailev/FPF HEAD; nothing to commit."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          git commit -m "publish: sync FPF current from fpf-sync"
+          UPSTREAM_REF=$(jq -r .upstreamRef published/current/manifest.json)
+          UPSTREAM_DATE=$(jq -r .upstreamCommittedAt published/current/manifest.json)
+          SHORT_REF="${UPSTREAM_REF:0:8}"
+          SHORT_DATE="${UPSTREAM_DATE:0:10}"
+
+          git commit -m "publish: sync FPF spec from ailev/FPF (${SHORT_REF} · ${SHORT_DATE})"
           git push
-
-      - name: Upload website artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: doc_build
-
-      - name: Deploy website to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Trigger hosted MCP server deploy hook
-        if: ${{ env.VERCEL_DEPLOY_HOOK_URL != '' }}
+        if: steps.commit.outputs.changed == 'true' && env.VERCEL_DEPLOY_HOOK_URL != ''
         run: curl --fail --silent --show-error --request POST "$VERCEL_DEPLOY_HOOK_URL"
 
       - name: Note hosted MCP server deploy source
-        if: ${{ env.VERCEL_DEPLOY_HOOK_URL == '' }}
-        run: echo "No VERCEL_DEPLOY_HOOK_URL secret configured; relying on the Vercel Git integration to redeploy from the pushed publication commit."
+        if: steps.commit.outputs.changed == 'true' && env.VERCEL_DEPLOY_HOOK_URL == ''
+        run: echo "No VERCEL_DEPLOY_HOOK_URL secret configured; relying on Vercel Git integration to redeploy from the pushed commit."
