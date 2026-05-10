@@ -8,6 +8,14 @@ import { publishCurrent } from '../src/build/publish-current.js';
 import { validatePublishedSurface } from '../src/build/published-surface.js';
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
 
+// Stub the upstream commit resolver so tests don't hit the real GitHub
+// API for fake refs like `test-ref`. The returned values are stable
+// byte-strings so manifest equality checks stay deterministic.
+const STUB_UPSTREAM_RESOLVER = async (ref: string) => ({
+  sha: ref === 'test-ref' ? 'a'.repeat(40) : ref,
+  committedAt: '2026-01-15T00:00:00.000Z',
+});
+
 describe('publishCurrent', () => {
   let tempRoot: string;
   let publishSourcePath: string;
@@ -42,6 +50,7 @@ describe('publishCurrent', () => {
     const config = {
       publishSourcePath,
       upstreamRef: 'test-ref',
+      resolveUpstreamCommit: STUB_UPSTREAM_RESOLVER,
       channel: 'latest-published',
       publishedSpecPath,
       publishedArtifactDir,
@@ -68,6 +77,7 @@ describe('publishCurrent', () => {
       {
         publishSourcePath,
         upstreamRef: 'test-ref',
+        resolveUpstreamCommit: STUB_UPSTREAM_RESOLVER,
         channel: 'latest-published',
         publishedSpecPath,
         publishedArtifactDir,
@@ -82,6 +92,7 @@ describe('publishCurrent', () => {
   it('keeps the published surface stable across equivalent publish roots', async () => {
     const config = {
       upstreamRef: 'test-ref',
+      resolveUpstreamCommit: STUB_UPSTREAM_RESOLVER,
       channel: 'latest-published',
       publishedSpecPath,
       publishedArtifactDir,
@@ -123,6 +134,7 @@ describe('publishCurrent', () => {
       {
         publishSourcePath,
         upstreamRef: 'test-ref',
+        resolveUpstreamCommit: STUB_UPSTREAM_RESOLVER,
         channel: 'latest-published',
         publishedSpecPath,
         publishedArtifactDir,
@@ -152,6 +164,7 @@ describe('publishCurrent', () => {
       {
         publishSourcePath,
         upstreamRef: 'test-ref',
+        resolveUpstreamCommit: STUB_UPSTREAM_RESOLVER,
         channel: 'latest-published',
         publishedSpecPath,
         publishedArtifactDir,
@@ -182,6 +195,7 @@ describe('publishCurrent', () => {
       {
         publishSourcePath,
         upstreamRef: 'test-ref',
+        resolveUpstreamCommit: STUB_UPSTREAM_RESOLVER,
         channel: 'latest-published',
         publishedSpecPath,
         publishedArtifactDir,
@@ -205,6 +219,7 @@ describe('publishCurrent', () => {
       {
         publishSourcePath,
         upstreamRef: 'test-ref',
+        resolveUpstreamCommit: STUB_UPSTREAM_RESOLVER,
         channel: 'latest-published',
         publishedSpecPath,
         publishedArtifactDir,

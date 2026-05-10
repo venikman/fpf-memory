@@ -598,12 +598,10 @@ describe('docs projection', () => {
     }
   }, 360_000);
 
-  it('stamps generated pages with the manifest publishedAt date', () => {
-    // Generated docs aren't tracked in git, so rspress's default git-based
-    // "Last Updated" reads back the timestamp of the commit that stopped
-    // tracking them — stale. Pages built with a manifest must instead
-    // surface the snapshot's publishedAt, both in frontmatter (for SEO /
-    // search consumers) and as a visible footer line at the page bottom.
+  it('falls back to publishedAt when manifest lacks upstream commit metadata', () => {
+    // Older snapshots predate the upstream-commit fields in manifest.
+    // The renderer tolerates that: ISO publishedAt goes in frontmatter,
+    // a plain "FPF snapshot publish date" footer line surfaces it.
     const projection = buildDocsProjection(snapshot, {
       channel: 'latest-published',
       sourceHash: 'sha256:test',
@@ -618,13 +616,54 @@ describe('docs projection', () => {
     for (const path of samples) {
       const body = projection.pagesByMarkdownPath[path]?.markdown ?? '';
       expect(body, `expected ${path} to be projected`).not.toBe('');
-      // ISO timestamp lives in frontmatter.
       expect(body).toMatch(/^lastUpdated: "2026-05-10T04:28:39.529Z"$/m);
-      // Compact yyyy-mm-dd date lives in the visible footer line.
       expect(body).toMatch(
         /\*Last Updated: 2026-05-10 \(FPF snapshot publish date\)\*/,
       );
     }
+  });
+
+  it('links every generated page to the exact ailev/FPF commit it was projected from', () => {
+    // When the manifest carries upstream commit metadata, both the
+    // frontmatter `lastUpdated` and the visible footer line should
+    // come from the upstream commit (not the local publish time), and
+    // the footer line should link directly to the commit on GitHub so
+    // a reader can read the diff this snapshot is a projection of.
+    const projection = buildDocsProjection(snapshot, {
+      channel: 'latest-published',
+      sourceHash: 'sha256:test',
+      upstreamRef: '1f7c9e53ae066346fb89da5e59646fc784592b4e',
+      upstreamRepoUrl: 'https://github.com/ailev/FPF',
+      upstreamCommittedAt: '2026-05-08T17:00:40Z',
+      publishedAt: '2026-05-10T04:28:39.529Z',
+    });
+    const body =
+      projection.pagesByMarkdownPath['docs/generated/patterns/A.6.md']
+        ?.markdown ?? '';
+    // Frontmatter records the upstream commit date, not the local publish.
+    expect(body).toMatch(/^lastUpdated: "2026-05-08T17:00:40Z"$/m);
+    // Visible footer links the date to the exact ailev/FPF commit.
+    expect(body).toMatch(
+      /\*Last Updated: \[2026-05-08\]\(https:\/\/github\.com\/ailev\/FPF\/commit\/1f7c9e53ae066346fb89da5e59646fc784592b4e\)/,
+    );
+    expect(body).toContain('upstream FPF commit `1f7c9e53`');
+    expect(body).toContain('[github.com/ailev/FPF](https://github.com/ailev/FPF)');
+  });
+
+  it('home page provenance line links the upstream commit when available', () => {
+    const projection = buildDocsProjection(snapshot, {
+      channel: 'latest-published',
+      sourceHash: 'sha256:c0301013deadbeef',
+      upstreamRef: '1f7c9e53ae066346fb89da5e59646fc784592b4e',
+      upstreamRepoUrl: 'https://github.com/ailev/FPF',
+      upstreamCommittedAt: '2026-05-08T17:00:40Z',
+      publishedAt: '2026-05-10T04:28:39.529Z',
+    });
+    const home = projection.pagesByMarkdownPath['docs/index.md']?.markdown ?? '';
+    expect(home).toContain(
+      '[2026-05-08](https://github.com/ailev/FPF/commit/1f7c9e53ae066346fb89da5e59646fc784592b4e)',
+    );
+    expect(home).toContain('[ailev/FPF](https://github.com/ailev/FPF)');
   });
 
   it('omits the publishedAt stamp when no manifest is provided', () => {

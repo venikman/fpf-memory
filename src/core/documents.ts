@@ -72,6 +72,10 @@ export interface PublicationManifestSummary {
   sourceHash: string;
   upstreamRef: string;
   publishedAt: string;
+  /** Repository URL the upstream ref lives in (e.g. github.com/ailev/FPF). */
+  upstreamRepoUrl?: string;
+  /** ISO date the upstream commit was authored — drives "Last Updated". */
+  upstreamCommittedAt?: string;
 }
 
 const DOCS_ROOT = 'docs';
@@ -92,14 +96,17 @@ export function buildDocsProjection(
     buildRootIndexPage(snapshot, manifest),
   ];
 
-  // Stamp every generated page with the published-snapshot date as
-  // the truthful per-snapshot freshness signal. Generated pages
-  // aren't tracked in git, so rspress's git-based lastUpdated is
-  // disabled; we render the date ourselves as a small footer line
-  // and also expose it in frontmatter for search/SEO consumers.
+  // Stamp every generated page with the upstream commit date as the
+  // truthful per-snapshot freshness signal — readers want to know
+  // when the FPF spec itself last changed, not when we re-published
+  // it. Falls back to publishedAt for older snapshots that predate
+  // upstreamCommittedAt. Generated pages aren't tracked in git, so
+  // rspress's git-based lastUpdated is disabled; we render the date
+  // ourselves as a small footer line and also expose it in
+  // frontmatter for search/SEO consumers.
   if (manifest) {
     for (const page of pages) {
-      page.markdown = stampPublishedDate(page.markdown, manifest.publishedAt);
+      page.markdown = stampLastUpdated(page.markdown, manifest);
     }
   }
 
@@ -111,19 +118,20 @@ export function buildDocsProjection(
   };
 }
 
-function stampPublishedDate(
+function stampLastUpdated(
   markdown: string,
-  publishedAt: string,
+  manifest: PublicationManifestSummary,
 ): string {
+  const lastUpdatedIso = manifest.upstreamCommittedAt ?? manifest.publishedAt;
   return appendLastUpdatedFooter(
-    injectLastUpdatedFrontmatter(markdown, publishedAt),
-    publishedAt,
+    injectLastUpdatedFrontmatter(markdown, lastUpdatedIso),
+    manifest,
   );
 }
 
 function injectLastUpdatedFrontmatter(
   markdown: string,
-  publishedAt: string,
+  lastUpdatedIso: string,
 ): string {
   const match = markdown.match(/^---\n([\s\S]*?)\n---\n/);
   if (!match) return markdown;
@@ -132,18 +140,27 @@ function injectLastUpdatedFrontmatter(
   if (/^\s*lastUpdated\s*:/m.test(existingFrontmatter)) {
     return markdown;
   }
-  const newFrontmatter = `${existingFrontmatter}\nlastUpdated: ${JSON.stringify(publishedAt)}`;
+  const newFrontmatter = `${existingFrontmatter}\nlastUpdated: ${JSON.stringify(lastUpdatedIso)}`;
   return `---\n${newFrontmatter}\n---\n${markdown.slice(match[0].length)}`;
 }
 
 function appendLastUpdatedFooter(
   markdown: string,
-  publishedAt: string,
+  manifest: PublicationManifestSummary,
 ): string {
   // Render the date in the same compact yyyy-mm-dd shape as the home
   // page's manifest line; full ISO is in frontmatter for tools that
-  // want it.
-  const formatted = formatPublishedDate(publishedAt);
+  // want it. When the manifest carries upstream commit metadata, link
+  // the date to the exact ailev/FPF commit so readers can read the
+  // diff that produced this snapshot.
+  if (manifest.upstreamCommittedAt && manifest.upstreamRepoUrl) {
+    const formatted = formatPublishedDate(manifest.upstreamCommittedAt);
+    const shortSha = manifest.upstreamRef.slice(0, 8);
+    const commitUrl = `${manifest.upstreamRepoUrl}/commit/${manifest.upstreamRef}`;
+    return `${markdown.replace(/\n+$/, '')}\n\n---\n\n*Last Updated: [${formatted}](${commitUrl}) — upstream FPF commit \`${shortSha}\` ([${manifest.upstreamRepoUrl.replace(/^https:\/\//, '')}](${manifest.upstreamRepoUrl}))*\n`;
+  }
+  // Fallback for older snapshots without upstream commit metadata.
+  const formatted = formatPublishedDate(manifest.publishedAt);
   return `${markdown.replace(/\n+$/, '')}\n\n---\n\n*Last Updated: ${formatted} (FPF snapshot publish date)*\n`;
 }
 
@@ -477,6 +494,18 @@ function renderHomeProvenanceDetail(manifest?: PublicationManifestSummary): stri
 
   const shortHash = manifest.sourceHash.replace(/^sha256:/, '').slice(0, 8);
   const shortRef = manifest.upstreamRef.slice(0, 8);
+
+  // Prefer upstream commit metadata when present: link the date to the
+  // exact ailev/FPF commit and the short SHA to the same URL so the
+  // reader can open the diff this snapshot was projected from.
+  if (manifest.upstreamCommittedAt && manifest.upstreamRepoUrl) {
+    const upstreamDate = formatPublishedDate(manifest.upstreamCommittedAt);
+    const commitUrl = `${manifest.upstreamRepoUrl}/commit/${manifest.upstreamRef}`;
+    const repoLabel = manifest.upstreamRepoUrl.replace(/^https:\/\/github\.com\//, '');
+    return `Upstream FPF commit [${upstreamDate}](${commitUrl}) (\`${shortRef}\`) in [${repoLabel}](${manifest.upstreamRepoUrl}) · source ${shortHash}.`;
+  }
+
+  // Fallback for older snapshots without upstream commit metadata.
   const publishedAt = formatPublishedDate(manifest.publishedAt);
   return `Published ${publishedAt} · upstream ${shortRef} · source ${shortHash}.`;
 }

@@ -119,6 +119,8 @@ async function writeHostedStage(input: {
       sourceHash: input.sourceHash,
       compilerFingerprint,
       upstreamRef: input.upstreamRef,
+      upstreamRepoUrl: 'https://github.com/ailev/FPF',
+      upstreamCommittedAt: '2026-05-08T17:00:40Z',
       publishedAt: '2026-05-09T00:00:00.000Z',
       specPath: 'published/current/FPF-Spec.md',
       snapshotPath: 'published/current/fpf-index/snapshot.json',

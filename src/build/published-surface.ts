@@ -17,6 +17,10 @@ export interface PublishCurrentManifest {
   sourceHash: string;
   compilerFingerprint: string;
   upstreamRef: string;
+  /** GitHub URL for the upstream repository (link target in docs UI). */
+  upstreamRepoUrl: string;
+  /** ISO date the upstream commit was authored. Used as "Last Updated". */
+  upstreamCommittedAt: string;
   publishedAt: string;
   specPath: string;
   snapshotPath: string;
@@ -28,6 +32,8 @@ export const publishCurrentManifestSchema = z.object({
   sourceHash: z.string(),
   compilerFingerprint: z.string(),
   upstreamRef: z.string(),
+  upstreamRepoUrl: z.string(),
+  upstreamCommittedAt: z.string(),
   publishedAt: z.string(),
   specPath: z.string(),
   snapshotPath: z.string(),

@@ -29,12 +29,54 @@ export interface PublishCurrentConfig {
   publishSourcePath: string;
   /** Tag committed into manifest.json so consumers know the upstream pin. */
   upstreamRef: string;
+  /** GitHub repository the upstream ref lives in. Default: ailev/FPF. */
+  upstreamOwner?: string;
+  upstreamRepo?: string;
   /** Label shown on the wiki; defaults to `latest-published`. */
   channel: string;
   /** Overridable to make the module testable against a temp tree. */
   publishedSpecPath?: string;
   publishedArtifactDir?: string;
   publishedManifestPath?: string;
+  /**
+   * Resolver for the upstream commit metadata (resolved SHA + author
+   * date). Defaults to the GitHub commits API; overridable in tests
+   * to avoid hitting the network for fake refs.
+   */
+  resolveUpstreamCommit?: (
+    ref: string,
+    owner: string,
+    repo: string,
+  ) => Promise<{ sha: string; committedAt: string }>;
+}
+
+const FALLBACK_UPSTREAM_OWNER = 'ailev';
+const FALLBACK_UPSTREAM_REPO = 'FPF';
+
+async function defaultResolveUpstreamCommit(
+  ref: string,
+  owner: string,
+  repo: string,
+): Promise<{ sha: string; committedAt: string }> {
+  const url = `https://api.github.com/repos/${owner}/${repo}/commits/${encodeURIComponent(ref)}`;
+  const response = await fetch(url, {
+    headers: { Accept: 'application/vnd.github+json' },
+  });
+  if (!response.ok) {
+    throw new Error(
+      `publish-current: GitHub API ${response.status} for ${url}`,
+    );
+  }
+  const body = (await response.json()) as {
+    sha: string;
+    commit: { author: { date: string }; committer: { date: string } };
+  };
+  // Prefer author date — committer date can drift if the commit was
+  // rebased or amended downstream.
+  return {
+    sha: body.sha,
+    committedAt: body.commit.author?.date ?? body.commit.committer.date,
+  };
 }
 
 /**
@@ -91,11 +133,27 @@ export async function publishCurrent(
     publishedSnapshotPath,
     compilerFingerprint,
   );
+  // Resolve the upstream ref to an immutable SHA + commit date so the
+  // manifest records exactly which `ailev/FPF` revision this snapshot
+  // is a projection of. The "Last Updated" footer on every doc page
+  // and the home-page provenance line both read this date.
+  const upstreamOwner = config.upstreamOwner ?? FALLBACK_UPSTREAM_OWNER;
+  const upstreamRepo = config.upstreamRepo ?? FALLBACK_UPSTREAM_REPO;
+  const resolveCommit = config.resolveUpstreamCommit ?? defaultResolveUpstreamCommit;
+  const upstreamCommit = await resolveCommit(
+    config.upstreamRef,
+    upstreamOwner,
+    upstreamRepo,
+  );
+  const upstreamRepoUrl = `https://github.com/${upstreamOwner}/${upstreamRepo}`;
+
   const manifestWithoutTimestamp = {
     channel: config.channel,
     sourceHash,
     compilerFingerprint,
-    upstreamRef: config.upstreamRef,
+    upstreamRef: upstreamCommit.sha,
+    upstreamRepoUrl,
+    upstreamCommittedAt: upstreamCommit.committedAt,
     specPath: config.publishedSpecPath ?? PUBLISHED_SPEC_PATH,
     snapshotPath: `${config.publishedArtifactDir ?? PUBLISHED_ARTIFACT_DIR}/${ARTIFACT_FILENAMES.snapshot}`,
     specBytes,
@@ -154,6 +212,8 @@ function isSamePublicationManifest(
     && existingManifest.sourceHash === manifestWithoutTimestamp.sourceHash
     && existingManifest.compilerFingerprint === manifestWithoutTimestamp.compilerFingerprint
     && existingManifest.upstreamRef === manifestWithoutTimestamp.upstreamRef
+    && existingManifest.upstreamRepoUrl === manifestWithoutTimestamp.upstreamRepoUrl
+    && existingManifest.upstreamCommittedAt === manifestWithoutTimestamp.upstreamCommittedAt
     && existingManifest.specPath === manifestWithoutTimestamp.specPath
     && existingManifest.snapshotPath === manifestWithoutTimestamp.snapshotPath
     && existingManifest.specBytes === manifestWithoutTimestamp.specBytes;

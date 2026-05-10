@@ -42,6 +42,11 @@ const publicationManifestSummarySchema = z.object({
   sourceHash: z.string(),
   upstreamRef: z.string(),
   publishedAt: z.string(),
+  // Optional for backward compat: older snapshots predate these fields.
+  // Builders that find them missing fall back to publishedAt + a generic
+  // "FPF spec" link.
+  upstreamRepoUrl: z.string().optional(),
+  upstreamCommittedAt: z.string().optional(),
 });
 
 export async function generateDocsSite(
