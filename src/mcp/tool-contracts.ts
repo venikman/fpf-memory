@@ -12,7 +12,7 @@ const MAX_FILTER_LENGTH = 64;
 const MAX_CITATION_COUNT = 50;
 
 export const answerModeSchema = z.enum(['compact', 'verbose', 'proof']);
-export const nodeKindSchema = z.enum(['pattern', 'route', 'lexeme']);
+export const nodeKindSchema = z.enum(['pattern', 'route', 'lexeme', 'preface']);
 export const selectorKindSchema = z.enum(['auto', 'id', 'route', 'lexeme']);
 export const answerStatusSchema = z.enum([
   'ok',

@@ -668,7 +668,8 @@ export class QueryEngine {
   }
 
   private resolvedAsForNode(node: CompiledNode): 'id' | 'route' | 'lexeme' {
-    return node.kind === 'pattern' ? 'id' : node.kind;
+    if (node.kind === 'pattern' || node.kind === 'preface') return 'id';
+    return node.kind;
   }
 
   private notFoundInspect(selector: string): InspectResult {

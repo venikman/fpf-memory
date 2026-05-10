@@ -202,6 +202,25 @@ describe('Discovery layer', () => {
       expect(lexemeHit.linkedNodeIds!.length).toBeGreaterThan(0);
     });
 
+    it('surfaces preface section headings in default search', async () => {
+      // Audit follow-up A: top-level preface sections (the
+      // `heading:…` rows like "Thinking Through Writing") are now
+      // first-class compiled nodes, so they appear in `search_fpf`
+      // results alongside patterns/routes/lexemes. Before this PR,
+      // a query like "thinking through writing" returned only
+      // pattern/lexeme matches and the preface page was unreachable
+      // through search.
+      const result = await runtime.search(
+        'thinking through writing conceptual work',
+        { limit: 8 },
+      );
+      const top = result.hits[0];
+      expect(top).toBeDefined();
+      if (!top) return;
+      expect(top.kind).toBe('preface');
+      expect(top.title.toLowerCase()).toContain('thinking through writing');
+    });
+
     it('does not apply the lexeme penalty when the caller explicitly asks for kind:"lexeme"', async () => {
       // When the search filter is `kind: "lexeme"`, the caller wants
       // raw lexeme ranking (e.g. an MCP tool exploring vocabulary).

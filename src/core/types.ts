@@ -48,7 +48,7 @@ export type SectionRole =
   | 'route_surface'
   | 'other';
 
-export type NodeKind = 'pattern' | 'route' | 'lexeme';
+export type NodeKind = 'pattern' | 'route' | 'lexeme' | 'preface';
 
 export type RelationKind =
   | 'builds_on'

@@ -21,9 +21,16 @@ export function buildValidation(
   },
   relationGraph: RelationEdge[],
 ): BuildValidation {
+  // `duplicateIds` counts IDs that appear in BOTH compiledNodes and
+  // indexMap — this is meant to surface unintentional collisions
+  // (catalog row that ALSO became a heading, etc.). Preface section
+  // IDs (`heading:…`) are intentionally registered in both: they live
+  // in indexMap as section nodes AND in compiledNodes as searchable
+  // entries. Skip those from the duplicate scan so the metric stays
+  // focused on actual collisions.
   const duplicateIds = findDuplicateIds([
-    ...Object.keys(compiledNodes),
-    ...Object.keys(indexMap.nodes),
+    ...Object.keys(compiledNodes).filter((id) => !id.startsWith('heading:')),
+    ...Object.keys(indexMap.nodes).filter((id) => !id.startsWith('heading:')),
   ]);
   const unresolvedReferences = unique(
     relationGraph

@@ -111,6 +111,10 @@ export function compileFpfSource(params: {
     routeGraph.nodes,
     lexicon,
     allRelations,
+    {
+      indexMap: indexMap.nodes,
+      anchorMap: ir.anchorMap,
+    },
   );
   const indexes = buildIndexes(compiledNodes, patternGraph.nodes, routeGraph.nodes, lexicon);
 

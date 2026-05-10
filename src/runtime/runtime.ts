@@ -903,6 +903,10 @@ function nodeToCatalogEntry(
     description = entry
       ? `Lexicon: ${entry.canonical}${entry.aliases.length > 0 ? ` (${entry.aliases.join(', ')})` : ''}`
       : node.title;
+  } else if (node.kind === 'preface') {
+    // Preface entries' indexMap node carries the section's description.
+    const indexNode = snapshot.indexMap[node.id];
+    description = indexNode?.description ?? node.title;
   }
   return {
     id: node.id,

@@ -185,6 +185,10 @@ export function buildCompiledNodes(
   routeNodes: Record<string, RouteRecord>,
   lexicon: Record<string, LexiconEntry>,
   relationGraph: RelationEdge[],
+  options: {
+    indexMap?: Record<string, IndexMapNode>;
+    anchorMap?: Record<string, AnchorRef>;
+  } = {},
 ): Record<string, CompiledNode> {
   const nodes: Record<string, CompiledNode> = {};
 
@@ -228,6 +232,39 @@ export function buildCompiledNodes(
       searchableText: entry.searchableText,
       details: entry,
     };
+  }
+
+  // Audit follow-up A: top-level preface section nodes (those whose ID
+  // starts with `heading:`) carry substantive prose like "Thinking
+  // Through Writing" that previously couldn't appear in `search_fpf`
+  // because only patterns/routes/lexemes entered `compiledNodes`.
+  // Iterate the indexMap once, pick out the heading: rows, attach the
+  // anchor's plainText as searchable text, and skip stub headings
+  // (< 80 chars of prose) so the search surface doesn't fill up with
+  // empty title-only entries.
+  const indexMap = options.indexMap;
+  const anchorMap = options.anchorMap;
+  if (indexMap && anchorMap) {
+    for (const node of Object.values(indexMap)) {
+      if (!node.id.startsWith('heading:')) continue;
+      if (nodes[node.id]) continue; // already covered by another kind
+      const anchor = anchorMap[node.id];
+      const prose = anchor?.plainText?.trim() ?? '';
+      if (prose.length < 80) continue;
+      nodes[node.id] = {
+        id: node.id,
+        kind: 'preface',
+        title: node.title,
+        aliases: [],
+        anchorIds: [node.id],
+        neighborEdges: relationGraph.filter((edge) => edge.from === node.id),
+        searchableText: `${node.title} ${prose}`,
+        // The CompiledNode.details union doesn't yet carry a preface
+        // shape; pass the indexMap node so callers that introspect
+        // can read line range / parent / path. Cast at the boundary.
+        details: node as unknown as PatternRecord,
+      };
+    }
   }
 
   return nodes;
