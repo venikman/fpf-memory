@@ -25,7 +25,7 @@ describe('Vercel MCP origin config', () => {
     ) as { scripts: Record<string, string> };
 
     expect(packageJson.scripts['vercel:origin:link']).toBe(
-      'vercel link --project fpf-memory-mcp-vercel-origin',
+      'vercel link --project fpf-sh',
     );
     expect(packageJson.scripts['vercel:origin:build']).toBe(
       'bun run predeploy && bun run docs:build && bun run build:vercel-origin && bun run bench:vercel:function-size',
