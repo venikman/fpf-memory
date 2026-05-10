@@ -273,6 +273,17 @@ export function buildPatternAnswer(
         ]
       : [];
 
+  // Audit follow-up D: when the retrieval came back ambiguous, the
+  // selected `ids` are the multiple winners that scored within the
+  // tie band — but the trace also has the surrounding ranked
+  // candidates that the caller may want to consider when picking
+  // among them. Surface the top of `candidateScores` so the caller
+  // can disambiguate without a second round-trip.
+  const ambiguousCandidateIds =
+    trace.status === 'ambiguous' && trace.candidateScores.length > 0
+      ? trace.candidateScores.slice(0, 6).map((candidate) => candidate.nodeId)
+      : undefined;
+
   return buildResult(question, mode, rebuilt, snapshot, {
     answer,
     ids: patternIds,
@@ -282,6 +293,7 @@ export function buildPatternAnswer(
     confidence: confidenceFromTrace(trace, question, requestedShape, shapeProduced),
     gaps: [...gapsFromTrace(trace), ...shapeGaps],
     status: trace.status,
+    ...(ambiguousCandidateIds ? { candidateIds: ambiguousCandidateIds } : {}),
     ...(requestedShape ? { requestedShape, shapeProduced } : {}),
     groundingChain:
       mode === 'proof'
