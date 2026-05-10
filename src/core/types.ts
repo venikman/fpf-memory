@@ -652,6 +652,14 @@ export interface SearchHit {
   part?: string;
   score: number;
   snippet: string;
+  /**
+   * For `kind: "lexeme"` hits, the pattern / route IDs the lexeme is
+   * linked to. Lexemes are vocabulary entries — readers that find a
+   * lexeme in search results need a path to the actionable pattern
+   * page, otherwise the hit is a dead-end. Undefined on non-lexeme
+   * hits.
+   */
+  linkedNodeIds?: string[];
 }
 
 export interface SearchResult {

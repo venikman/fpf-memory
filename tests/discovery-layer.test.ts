@@ -167,6 +167,58 @@ describe('Discovery layer', () => {
       expect(result.hits.length).toBeLessThanOrEqual(2);
     });
 
+    it('penalizes lexeme hits in default search so patterns/routes win on natural-language queries', async () => {
+      // Lexeme `searchableText` concatenates many usage examples, so
+      // without a penalty a single huge lexeme like
+      // `lex:text-use-this-pattern-when-boundary-facing-language…`
+      // outranks `route:boundary-unpacking` for the natural-language
+      // query "boundary burden". The default search should keep the
+      // first non-lexeme hit ahead of every lexeme hit.
+      const result = await runtime.search('boundary burden', { limit: 15 });
+      const firstNonLexemeIdx = result.hits.findIndex(
+        (h) => h.kind !== 'lexeme',
+      );
+      const firstLexemeIdx = result.hits.findIndex((h) => h.kind === 'lexeme');
+      expect(firstNonLexemeIdx).toBeGreaterThanOrEqual(0);
+      // If any lexeme hit appears at all, it must come AFTER every
+      // pattern/route hit of comparable strength.
+      if (firstLexemeIdx >= 0) {
+        expect(firstLexemeIdx).toBeGreaterThan(firstNonLexemeIdx);
+      }
+    });
+
+    it('exposes linkedNodeIds on lexeme hits so readers have a path to the pattern page', async () => {
+      // A lexeme on its own is a vocabulary entry, not an actionable
+      // page. Including the linked pattern/route IDs alongside the
+      // hit lets the caller jump straight to the actionable surface.
+      const result = await runtime.search('boundary', {
+        kind: 'lexeme',
+        limit: 5,
+      });
+      const lexemeHit = result.hits.find((h) => h.kind === 'lexeme');
+      expect(lexemeHit).toBeDefined();
+      if (!lexemeHit) return;
+      expect(Array.isArray(lexemeHit.linkedNodeIds)).toBe(true);
+      expect(lexemeHit.linkedNodeIds!.length).toBeGreaterThan(0);
+    });
+
+    it('does not apply the lexeme penalty when the caller explicitly asks for kind:"lexeme"', async () => {
+      // When the search filter is `kind: "lexeme"`, the caller wants
+      // raw lexeme ranking (e.g. an MCP tool exploring vocabulary).
+      const penalized = await runtime.search('boundary burden', { limit: 5 });
+      const raw = await runtime.search('boundary burden', {
+        kind: 'lexeme',
+        limit: 5,
+      });
+      const penalizedTopLexeme = penalized.hits.find((h) => h.kind === 'lexeme');
+      const rawTopLexeme = raw.hits[0];
+      if (penalizedTopLexeme && rawTopLexeme && penalizedTopLexeme.id === rawTopLexeme.id) {
+        // Same lexeme in both result sets — the raw score must be
+        // higher than the penalized score for the same hit.
+        expect(rawTopLexeme.score).toBeGreaterThan(penalizedTopLexeme.score);
+      }
+    });
+
     it('returns zero hits for nonsense query', async () => {
       const result = await runtime.search('zqqxvwjkf');
       expect(result.hits.length).toBe(0);

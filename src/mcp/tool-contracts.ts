@@ -581,6 +581,7 @@ export const searchHitSchema = z
     part: z.string().optional(),
     score: z.number(),
     snippet: z.string(),
+    linkedNodeIds: z.array(z.string()).optional(),
   })
   .strict();
 

@@ -431,12 +431,25 @@ export class FpfRuntime {
         continue;
       }
 
-      const score =
+      const rawScore =
         scoreOverlap(queryTokens, node.searchableText)
         + scoreOverlap(queryTokens, node.title) * SEARCH_TITLE_TOKEN_WEIGHT;
-      if (score <= 0) {
+      if (rawScore <= 0) {
         continue;
       }
+      const score =
+        node.kind === 'lexeme' && options.kind !== 'lexeme'
+          ? rawScore * SEARCH_LEXEME_DEFAULT_PENALTY
+          : rawScore;
+
+      // Lexeme hits expose the linked pattern/route IDs so a reader
+      // who lands on a vocabulary entry can jump to the actionable
+      // page. Pattern/route hits don't need this — the hit ID is
+      // already the actionable target.
+      const linkedNodeIds =
+        node.kind === 'lexeme'
+          ? (node.details as { linkedNodeIds?: string[] }).linkedNodeIds
+          : undefined;
 
       hits.push({
         id: node.id,
@@ -446,6 +459,9 @@ export class FpfRuntime {
         part: node.part,
         score,
         snippet: extractSnippet(node.searchableText, queryTokens),
+        ...(linkedNodeIds && linkedNodeIds.length > 0
+          ? { linkedNodeIds }
+          : {}),
       });
     }
 
@@ -896,6 +912,13 @@ function nodeToCatalogEntry(
 }
 
 const SEARCH_TITLE_TOKEN_WEIGHT = 5;
+// Lexemes are vocabulary entries; in default search they kept crowding
+// out actionable pattern/route hits because their `searchableText`
+// concatenates many usage examples. When the caller hasn't asked for
+// lexemes specifically (`kind: "lexeme"`), multiply their score by
+// this factor so they rank below pattern/route matches of comparable
+// strength but still appear if nothing else matches the query.
+const SEARCH_LEXEME_DEFAULT_PENALTY = 0.3;
 // Schema caps the query string at 1000 chars; even pathological tokenizations
 // won't exceed this token count for a legitimate query.
 const SEARCH_MAX_QUERY_TOKENS = 64;
