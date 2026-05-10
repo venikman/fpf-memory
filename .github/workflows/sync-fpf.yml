@@ -3,15 +3,19 @@ name: Sync FPF Publication
 # Polls the canonical FPF spec at github.com/ailev/FPF (Anatoly
 # Levenchuk's repository, the original source) once a day. If the
 # upstream main HEAD differs from `published/current/manifest.json`,
-# rebuilds the snapshot, commits, and triggers a Vercel redeploy.
+# rebuilds the snapshot, opens a PR, and lets the normal CI pipeline
+# (lint, type, tests, build, Vercel preview, Playwright E2E) gate the
+# merge. The merge then triggers Vercel's prod deploy via the Git
+# integration.
 #
-# We don't own ailev/FPF, so push events aren't available — the
-# schedule is the trigger. `workflow_dispatch` lets a maintainer kick
-# a sync manually (e.g. after a urgent upstream edit).
+# Earlier versions auto-pushed to main; that was changed to PR mode
+# because upstream-spec changes are higher-risk than human PRs (no
+# author review, content can change parser behavior). PR mode keeps
+# the same E2E gates that protect every other change to main.
 on:
   schedule:
     # Daily at 06:00 UTC (~02:00 EST / 23:00 PST). Off-peak for both
-    # GitHub Actions runners and the Vercel deploy that follows.
+    # GitHub Actions runners and the Vercel deploy that follows merge.
     - cron: '0 6 * * *'
   workflow_dispatch:
     inputs:
@@ -19,9 +23,14 @@ on:
         description: 'ailev/FPF branch, tag, or commit SHA to publish'
         required: false
         default: 'main'
+      auto_merge:
+        description: 'Enable auto-merge on the PR (squash) when CI is green'
+        required: false
+        default: 'true'
 
 permissions:
   contents: write
+  pull-requests: write
 
 # A single sync at a time. If a manual run starts mid-cron, the cron
 # waits — we don't want two jobs racing on `published/current/`.
@@ -38,8 +47,6 @@ jobs:
     name: Refresh published/current from ailev/FPF
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -72,14 +79,12 @@ jobs:
           test -f "$VERCEL_FUNCTION_BUNDLE_PATH/hosted/manifest.json"
           test -f "$VERCEL_FUNCTION_BUNDLE_PATH/hosted/fpf-index/snapshot.json"
 
-      - name: Commit publication update
-        id: commit
+      - name: Detect upstream change
+        id: detect
         run: |
           set -euo pipefail
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
+          # Stage the publication surface; if nothing changed,
+          # the rest of the steps can short-circuit.
           git add published/current/FPF-Spec.md \
                   published/current/fpf-index/snapshot.json \
                   published/current/manifest.json \
@@ -88,22 +93,69 @@ jobs:
           if git diff --cached --quiet; then
             echo "published/current already represents ailev/FPF HEAD; nothing to commit."
             echo "changed=false" >> "$GITHUB_OUTPUT"
+            git reset HEAD -- . || true
             exit 0
           fi
 
           UPSTREAM_REF=$(jq -r .upstreamRef published/current/manifest.json)
           UPSTREAM_DATE=$(jq -r .upstreamCommittedAt published/current/manifest.json)
-          SHORT_REF="${UPSTREAM_REF:0:8}"
-          SHORT_DATE="${UPSTREAM_DATE:0:10}"
+          {
+            echo "changed=true"
+            echo "upstream_ref=$UPSTREAM_REF"
+            echo "short_ref=${UPSTREAM_REF:0:8}"
+            echo "short_date=${UPSTREAM_DATE:0:10}"
+          } >> "$GITHUB_OUTPUT"
 
-          git commit -m "publish: sync FPF spec from ailev/FPF (${SHORT_REF} · ${SHORT_DATE})"
-          git push
-          echo "changed=true" >> "$GITHUB_OUTPUT"
+          # Reset the staged files so peter-evans/create-pull-request
+          # can stage + commit on its own branch.
+          git reset HEAD -- .
 
-      - name: Trigger hosted MCP server deploy hook
-        if: steps.commit.outputs.changed == 'true' && env.VERCEL_DEPLOY_HOOK_URL != ''
-        run: curl --fail --silent --show-error --request POST "$VERCEL_DEPLOY_HOOK_URL"
+      - name: Open sync PR
+        if: steps.detect.outputs.changed == 'true'
+        id: pr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: chore/sync-fpf-${{ steps.detect.outputs.short_ref }}
+          delete-branch: true
+          base: main
+          commit-message: |
+            publish: sync FPF spec from ailev/FPF (${{ steps.detect.outputs.short_ref }} · ${{ steps.detect.outputs.short_date }})
+          title: 'chore: sync FPF spec from ailev/FPF (${{ steps.detect.outputs.short_date }})'
+          body: |
+            Auto-detected new commit on `ailev/FPF` main.
 
-      - name: Note hosted MCP server deploy source
-        if: steps.commit.outputs.changed == 'true' && env.VERCEL_DEPLOY_HOOK_URL == ''
-        run: echo "No VERCEL_DEPLOY_HOOK_URL secret configured; relying on Vercel Git integration to redeploy from the pushed commit."
+            - **Upstream commit**: [`${{ steps.detect.outputs.upstream_ref }}`](https://github.com/ailev/FPF/commit/${{ steps.detect.outputs.upstream_ref }})
+            - **Author date**: ${{ steps.detect.outputs.short_date }}
+
+            CI gates this merge: lint, type, tests, hosted MCP build, Vercel preview deploy, and Playwright E2E. The merge will trigger Vercel's prod deploy via the Git integration.
+
+            > Generated by `.github/workflows/sync-fpf.yml`. Auto-merge enabled when all required checks pass.
+          add-paths: |
+            published/current/FPF-Spec.md
+            published/current/fpf-index/snapshot.json
+            published/current/manifest.json
+            src/docs/generated-search-id-registry.ts
+          committer: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
+          author: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
+
+      - name: Enable auto-merge
+        if: |
+          steps.detect.outputs.changed == 'true'
+          && steps.pr.outputs.pull-request-number
+          && (inputs.auto_merge == 'true' || github.event_name == 'schedule')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.pull-request-number }}
+        run: |
+          gh pr merge "$PR_NUMBER" --auto --squash --delete-branch \
+            || echo "::warning::Could not enable auto-merge for PR #$PR_NUMBER (branch protection or token scope). Merge manually after review."
+
+      - name: Report result
+        run: |
+          if [ "${{ steps.detect.outputs.changed }}" = "true" ]; then
+            echo "Opened sync PR #${{ steps.pr.outputs.pull-request-number }}"
+            echo "${{ steps.pr.outputs.pull-request-url }}"
+          else
+            echo "No upstream change detected; nothing to do."
+          fi
