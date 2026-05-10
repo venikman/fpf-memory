@@ -105,6 +105,16 @@ export interface IndexMapNode {
   parentId?: string;
   childIds: string[];
   anchorId: string;
+  /**
+   * ISO date the most recent upstream commit touched this section's
+   * line range (lineStart..lineEnd) in `FPF-Spec.md`. Populated at
+   * publish time via `git blame --line-porcelain` on the upstream
+   * clone; absent when blame data isn't available (e.g. local dev,
+   * runtime rebuilds without an upstream checkout).
+   */
+  lastCommittedAt?: string;
+  /** Short SHA of the commit that authored `lastCommittedAt`. */
+  lastCommitSha?: string;
   metadata: {
     patternId?: string;
     part?: string;

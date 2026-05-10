@@ -8,6 +8,7 @@ dist
 doc_build
 .runtime
 .fpf-upstream
+.fpf-upstream-clone
 .vercel-staged
 docs/generated/
 docs/index.md

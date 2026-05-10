@@ -96,17 +96,20 @@ export function buildDocsProjection(
     buildRootIndexPage(snapshot, manifest),
   ];
 
-  // Stamp every generated page with the upstream commit date as the
-  // truthful per-snapshot freshness signal — readers want to know
-  // when the FPF spec itself last changed, not when we re-published
-  // it. Falls back to publishedAt for older snapshots that predate
-  // upstreamCommittedAt. Generated pages aren't tracked in git, so
-  // rspress's git-based lastUpdated is disabled; we render the date
-  // ourselves as a small footer line and also expose it in
+  // Stamp every generated page with the truthful last-modified date.
+  // For pattern / preface pages, this is the most recent commit that
+  // touched THAT section's line range in the upstream spec (if blame
+  // data was attached at publish time). For routes, catalogs, and
+  // the home page, we fall back to the whole-file upstream commit
+  // date from the manifest. Generated pages aren't tracked in git,
+  // so rspress's git-based lastUpdated is disabled; we render the
+  // date ourselves as a small footer line and also expose it in
   // frontmatter for search/SEO consumers.
   if (manifest) {
     for (const page of pages) {
-      page.markdown = stampLastUpdated(page.markdown, manifest);
+      const sectionBlame =
+        page.nodeId ? sectionBlameForNode(snapshot, page.nodeId) : undefined;
+      page.markdown = stampLastUpdated(page.markdown, manifest, sectionBlame);
     }
   }
 
@@ -118,14 +121,46 @@ export function buildDocsProjection(
   };
 }
 
+interface SectionBlame {
+  lastCommittedAt: string;
+  lastCommitSha: string;
+}
+
+/**
+ * Look up the per-section blame stamp for the page's primary node.
+ * Pattern pages and preface pages map directly to an indexMap node
+ * (and that node carries the most-recent-commit data attached at
+ * publish time). Route pages and lexeme pages don't have an
+ * indexMap entry — we return undefined and let the caller fall back
+ * to the whole-file manifest date.
+ */
+function sectionBlameForNode(
+  snapshot: Snapshot,
+  nodeId: string,
+): SectionBlame | undefined {
+  const indexEntry = snapshot.indexMap[nodeId];
+  if (!indexEntry || !indexEntry.lastCommittedAt || !indexEntry.lastCommitSha) {
+    return undefined;
+  }
+  return {
+    lastCommittedAt: indexEntry.lastCommittedAt,
+    lastCommitSha: indexEntry.lastCommitSha,
+  };
+}
+
 function stampLastUpdated(
   markdown: string,
   manifest: PublicationManifestSummary,
+  sectionBlame?: SectionBlame,
 ): string {
-  const lastUpdatedIso = manifest.upstreamCommittedAt ?? manifest.publishedAt;
+  const lastUpdatedIso =
+    sectionBlame?.lastCommittedAt
+    ?? manifest.upstreamCommittedAt
+    ?? manifest.publishedAt;
   return appendLastUpdatedFooter(
     injectLastUpdatedFrontmatter(markdown, lastUpdatedIso),
     manifest,
+    sectionBlame,
   );
 }
 
@@ -147,19 +182,30 @@ function injectLastUpdatedFrontmatter(
 function appendLastUpdatedFooter(
   markdown: string,
   manifest: PublicationManifestSummary,
+  sectionBlame?: SectionBlame,
 ): string {
-  // Render the date in the same compact yyyy-mm-dd shape as the home
-  // page's manifest line; full ISO is in frontmatter for tools that
-  // want it. When the manifest carries upstream commit metadata, link
-  // the date to the exact ailev/FPF commit so readers can read the
-  // diff that produced this snapshot.
-  if (manifest.upstreamCommittedAt && manifest.upstreamRepoUrl) {
+  const repoUrl = manifest.upstreamRepoUrl;
+
+  // Best case — section-specific blame stamps THIS page's last
+  // modification: the date is when ailev last edited the lines
+  // covering this section, and the link goes to that exact commit.
+  if (sectionBlame && repoUrl) {
+    const formatted = formatPublishedDate(sectionBlame.lastCommittedAt);
+    const sha = sectionBlame.lastCommitSha;
+    const commitUrl = `${repoUrl}/commit/${sha}`;
+    return `${markdown.replace(/\n+$/, '')}\n\n---\n\n*Last Updated: [${formatted}](${commitUrl}) — this section last modified in upstream FPF commit \`${sha}\` ([${repoUrl.replace(/^https:\/\//, '')}](${repoUrl}))*\n`;
+  }
+
+  // Whole-file fallback — pages without a direct line range (routes,
+  // catalogs, home) get the latest commit on the spec file.
+  if (manifest.upstreamCommittedAt && repoUrl) {
     const formatted = formatPublishedDate(manifest.upstreamCommittedAt);
     const shortSha = manifest.upstreamRef.slice(0, 8);
-    const commitUrl = `${manifest.upstreamRepoUrl}/commit/${manifest.upstreamRef}`;
-    return `${markdown.replace(/\n+$/, '')}\n\n---\n\n*Last Updated: [${formatted}](${commitUrl}) — upstream FPF commit \`${shortSha}\` ([${manifest.upstreamRepoUrl.replace(/^https:\/\//, '')}](${manifest.upstreamRepoUrl}))*\n`;
+    const commitUrl = `${repoUrl}/commit/${manifest.upstreamRef}`;
+    return `${markdown.replace(/\n+$/, '')}\n\n---\n\n*Last Updated: [${formatted}](${commitUrl}) — upstream FPF commit \`${shortSha}\` ([${repoUrl.replace(/^https:\/\//, '')}](${repoUrl}))*\n`;
   }
-  // Fallback for older snapshots without upstream commit metadata.
+
+  // Final fallback for older snapshots without upstream metadata.
   const formatted = formatPublishedDate(manifest.publishedAt);
   return `${markdown.replace(/\n+$/, '')}\n\n---\n\n*Last Updated: ${formatted} (FPF snapshot publish date)*\n`;
 }

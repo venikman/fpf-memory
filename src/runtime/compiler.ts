@@ -67,6 +67,15 @@ export function compileFpfSource(params: {
   builtAt: string;
   compilerFingerprint?: string;
   sourceText: string;
+  /**
+   * Optional per-line upstream blame map (1-based line numbers →
+   * commit info). Populated at publish time by cloning the upstream
+   * repo and running `git blame --line-porcelain`. When provided,
+   * `buildIndexMap` stamps each section node with the most recent
+   * commit that touched its line range. Absent for runtime rebuilds
+   * that don't have an upstream checkout.
+   */
+  lineBlame?: Map<number, { sha: string; committedAt: string }>;
 }): CompilerOutput {
   // Stage 1: SourceParser — markdown text → SourceIR
   const ir = parseSource(params.sourceText);
@@ -91,7 +100,12 @@ export function compileFpfSource(params: {
   const lexicon = buildLexicon(patternGraph.nodes, routeGraph.nodes, ir.anchorMap);
   const lexiconRelations = buildLexiconRelations(lexicon);
   const allRelations = uniqueRelations([...relationGraph, ...lexiconRelations]);
-  const indexMap = buildIndexMap(ir, patternGraph.nodes, routeGraph.nodes);
+  const indexMap = buildIndexMap(
+    ir,
+    patternGraph.nodes,
+    routeGraph.nodes,
+    params.lineBlame,
+  );
   const compiledNodes = buildCompiledNodes(
     patternGraph.nodes,
     routeGraph.nodes,

@@ -6,8 +6,10 @@ import { z } from 'zod';
 
 import {
   DEFAULT_SOURCE_PATH,
+  PUBLISHED_ARTIFACT_DIR,
   PUBLISHED_MANIFEST_PATH,
 } from '../../core/constants.js';
+import { ARTIFACT_FILENAMES } from '../../runtime/constants.js';
 import { compileFpfSource } from '../../runtime/compiler.js';
 import type { Snapshot } from '../../runtime/types.js';
 import type { ContextId, LifecycleState } from '../../core/governance.js';
@@ -24,6 +26,13 @@ export interface GenerateDocsOptions {
   docsRoot?: string;
   builtAt?: string;
   manifestPath?: string;
+  /**
+   * Path to the published snapshot.json. When present, per-section
+   * blame stamps (lastCommittedAt / lastCommitSha) are lifted from
+   * its `indexMap` and merged into the freshly compiled snapshot
+   * by node ID. Defaults to `published/current/fpf-index/snapshot.json`.
+   */
+  publishedSnapshotPath?: string;
 }
 
 export interface GenerateDocsResult {
@@ -66,6 +75,13 @@ export async function generateDocsSite(
   const manifest = await readPublicationManifest(
     resolve(process.cwd(), options.manifestPath ?? PUBLISHED_MANIFEST_PATH),
   );
+  // Per-section blame stamps (lastCommittedAt / lastCommitSha) live
+  // on each indexMap node in the PUBLISHED snapshot, attached at
+  // publish time by `enrichSnapshotWithLineBlame`. compileFpfSource
+  // here builds a fresh snapshot from source text and doesn't have
+  // the blame data, so we lift it from the published snapshot when
+  // available — same source = same node IDs, so the merge is safe.
+  await mergeBlameFromPublishedSnapshot(snapshot, options.publishedSnapshotPath);
   const projection = buildDocsProjection(snapshot, manifest);
   const generatedRoot = resolve(docsRoot, 'generated');
 
@@ -119,5 +135,49 @@ async function readPublicationManifest(
     return result.success ? result.data : undefined;
   } catch {
     return undefined;
+  }
+}
+
+/**
+ * Lift per-section blame stamps (`lastCommittedAt` / `lastCommitSha`)
+ * from the published snapshot's indexMap onto the freshly compiled
+ * snapshot. The two snapshots share the same source-text-derived
+ * node IDs, so a node-id-keyed merge is safe. Silently no-ops when
+ * the published snapshot is absent or malformed.
+ */
+async function mergeBlameFromPublishedSnapshot(
+  snapshot: Snapshot,
+  publishedSnapshotPath: string | undefined,
+): Promise<void> {
+  const path = resolve(
+    process.cwd(),
+    publishedSnapshotPath
+      ?? `${PUBLISHED_ARTIFACT_DIR}/${ARTIFACT_FILENAMES.snapshot}`,
+  );
+  let parsed: unknown;
+  try {
+    const text = await readFile(path, 'utf8');
+    parsed = JSON.parse(text);
+  } catch {
+    return;
+  }
+  const publishedIndexMap =
+    parsed && typeof parsed === 'object'
+      ? (parsed as { indexMap?: unknown }).indexMap
+      : undefined;
+  if (!publishedIndexMap || typeof publishedIndexMap !== 'object') return;
+  const publishedNodes = publishedIndexMap as Record<
+    string,
+    { lastCommittedAt?: unknown; lastCommitSha?: unknown }
+  >;
+  for (const [nodeId, ourNode] of Object.entries(snapshot.indexMap)) {
+    const published = publishedNodes[nodeId];
+    if (!published) continue;
+    if (typeof published.lastCommittedAt === 'string') {
+      ourNode.lastCommittedAt = published.lastCommittedAt;
+    }
+    if (typeof published.lastCommitSha === 'string') {
+      ourNode.lastCommitSha = published.lastCommitSha;
+    }
   }
 }

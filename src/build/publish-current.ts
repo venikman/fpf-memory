@@ -19,6 +19,10 @@ import {
   type PublishCurrentManifest,
 } from './published-surface.js';
 import { computeCompilerFingerprint } from './compiler-fingerprint.js';
+import {
+  loadUpstreamLineBlame,
+  type LineBlameMap,
+} from './upstream-blame.js';
 
 const publicationSnapshotInputSchema = publicationSnapshotSchema.extend({
   compilerFingerprint: z.string().optional(),
@@ -48,6 +52,16 @@ export interface PublishCurrentConfig {
     owner: string,
     repo: string,
   ) => Promise<{ sha: string; committedAt: string }>;
+  /**
+   * Loader for per-line upstream blame data. Defaults to a
+   * git-clone + `git blame` pipeline (`upstream-blame.ts`); overridable
+   * in tests to skip the network/disk dance.
+   */
+  loadLineBlame?: (input: {
+    owner: string;
+    repo: string;
+    ref: string;
+  }) => Promise<LineBlameMap | undefined>;
 }
 
 const FALLBACK_UPSTREAM_OWNER = 'ailev';
@@ -127,12 +141,6 @@ export async function publishCurrent(
   ).path;
   const snapshotSourcePath = resolve(runtimeArtifactDir, ARTIFACT_FILENAMES.snapshot);
   const snapshotBytes = await readFile(snapshotSourcePath);
-  const normalizedSnapshotBytes = await normalizeSnapshotForPublication(
-    snapshotBytes,
-    config.publishedSpecPath ?? PUBLISHED_SPEC_PATH,
-    publishedSnapshotPath,
-    compilerFingerprint,
-  );
   // Resolve the upstream ref to an immutable SHA + commit date so the
   // manifest records exactly which `ailev/FPF` revision this snapshot
   // is a projection of. The "Last Updated" footer on every doc page
@@ -146,6 +154,36 @@ export async function publishCurrent(
     upstreamRepo,
   );
   const upstreamRepoUrl = `https://github.com/${upstreamOwner}/${upstreamRepo}`;
+
+  // Per-section commit date metadata (audit follow-up): clone or
+  // refresh a local mirror of the upstream repo and run
+  // `git blame --line-porcelain` on the spec path. Each indexMap
+  // node gets stamped with the most recent commit that touched
+  // its line range, so the docs footer can read the section's
+  // truthful last-modified date instead of the whole-file date.
+  // Optional — when network / git is unavailable, we silently fall
+  // back to the whole-file `upstreamCommittedAt` from the manifest.
+  const lineBlame = config.loadLineBlame
+    ? await config.loadLineBlame({
+        owner: upstreamOwner,
+        repo: upstreamRepo,
+        ref: upstreamCommit.sha,
+      })
+    : await loadUpstreamLineBlame({
+        owner: upstreamOwner,
+        repo: upstreamRepo,
+        ref: upstreamCommit.sha,
+      });
+
+  const enrichedSnapshotBytes = lineBlame
+    ? enrichSnapshotWithLineBlame(snapshotBytes, lineBlame)
+    : snapshotBytes;
+  const normalizedSnapshotBytes = await normalizeSnapshotForPublication(
+    enrichedSnapshotBytes,
+    config.publishedSpecPath ?? PUBLISHED_SPEC_PATH,
+    publishedSnapshotPath,
+    compilerFingerprint,
+  );
 
   const manifestWithoutTimestamp = {
     channel: config.channel,
@@ -258,6 +296,52 @@ async function normalizeSnapshotForPublication(
   };
 
   return Buffer.from(`${JSON.stringify(normalizedSnapshot, null, 2)}\n`);
+}
+
+/**
+ * Walk every node in `indexMap.nodes`, find the most recent commit
+ * that touched its line range in the upstream spec, and stamp the
+ * node with `lastCommittedAt` + `lastCommitSha`. The schema treats
+ * those fields as optional pass-through, so this enrichment is a
+ * pure additive change to the snapshot — no existing field is
+ * touched, no fingerprint shifts.
+ */
+function enrichSnapshotWithLineBlame(
+  snapshotBytes: Buffer,
+  lineBlame: LineBlameMap,
+): Buffer {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(snapshotBytes.toString('utf8'));
+  } catch {
+    return snapshotBytes;
+  }
+  if (!parsed || typeof parsed !== 'object') return snapshotBytes;
+  // `Snapshot.indexMap` is `Record<string, IndexMapNode>` directly
+  // (compiler destructures `buildIndexMap()`: `indexRoots = roots`,
+  // `indexMap = nodes`). So we walk `parsed.indexMap` as the node
+  // record without unwrapping a `.nodes` field.
+  const indexMap = (parsed as { indexMap?: unknown }).indexMap;
+  if (!indexMap || typeof indexMap !== 'object') return snapshotBytes;
+  const nodeRecord = indexMap as Record<string, Record<string, unknown>>;
+  for (const node of Object.values(nodeRecord)) {
+    const lineStart = typeof node.lineStart === 'number' ? node.lineStart : undefined;
+    const lineEnd = typeof node.lineEnd === 'number' ? node.lineEnd : undefined;
+    if (lineStart === undefined || lineEnd === undefined) continue;
+    let best: { sha: string; committedAt: string } | undefined;
+    for (let line = lineStart; line <= lineEnd; line += 1) {
+      const info = lineBlame.get(line);
+      if (!info) continue;
+      if (!best || info.committedAt > best.committedAt) {
+        best = info;
+      }
+    }
+    if (best) {
+      node.lastCommittedAt = best.committedAt;
+      node.lastCommitSha = best.sha;
+    }
+  }
+  return Buffer.from(`${JSON.stringify(parsed, null, 2)}\n`);
 }
 
 function parsePublicationSnapshot(bytes: Buffer) {

@@ -26,6 +26,7 @@ export function buildIndexMap(
   ir: SourceIR,
   patternNodes: Record<string, PatternRecord>,
   routeNodes: Record<string, RouteRecord>,
+  lineBlame?: Map<number, { sha: string; committedAt: string }>,
 ): {
   roots: string[];
   nodes: Record<string, IndexMapNode>;
@@ -51,6 +52,9 @@ export function buildIndexMap(
     if (Object.hasOwn(nodes, section.id)) {
       duplicateHeadings.add(section.id);
     }
+    const blameForSection = lineBlame
+      ? newestCommitInRange(lineBlame, section.lineStart, section.lineEnd)
+      : undefined;
     nodes[section.id] = {
       id: section.id,
       title: section.heading,
@@ -62,6 +66,12 @@ export function buildIndexMap(
       parentId: section.parentId,
       childIds: [...section.childIds],
       anchorId: section.id,
+      ...(blameForSection
+        ? {
+            lastCommittedAt: blameForSection.committedAt,
+            lastCommitSha: blameForSection.sha,
+          }
+        : {}),
       metadata: {
         patternId: section.patternId,
         part: pattern?.part,
@@ -78,6 +88,26 @@ export function buildIndexMap(
     }
   }
   return { roots, nodes, duplicateHeadings: Array.from(duplicateHeadings) };
+}
+
+/**
+ * Walk a line range (1-based, inclusive) and return the most recent
+ * commit info that touched any line in that range.
+ */
+function newestCommitInRange(
+  blame: Map<number, { sha: string; committedAt: string }>,
+  lineStart: number,
+  lineEnd: number,
+): { sha: string; committedAt: string } | undefined {
+  let best: { sha: string; committedAt: string } | undefined;
+  for (let line = lineStart; line <= lineEnd; line += 1) {
+    const info = blame.get(line);
+    if (!info) continue;
+    if (!best || info.committedAt > best.committedAt) {
+      best = info;
+    }
+  }
+  return best;
 }
 
 export function buildLexicon(

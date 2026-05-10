@@ -676,4 +676,63 @@ describe('docs projection', () => {
     expect(body).not.toMatch(/\*Last Updated: /);
     expect(body).not.toMatch(/^lastUpdated:/m);
   });
+
+  it('uses per-section blame stamps in pattern footers when nodes carry them', () => {
+    // When the snapshot's indexMap carries `lastCommittedAt` /
+    // `lastCommitSha` on a node (attached at publish time by
+    // `enrichSnapshotWithLineBlame`), the page footer should read
+    // FROM THAT NODE'S commit, not the whole-file upstream commit
+    // — so each pattern page tells the truth about when its own
+    // section last changed in the upstream FPF.
+    const enrichedSnapshot = JSON.parse(JSON.stringify(snapshot)) as Snapshot;
+    enrichedSnapshot.indexMap['A.1.1']!.lastCommittedAt = '2025-12-16T10:00:00Z';
+    enrichedSnapshot.indexMap['A.1.1']!.lastCommitSha = 'b3f55f36';
+    enrichedSnapshot.indexMap['C.27']!.lastCommittedAt = '2026-04-30T08:00:00Z';
+    enrichedSnapshot.indexMap['C.27']!.lastCommitSha = '34b4d63c';
+    const projection = buildDocsProjection(enrichedSnapshot, {
+      channel: 'latest-published',
+      sourceHash: 'sha256:test',
+      upstreamRef: '136be3bbdf2a0c22e29beaea769851d794fdef39',
+      upstreamRepoUrl: 'https://github.com/ailev/FPF',
+      upstreamCommittedAt: '2026-05-10T06:26:04Z',
+      publishedAt: '2026-05-10T07:00:00Z',
+    });
+    const a11 =
+      projection.pagesByMarkdownPath['docs/generated/patterns/A.1.1.md']
+        ?.markdown ?? '';
+    const c27 =
+      projection.pagesByMarkdownPath['docs/generated/patterns/C.27.md']
+        ?.markdown ?? '';
+    expect(a11).toContain(
+      '[2025-12-16](https://github.com/ailev/FPF/commit/b3f55f36)',
+    );
+    expect(a11).toContain('upstream FPF commit `b3f55f36`');
+    expect(a11).toContain('this section last modified');
+    expect(c27).toContain(
+      '[2026-04-30](https://github.com/ailev/FPF/commit/34b4d63c)',
+    );
+    expect(c27).toContain('upstream FPF commit `34b4d63c`');
+    // Both pages must NOT show the whole-file upstream commit date,
+    // because their per-section data is more specific.
+    expect(a11).not.toContain('136be3bb');
+    expect(c27).not.toContain('136be3bb');
+  });
+
+  it('falls back to whole-file commit date for pages whose nodes lack per-section blame', () => {
+    // Route pages, the home page, and other catalog/index pages
+    // don't have an indexMap entry with line-range blame. They keep
+    // showing the whole-file upstream commit date as a sensible
+    // fallback.
+    const projection = buildDocsProjection(snapshot, {
+      channel: 'latest-published',
+      sourceHash: 'sha256:test',
+      upstreamRef: '136be3bbdf2a0c22e29beaea769851d794fdef39',
+      upstreamRepoUrl: 'https://github.com/ailev/FPF',
+      upstreamCommittedAt: '2026-05-10T06:26:04Z',
+      publishedAt: '2026-05-10T07:00:00Z',
+    });
+    const home =
+      projection.pagesByMarkdownPath['docs/index.md']?.markdown ?? '';
+    expect(home).toContain('[2026-05-10](https://github.com/ailev/FPF/commit/136be3bbdf2a0c22e29beaea769851d794fdef39)');
+  });
 });
