@@ -36,7 +36,11 @@ export interface RuntimeQueryPort {
   readDoc(
     selector: string,
     kind?: 'auto' | 'id' | 'route' | 'lexeme',
-    forceRefresh?: boolean,
+    options?: {
+      mode?: 'preview' | 'full';
+      maxChars?: number;
+      forceRefresh?: boolean;
+    },
   ): Promise<ReadDocResult>;
   inspectAnchor(anchorId: string, forceRefresh?: boolean): Promise<InspectAnchorResult>;
   expandCitations(

@@ -479,7 +479,16 @@ export interface ReadDocResult {
   nodeId?: string;
   title?: string;
   docRef?: DocRef;
+  /** Page markdown. Omitted in preview mode; truncated when maxChars set. */
   markdown?: string;
+  /** Full character count of the page markdown, before truncation. */
+  markdownChars?: number;
+  /** Whether `markdown` was truncated to fit a caller-supplied maxChars. */
+  truncated?: boolean;
+  /** H2 / H3 heading text in document order, for outline navigation. */
+  headings?: string[];
+  /** Short text-content preview, set when mode: "preview". */
+  preview?: string;
   snapshot: {
     sourceHash: string;
     builtAt: string;

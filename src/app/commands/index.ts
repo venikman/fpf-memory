@@ -38,6 +38,10 @@ export interface InspectFpfNodeCommand {
 export interface ReadFpfDocCommand {
   selector: string;
   kind?: 'auto' | 'id' | 'route' | 'lexeme';
+  /** Default 'full'; 'preview' omits markdown, returns headings + preview snippet. */
+  mode?: 'preview' | 'full';
+  /** Cap returned markdown length (UTF-16 code units). */
+  maxChars?: number;
   forceRefresh?: boolean;
 }
 

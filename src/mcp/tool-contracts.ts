@@ -393,7 +393,31 @@ export const readDocResultSchema = z
     nodeId: z.string().optional(),
     title: z.string().optional(),
     docRef: docRefSchema.optional(),
+    /**
+     * Page markdown. Omitted when `mode: "preview"`; truncated when
+     * `maxChars` is set (signaled by `truncated: true`).
+     */
     markdown: z.string().optional(),
+    /**
+     * Full character count of the page's markdown — independent of
+     * truncation, so callers know the original size before deciding
+     * whether to re-fetch with a higher `maxChars` or follow the
+     * `docRef` link.
+     */
+    markdownChars: z.number().int().nonnegative().optional(),
+    /** Whether `markdown` was truncated to fit `maxChars`. */
+    truncated: z.boolean().optional(),
+    /**
+     * H2 / H3 heading text in document order. Lets a caller see
+     * the page's outline without paying for the full markdown.
+     */
+    headings: z.array(z.string()).optional(),
+    /**
+     * Short text-content preview suitable for an MCP fallback
+     * surface or a search-result hover card. Set when
+     * `mode: "preview"` is requested; empty otherwise.
+     */
+    preview: z.string().optional(),
     snapshot: z
       .object({
         sourceHash: z.string(),
@@ -480,6 +504,25 @@ export const readFpfDocInputSchema = z
   .object({
     selector: z.string().min(1).max(MAX_SELECTOR_LENGTH),
     kind: selectorKindSchema.optional(),
+    /**
+     * `"preview"`: omit full markdown; return headings, char count,
+     *   and a short preview snippet.
+     * `"full"` (default): return the full markdown; still includes the
+     *   metadata fields (headings, markdownChars).
+     */
+    mode: z.enum(['preview', 'full']).optional(),
+    /**
+     * Cap returned `markdown` to this many UTF-16 code units. Doc
+     * pages can run >100 KB; default-mode callers exploring a
+     * catalog usually want a bounded slice. When truncated,
+     * `truncated: true` is set and a `…` marker is appended.
+     */
+    maxChars: z
+      .number()
+      .int()
+      .min(100)
+      .max(200000)
+      .optional(),
     forceRefresh: z.boolean().optional(),
   })
   .strict();

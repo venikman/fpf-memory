@@ -48,11 +48,11 @@ export class InspectAppService {
 
     try {
       return success(
-        await this.runtime.readDoc(
-          selector,
-          command.kind ?? 'auto',
-          command.forceRefresh ?? false,
-        ),
+        await this.runtime.readDoc(selector, command.kind ?? 'auto', {
+          mode: command.mode,
+          maxChars: command.maxChars,
+          forceRefresh: command.forceRefresh ?? false,
+        }),
       );
     } catch (error) {
       return runtimeError(error);

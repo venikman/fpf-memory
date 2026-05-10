@@ -365,6 +365,30 @@ describe('FpfRuntime', () => {
     expect(readById.nodeId).toBe('A.1.1');
     expect(readById.docRef?.markdownPath).toBe('docs/generated/patterns/A.1.1.md');
     expect(readById.markdown).toContain('# U.BoundedContext: The Semantic Frame');
+    // Default-mode response carries metadata so callers can decide
+    // whether to re-fetch with maxChars or follow the docRef link.
+    expect(readById.markdownChars).toBe(readById.markdown!.length);
+    expect(Array.isArray(readById.headings)).toBe(true);
+    expect(readById.headings!.length).toBeGreaterThan(0);
+
+    // Preview mode omits the full body, exposes a short text snippet
+    // and the same headings outline.
+    const previewById = await runtime.readDoc('A.1.1', 'id', { mode: 'preview' });
+    expect(previewById.status).toBe('ok');
+    expect(previewById.markdown).toBeUndefined();
+    expect(previewById.markdownChars).toBe(readById.markdownChars);
+    expect(previewById.headings).toEqual(readById.headings);
+    expect(typeof previewById.preview).toBe('string');
+    expect(previewById.preview!.length).toBeGreaterThan(0);
+    expect(previewById.preview!.length).toBeLessThanOrEqual(400);
+
+    // maxChars truncates the body, signals truncation, and keeps
+    // markdownChars as the FULL pre-truncation size.
+    const cappedById = await runtime.readDoc('A.1.1', 'id', { maxChars: 500 });
+    expect(cappedById.status).toBe('ok');
+    expect(cappedById.markdown!.length).toBeLessThanOrEqual(550);
+    expect(cappedById.truncated).toBe(true);
+    expect(cappedById.markdownChars).toBe(readById.markdown!.length);
 
     const routes = await runtime.browse({ kind: 'route' });
     const routeIds = new Set(routes.entries.map((entry) => entry.id));

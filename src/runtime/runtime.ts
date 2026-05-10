@@ -271,9 +271,13 @@ export class FpfRuntime {
   async readDoc(
     selector: string,
     kind: 'auto' | 'id' | 'route' | 'lexeme' = 'auto',
-    forceRefresh = false,
+    options: { mode?: 'preview' | 'full'; maxChars?: number; forceRefresh?: boolean } = {},
   ): Promise<ReadDocResult> {
-    return (await this.createEngine(forceRefresh)).readDoc(selector, kind);
+    const engine = await this.createEngine(options.forceRefresh ?? false);
+    return engine.readDoc(selector, kind, {
+      mode: options.mode,
+      maxChars: options.maxChars,
+    });
   }
 
   async inspectAnchor(anchorId: string, forceRefresh = false): Promise<InspectAnchorResult> {

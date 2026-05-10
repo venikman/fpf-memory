@@ -300,6 +300,38 @@ describe('direct MCP server', () => {
     const readDocPayload = asToolPayload(readDoc);
     expect(readDocPayload.nodeId).toBe('A.1.1');
     expect(readDocPayload.markdown).toContain('# U.BoundedContext: The Semantic Frame');
+    expect(typeof readDocPayload.markdownChars).toBe('number');
+    expect(Array.isArray(readDocPayload.headings)).toBe(true);
+
+    // Text-content fallback (audit item #5): readers on the text
+    // channel should see title + node ID + paths + size + outline
+    // headings, not the old single-line "markdown is in
+    // structuredContent" placeholder.
+    const readDocResult = (readDoc.result ?? {}) as {
+      content?: Array<{ type?: string; text?: string }>;
+    };
+    const textContent = readDocResult.content?.find(
+      (item) => item.type === 'text',
+    )?.text;
+    expect(typeof textContent).toBe('string');
+    expect(textContent).toContain('A.1.1');
+    expect(textContent).toContain('chars');
+    expect(textContent).toContain('Outline:');
+
+    // Preview mode (audit item #4): omit the full markdown body but
+    // still surface headings + a short preview snippet.
+    const readDocPreview = await harness.request('tools/call', {
+      name: 'read_fpf_doc',
+      arguments: {
+        selector: 'A.1.1',
+        mode: 'preview',
+      },
+    });
+    const previewPayload = asToolPayload(readDocPreview);
+    expect(previewPayload.markdown).toBeUndefined();
+    expect(typeof previewPayload.preview).toBe('string');
+    expect((previewPayload.preview as string).length).toBeGreaterThan(0);
+    expect(previewPayload.markdownChars).toBe(readDocPayload.markdownChars);
 
     const routeCatalog = await harness.request('tools/call', {
       name: 'browse_fpf_catalog',

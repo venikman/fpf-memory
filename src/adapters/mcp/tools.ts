@@ -157,14 +157,16 @@ export function createMcpTools(dependencies: McpToolDependencies) {
   const readFpfDocTool = createFpfMcpTool({
     id: 'read_fpf_doc',
     description:
-      'Resolve one FPF selector to the canonical generated markdown page and return exact text plus stable markdown/static paths.',
+      'Resolve one FPF selector to the canonical generated markdown page and return exact text plus stable markdown/static paths. Pass `mode: "preview"` for headings + size + a short snippet without the full markdown body.',
     inputSchema: readFpfDocInputSchema,
     outputSchema: readDocResultSchema,
-    execute: async ({ selector, kind, forceRefresh }) =>
+    execute: async ({ selector, kind, mode, maxChars, forceRefresh }) =>
       unwrapOutcome(
         await dependencies.inspectAppService.readDoc({
           selector,
           kind: kind ?? 'auto',
+          mode,
+          maxChars,
           forceRefresh: forceRefresh ?? false,
         }),
       ),

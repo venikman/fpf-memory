@@ -125,10 +125,87 @@ function renderToolContent(
 
   const nodeId = structuredContent.nodeId;
   if (toolId === 'read_fpf_doc' && typeof nodeId === 'string') {
-    return `read_fpf_doc returned markdown for ${nodeId} in structuredContent.markdown.`;
+    return renderReadFpfDocFallback(structuredContent);
   }
 
   const status = structuredContent.status;
   const summary = status ? ` status=${String(status)}` : '';
   return `${toolId} returned structured content.${summary}`;
+}
+
+/**
+ * Build the text-content fallback for `read_fpf_doc`. Earlier this
+ * was a single sentence pointing at structuredContent.markdown;
+ * callers reading only the text channel got nothing actionable.
+ *
+ * The fallback now mirrors the structured payload: title, node ID,
+ * canonical doc paths, full markdown size, and the first few
+ * outline headings so a reader can decide whether to fetch the
+ * full body or follow the docRef link.
+ */
+function renderReadFpfDocFallback(
+  structuredContent: Record<string, unknown>,
+): string {
+  const nodeId = stringField(structuredContent.nodeId);
+  const title = stringField(structuredContent.title);
+  const status = stringField(structuredContent.status);
+
+  if (!nodeId || status === 'not_found') {
+    return `read_fpf_doc: selector did not resolve to a known FPF node.${
+      status ? ` status=${status}` : ''
+    }`;
+  }
+
+  const docRef = (structuredContent.docRef ?? {}) as Record<string, unknown>;
+  const staticPath = stringField(docRef.staticPath);
+  const markdownPath = stringField(docRef.markdownPath);
+  const markdownChars = numberField(structuredContent.markdownChars);
+  const truncated = structuredContent.truncated === true;
+  const headings = arrayOfStrings(structuredContent.headings);
+  const preview = stringField(structuredContent.preview);
+
+  const lines: string[] = [];
+  lines.push(`# ${title ?? nodeId}`);
+  const meta: string[] = [`node \`${nodeId}\``];
+  if (staticPath) meta.push(`page \`${staticPath}\``);
+  if (markdownPath) meta.push(`markdown \`${markdownPath}\``);
+  if (markdownChars !== undefined) {
+    meta.push(`${markdownChars} chars${truncated ? ' (truncated)' : ''}`);
+  }
+  lines.push(meta.join(' · '));
+
+  if (headings && headings.length > 0) {
+    lines.push('');
+    lines.push('Outline:');
+    for (const heading of headings.slice(0, 8)) {
+      lines.push(`- ${heading}`);
+    }
+    if (headings.length > 8) {
+      lines.push(`- … (${headings.length - 8} more)`);
+    }
+  }
+
+  if (preview) {
+    lines.push('');
+    lines.push(preview);
+  } else {
+    lines.push('');
+    lines.push('Full markdown is in `structuredContent.markdown`.');
+  }
+
+  return lines.join('\n');
+}
+
+function stringField(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+function numberField(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function arrayOfStrings(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const filtered = value.filter((item): item is string => typeof item === 'string');
+  return filtered.length > 0 ? filtered : undefined;
 }

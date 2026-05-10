@@ -354,6 +354,7 @@ export class QueryEngine {
   readDoc(
     selector: string,
     kind: 'auto' | 'id' | 'route' | 'lexeme' = 'auto',
+    options: { mode?: 'preview' | 'full'; maxChars?: number } = {},
   ): ReadDocResult {
     const resolved = this.resolveNode(selector, kind);
     if (!resolved) {
@@ -369,6 +370,33 @@ export class QueryEngine {
       return this.notFoundReadDoc(selector, resolvedAs);
     }
 
+    const fullMarkdown = page.markdown;
+    const markdownChars = fullMarkdown.length;
+    const headings = extractMarkdownHeadings(fullMarkdown);
+    const mode = options.mode ?? 'full';
+
+    if (mode === 'preview') {
+      return {
+        selector,
+        resolvedAs,
+        status: 'ok',
+        nodeId: docTarget.nodeId,
+        title: docTarget.title,
+        docRef: docTarget.docRef,
+        markdownChars,
+        headings,
+        preview: extractMarkdownPreview(fullMarkdown),
+        snapshot: this.snapshotRef(),
+      };
+    }
+
+    let markdown = fullMarkdown;
+    let truncated = false;
+    if (typeof options.maxChars === 'number' && options.maxChars < markdownChars) {
+      markdown = `${fullMarkdown.slice(0, options.maxChars)}\n\n…`;
+      truncated = true;
+    }
+
     return {
       selector,
       resolvedAs,
@@ -376,7 +404,10 @@ export class QueryEngine {
       nodeId: docTarget.nodeId,
       title: docTarget.title,
       docRef: docTarget.docRef,
-      markdown: page.markdown,
+      markdown,
+      markdownChars,
+      ...(truncated ? { truncated: true } : {}),
+      headings,
       snapshot: this.snapshotRef(),
     };
   }
@@ -636,4 +667,57 @@ function shouldUseDeterministicRouteFastPath(
   trace: TraceResult,
 ): boolean {
   return mode === 'compact' && trace.routeWins && trace.status === 'ok';
+}
+
+const MARKDOWN_PREVIEW_MAX_CHARS = 320;
+
+/**
+ * Walk the markdown body, collecting H2 / H3 heading text in document
+ * order. Skips fenced code blocks so a `## Example` line inside a
+ * code sample isn't mistaken for a real heading. Stops at the
+ * frontmatter block — the page's H1 is its title (returned
+ * separately on ReadDocResult.title) so we don't include it here.
+ */
+function extractMarkdownHeadings(markdown: string): string[] {
+  const headings: string[] = [];
+  const lines = markdown.split('\n');
+  let inFence = false;
+  for (const line of lines) {
+    if (/^[ ]{0,3}```/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) continue;
+    const match = /^(#{2,3})\s+(.+?)\s*$/.exec(line);
+    if (!match) continue;
+    headings.push(match[2]!);
+    if (headings.length >= 50) break;
+  }
+  return headings;
+}
+
+/**
+ * Build a short text-content preview suitable for an MCP fallback
+ * surface or a search-result hover card. Strips frontmatter, the
+ * leading H1, breadcrumb / byline HTML, and code fences; flattens
+ * whitespace; caps the result around MARKDOWN_PREVIEW_MAX_CHARS at a
+ * word boundary so the snippet doesn't end mid-word.
+ */
+function extractMarkdownPreview(markdown: string): string {
+  let text = markdown;
+  text = text.replace(/^---\n[\s\S]*?\n---\n/, '');
+  text = text.replace(/^<nav[^>]*>[\s\S]*?<\/nav>\n*/m, '');
+  text = text.replace(/^# .*\n/m, '');
+  text = text.replace(/^<p[^>]*>[\s\S]*?<\/p>\n*/m, '');
+  text = text.replace(/^[ ]{0,3}```[\s\S]*?^[ ]{0,3}```/gm, '');
+  text = text.replace(/<[^>]+>/g, '');
+  text = text.replace(/\s+/g, ' ').trim();
+
+  if (text.length <= MARKDOWN_PREVIEW_MAX_CHARS) {
+    return text;
+  }
+  const cut = text.slice(0, MARKDOWN_PREVIEW_MAX_CHARS);
+  const lastSpace = cut.lastIndexOf(' ');
+  const trimmed = lastSpace > 0 ? cut.slice(0, lastSpace) : cut;
+  return `${trimmed}…`;
 }
