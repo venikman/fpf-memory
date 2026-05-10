@@ -22,3 +22,7 @@ output.txt
 .vercel
 package-lock.json
 .DS_Store
+
+# Playwright
+test-results/
+playwright-report/
