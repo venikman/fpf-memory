@@ -41,6 +41,8 @@
     "check:boundaries": "bun scripts/check-boundaries.ts",
     "test": "rstest run",
     "test:ci": "rstest run --shard=1/4 && rstest run --shard=2/4 && rstest run --shard=3/4 && rstest run --shard=4/4",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install --with-deps chromium",
     "predeploy": "bun run stage:from-published",
     "deploy": "bun run vercel:origin:deploy:prod"
   },
@@ -55,6 +57,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@rslint/core": "^0.4.1",
     "@rspress/core": "^2.0.9",
     "@rstest/core": "^0.9.7",

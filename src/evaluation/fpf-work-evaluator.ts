@@ -108,7 +108,6 @@ type KnownWorkFile =
   | 'agents'
   | 'docsIndex'
   | 'ciWorkflow'
-  | 'deployDocsWorkflow'
   | 'prePushHook'
   | 'packageJson'
   | 'publishedSpec'
@@ -120,7 +119,6 @@ const KNOWN_WORK_FILES: Record<KnownWorkFile, string> = {
   agents: 'AGENTS.md',
   docsIndex: 'docs/index.md',
   ciWorkflow: '.github/workflows/ci.yml',
-  deployDocsWorkflow: '.github/workflows/deploy-docs.yml',
   prePushHook: 'scripts/hooks/pre-push.sh',
   packageJson: 'package.json',
   publishedSpec: PUBLISHED_SPEC_PATH,
@@ -330,7 +328,6 @@ function scoreSurfaceSplit(
     evidence.file('publishedSnapshot', facts, 'Committed published snapshot'),
     evidence.file('publishedManifest', facts, 'Committed published manifest'),
     evidence.file('ciWorkflow', facts, 'CI workflow'),
-    evidence.file('deployDocsWorkflow', facts, 'Docs deploy workflow'),
     evidence.file('packageJson', facts, 'Hosted deploy scripts'),
   ].filter(isDefined);
   const publishedComplete =
@@ -340,19 +337,20 @@ function scoreSurfaceSplit(
   const ciConsumesPublished =
     contains(facts, 'ciWorkflow', 'bun run validate:published') &&
     !contains(facts, 'ciWorkflow', 'bun run spec:download');
-  const docsConsumesPublished =
-    contains(facts, 'deployDocsWorkflow', 'published/current') &&
-    !contains(facts, 'deployDocsWorkflow', 'bun run spec:download');
+  // Docs are now built inside `vercel:origin:build` (PR #106 unified the
+  // docs and MCP into a single Vercel project), so the previous separate
+  // `deployDocsWorkflow` surface is folded into the Vercel-stages check
+  // below — both consume `published/current/**` through the same script.
   const vercelOriginStagesPublished =
     contains(facts, 'ciWorkflow', 'bun run vercel:origin:build') &&
     contains(facts, 'ciWorkflow', '.vercel/output/functions/_origin.func') &&
     contains(facts, 'packageJson', '"vercel:origin:build"') &&
-    contains(facts, 'packageJson', 'bun run predeploy');
+    contains(facts, 'packageJson', 'bun run predeploy') &&
+    contains(facts, 'packageJson', 'bun run docs:build');
 
   if (
     publishedComplete &&
     ciConsumesPublished &&
-    docsConsumesPublished &&
     vercelOriginStagesPublished
   ) {
     return rubricPass(

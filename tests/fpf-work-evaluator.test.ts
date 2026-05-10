@@ -178,7 +178,6 @@ function defaultFileTexts(): FpfWorkFacts['fileTexts'] {
       '  test -d .vercel/output/functions/_origin.func',
       '  test -f .vercel/output/functions/_origin.func/hosted/FPF-Spec.md',
     ].join('\n'),
-    deployDocsWorkflow: 'run: bun run docs:build\npublished/current/FPF-Spec.md',
     prePushHook: 'echo "pre-push: publishing ./published/current/"',
     packageJson: [
       '"publish:current": "bun scripts/publish-current.ts"',
@@ -187,6 +186,7 @@ function defaultFileTexts(): FpfWorkFacts['fileTexts'] {
       '"predeploy": "bun run stage:from-published"',
       [
         '"vercel:origin:build": "bun run predeploy',
+        '&& bun run docs:build',
         '&& bun run build:vercel-origin',
         '&& bun run bench:vercel:function-size"',
       ].join(' '),
