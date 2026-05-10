@@ -1,5 +1,7 @@
 # FPF Spec Runtime
 
+> FPF helps when raw insight is not enough: meanings, claims, alternatives, evidence, boundaries, and outputs must remain stable across contexts, time, people, tools, or AI agents.
+
 > **Quick links:** [Website](https://fpf.sh/) · [Connect MCP](https://fpf.sh/connect-mcp) · [Hosted MCP endpoint](https://mcp.fpf.sh/api/mcp/fpf_memory/mcp)
 >
 > **📖 Live reference:** [fpf.sh](https://fpf.sh/) — searchable pattern catalog, routes, and preface. Type an ID like `A.2` or `route:project-alignment` in the search box to jump in.
@@ -8,7 +10,13 @@
 >
 > **🧭 Coordinating repo automation?** See the [Automation Playbook](https://fpf.sh/automation-playbook) for role boundaries, access rules, merge authority, and draft-only publishing packets.
 
-## What is this?
+## About FPF
+
+The **First Principles Framework (FPF)** is a structured framework for thinking and coordinating work. It is written more like a technical specification than like a management book: there are named patterns, definitions, and review rules. Its job is to help teams model complex work, make reasoning inspectable, and keep decisions stable across engineering, research, and management.
+
+FPF is authored by [Anatoly Levenchuk](https://github.com/ailev). The canonical source is [`github.com/ailev/FPF`](https://github.com/ailev/FPF) — that repository is the source of truth. **This repository is a runtime + slim wiki projection of the published spec**, not the spec itself.
+
+## What is this repo?
 
 A local **FPF spec** runtime. Given a single markdown spec file, it compiles a deterministic, vectorless index of FPF IDs, routes, relations, and anchors, and exposes that as:
 
@@ -333,7 +341,7 @@ The docs pipeline does not use an LLM step. `bun run docs:generate` writes the c
 
 **Spec sources**
 
-- `FPF_SPEC_SOURCE_PATH` — runtime spec path (default `published/current/FPF-Spec.md`; canonical upstream lives in [fpf-sync](https://github.com/venikman/fpf-sync))
+- `FPF_SPEC_SOURCE_PATH` — runtime spec path (default `published/current/FPF-Spec.md`; canonical upstream lives in [ailev/FPF](https://github.com/ailev/FPF))
 - `FPF_PUBLISH_SOURCE_PATH` — local publish source (default `.fpf-upstream/FPF-Spec.md` after `bun run spec:download`)
 
 ## Logs
@@ -341,3 +349,9 @@ The docs pipeline does not use an LLM step. `bun run docs:generate` writes the c
 - `.runtime/logs/fpf-runtime.log` — structured runtime server/tool logs
 - `.runtime/logs/runtime-observability.json` — observability snapshot containing manual LM Studio `model_generation` traces
 - `.runtime/logs/ai-traces.jsonl` — request/response/error traces for local LM Studio synthesis calls
+
+## Citing FPF
+
+If you use FPF, please cite:
+
+> Levenchuk, Anatoly. *First Principles Framework (FPF).* GitHub repository: <https://github.com/ailev/FPF>
