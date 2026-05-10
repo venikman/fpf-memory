@@ -93,28 +93,32 @@ async function writeVercelConfig(outputDir: string): Promise<void> {
 
 export function createVercelOriginOutputConfig(): VercelOriginOutputConfig {
   const dest = '/index';
-  // Phase order in `routes` is significant. The flow we want for every
-  // request is:
+  // Phase order in `routes` is significant. Flow for every request:
   //
-  //   1. Try the static tree exactly (`/index.html`, `/start-here.html`,
-  //      `/generated/patterns/A.6.9.html`). Vercel resolves bare `/` to
-  //      `index.html` for free in this phase.
-  //   2. If still unmatched, send /api/* surfaces to the function.
-  //   3. If still unmatched, rewrite `/foo` → `/foo.html` and run the
-  //      filesystem phase again. This is Rspress's clean-URL contract:
-  //      built pages live at `<slug>.html` but the published URLs drop
-  //      the extension. `vercel.json`'s `cleanUrls: true` is ignored for
-  //      Build Output API deployments, so we emit the equivalent route
-  //      pair here instead.
-  //   4. If still nothing, Vercel returns 404 (rspress's 404.html).
+  //   1. `handle: "filesystem"` — try static exact match
+  //      (`/index.html`, `/start-here.html`, `/generated/patterns/A.6.9.html`).
+  //      Vercel resolves bare `/` to `index.html` for free in this phase.
+  //   2. Function routes — only `/api/*` surfaces.
+  //   3. `handle: "miss"` — only enters this phase if filesystem missed
+  //      AND none of the function routes matched. Inside, rewrite
+  //      `/foo` → `/foo.html` with `check: true` so Vercel re-runs from
+  //      the top of the routes table; the second filesystem pass picks
+  //      up the rewritten `.html` file.
+  //
+  // PR #106 review history: the rewrite originally lived in the main
+  // routes phase, where its greedy `^/(.*)$` matched the `/index`
+  // function destination on its way through the table and rewrote
+  // `/api/...` traffic to `.html`. Confining the rewrite to the `miss`
+  // phase scopes it to "filesystem missed and no function matched",
+  // which is exactly when clean-URL fallback should fire.
   return {
     version: 3,
     routes: [
       { handle: 'filesystem' },
       { src: `^${HOSTED_FPF_STATUS_ROUTE}$`, dest },
       { src: `^${HOSTED_MCP_ROUTE}$`, dest },
+      { handle: 'miss' },
       { src: '^/(.*)$', dest: '/$1.html', check: true },
-      { handle: 'filesystem' },
     ],
   };
 }
