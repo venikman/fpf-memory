@@ -235,6 +235,72 @@ describe('docs projection', () => {
     expect(a69Page).not.toMatch(/\(\/generated\/patterns\/heading:/);
   });
 
+  it('auto-links code-spanned pattern IDs inside markdown table cells', () => {
+    // The J.4 entry-point table renders one inline-code pattern ID per
+    // cell. The general autolinker skips `<code>` spans in prose, so
+    // those IDs were unclickable before this fix. The table-cell
+    // autolinker rewrites them to `[\`A.1.1\`](/generated/patterns/A.1.1)`.
+    const projection = buildDocsProjection(snapshot);
+    const j4 = Object.entries(projection.pagesByMarkdownPath).find(
+      ([path]) => path.includes('part-j-indexes-navigation-aids'),
+    );
+    expect(j4, 'expected the J.4 preface page to be projected').toBeDefined();
+    if (!j4) return;
+    const markdown = j4[1].markdown;
+
+    // The J.4 row "Project alignment" lists `A.1.1`, `A.15`, etc. in
+    // its candidate-patterns cell; after this fix, those should be
+    // wrapped in a markdown link to /generated/patterns/<id>.
+    expect(markdown).toMatch(
+      /\[`A\.1\.1`\]\(\/generated\/patterns\/A\.1\.1\)/,
+    );
+    expect(markdown).toMatch(/\[`A\.15`\]\(\/generated\/patterns\/A\.15\)/);
+    // Section IDs inside the table (e.g. `A.19:0`) must link to the
+    // parent pattern page plus the heading anchor, not to a 404.
+    expect(markdown).toMatch(
+      /\[`A\.19:0`\]\(\/generated\/patterns\/A\.19#[a-z0-9-]+\)/,
+    );
+  });
+
+  it('resolves section IDs to parent#anchor URLs in generated pages', () => {
+    // Section IDs (e.g. `I.2.1`, `A.19:0`) live in the indexMap under a
+    // parent pattern, not as first-class compiled nodes. Body prose AND
+    // table cells must surface them as deep links into the parent's
+    // generated page so a bare reference is navigable instead of a dead
+    // `<code>` chip. The shape of the URL is `/generated/patterns/<parent>#<slug>`
+    // regardless of where the wrapping markdown comes from.
+    const projection = buildDocsProjection(snapshot);
+    let foundDeepLink = false;
+    for (const page of projection.pages) {
+      if (page.kind !== 'preface') continue;
+      if (/\]\(\/generated\/patterns\/I\.2#[a-z0-9-]+\)/.test(page.markdown)) {
+        foundDeepLink = true;
+        break;
+      }
+    }
+    expect(
+      foundDeepLink,
+      'expected at least one preface page to link an I.2.* section ID to /generated/patterns/I.2#<anchor>',
+    ).toBe(true);
+  });
+
+  it('escapes bracket labels in preface catalog link titles', () => {
+    // Some published preface section titles include "[I]" / "[A/I]"
+    // labels. Markdown link grammar can't nest unescaped brackets,
+    // so the catalog rendered those rows as literal text. The titles
+    // must now appear with escaped brackets inside link text.
+    const projection = buildDocsProjection(snapshot);
+    const catalog =
+      projection.pagesByMarkdownPath[
+        'docs/generated/preface/index.md'
+      ]?.markdown ?? '';
+    // Round-trip a known offending title shape (we don't hardcode the
+    // exact title — just assert the escape pattern is present).
+    expect(catalog).toMatch(/\\\[[AI]\\\]/);
+    // And no unescaped `[I]` / `[A/I]` labels remain inside link text.
+    expect(catalog).not.toMatch(/\[[^\]]*\[[AI]\][^\]]*\]\(\/generated/);
+  });
+
   it('deduplicates repeated relation lines and exposes grouped navigation', () => {
     const projection = buildDocsProjection(snapshot);
     const navigation = buildDocsNavigation(snapshot);

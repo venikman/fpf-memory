@@ -522,7 +522,12 @@ function buildPrefaceIndexPage(snapshot: Snapshot): GeneratedDocPage {
     lines.push('', `## ${group}`, '');
     for (const item of items) {
       const docRef = prefaceDocRef(item.id, item.lineStart);
-      lines.push(`- [${item.title}](${docRef.staticPath})`);
+      // The published spec authors some preface section titles with bracket
+      // labels like "[I]" / "[A/I]" inside the heading. Markdown's link-text
+      // grammar can't nest unescaped brackets, so the catalog rendered those
+      // rows as literal text instead of clickable links. Escape both delimiters
+      // in the link text so the parser still sees a single anchor.
+      lines.push(`- [${escapeMarkdownLinkText(item.title)}](${docRef.staticPath})`);
     }
   }
 
@@ -784,7 +789,11 @@ function renderPrefacePage(snapshot: Snapshot, sectionId: string): string {
   if (anchor.text.trim() || section.childIds.length > 0) {
     lines.push('', '## Content');
     if (anchor.text.trim()) {
-      lines.push('', autolinkPatternIds(snapshot, anchor.text.trim()));
+      const linked = autolinkPatternIdsInTableCells(
+        snapshot,
+        autolinkPatternIds(snapshot, anchor.text.trim()),
+      );
+      lines.push('', linked);
     }
     const childLines = renderSectionTree(snapshot, sectionId);
     if (childLines.length > 0) {
@@ -823,7 +832,11 @@ function renderSection(
   const headingLevel = Math.max(2, section.level - baseLevel + 1);
   lines.push(`${'#'.repeat(headingLevel)} ${displaySectionTitle(section.title)}`, '');
   if (anchor.text.trim()) {
-    lines.push(autolinkPatternIds(snapshot, anchor.text.trim()), '');
+    const linked = autolinkPatternIdsInTableCells(
+      snapshot,
+      autolinkPatternIds(snapshot, anchor.text.trim()),
+    );
+    lines.push(linked, '');
   }
 
   for (const childId of section.childIds) {
@@ -903,11 +916,58 @@ function autolinkPatternIds(snapshot: Snapshot, body: string): string {
       return match;
     }
     const node = snapshot.compiledNodes[match];
-    if (!node || node.kind !== 'pattern') {
-      return match;
+    if (node && node.kind === 'pattern') {
+      return `[${match}](${patternDocRef(match).staticPath})`;
     }
-    return `[${match}](${patternDocRef(match).staticPath})`;
+    // Section-level IDs (e.g. `A.19:0`, `I.2.1`) aren't first-class
+    // pattern nodes, but they live in the indexMap under a parent
+    // pattern. Render them as deep links into that parent's page so
+    // body prose like "see A.19:0 for the engineer-manager reading"
+    // is navigable instead of a dead string.
+    const sectionUrl = resolveSectionAnchorUrl(snapshot, match);
+    if (sectionUrl) {
+      return `[${match}](${sectionUrl.url})`;
+    }
+    return match;
   });
+}
+
+/**
+ * Same auto-link semantics as `autolinkPatternIds`, but inside markdown
+ * tables: code-spanned IDs like `\`A.6.9\`` ARE rewritten to
+ * `[\`A.6.9\`](url)`. The J.4 entry-point table renders one inline-code
+ * pattern ID per cell — auto-linking those is exactly the navigability
+ * the original auto-linker skipped because of the prose-code-span guard.
+ *
+ * Triggered only on lines that begin with `|` (after optional leading
+ * whitespace) and pre-skipped on markdown-table-separator rows so the
+ * `|---|---|` lines stay untouched.
+ */
+function autolinkPatternIdsInTableCells(
+  snapshot: Snapshot,
+  body: string,
+): string {
+  const lines = body.split('\n');
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index]!;
+    if (!line.trimStart().startsWith('|')) continue;
+    if (/^\s*\|?(?:\s*:?-+:?\s*\|)+\s*:?-+:?\s*\|?\s*$/.test(line)) continue;
+    lines[index] = line.replace(
+      /`([A-Z]\.\d+(?:\.[A-Za-z0-9]+)*(?::[A-Za-z0-9.]+)?)`/g,
+      (match, id: string) => {
+        const node = snapshot.compiledNodes[id];
+        if (node && node.kind === 'pattern') {
+          return `[\`${id}\`](${patternDocRef(id).staticPath})`;
+        }
+        const sectionUrl = resolveSectionAnchorUrl(snapshot, id);
+        if (sectionUrl) {
+          return `[\`${id}\`](${sectionUrl.url})`;
+        }
+        return match;
+      },
+    );
+  }
+  return lines.join('\n');
 }
 
 function formatRelation(snapshot: Snapshot, relation: RelationEdge): string {
@@ -1024,24 +1084,37 @@ function formatNodeReference(snapshot: Snapshot, nodeId: string): string {
     return `[${docTarget.title}](${docTarget.docRef.staticPath})`;
   }
 
-  // No standalone compiled node — but the spec may have it as an anchor
-  // under a parent pattern (e.g. `A.19:0` lives inside `A.19`). Look it up
-  // in the index map and, if its parent resolves to a generated pattern
-  // page, emit a link to the parent + heading anchor instead of a dead
-  // inline code chip. This unbreaks ordered route steps that reference
-  // sub-anchors (FU-P2-004 / DS-P1-006).
-  const indexEntry = snapshot.indexMap[nodeId];
-  if (indexEntry && indexEntry.parentId) {
-    const parent = snapshot.compiledNodes[indexEntry.parentId];
-    if (parent && parent.kind === 'pattern') {
-      const ref = patternDocRef(parent.id);
-      const slug = headingSlug(indexEntry.title);
-      const title = indexEntry.title || nodeId;
-      return `[${title}](${ref.staticPath}#${slug})`;
-    }
+  const sectionUrl = resolveSectionAnchorUrl(snapshot, nodeId);
+  if (sectionUrl) {
+    return `[${sectionUrl.title}](${sectionUrl.url})`;
   }
 
   return inlineCode(nodeId);
+}
+
+/**
+ * Resolve a section-shaped ID (e.g. `A.19:0`, `I.2.1`, `E.18:5.9`) to a
+ * URL that points at the parent pattern's generated page plus the section
+ * heading anchor. Returns `undefined` if the ID isn't an indexed section
+ * or its parent isn't a generated pattern page.
+ *
+ * Used by `formatNodeReference` (relations panel) and the body autolinker
+ * — sub-anchor IDs render as live links instead of dead `<code>` chips.
+ */
+function resolveSectionAnchorUrl(
+  snapshot: Snapshot,
+  nodeId: string,
+): { title: string; url: string } | undefined {
+  const indexEntry = snapshot.indexMap[nodeId];
+  if (!indexEntry || !indexEntry.parentId) return undefined;
+  const parent = snapshot.compiledNodes[indexEntry.parentId];
+  if (!parent || parent.kind !== 'pattern') return undefined;
+  const ref = patternDocRef(parent.id);
+  const slug = headingSlug(indexEntry.title);
+  return {
+    title: indexEntry.title || nodeId,
+    url: `${ref.staticPath}#${slug}`,
+  };
 }
 
 /**
@@ -1250,6 +1323,13 @@ function renderFrontMatter(frontmatter: Record<string, string | boolean>): strin
 
 function inlineCode(value: string): string {
   return `\`${value}\``;
+}
+
+// Escape `[` and `]` inside markdown link text so titles that contain
+// bracket labels (e.g. "C.3.A:Annex A [A/I]") render as a single anchor
+// instead of unbalanced markdown.
+function escapeMarkdownLinkText(text: string): string {
+  return text.replace(/\[/g, '\\[').replace(/\]/g, '\\]');
 }
 
 function stripRepeatedLeadMetadata(text: string): string {
