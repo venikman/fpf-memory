@@ -562,4 +562,44 @@ describe('docs projection', () => {
       await rm(tempRoot, { recursive: true, force: true });
     }
   }, 360_000);
+
+  it('stamps generated pages with the manifest publishedAt date', () => {
+    // Generated docs aren't tracked in git, so rspress's default git-based
+    // "Last Updated" reads back the timestamp of the commit that stopped
+    // tracking them — stale. Pages built with a manifest must instead
+    // surface the snapshot's publishedAt, both in frontmatter (for SEO /
+    // search consumers) and as a visible footer line at the page bottom.
+    const projection = buildDocsProjection(snapshot, {
+      channel: 'latest-published',
+      sourceHash: 'sha256:test',
+      upstreamRef: 'fbe6e29',
+      publishedAt: '2026-05-10T04:28:39.529Z',
+    });
+    const samples = [
+      'docs/generated/patterns/A.6.md',
+      'docs/generated/routes/index.md',
+      'docs/generated/preface/index.md',
+    ];
+    for (const path of samples) {
+      const body = projection.pagesByMarkdownPath[path]?.markdown ?? '';
+      expect(body, `expected ${path} to be projected`).not.toBe('');
+      // ISO timestamp lives in frontmatter.
+      expect(body).toMatch(/^lastUpdated: "2026-05-10T04:28:39.529Z"$/m);
+      // Compact yyyy-mm-dd date lives in the visible footer line.
+      expect(body).toMatch(
+        /\*Last Updated: 2026-05-10 \(FPF snapshot publish date\)\*/,
+      );
+    }
+  });
+
+  it('omits the publishedAt stamp when no manifest is provided', () => {
+    // Runtime callers (e.g. query-engine) call buildDocsProjection
+    // without a manifest. Those rendered bodies are read directly by
+    // tools, not by the docs site, so they shouldn't carry the
+    // human-targeted footer line.
+    const projection = buildDocsProjection(snapshot);
+    const body = projection.pagesByMarkdownPath['docs/generated/patterns/A.6.md']?.markdown ?? '';
+    expect(body).not.toMatch(/\*Last Updated: /);
+    expect(body).not.toMatch(/^lastUpdated:/m);
+  });
 });

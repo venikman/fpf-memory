@@ -92,12 +92,59 @@ export function buildDocsProjection(
     buildRootIndexPage(snapshot, manifest),
   ];
 
+  // Stamp every generated page with the published-snapshot date as
+  // the truthful per-snapshot freshness signal. Generated pages
+  // aren't tracked in git, so rspress's git-based lastUpdated is
+  // disabled; we render the date ourselves as a small footer line
+  // and also expose it in frontmatter for search/SEO consumers.
+  if (manifest) {
+    for (const page of pages) {
+      page.markdown = stampPublishedDate(page.markdown, manifest.publishedAt);
+    }
+  }
+
   return {
     pages,
     pagesByMarkdownPath: Object.fromEntries(
       pages.map((page) => [page.markdownPath, page] as const),
     ),
   };
+}
+
+function stampPublishedDate(
+  markdown: string,
+  publishedAt: string,
+): string {
+  return appendLastUpdatedFooter(
+    injectLastUpdatedFrontmatter(markdown, publishedAt),
+    publishedAt,
+  );
+}
+
+function injectLastUpdatedFrontmatter(
+  markdown: string,
+  publishedAt: string,
+): string {
+  const match = markdown.match(/^---\n([\s\S]*?)\n---\n/);
+  if (!match) return markdown;
+  const existingFrontmatter = match[1]!;
+  // Don't double-stamp if a builder already set its own value.
+  if (/^\s*lastUpdated\s*:/m.test(existingFrontmatter)) {
+    return markdown;
+  }
+  const newFrontmatter = `${existingFrontmatter}\nlastUpdated: ${JSON.stringify(publishedAt)}`;
+  return `---\n${newFrontmatter}\n---\n${markdown.slice(match[0].length)}`;
+}
+
+function appendLastUpdatedFooter(
+  markdown: string,
+  publishedAt: string,
+): string {
+  // Render the date in the same compact yyyy-mm-dd shape as the home
+  // page's manifest line; full ISO is in frontmatter for tools that
+  // want it.
+  const formatted = formatPublishedDate(publishedAt);
+  return `${markdown.replace(/\n+$/, '')}\n\n---\n\n*Last Updated: ${formatted} (FPF snapshot publish date)*\n`;
 }
 
 export function resolveDocTarget(

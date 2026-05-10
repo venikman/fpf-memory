@@ -390,7 +390,14 @@ document.addEventListener('keydown',function(e){
       ],
     },
     search: true,
-    lastUpdated: true,
+    // Disable rspress's git-based lastUpdated. Generated docs aren't
+    // tracked in git (PR #1f8c744d), so the plugin would either show
+    // nothing or — worse — show the timestamp of the commit that
+    // *removed* them from tracking. The build pipeline appends a
+    // "Last Updated: <publishedAt>" line to each generated page from
+    // `published/current/manifest.json`, which is the truthful
+    // per-snapshot signal.
+    lastUpdated: false,
     enableScrollToTop: true,
     footer: {
       message: 'Projection of the latest published FPF.',
