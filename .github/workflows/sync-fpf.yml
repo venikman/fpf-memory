@@ -113,7 +113,7 @@ jobs:
       - name: Open sync PR
         if: steps.detect.outputs.changed == 'true'
         id: pr
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: chore/sync-fpf-${{ steps.detect.outputs.short_ref }}
