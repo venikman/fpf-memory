@@ -1,10 +1,9 @@
 name: TPR Fast Track
 
 on:
-  pull_request_target:
-    types: [opened, edited, reopened, ready_for_review, synchronize]
   schedule:
-    - cron: '*/15 * * * *'
+    # Twice daily background sweep.
+    - cron: '0 6,18 * * *'
   workflow_dispatch:
     inputs:
       pr:
@@ -19,7 +18,7 @@ permissions:
   statuses: read
 
 concurrency:
-  group: tpr-fast-track-${{ github.event.pull_request.number || github.event.inputs.pr || github.event_name }}
+  group: tpr-fast-track-${{ github.event.inputs.pr || github.event_name }}
   cancel-in-progress: false
 
 jobs:
