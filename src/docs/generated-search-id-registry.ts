@@ -272,6 +272,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.15.3"
     },
     {
+      "id": "A.15.4",
+      "title": "Work-Relevant Source Restoration",
+      "staticPath": "/generated/patterns/A.15.4"
+    },
+    {
       "id": "A.16",
       "title": "Language-State Transduction Coordination",
       "staticPath": "/generated/patterns/A.16"
@@ -963,7 +968,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.17.AUD",
-      "title": "AuthoredUnitDiscipline — umbrella routing for one authored unit that is starting to drift",
+      "title": "AuthoredUnitDiscipline - problem-pressure classification for one authored-readable unit with unstable described-entity or carried-move reading",
       "staticPath": "/generated/patterns/E.17.AUD"
     },
     {
@@ -973,7 +978,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.17.AUD.OOTD",
-      "title": "AuthoredUnitDiscipline / AuthoredUnit Object-of-Talk Discipline — authored-unit stability over one primary object of talk",
+      "title": "AuthoredUnitDiscipline / AuthoredUnit Primary Described-Entity Discipline — authored-unit stability over one primary described entity and carried move",
       "staticPath": "/generated/patterns/E.17.AUD.OOTD"
     },
     {
@@ -1243,6 +1248,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     }
   ],
   "routes": [
+    {
+      "slug": "admissible-comparison-pool-selection-selected-set-publication",
+      "title": "Admissible comparison / pool / selection / selected-set publication",
+      "staticPath": "/generated/routes/route_admissible-comparison-pool-selection-selected-set-publication"
+    },
     {
       "slug": "boundary-unpacking",
       "title": "boundary unpacking",
