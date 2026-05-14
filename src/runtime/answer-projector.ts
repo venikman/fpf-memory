@@ -3,6 +3,7 @@ import {
   getPartCDraftsByCluster,
   selectBestAnchors,
 } from './compiler.js';
+import { hasProductRoleFeedbackIntent } from './route-intent-signals.js';
 import {
   unique,
 } from './text.js';
@@ -91,12 +92,19 @@ export function buildRouteAnswer(
   rebuilt: boolean,
 ): QueryResult {
   const route = snapshot.routeGraph.nodes[routeNodeId]!;
+  const productRoleFeedbackPacket = isProductRoleFeedbackPacket(routeNodeId, question);
+  const supplementalIds = productRoleFeedbackPacket
+    ? ['E.12', 'A.1.1', 'A.15', 'A.2.2', 'A.2.3'].filter(
+        (id) => Boolean(snapshot.compiledNodes[id]),
+      )
+    : [];
   // Include routeSurfaces alongside the ordered/optional/landing lists.
   // Some routes (e.g. boundary-unpacking-claim-routing) only declare
   // surfaces; without this fallback the structured `ids` response would
   // be just the route ID, hiding the patterns the answer prose names.
   const ids = unique([
     routeNodeId,
+    ...supplementalIds,
     ...route.orderedIds,
     ...route.optionalIds,
     ...route.landingIds,
@@ -112,11 +120,20 @@ export function buildRouteAnswer(
     route.firstHonestBurden
       ? `First honest burden: ${route.firstHonestBurden}.`
       : 'Choose this route only when the stated burden matches the present problem.',
+    ...(productRoleFeedbackPacket
+      ? [
+          'Use the product-role feedback packet: E.12 plus A.1.1, A.15, A.2.2, and A.2.3 before escalating to broader spec-writing guidance.',
+          'Do not paste the whole FPF, and do not load E.8/E.19 unless the feedback is actually about writing or revising FPF pattern text.',
+        ]
+      : []),
     ...(route.constraints ?? []),
   ];
   const answer = [
     `${route.id} (${route.name}) is the matched first-practical route.`,
     route.firstHonestBurden ? `Burden: ${route.firstHonestBurden}.` : '',
+    productRoleFeedbackPacket
+      ? `Product-role feedback packet IDs: ${supplementalIds.join(', ')}.`
+      : '',
     route.orderedIds.length > 0
       ? `Ordered entry IDs: ${route.orderedIds.join(' -> ')}.`
       : '',
@@ -124,8 +141,8 @@ export function buildRouteAnswer(
       ? `Conditional additions: ${route.optionalIds.join(', ')}.`
       : '',
     route.landingIds.length > 0 ? `Landing surface: ${route.landingIds.join(', ')}.` : '',
-    `Acceptance check: ${routeAcceptanceCheck(routeNodeId, route)}.`,
-    `Next move: ${routeNextMove(routeNodeId, route)}.`,
+    `Acceptance check: ${routeAcceptanceCheck(routeNodeId, route, question)}.`,
+    `Next move: ${routeNextMove(routeNodeId, route, question)}.`,
     route.routeSurfaces.length > 0
       ? `Route-bearing surfaces: ${route.routeSurfaces.join(', ')}.`
       : '',
@@ -176,7 +193,11 @@ export function buildRouteAnswer(
 function routeAcceptanceCheck(
   routeNodeId: string,
   route: Snapshot['routeGraph']['nodes'][string],
+  question: string,
 ): string {
+  if (isProductRoleFeedbackPacket(routeNodeId, question)) {
+    return 'the role/job can be replayed by another person, the feedback points at exact evidence, and the output lands as one focused PR, issue, discussion, or no-new-feedback checkpoint';
+  }
   switch (routeNodeId) {
     case 'route:project-alignment':
       return 'a shared kickoff packet names the bounded context, actor roles, role/method/work split, first work-plan item, evidence to collect, and UTS-ready terms';
@@ -194,7 +215,11 @@ function routeAcceptanceCheck(
 function routeNextMove(
   routeNodeId: string,
   route: Snapshot['routeGraph']['nodes'][string],
+  question: string,
 ): string {
+  if (isProductRoleFeedbackPacket(routeNodeId, question)) {
+    return 'name the persona/job and surface first, use E.12 with A.1.1, A.15, A.2.2, and A.2.3 to capture one adoption friction, then stop at one proposed improvement with severity and validation path';
+  }
   switch (routeNodeId) {
     case 'route:project-alignment':
       return 'read A.1.1 and A.15 first, draft the kickoff worksheet, then add A.15.2/A.15.3 only when the plan/run split must be made explicit';
@@ -207,6 +232,10 @@ function routeNextMove(
         ? `start with ${route.orderedIds[0]} and stop when the first bounded work packet is explicit`
         : 'use the route page as the bounded packet and open exact pattern pages only as needed';
   }
+}
+
+function isProductRoleFeedbackPacket(routeNodeId: string, question: string): boolean {
+  return routeNodeId === 'route:project-alignment' && hasProductRoleFeedbackIntent(question);
 }
 
 export function buildPatternAnswer(

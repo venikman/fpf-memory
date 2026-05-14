@@ -483,6 +483,18 @@ describe('Query / Ranker stage', () => {
     expect(ranking.initialNodeIds).toEqual(['route:project-alignment']);
   });
 
+  it('selects project alignment for product-role feedback maintainer prompts', async () => {
+    const snapshot = await getSnapshotWithRouteFixtures();
+    const question =
+      'As a product maintainer, turn live product smoke evidence plus recurring role-feedback discussions into one adoption improvement, severity, and validation path without reading or pasting the full FPF.';
+    const normalized = normalizeQuery(question, snapshot);
+    const seeding = seedCandidates(normalized, snapshot);
+    const ranking = rankCandidates(question, seeding.candidateMap, snapshot);
+
+    expect(ranking.routeWins).toBe(true);
+    expect(ranking.initialNodeIds).toEqual(['route:project-alignment']);
+  });
+
   it('honors negative API-contract disambiguation for project review prompts', async () => {
     const snapshot = await getSnapshotWithRouteFixtures();
     const question =
@@ -699,6 +711,33 @@ describe('Query / Projection stability stage', () => {
     expect(result.ids).toContain('A.1.1');
     expect(result.answer).toContain('Acceptance check:');
     expect(result.answer).toContain('Next move:');
+  });
+
+  it('projects the product-role feedback packet on maintainer prompts', async () => {
+    const snapshot = await getSnapshotWithRouteFixtures();
+    const question =
+      'As a product maintainer, turn live product smoke evidence plus recurring role-feedback discussions into one adoption improvement, severity, and validation path without reading or pasting the full FPF.';
+    const trace = assembleTrace(question, 'compact', snapshot);
+
+    expect(trace.routeWins).toBe(true);
+    expect(trace.selectedNodeIds[0]).toBe('route:project-alignment');
+
+    const result = buildRouteAnswer(
+      question,
+      'compact',
+      'route:project-alignment',
+      trace,
+      snapshot,
+      false,
+    );
+
+    expect(result.ids).toEqual(
+      expect.arrayContaining(['route:project-alignment', 'E.12', 'A.1.1', 'A.15', 'A.2.2', 'A.2.3']),
+    );
+    expect(result.answer).toContain('Product-role feedback packet IDs');
+    expect(result.constraints).toContain(
+      'Do not paste the whole FPF, and do not load E.8/E.19 unless the feedback is actually about writing or revising FPF pattern text.',
+    );
   });
 
   it('uses a compact route trace shortcut for adoption kickoff queries', async () => {

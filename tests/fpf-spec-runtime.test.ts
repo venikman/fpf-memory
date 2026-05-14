@@ -220,6 +220,49 @@ describe('FpfRuntime', () => {
     expect(agentWorkflow.answer.length).toBeGreaterThan(0);
     expect(agentWorkflow.citations.length).toBeGreaterThan(0);
 
+    const productMaintainer = await runtime.query(
+      'As a product maintainer, turn live product smoke evidence plus recurring role-feedback discussions into one adoption improvement, severity, and validation path without reading or pasting the full FPF.',
+      'compact',
+    );
+    if (routeIds.has('route:project-alignment')) {
+      expect(productMaintainer.status).toBe('ok');
+      expect(productMaintainer.ids).toEqual(
+        expect.arrayContaining([
+          'route:project-alignment',
+          'E.12',
+          'A.1.1',
+          'A.15',
+          'A.2.2',
+          'A.2.3',
+        ]),
+      );
+      expect(productMaintainer.answer).toContain('Product-role feedback packet IDs');
+    } else {
+      expect(['ok', 'ambiguous']).toContain(productMaintainer.status);
+      expect(productMaintainer.ids.every((id) => !id.startsWith('route:'))).toBe(true);
+    }
+    expect(productMaintainer.answer.length).toBeGreaterThan(0);
+    expect(productMaintainer.citations.length).toBeGreaterThan(0);
+
+    const unavailableSynthesizer = new FpfRuntime({
+      artifactDir: resolve(tempRoot, 'deterministic-artifacts'),
+      sourcePath,
+      synthesizer: {
+        isAvailable: async () => false,
+        synthesize: async () => {
+          throw new Error('deterministic fallback should skip unavailable synthesis');
+        },
+      },
+    });
+    const degradedAnswer = await unavailableSynthesizer.query(
+      'What is U.BoundedContext?',
+      'compact',
+    );
+    expect(degradedAnswer.status).toBe('degraded');
+    expect(degradedAnswer.ids).toEqual([]);
+    expect(degradedAnswer.candidateIds).toContain('A.1.1');
+    expect(degradedAnswer.confidence).toBeNull();
+
     const creativity = await runtime.query(
       'How is creativity and open-ended search represented in FPF?',
       'verbose',

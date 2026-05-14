@@ -484,6 +484,34 @@ describe('direct MCP server', () => {
         true,
       );
     }
+
+    const productMaintainerQuery = await harness.request('tools/call', {
+      name: 'query_fpf_spec',
+      arguments: {
+        mode: 'compact',
+        question:
+          'As a product maintainer, turn live product smoke evidence plus recurring role-feedback discussions into one adoption improvement, severity, and validation path without reading or pasting the full FPF.',
+      },
+    });
+    const productMaintainerPayload = asToolPayload(productMaintainerQuery);
+    expect(productMaintainerPayload.status).toBe('ok');
+    if (routeIds.has('route:project-alignment')) {
+      expect(productMaintainerPayload.ids).toEqual(
+        expect.arrayContaining([
+          'route:project-alignment',
+          'E.12',
+          'A.1.1',
+          'A.15',
+          'A.2.2',
+          'A.2.3',
+        ]),
+      );
+      expect(productMaintainerPayload.answer).toContain('Product-role feedback packet IDs');
+    } else {
+      expect((productMaintainerPayload.ids as string[]).every((id) => !id.startsWith('route:'))).toBe(
+        true,
+      );
+    }
   }, FULL_SURFACE_TEST_TIMEOUT_MS);
 
   it('defaults to public tools when FPF_MCP_SURFACE is unset', async () => {

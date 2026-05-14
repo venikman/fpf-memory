@@ -35,6 +35,8 @@ import {
   AGENT_WORKFLOW_JOB_SIGNALS,
   BOUNDARY_BURDEN_SIGNALS,
   BOUNDARY_REVIEW_RULE_JOB_SIGNALS,
+  PRODUCT_ROLE_FEEDBACK_OUTPUT_SIGNALS,
+  PRODUCT_ROLE_FEEDBACK_ROLE_SIGNALS,
 } from './route-intent-signals.js';
 import { buildValidation } from './validation-runner.js';
 import type {
@@ -249,6 +251,20 @@ function buildHeuristicSeedRules(
       initialNodeIds: [],
       routeId: alignmentRoute.id,
       routeScore: 88,
+    });
+    const productRoleFeedbackNodeIds = ['E.12', 'A.1.1', 'A.15', 'A.2.2', 'A.2.3'].filter(
+      (id) => id in patternNodes || id in routeNodes,
+    );
+    rules.push({
+      name: 'product-role-feedback',
+      allOf: [[...PRODUCT_ROLE_FEEDBACK_ROLE_SIGNALS]],
+      anyOf: [[...PRODUCT_ROLE_FEEDBACK_OUTPUT_SIGNALS, ...AGENT_WORKFLOW_BOUNDED_RETRIEVAL_SIGNALS]],
+      seedNodeIds: productRoleFeedbackNodeIds,
+      seedScore: 20,
+      seedOrigin: 'route_expansion',
+      initialNodeIds: [],
+      routeId: alignmentRoute.id,
+      routeScore: 92,
     });
     rules.push({
       name: 'vocabulary-alignment',
