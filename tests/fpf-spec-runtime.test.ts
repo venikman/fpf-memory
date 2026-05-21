@@ -244,6 +244,34 @@ describe('FpfRuntime', () => {
     expect(productMaintainer.answer.length).toBeGreaterThan(0);
     expect(productMaintainer.citations.length).toBeGreaterThan(0);
 
+    const boundedProductMaintainer = await runtime.query(
+      'As a product maintainer, build a work packet without pasting the whole FPF.',
+      'compact',
+    );
+    if (routeIds.has('route:project-alignment')) {
+      expect(boundedProductMaintainer.status).toBe('ok');
+      expect(boundedProductMaintainer.ids).toEqual(
+        expect.arrayContaining([
+          'route:project-alignment',
+          'E.12',
+          'A.1.1',
+          'A.15',
+          'A.2.2',
+          'A.2.3',
+        ]),
+      );
+      expect(boundedProductMaintainer.answer).toContain(
+        'Product-role feedback packet IDs',
+      );
+    } else {
+      expect(['ok', 'ambiguous']).toContain(boundedProductMaintainer.status);
+      expect(
+        boundedProductMaintainer.ids.every((id) => !id.startsWith('route:')),
+      ).toBe(true);
+    }
+    expect(boundedProductMaintainer.answer.length).toBeGreaterThan(0);
+    expect(boundedProductMaintainer.citations.length).toBeGreaterThan(0);
+
     const unavailableSynthesizer = new FpfRuntime({
       artifactDir: resolve(tempRoot, 'deterministic-artifacts'),
       sourcePath,

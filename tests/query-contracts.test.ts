@@ -740,6 +740,39 @@ describe('Query / Projection stability stage', () => {
     );
   });
 
+  it('projects the product-role feedback packet on bounded-retrieval maintainer prompts', async () => {
+    const snapshot = await getSnapshotWithRouteFixtures();
+    const question =
+      'As a product maintainer, build a work packet without pasting the whole FPF.';
+    const trace = assembleTrace(question, 'compact', snapshot);
+
+    expect(trace.routeWins).toBe(true);
+    expect(trace.selectedNodeIds[0]).toBe('route:project-alignment');
+
+    const result = buildRouteAnswer(
+      question,
+      'compact',
+      'route:project-alignment',
+      trace,
+      snapshot,
+      false,
+    );
+
+    expect(result.ids).toEqual(
+      expect.arrayContaining([
+        'route:project-alignment',
+        'E.12',
+        'A.1.1',
+        'A.15',
+        'A.2.2',
+        'A.2.3',
+      ]),
+    );
+    expect(result.answer).toContain('Product-role feedback packet IDs');
+    expect(result.answer).toContain('Acceptance check:');
+    expect(result.answer).toContain('Next move:');
+  });
+
   it('uses a compact route trace shortcut for adoption kickoff queries', async () => {
     const snapshot = await getSnapshotWithRouteFixtures();
     const engine = new QueryEngine(snapshot, false);

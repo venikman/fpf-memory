@@ -512,6 +512,39 @@ describe('direct MCP server', () => {
         true,
       );
     }
+    const boundedProductMaintainerQuery = await harness.request('tools/call', {
+      name: 'query_fpf_spec',
+      arguments: {
+        mode: 'compact',
+        question:
+          'As a product maintainer, build a work packet without pasting the whole FPF.',
+      },
+    });
+    const boundedProductMaintainerPayload = asToolPayload(
+      boundedProductMaintainerQuery,
+    );
+    expect(boundedProductMaintainerPayload.status).toBe('ok');
+    if (routeIds.has('route:project-alignment')) {
+      expect(boundedProductMaintainerPayload.ids).toEqual(
+        expect.arrayContaining([
+          'route:project-alignment',
+          'E.12',
+          'A.1.1',
+          'A.15',
+          'A.2.2',
+          'A.2.3',
+        ]),
+      );
+      expect(boundedProductMaintainerPayload.answer).toContain(
+        'Product-role feedback packet IDs',
+      );
+    } else {
+      expect(
+        (boundedProductMaintainerPayload.ids as string[]).every(
+          (id) => !id.startsWith('route:'),
+        ),
+      ).toBe(true);
+    }
   }, FULL_SURFACE_TEST_TIMEOUT_MS);
 
   it('defaults to public tools when FPF_MCP_SURFACE is unset', async () => {

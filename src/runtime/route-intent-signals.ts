@@ -104,8 +104,12 @@ export function hasProductRoleFeedbackIntent(question: string): boolean {
   const hasRoleSignal = PRODUCT_ROLE_FEEDBACK_ROLE_SIGNALS.some((phrase) =>
     normalizedQuestion.includes(phrase),
   );
-  const hasOutputSignal = PRODUCT_ROLE_FEEDBACK_OUTPUT_SIGNALS.some((phrase) =>
-    normalizedQuestion.includes(phrase),
-  );
-  return hasRoleSignal && hasOutputSignal;
+  const hasQualifyingSignal =
+    PRODUCT_ROLE_FEEDBACK_OUTPUT_SIGNALS.some((phrase) =>
+      normalizedQuestion.includes(phrase),
+    ) ||
+    AGENT_WORKFLOW_BOUNDED_RETRIEVAL_SIGNALS.some((phrase) =>
+      normalizedQuestion.includes(phrase),
+    );
+  return hasRoleSignal && hasQualifyingSignal;
 }
