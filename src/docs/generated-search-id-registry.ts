@@ -568,7 +568,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.2.LS",
-      "title": "U.LanguageStateFacetProfile — Thin owner for language-state facets",
+      "title": "U.LanguageStateFacetProfile — Compact profile for language-state facets",
       "staticPath": "/generated/patterns/C.2.LS"
     },
     {
@@ -712,6 +712,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.22.1"
     },
     {
+      "id": "C.22.2",
+      "title": "ProblemCard@Context",
+      "staticPath": "/generated/patterns/C.22.2"
+    },
+    {
       "id": "C.23",
       "title": "Method‑SoS‑LOG — MethodFamily Evidence & Maturity",
       "staticPath": "/generated/patterns/C.23"
@@ -755,6 +760,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "C.28",
       "title": "CausalUse-CAL: Causal-Use Questions, Causality-Ladder Rungs, Identification and Realizability",
       "staticPath": "/generated/patterns/C.28"
+    },
+    {
+      "id": "C.29",
+      "title": "Mathematical Lens Adequacy (MLA)",
+      "staticPath": "/generated/patterns/C.29"
     },
     {
       "id": "D.1",
@@ -848,7 +858,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.4",
-      "title": "FPF Artefact Architecture",
+      "title": "FPF Ecosystem Family Architecture",
       "staticPath": "/generated/patterns/E.4"
     },
     {
@@ -917,6 +927,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/E.10.P"
     },
     {
+      "id": "E.10.SEMIO",
+      "title": "Episteme-Publication Semantic Rewrite Discipline",
+      "staticPath": "/generated/patterns/E.10.SEMIO"
+    },
+    {
       "id": "E.11",
       "title": "First-Practical Entry and Pattern-Use Discoverability Discipline",
       "staticPath": "/generated/patterns/E.11"
@@ -948,7 +963,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.17",
-      "title": "Multi‑View Publication Kit (for Morphisms)",
+      "title": "Multi-View Publication Kit",
       "staticPath": "/generated/patterns/E.17"
     },
     {
@@ -968,27 +983,27 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.17.AUD",
-      "title": "AuthoredUnitDiscipline - problem-pressure classification for one authored-readable unit with unstable described-entity or carried-move reading",
+      "title": "PublicationUnit Stability Discipline",
       "staticPath": "/generated/patterns/E.17.AUD"
     },
     {
       "id": "E.17.AUD.LHR",
-      "title": "AuthoredUnitDiscipline / Local Head Restoration — repair the pressured local head before the authored unit inherits it",
+      "title": "PublicationUnit Stability Discipline and Local Head Restoration",
       "staticPath": "/generated/patterns/E.17.AUD.LHR"
     },
     {
       "id": "E.17.AUD.OOTD",
-      "title": "AuthoredUnitDiscipline / AuthoredUnit Primary Described-Entity Discipline — authored-unit stability over one primary described entity and carried move",
+      "title": "PublicationUnit Stability Discipline and PublicationUnit Primary Described-Entity Discipline",
       "staticPath": "/generated/patterns/E.17.AUD.OOTD"
     },
     {
       "id": "E.17.EFP",
-      "title": "ExplanationFaithfulnessProfile - explanation classification over existing MVPK faces",
+      "title": "ExplanationFaithfulnessProfile — explanation-use discipline over existing MVPK faces",
       "staticPath": "/generated/patterns/E.17.EFP"
     },
     {
       "id": "E.17.ID.CR",
-      "title": "ComparativeReading - bounded comparative reading over comparative review units",
+      "title": "ComparativeReading — bounded comparative reading over comparative review units",
       "staticPath": "/generated/patterns/E.17.ID.CR"
     },
     {
@@ -1158,7 +1173,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "G.10",
-      "title": "SoTA Pack Shipping (pack-boundary owner; SoTA-Pack(Core))",
+      "title": "SoTA Pack Shipping (pack-boundary governing definition; SoTA-Pack(Core))",
       "staticPath": "/generated/patterns/G.10"
     },
     {
@@ -1168,7 +1183,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "G.12",
-      "title": "DHC Dashboards — Discipline-Health Time-Series (lawful telemetry, generation-first)",
+      "title": "DHC Dashboards — Discipline-Health Time-Series (admissible telemetry, generation-first)",
       "staticPath": "/generated/patterns/G.12"
     },
     {
@@ -1249,9 +1264,14 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
   ],
   "routes": [
     {
-      "slug": "admissible-comparison-pool-selection-selected-set-publication",
-      "title": "Admissible comparison / pool / selection / selected-set publication",
-      "staticPath": "/generated/routes/route_admissible-comparison-pool-selection-selected-set-publication"
+      "slug": "admissible-comparison-candidate-pool-policy-selection-and-selected-set-publication",
+      "title": "Admissible comparison, candidate-pool policy, selection, and selected-set publication",
+      "staticPath": "/generated/routes/route_admissible-comparison-candidate-pool-policy-selection-and-selected-set-publication"
+    },
+    {
+      "slug": "admissible-comparison-pool-selection-or-selected-set-publication",
+      "title": "admissible comparison, pool, selection, or selected-set publication",
+      "staticPath": "/generated/routes/route_admissible-comparison-pool-selection-or-selected-set-publication"
     },
     {
       "slug": "boundary-unpacking",
@@ -1259,29 +1279,24 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/routes/route_boundary-unpacking"
     },
     {
-      "slug": "boundary-unpacking-claim-routing",
-      "title": "Boundary unpacking / claim routing",
-      "staticPath": "/generated/routes/route_boundary-unpacking-claim-routing"
+      "slug": "boundary-unpacking-and-claim-decomposition",
+      "title": "Boundary unpacking and claim decomposition",
+      "staticPath": "/generated/routes/route_boundary-unpacking-and-claim-decomposition"
     },
     {
-      "slug": "causal-use-counterfactual-support-repair",
-      "title": "Causal-use / counterfactual-support repair",
-      "staticPath": "/generated/routes/route_causal-use-counterfactual-support-repair"
+      "slug": "causal-use-and-counterfactual-support-repair",
+      "title": "Causal-use and counterfactual-support repair",
+      "staticPath": "/generated/routes/route_causal-use-and-counterfactual-support-repair"
     },
     {
-      "slug": "generator-sota-portfolio-kit",
-      "title": "Generator / SoTA / portfolio kit",
-      "staticPath": "/generated/routes/route_generator-sota-portfolio-kit"
+      "slug": "generator-sota-or-portfolio-kit",
+      "title": "Generator, SoTA, or portfolio kit",
+      "staticPath": "/generated/routes/route_generator-sota-or-portfolio-kit"
     },
     {
-      "slug": "lawful-comparison-pool-selection-selected-set-publication",
-      "title": "lawful comparison / pool / selection / selected-set publication",
-      "staticPath": "/generated/routes/route_lawful-comparison-pool-selection-selected-set-publication"
-    },
-    {
-      "slug": "partly-said-language-state-discovery",
-      "title": "partly-said / language-state discovery",
-      "staticPath": "/generated/routes/route_partly-said-language-state-discovery"
+      "slug": "partly-said-cue-and-language-state-discovery",
+      "title": "partly-said cue and language-state discovery",
+      "staticPath": "/generated/routes/route_partly-said-cue-and-language-state-discovery"
     },
     {
       "slug": "project-alignment",
@@ -1289,14 +1304,14 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/routes/route_project-alignment"
     },
     {
-      "slug": "reusable-generator-sota-portfolio-kit",
-      "title": "reusable generator / SoTA / portfolio kit",
-      "staticPath": "/generated/routes/route_reusable-generator-sota-portfolio-kit"
+      "slug": "reusable-generator-sota-or-portfolio-kit",
+      "title": "reusable generator, SoTA, or portfolio kit",
+      "staticPath": "/generated/routes/route_reusable-generator-sota-or-portfolio-kit"
     },
     {
-      "slug": "same-entity-rewrite-explanation-comparative-reading",
-      "title": "Same-entity rewrite / explanation / comparative reading",
-      "staticPath": "/generated/routes/route_same-entity-rewrite-explanation-comparative-reading"
+      "slug": "same-entity-rewrite-explanation-and-comparative-reading",
+      "title": "Same-entity rewrite, explanation, and comparative reading",
+      "staticPath": "/generated/routes/route_same-entity-rewrite-explanation-and-comparative-reading"
     },
     {
       "slug": "same-entity-rewrite-explanation-representation-change-repair-or-bounded-comparative-reading",
@@ -1304,9 +1319,9 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/routes/route_same-entity-rewrite-explanation-representation-change-repair-or-bounded-comparative-reading"
     },
     {
-      "slug": "temporal-claim-adequacy-under-effort-window-resistance",
-      "title": "Temporal claim adequacy under effort/window/resistance",
-      "staticPath": "/generated/routes/route_temporal-claim-adequacy-under-effort-window-resistance"
+      "slug": "temporal-claim-adequacy-under-effort-window-and-resistance",
+      "title": "Temporal claim adequacy under effort, window, and resistance",
+      "staticPath": "/generated/routes/route_temporal-claim-adequacy-under-effort-window-and-resistance"
     },
     {
       "slug": "why",
