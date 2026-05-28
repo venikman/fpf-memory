@@ -1,3 +1,8 @@
+import {
+  normalizeForLookup,
+  tokenize,
+} from './text.js';
+
 export const BOUNDARY_REVIEW_NEGATIONS = [
   'do not treat this as an api contract review',
   'do not treat this as a contract review',
@@ -100,16 +105,31 @@ export function hasBoundaryReviewNegation(normalizedQuestion: string): boolean {
 }
 
 export function hasProductRoleFeedbackIntent(question: string): boolean {
-  const normalizedQuestion = question.toLowerCase();
+  const normalizedQuestion = normalizeForLookup(question);
+  const queryTokens = new Set(tokenize(normalizedQuestion));
   const hasRoleSignal = PRODUCT_ROLE_FEEDBACK_ROLE_SIGNALS.some((phrase) =>
-    normalizedQuestion.includes(phrase),
+    matchesIntentSignal(normalizedQuestion, queryTokens, phrase),
   );
   const hasQualifyingSignal =
     PRODUCT_ROLE_FEEDBACK_OUTPUT_SIGNALS.some((phrase) =>
-      normalizedQuestion.includes(phrase),
+      matchesIntentSignal(normalizedQuestion, queryTokens, phrase),
     ) ||
     AGENT_WORKFLOW_BOUNDED_RETRIEVAL_SIGNALS.some((phrase) =>
-      normalizedQuestion.includes(phrase),
+      matchesIntentSignal(normalizedQuestion, queryTokens, phrase),
     );
   return hasRoleSignal && hasQualifyingSignal;
+}
+
+function matchesIntentSignal(
+  normalizedQuestion: string,
+  queryTokens: Set<string>,
+  phrase: string,
+): boolean {
+  const phraseTokens = tokenize(phrase);
+  if (phraseTokens.length > 0) {
+    return phraseTokens.every((token) => queryTokens.has(token));
+  }
+
+  const normalizedPhrase = normalizeForLookup(phrase);
+  return normalizedPhrase.length > 0 && normalizedQuestion.includes(normalizedPhrase);
 }
