@@ -198,7 +198,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.P",
-      "title": "U.RelationalPrecisionRestorationSuite — Relational Precision Restoration (RPR) — Kind-Explicit Qualified Relation Discipline",
+      "title": "Relational Precision Restoration (RPR) — Kind-Explicit Qualified Relation Discipline",
       "staticPath": "/generated/patterns/A.6.P"
     },
     {
@@ -582,6 +582,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.2.LS"
     },
     {
+      "id": "C.2.P",
+      "title": "Epistemic Precision Restoration",
+      "staticPath": "/generated/patterns/C.2.P"
+    },
+    {
       "id": "C.3",
       "title": "Kind‑CAL — Kinds, Intent/Extent, and Typed Reasoning",
       "staticPath": "/generated/patterns/C.3"
@@ -955,11 +960,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "E.10.P",
       "title": "Conceptual Prefixes (policy & registry)",
       "staticPath": "/generated/patterns/E.10.P"
-    },
-    {
-      "id": "E.10.SEMIO",
-      "title": "Episteme-Publication Semantic Rewrite Discipline",
-      "staticPath": "/generated/patterns/E.10.SEMIO"
     },
     {
       "id": "E.11",
