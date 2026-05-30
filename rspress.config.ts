@@ -241,6 +241,14 @@ document.addEventListener('keydown',function(e){
   if(k==='/'){e.preventDefault();focusSearch();return;}
 });
 })();</script>`,
+    // Vercel Speed Insights — tracks Core Web Vitals and performance metrics.
+    // Uses the standard script initialization pattern for static sites.
+    // The script will be loaded asynchronously from Vercel's infrastructure
+    // after deployment.
+    `<script>
+window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+</script>`,
+    ['script', { defer: '', src: '/_vercel/speed-insights/script.js' }],
   ],
   route: {
     cleanUrls: true,
