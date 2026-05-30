@@ -2,7 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { performance } from 'node:perf_hooks';
 
-import { HOSTED_MCP_ENDPOINT } from '../src/core/constants.js';
+import { HOSTED_MCP_ENDPOINT } from '../src/adapters/hosted/endpoints.js';
 import {
   asArray,
   asOptionalString,

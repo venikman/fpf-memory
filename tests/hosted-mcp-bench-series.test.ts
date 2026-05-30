@@ -21,7 +21,7 @@ describe('hosted MCP benchmark series harness', () => {
         '--name',
         'origin',
         '--url',
-        'https://example.test/api/mcp/fpf_memory/mcp',
+        'https://example.test/api/mcp/fpf_reference/mcp',
         '--scenario',
         'status',
       ],
@@ -33,7 +33,7 @@ describe('hosted MCP benchmark series harness', () => {
     expect(options.format).toBe('jsonl');
     expect(options.bench).toEqual({
       name: 'origin',
-      url: 'https://example.test/api/mcp/fpf_memory/mcp',
+      url: 'https://example.test/api/mcp/fpf_reference/mcp',
       requests: 12,
       clients: 1,
       warmup: 0,
@@ -55,7 +55,7 @@ describe('hosted MCP benchmark series harness', () => {
         '--name',
         'origin',
         '--url',
-        'https://example.test/api/mcp/fpf_memory/mcp',
+        'https://example.test/api/mcp/fpf_reference/mcp',
         '--requests',
         '6',
         '--clients',
@@ -77,7 +77,7 @@ describe('hosted MCP benchmark series harness', () => {
       format: 'jsonl',
       bench: {
         name: 'origin',
-        url: 'https://example.test/api/mcp/fpf_memory/mcp',
+        url: 'https://example.test/api/mcp/fpf_reference/mcp',
         requests: 3,
         clients: 1,
         warmup: 0,
@@ -129,7 +129,7 @@ function benchSummary(values: {
 }): BenchSummary {
   return {
     name: 'origin',
-    endpoint: 'https://example.test/api/mcp/fpf_memory/mcp',
+    endpoint: 'https://example.test/api/mcp/fpf_reference/mcp',
     scenario: 'mixed',
     clients: 1,
     requestedOperations: values.ok + values.failed,

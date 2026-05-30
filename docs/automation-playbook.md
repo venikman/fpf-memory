@@ -183,7 +183,8 @@ fpf-memory is a compiler-backed runtime for the published First Principles Frame
 The current material:
 - Website: https://fpf.sh/
 - Connect MCP: https://fpf.sh/connect-mcp
-- Hosted endpoint: https://mcp.fpf.sh/api/mcp/fpf_memory/mcp
+- Hosted endpoint: https://mcp.fpf.sh/api/mcp/fpf_reference/mcp
+- Legacy endpoint during transition: https://mcp.fpf.sh/api/mcp/fpf_memory/mcp
 
 The claim I am comfortable making right now is narrow: it is useful for bounded FPF lookup and agent workflows that need evidence-backed framework context. I am not claiming broad adoption or benchmark superiority yet.
 

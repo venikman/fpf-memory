@@ -14,7 +14,12 @@ import { applyHostedEnvDefaults } from './hosted-env.js';
 import { getSharedMcpComposition } from './mcp.js';
 
 export const HOSTED_HOME_ROUTES = ['/', '/connect-mcp'] as const;
-export const HOSTED_MCP_ROUTE = '/api/mcp/fpf_memory/mcp';
+export const HOSTED_MCP_ROUTE = '/api/mcp/fpf_reference/mcp';
+export const LEGACY_HOSTED_MCP_ROUTE = '/api/mcp/fpf_memory/mcp';
+export const HOSTED_MCP_ROUTES = [
+  HOSTED_MCP_ROUTE,
+  LEGACY_HOSTED_MCP_ROUTE,
+] as const;
 export { HOSTED_FPF_STATUS_ROUTE };
 
 export function createHostedComposition(env: NodeJS.ProcessEnv) {
@@ -23,8 +28,8 @@ export function createHostedComposition(env: NodeJS.ProcessEnv) {
   const mcpComposition = getSharedMcpComposition(hostedEnv);
   const mcpServer =
     hostedConfig.surface === 'full'
-      ? mcpComposition.fpfMemory
-      : mcpComposition.fpfMemoryPublic;
+      ? mcpComposition.fpfReference
+      : mcpComposition.fpfReferencePublic;
 
   const app = new Hono();
 
@@ -71,7 +76,9 @@ export function createHostedComposition(env: NodeJS.ProcessEnv) {
       );
     }
   });
-  app.all(HOSTED_MCP_ROUTE, (c) => mcpServer.handleStreamableHttp(c.req.raw));
+  for (const route of HOSTED_MCP_ROUTES) {
+    app.all(route, (c) => mcpServer.handleStreamableHttp(c.req.raw));
+  }
 
   return {
     ...mcpComposition,

@@ -7,7 +7,10 @@ import readline from 'node:readline';
 
 import { afterEach, describe, expect, it } from '@rstest/core';
 
-import { createHostedComposition } from '../src/composition/hosted.js';
+import {
+  createHostedComposition,
+  HOSTED_MCP_ROUTES,
+} from '../src/composition/hosted.js';
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
 import vercelHandler from '../src/entrypoints/vercel-function.js';
 
@@ -206,7 +209,7 @@ describe('direct MCP server', () => {
     expect(initialize.error).toBeUndefined();
     expect(initialize.result?.protocolVersion).toBe('2024-11-05');
     expect(initialize.result?.serverInfo).toEqual({
-      name: 'fpf_memory',
+      name: 'fpf_reference',
       version: '1.0.0',
     });
     harness.notify('notifications/initialized');
@@ -467,7 +470,7 @@ describe('direct MCP server', () => {
       arguments: {
         mode: 'compact',
         question:
-          'Use fpf_memory MCP to build an agent work packet without pasting the full FPF. Return route/doc selector, IDs, what not to load, acceptance check, and next move.',
+          'Use fpf_reference MCP to build an agent work packet without pasting the full FPF. Return route/doc selector, IDs, what not to load, acceptance check, and next move.',
       },
     });
     const agentQueryPayload = asToolPayload(agentQuery);
@@ -528,9 +531,8 @@ describe('direct MCP server', () => {
       expect(typeof address).toBe('object');
       expect(address).not.toBeNull();
       const port = (address as { port: number }).port;
-      const response = await fetch(
-        `http://127.0.0.1:${port}/api/mcp/fpf_memory/mcp`,
-        {
+      for (const route of HOSTED_MCP_ROUTES) {
+        const response = await fetch(`http://127.0.0.1:${port}${route}`, {
           method: 'POST',
           headers: {
             'content-type': 'application/json',
@@ -548,20 +550,20 @@ describe('direct MCP server', () => {
                 name: 'rstest-vercel-node-adapter',
                 version: '1.0.0',
               },
-            },
+          },
           }),
           signal: AbortSignal.timeout(5_000),
-        },
-      );
+        });
 
-      expect(response.status).toBe(200);
-      expect(response.headers.get('content-type')).toContain('application/json');
-      const payload = await response.json() as JsonRpcResponse;
-      expect(payload.error).toBeUndefined();
-      expect(payload.result?.serverInfo).toEqual({
-        name: 'fpf_memory',
-        version: '1.0.0',
-      });
+        expect(response.status).toBe(200);
+        expect(response.headers.get('content-type')).toContain('application/json');
+        const payload = await response.json() as JsonRpcResponse;
+        expect(payload.error).toBeUndefined();
+        expect(payload.result?.serverInfo).toEqual({
+          name: 'fpf_reference',
+          version: '1.0.0',
+        });
+      }
     } finally {
       await new Promise<void>((resolveClose, rejectClose) => {
         server.close((error) => {

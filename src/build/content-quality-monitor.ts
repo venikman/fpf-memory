@@ -33,6 +33,11 @@ export const CONTENT_QUALITY_CURATED_DOCS = [
     path: '/automation-playbook',
     sourcePath: 'docs/automation-playbook.md',
   },
+  {
+    label: 'fpf-reference-mcp-rename',
+    path: '/fpf-reference-mcp-rename',
+    sourcePath: 'docs/fpf-reference-mcp-rename.md',
+  },
 ] as const;
 
 export const CONTENT_QUALITY_QA_ANCHORS = [
@@ -288,7 +293,12 @@ export function evaluateContentQuality(
       && live.publishedRefMatchesManifest
     : true;
   const monitoredMcpDocs = new Set(curatedDocs.map((doc) => doc.label));
-  const mcpPagesPresent = ['connect-mcp', 'mcp-recipes', 'automation-playbook']
+  const mcpPagesPresent = [
+    'connect-mcp',
+    'mcp-recipes',
+    'automation-playbook',
+    'fpf-reference-mcp-rename',
+  ]
     .every((label) => monitoredMcpDocs.has(label));
 
   const quality: ContentQualityCheck[] = [

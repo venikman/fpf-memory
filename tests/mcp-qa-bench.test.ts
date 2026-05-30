@@ -14,7 +14,7 @@ describe('MCP Q&A benchmark harness', () => {
         '--name',
         'origin',
         '--url',
-        'https://example.test/api/mcp/fpf_memory/mcp',
+        'https://example.test/api/mcp/fpf_reference/mcp',
         '--timeout-ms=90000',
         '--case-set',
         'core',
@@ -26,7 +26,7 @@ describe('MCP Q&A benchmark harness', () => {
 
     expect(options).toEqual({
       name: 'origin',
-      url: 'https://example.test/api/mcp/fpf_memory/mcp',
+      url: 'https://example.test/api/mcp/fpf_reference/mcp',
       timeoutMs: 90000,
       caseSet: 'core',
       format: 'markdown',
@@ -214,7 +214,7 @@ describe('MCP Q&A benchmark harness', () => {
   it('formats markdown summaries', () => {
     const summary: QaBenchSummary = {
       name: 'origin',
-      endpoint: 'https://example.test/api/mcp/fpf_memory/mcp',
+      endpoint: 'https://example.test/api/mcp/fpf_reference/mcp',
       caseSet: 'core',
       startedAt: '2026-05-04T00:00:00.000Z',
       finishedAt: '2026-05-04T00:00:01.000Z',

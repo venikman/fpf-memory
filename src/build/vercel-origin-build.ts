@@ -10,7 +10,7 @@ import {
 } from '../core/constants.js';
 import {
   HOSTED_FPF_STATUS_ROUTE,
-  HOSTED_MCP_ROUTE,
+  HOSTED_MCP_ROUTES,
 } from '../composition/hosted.js';
 
 export interface BuildVercelOriginOptions {
@@ -127,7 +127,7 @@ export function createVercelOriginOutputConfig(): VercelOriginOutputConfig {
     routes: [
       { handle: 'filesystem' },
       { src: `^${HOSTED_FPF_STATUS_ROUTE}$`, dest },
-      { src: `^${HOSTED_MCP_ROUTE}$`, dest },
+      ...HOSTED_MCP_ROUTES.map((route) => ({ src: `^${route}$`, dest })),
       { handle: 'miss' },
       { src: '^/(.*)$', dest: '/$1.html', check: true },
     ],

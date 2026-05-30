@@ -16,7 +16,7 @@ describe('hosted MCP benchmark harness', () => {
         '--name',
         'origin',
         '--url',
-        'https://example.test/api/mcp/fpf_memory/mcp',
+        'https://example.test/api/mcp/fpf_reference/mcp',
         '--requests',
         '40',
         '--clients=4',
@@ -34,7 +34,7 @@ describe('hosted MCP benchmark harness', () => {
 
     expect(options).toEqual({
       name: 'origin',
-      url: 'https://example.test/api/mcp/fpf_memory/mcp',
+      url: 'https://example.test/api/mcp/fpf_reference/mcp',
       requests: 40,
       clients: 4,
       warmup: 0,
@@ -86,7 +86,7 @@ describe('hosted MCP benchmark harness', () => {
   it('formats markdown summaries for run comparison', () => {
     const summary: BenchSummary = {
       name: 'origin',
-      endpoint: 'https://example.test/api/mcp/fpf_memory/mcp',
+      endpoint: 'https://example.test/api/mcp/fpf_reference/mcp',
       scenario: 'mixed',
       clients: 5,
       requestedOperations: 10,

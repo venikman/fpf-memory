@@ -4,8 +4,13 @@ import { pathToFileURL } from 'node:url';
 import { getSharedMcpComposition } from '../composition/mcp.js';
 
 export async function main(): Promise<void> {
-  const { logger, mcpConfig, fpfMemory, fpfMemoryPublic } = getSharedMcpComposition(process.env);
-  const server = mcpConfig.surface === 'full' ? fpfMemory : fpfMemoryPublic;
+  const {
+    logger,
+    mcpConfig,
+    fpfReference,
+    fpfReferencePublic,
+  } = getSharedMcpComposition(process.env);
+  const server = mcpConfig.surface === 'full' ? fpfReference : fpfReferencePublic;
 
   logger.info('MCP stdio server start');
 

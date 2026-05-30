@@ -1,4 +1,7 @@
-import { HOSTED_MCP_ENDPOINT } from '../../core/constants.js';
+import {
+  HOSTED_MCP_ENDPOINT,
+  LEGACY_HOSTED_MCP_ENDPOINT,
+} from './endpoints.js';
 
 const CLIENT_SECTIONS = [
   {
@@ -9,7 +12,7 @@ const CLIENT_SECTIONS = [
       'Open Settings > Apps & Connectors.',
       'Enable developer mode under Advanced settings when your plan or workspace requires it.',
       'Create a custom app or connector, set the Connector URL to the hosted endpoint, then confirm the advertised tools.',
-      'Open a new chat and add fpf-memory from the composer tools menu.',
+      'Open a new chat and add FPF Reference from the composer tools menu.',
     ],
     code: undefined,
     href: 'https://developers.openai.com/apps-sdk/deploy/connect-chatgpt',
@@ -21,8 +24,8 @@ const CLIENT_SECTIONS = [
     body: [
       'Open Customize > Connectors.',
       'Click the + button next to Connectors and choose Add custom connector.',
-      'Use fpf-memory as the name and the hosted endpoint as the URL.',
-      'Connect it, then ask Claude to use fpf_memory for bounded FPF retrieval.',
+      'Use FPF Reference as the name and the hosted endpoint as the URL.',
+      'Connect it, then ask Claude to use fpf_reference for bounded FPF retrieval.',
     ],
     code: undefined,
     href: 'https://support.claude.com/en/articles/11176164-use-connectors-to-extend-claude-s-capabilities',
@@ -37,7 +40,7 @@ const CLIENT_SECTIONS = [
     ],
     code: `{
   "servers": {
-    "fpf_memory": {
+    "fpf_reference": {
       "type": "http",
       "url": "${HOSTED_MCP_ENDPOINT}"
     }
@@ -48,15 +51,15 @@ const CLIENT_SECTIONS = [
   {
     id: 'zed',
     title: 'Zed',
-    summary: 'Add fpf-memory as a custom remote context server in Agent Panel settings.',
+    summary: 'Add FPF Reference as a custom remote context server in Agent Panel settings.',
     body: [
       'Open Agent Panel settings with agent: open settings.',
       'Add a custom server using the url-only remote server shape.',
-      'Check the indicator next to fpf-memory; green means the server is active.',
+      'Check the indicator next to FPF Reference; green means the server is active.',
     ],
     code: `{
   "context_servers": {
-    "fpf-memory": {
+    "fpf-reference": {
       "url": "${HOSTED_MCP_ENDPOINT}"
     }
   }
@@ -68,9 +71,9 @@ const CLIENT_SECTIONS = [
     title: 'Codex CLI',
     summary: 'Register the remote streamable HTTP server with codex mcp add.',
     body: ['Run the command, then ask Codex to call get_fpf_index_status before route work.'],
-    code: `codex mcp add fpf_memory --url ${HOSTED_MCP_ENDPOINT}
+    code: `codex mcp add fpf_reference --url ${HOSTED_MCP_ENDPOINT}
 
-[mcp_servers.fpf_memory]
+[mcp_servers.fpf_reference]
 url = "${HOSTED_MCP_ENDPOINT}"`,
     href: 'https://developers.openai.com/codex/config-reference#mcp_serversidurl',
   },
@@ -79,13 +82,13 @@ url = "${HOSTED_MCP_ENDPOINT}"`,
     title: 'Claude Code',
     summary: 'Use the HTTP MCP transport and verify status with /mcp inside Claude Code.',
     body: ['Run the command, then use /mcp inside Claude Code to check connection status.'],
-    code: `claude mcp add --transport http fpf_memory ${HOSTED_MCP_ENDPOINT}`,
+    code: `claude mcp add --transport http fpf_reference ${HOSTED_MCP_ENDPOINT}`,
     href: 'https://docs.claude.com/en/docs/claude-code/mcp',
   },
   {
     id: 'pi',
     title: 'Pi',
-    summary: 'Install an MCP extension, then configure fpf-memory as a streamable HTTP server.',
+    summary: 'Install an MCP extension, then configure FPF Reference as a streamable HTTP server.',
     body: [
       'Install pi-mcp-extension or another Pi MCP extension.',
       'Add the server to ~/.pi/agent/mcp.json for global use or .pi/mcp.json for one project.',
@@ -95,7 +98,7 @@ url = "${HOSTED_MCP_ENDPOINT}"`,
 
 {
   "mcpServers": {
-    "fpf_memory": {
+    "fpf_reference": {
       "transport": "streamable-http",
       "url": "${HOSTED_MCP_ENDPOINT}",
       "lifecycle": "eager"
@@ -112,7 +115,7 @@ export function renderHostedHomePage(): string {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>fpf-memory MCP</title>
+    <title>FPF Reference MCP</title>
     <style>
       :root {
         color-scheme: light;
@@ -425,13 +428,14 @@ export function renderHostedHomePage(): string {
     <main>
       <section class="hero" aria-labelledby="page-title">
         <p class="eyebrow">Hosted MCP server</p>
-        <h1 id="page-title">fpf-memory MCP</h1>
+        <h1 id="page-title">FPF Reference MCP</h1>
         <p class="lead">
           Connect chat clients, editors, and coding CLIs to compact, grounded FPF retrieval without pasting the full specification into every conversation.
         </p>
         <div class="endpoint">
           <span>Streamable HTTP endpoint</span>
           <code>${HOSTED_MCP_ENDPOINT}</code>
+          <small>Legacy <code>${LEGACY_HOSTED_MCP_ENDPOINT}</code> remains available during the transition.</small>
         </div>
       </section>
 
@@ -469,7 +473,7 @@ export function renderHostedHomePage(): string {
 
       <h2 class="section-title">Good First Prompt</h2>
       <section class="prompt" aria-label="Good first prompt">
-        <pre><code>Use only fpf_memory. First call get_fpf_index_status. If the index is available, find the smallest FPF route for this work: &lt;describe work&gt;. Return Context | Route ID | Ordered IDs | Friction avoided | Acceptance check | Next move.</code></pre>
+        <pre><code>Use only fpf_reference. First call get_fpf_index_status. If the index is available, find the smallest FPF route for this work: &lt;describe work&gt;. Return Context | Route ID | Ordered IDs | Friction avoided | Acceptance check | Next move.</code></pre>
         <p>Keep route answers compact. Read exact generated docs only when wording matters, and do not paste the full FPF into the chat.</p>
       </section>
 

@@ -1,7 +1,7 @@
 {
-  "name": "fpf_memory",
+  "name": "fpf_reference",
   "version": "1.0.0",
-  "description": "Optional local full-surface FPF MCP runtime for expert clients.",
+  "description": "Optional local full-surface FPF Reference MCP runtime for expert clients.",
   "transport": "stdio",
   "command": "bun",
   "cwd": ".",

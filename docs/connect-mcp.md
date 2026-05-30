@@ -1,20 +1,28 @@
 ---
 title: "Connect MCP"
-description: "Client setup instructions for the hosted fpf-memory MCP server."
+description: "Client setup instructions for the hosted FPF Reference MCP server."
 outline: deep
 ---
 
-# Connect fpf-memory MCP
+# Connect FPF Reference MCP
 
 Use this page when you want ChatGPT, Claude, an editor, or a coding CLI to retrieve bounded FPF context through the hosted MCP server.
 
 ## Hosted endpoint
 
 ```txt
+https://mcp.fpf.sh/api/mcp/fpf_reference/mcp
+```
+
+This endpoint is the direct Vercel-hosted MCP origin over streamable HTTP. It exposes the public FPF Reference tools for catalog browsing, search, compact answers, exact generated doc reads, and index health.
+
+The legacy endpoint remains available during the compatibility window:
+
+```txt
 https://mcp.fpf.sh/api/mcp/fpf_memory/mcp
 ```
 
-This endpoint is the direct Vercel-hosted MCP origin over streamable HTTP. It exposes the public fpf-memory tools for catalog browsing, search, compact answers, exact generated doc reads, and index health.
+Do not remove the legacy endpoint before the scheduled compatibility review on 2026-06-30. Existing users may still have the old URL or `fpf_memory` client name in their local MCP configs.
 
 It is a JSON-RPC endpoint, not a web page. A bare browser GET returns **406 Not Acceptable** because the MCP server requires `Accept: application/json, text/event-stream`. Paste the URL into your client's MCP config; do not open it in a tab.
 
@@ -40,7 +48,7 @@ Public tools:
 After adding the server, ask your client to call `get_fpf_index_status`. Then run a compact route query:
 
 ```txt
-Use only fpf_memory. Call query_fpf_spec with question: "Project kickoff: align a project information system with roles and adoption next steps" and mode "compact". Return the route ID, ordered IDs, acceptance check, and next move.
+Use only fpf_reference. Call query_fpf_spec with question: "Project kickoff: align a project information system with roles and adoption next steps" and mode "compact". Return the route ID, ordered IDs, acceptance check, and next move.
 ```
 
 A good response should include `route:project-alignment` in `ids`, then bounded next steps rather than a full FPF paste.
@@ -66,7 +74,7 @@ Use this path for Claude chat, Claude Desktop, or Cowork custom connectors.
 2. Go to Customize > Connectors.
 3. Click the `+` button next to Connectors.
 4. Choose Add custom connector.
-5. Enter `fpf-memory` as the name and the hosted endpoint as the URL.
+5. Enter `FPF Reference` as the name and the hosted endpoint as the URL.
 6. Add it, then connect it in the same way as other Claude connectors.
 
 Reference: [Claude Help - custom connectors](https://support.claude.com/en/articles/11176164-use-connectors-to-extend-claude-s-capabilities).
@@ -78,9 +86,9 @@ Use the MCP: Add Server command, or add a workspace config at `.vscode/mcp.json`
 ```json
 {
   "servers": {
-    "fpf_memory": {
+    "fpf_reference": {
       "type": "http",
-      "url": "https://mcp.fpf.sh/api/mcp/fpf_memory/mcp"
+      "url": "https://mcp.fpf.sh/api/mcp/fpf_reference/mcp"
     }
   }
 }
@@ -97,8 +105,8 @@ Open the Agent Panel settings with `agent: open settings`, then add a custom ser
 ```json
 {
   "context_servers": {
-    "fpf-memory": {
-      "url": "https://mcp.fpf.sh/api/mcp/fpf_memory/mcp"
+    "fpf-reference": {
+      "url": "https://mcp.fpf.sh/api/mcp/fpf_reference/mcp"
     }
   }
 }
@@ -113,14 +121,14 @@ Reference: [Zed - Model Context Protocol](https://zed.dev/docs/ai/mcp).
 Add the remote streamable HTTP server:
 
 ```sh
-codex mcp add fpf_memory --url https://mcp.fpf.sh/api/mcp/fpf_memory/mcp
+codex mcp add fpf_reference --url https://mcp.fpf.sh/api/mcp/fpf_reference/mcp
 ```
 
 Equivalent `~/.codex/config.toml` entry:
 
 ```toml
-[mcp_servers.fpf_memory]
-url = "https://mcp.fpf.sh/api/mcp/fpf_memory/mcp"
+[mcp_servers.fpf_reference]
+url = "https://mcp.fpf.sh/api/mcp/fpf_reference/mcp"
 ```
 
 Reference: [Codex configuration reference](https://developers.openai.com/codex/config-reference#mcp_serversidurl).
@@ -130,7 +138,7 @@ Reference: [Codex configuration reference](https://developers.openai.com/codex/c
 Add the remote HTTP server:
 
 ```sh
-claude mcp add --transport http fpf_memory https://mcp.fpf.sh/api/mcp/fpf_memory/mcp
+claude mcp add --transport http fpf_reference https://mcp.fpf.sh/api/mcp/fpf_reference/mcp
 ```
 
 Check it inside Claude Code with `/mcp`.
@@ -150,9 +158,9 @@ Global config at `~/.pi/agent/mcp.json` or project config at `.pi/mcp.json`:
 ```json
 {
   "mcpServers": {
-    "fpf_memory": {
+    "fpf_reference": {
       "transport": "streamable-http",
-      "url": "https://mcp.fpf.sh/api/mcp/fpf_memory/mcp",
+      "url": "https://mcp.fpf.sh/api/mcp/fpf_reference/mcp",
       "lifecycle": "eager"
     }
   }
@@ -166,7 +174,7 @@ Reference: [Pi MCP extension](https://pi.dev/packages/pi-mcp-extension).
 ## Good first prompt
 
 ```txt
-Use only fpf_memory. First call get_fpf_index_status. If the index is available, find the smallest FPF route for this work: <describe work>. Return Context | Route ID | Ordered IDs | Friction avoided | Acceptance check | Next move.
+Use only fpf_reference. First call get_fpf_index_status. If the index is available, find the smallest FPF route for this work: <describe work>. Return Context | Route ID | Ordered IDs | Friction avoided | Acceptance check | Next move.
 ```
 
 Keep route answers compact. Read exact generated docs only when wording matters, and do not paste the full FPF into the chat.

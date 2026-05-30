@@ -1,4 +1,4 @@
-import { HOSTED_MCP_ENDPOINT } from '../src/core/constants.js';
+import { HOSTED_MCP_ENDPOINT } from '../src/adapters/hosted/endpoints.js';
 
 const EXPECTED_PUBLIC_TOOLS = [
   'browse_fpf_catalog',

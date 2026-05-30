@@ -10,7 +10,7 @@ Use MCP instead of pasted context when the work needs grounded FPF context, exac
 
 ## What this page is
 
-This is the agent and tool-use guide for fpf-memory's MCP surface. It explains how to retrieve compact grounded FPF context instead of pasting the full specification into a conversation.
+This is the agent and tool-use guide for the FPF Reference MCP surface. It explains how to retrieve compact grounded FPF context instead of pasting the full specification into a conversation.
 
 ## Methodology
 
@@ -19,7 +19,7 @@ Check runtime health first, find the right doorway with search or query tools, r
 Hosted endpoint:
 
 ```txt
-https://mcp.fpf.sh/api/mcp/fpf_memory/mcp
+https://mcp.fpf.sh/api/mcp/fpf_reference/mcp
 ```
 
 ## Check health
@@ -37,7 +37,7 @@ Continue only if the runtime reports a fresh or loadable index.
 Prompt:
 
 ```txt
-Use only the fpf_memory MCP server. Search or query FPF for the best route for this work: <describe work>. Return 3-8 exact IDs, why they matter, and what not to load yet.
+Use only the fpf_reference MCP server. Search or query FPF for the best route for this work: <describe work>. Return 3-8 exact IDs, why they matter, and what not to load yet.
 ```
 
 Useful tools:
@@ -51,7 +51,7 @@ Useful tools:
 Prompt:
 
 ```txt
-Use only the fpf_memory MCP server. Read the generated FPF doc for <ID or route>. Summarize only the operational constraints needed for this task.
+Use only the fpf_reference MCP server. Read the generated FPF doc for <ID or route>. Summarize only the operational constraints needed for this task.
 ```
 
 Useful tool:
@@ -63,7 +63,7 @@ Useful tool:
 Prompt:
 
 ```txt
-Use only the fpf_memory MCP server. Build an FPF work packet for <task>. Include goal, relevant route or IDs, operating questions, constraints, acceptance checks, risks, and one next move. Do not paste the whole FPF.
+Use only the fpf_reference MCP server. Build an FPF work packet for <task>. Include goal, relevant route or IDs, operating questions, constraints, acceptance checks, risks, and one next move. Do not paste the whole FPF.
 ```
 
 ## Dogfood a product role
@@ -71,7 +71,7 @@ Use only the fpf_memory MCP server. Build an FPF work packet for <task>. Include
 Prompt:
 
 ```txt
-Use only bounded FPF retrieval plus direct product evidence. Act as <persona> trying to complete <job> with fpf-memory. Return Context | Persona/job | Surface | FPF IDs used | Evidence | Friction | Proposed improvement | Severity | Validation path. Keep the answer discussion-ready and do not paste the full FPF.
+Use only bounded FPF retrieval plus direct product evidence. Act as <persona> trying to complete <job> with FPF Reference. Return Context | Persona/job | Surface | FPF IDs used | Evidence | Friction | Proposed improvement | Severity | Validation path. Keep the answer discussion-ready and do not paste the full FPF.
 ```
 
 Good personas to rotate:
@@ -88,7 +88,7 @@ Good personas to rotate:
 Prompt:
 
 ```txt
-Use only the fpf_memory MCP server plus the PR diff, local files, and CI evidence. Review this PR through the PR or code review packet. Return Findings | FPF IDs | Evidence | Tests | Residual risk | Verdict. Lead with behavioral issues and cite exact files; do not paste the full FPF.
+Use only the fpf_reference MCP server plus the PR diff, local files, and CI evidence. Review this PR through the PR or code review packet. Return Findings | FPF IDs | Evidence | Tests | Residual risk | Verdict. Lead with behavioral issues and cite exact files; do not paste the full FPF.
 ```
 
 Good retrieval shape:
@@ -104,7 +104,7 @@ Good retrieval shape:
 Prompt:
 
 ```txt
-Use only the fpf_memory MCP server plus local repo evidence. Review this change through FPF. Lead with findings, cite exact files and FPF IDs, then list tests and residual risk.
+Use only the fpf_reference MCP server plus local repo evidence. Review this change through FPF. Lead with findings, cite exact files and FPF IDs, then list tests and residual risk.
 ```
 
 ## Keep context bounded

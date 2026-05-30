@@ -478,7 +478,7 @@ describe('Query / Ranker stage', () => {
   it('selects project alignment for MCP agent work-packet prompts', async () => {
     const snapshot = await getSnapshotWithRouteFixtures();
     const question =
-      'Use fpf_memory MCP to build an agent work packet without pasting the full FPF. Return route/doc selector, IDs, what not to load, acceptance check, and next move.';
+      'Use fpf_reference MCP to build an agent work packet without pasting the full FPF. Return route/doc selector, IDs, what not to load, acceptance check, and next move.';
     const normalized = normalizeQuery(question, snapshot);
     const seeding = seedCandidates(normalized, snapshot);
     const ranking = rankCandidates(question, seeding.candidateMap, snapshot);

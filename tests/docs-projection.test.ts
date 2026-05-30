@@ -588,7 +588,7 @@ describe('docs projection', () => {
         'Use MCP instead of pasted context',
       );
       expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
-        'This is the agent and tool-use guide for fpf-memory',
+        'This is the agent and tool-use guide for the FPF Reference MCP surface',
       );
       expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
         'Dogfood a product role',
@@ -597,7 +597,10 @@ describe('docs projection', () => {
         'Review a PR without full-spec paste',
       );
       expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
-        'Connect fpf-memory MCP',
+        'Connect FPF Reference MCP',
+      );
+      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
+        'https://mcp.fpf.sh/api/mcp/fpf_reference/mcp',
       );
       expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
         'https://mcp.fpf.sh/api/mcp/fpf_memory/mcp',

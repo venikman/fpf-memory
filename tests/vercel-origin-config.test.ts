@@ -5,6 +5,10 @@ import { describe, expect, it } from '@rstest/core';
 
 import { HOSTED_FPF_STATUS_ROUTE } from '../src/adapters/hosted/status-page.js';
 import { createVercelOriginOutputConfig } from '../src/build/vercel-origin-build.js';
+import {
+  HOSTED_MCP_ROUTE,
+  LEGACY_HOSTED_MCP_ROUTE,
+} from '../src/composition/hosted.js';
 
 interface VercelConfig {
   buildCommand?: string | null;
@@ -57,8 +61,9 @@ describe('Vercel MCP origin config', () => {
     );
     expect(srcRoutes).not.toContain('^/$');
     expect(srcRoutes).not.toContain('^/connect-mcp$');
-    // API routes remain.
-    expect(srcRoutes).toContain('^/api/mcp/fpf_memory/mcp$');
+    // API routes remain, including the temporary legacy MCP alias.
+    expect(srcRoutes).toContain(`^${HOSTED_MCP_ROUTE}$`);
+    expect(srcRoutes).toContain(`^${LEGACY_HOSTED_MCP_ROUTE}$`);
   });
 
   it('runs the filesystem phase before function routes so static docs win', () => {

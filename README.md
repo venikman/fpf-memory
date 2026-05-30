@@ -2,7 +2,7 @@
 
 > FPF helps when raw insight is not enough: meanings, claims, alternatives, evidence, boundaries, and outputs must remain stable across contexts, time, people, tools, or AI agents.
 
-> **Quick links:** [Website](https://fpf.sh/) · [Connect MCP](https://fpf.sh/connect-mcp) · [Hosted MCP endpoint](https://mcp.fpf.sh/api/mcp/fpf_memory/mcp)
+> **Quick links:** [Website](https://fpf.sh/) · [Connect MCP](https://fpf.sh/connect-mcp) · [Hosted MCP endpoint](https://mcp.fpf.sh/api/mcp/fpf_reference/mcp)
 >
 > **📖 Live reference:** [fpf.sh](https://fpf.sh/) — searchable pattern catalog, routes, and preface. Type an ID like `A.2` or `route:project-alignment` in the search box to jump in.
 >
@@ -235,32 +235,40 @@ The evaluator reads local git facts, the committed `published/current/**` surfac
 
 ## Using it from Codex (and other MCP clients)
 
-The current Codex default is the hosted public MCP:
+The current Codex default is the hosted public FPF Reference MCP:
 
 ```text
-https://mcp.fpf.sh/api/mcp/fpf_memory/mcp
+https://mcp.fpf.sh/api/mcp/fpf_reference/mcp
 ```
 
 Equivalent `~/.codex/config.toml`:
 
 ```toml
-[mcp_servers.fpf_memory]
-url = "https://mcp.fpf.sh/api/mcp/fpf_memory/mcp"
+[mcp_servers.fpf_reference]
+url = "https://mcp.fpf.sh/api/mcp/fpf_reference/mcp"
 ```
 
-This repo ships the same project-scoped configuration at `.codex/config.toml` and `.mcp.json`. Once the project is trusted, Codex can load the hosted `fpf_memory` server directly from the repo.
+This repo ships the same project-scoped configuration at `.codex/config.toml` and `.mcp.json`. Once the project is trusted, Codex can load the hosted `fpf_reference` server directly from the repo.
+
+The legacy `fpf_memory` client name and endpoint remain available for existing users:
+
+```text
+https://mcp.fpf.sh/api/mcp/fpf_memory/mcp
+```
+
+Do not remove the legacy endpoint before the scheduled compatibility review on 2026-06-30. The rename is intentionally small so parallel deployment and publication-sync work can merge without replacing this branch's compatibility contract. The detailed compatibility note lives in [`docs/fpf-reference-mcp-rename.md`](docs/fpf-reference-mcp-rename.md).
 
 **Recommended Codex tasks** (public surface):
 
-- answer a question — `Use only the fpf_memory MCP server. Call ask_fpf with question: "What is U.PromiseContent?"`
-- structured query — `Use only the fpf_memory MCP server. Call query_fpf_spec with question: "What is an FPF pattern?"`
-- read a generated page — `Use only the fpf_memory MCP server. Call read_fpf_doc with selector: "A.1.1"`
-- check runtime freshness — `Use only the fpf_memory MCP server. Call get_fpf_index_status`
+- answer a question — `Use only the fpf_reference MCP server. Call ask_fpf with question: "What is U.PromiseContent?"`
+- structured query — `Use only the fpf_reference MCP server. Call query_fpf_spec with question: "What is an FPF pattern?"`
+- read a generated page — `Use only the fpf_reference MCP server. Call read_fpf_doc with selector: "A.1.1"`
+- check runtime freshness — `Use only the fpf_reference MCP server. Call get_fpf_index_status`
 
 **Expert tasks** (require local full-surface runtime, `FPF_MCP_SURFACE=full bun run mcp`):
 
-- inspect retrieval evidence — `Use only the fpf_memory MCP server. Call trace_fpf_path with question: "How do U.RoleAssignment and U.BoundedContext connect?"`
-- rebuild the local index — `Use only the fpf_memory MCP server. Call refresh_fpf_index`
+- inspect retrieval evidence — `Use only the fpf_reference MCP server. Call trace_fpf_path with question: "How do U.RoleAssignment and U.BoundedContext connect?"`
+- rebuild the local index — `Use only the fpf_reference MCP server. Call refresh_fpf_index`
 
 Smoke-test the local full-surface runtime before using expert tools or deploying changes:
 
@@ -284,7 +292,7 @@ This starts a long-running stdio server; for a manual smoke check, stop it with 
 If this repo is registered as a Codex MCP server, restart Codex after changes and then test with a forced tool-use prompt:
 
 ```text
-Use only the fpf_memory MCP server.
+Use only the fpf_reference MCP server.
 Call ask_fpf with:
 - question: "Give me a checklist for how to model my project's information system."
 ```
@@ -297,9 +305,9 @@ The direct Vercel origin is canonical for clients. There is no separate Vercel f
 bun run vercel:origin:link
 bun run vercel:origin:build
 bun run vercel:origin:deploy:prod
-FPF_MCP_SMOKE_URL=https://mcp.fpf.sh/api/mcp/fpf_memory/mcp bun run smoke:mcp:http
+FPF_MCP_SMOKE_URL=https://mcp.fpf.sh/api/mcp/fpf_reference/mcp bun run smoke:mcp:http
 
-bun run bench:mcp:qa -- --name vercel-origin --url https://mcp.fpf.sh/api/mcp/fpf_memory/mcp --format markdown
+bun run bench:mcp:qa -- --name vercel-origin --url https://mcp.fpf.sh/api/mcp/fpf_reference/mcp --format markdown
 ```
 
 Status API:

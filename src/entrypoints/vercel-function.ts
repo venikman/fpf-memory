@@ -6,7 +6,7 @@ import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import {
   createHostedComposition,
   createHostedErrorLogger,
-  HOSTED_MCP_ROUTE,
+  HOSTED_MCP_ROUTES,
 } from '../composition/hosted.js';
 
 type HostedComposition = ReturnType<typeof createHostedComposition>;
@@ -51,7 +51,9 @@ function getHostedComposition(): Promise<HostedComposition> {
 
 function isMcpRoute(request: IncomingMessage): boolean {
   const url = new URL(request.url ?? '/', 'https://localhost');
-  return url.pathname === HOSTED_MCP_ROUTE;
+  return HOSTED_MCP_ROUTES.includes(
+    url.pathname as (typeof HOSTED_MCP_ROUTES)[number],
+  );
 }
 
 function toWebRequest(request: IncomingMessage): Request {

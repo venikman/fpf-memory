@@ -11,6 +11,7 @@ export interface FpfMcpServerOptions {
   name: string;
   version: string;
   description: string;
+  instructions?: string;
   tools: FpfMcpToolMap;
 }
 
@@ -52,6 +53,8 @@ export class FpfMcpServer {
     const server = new McpServer({
       name: this.options.name,
       version: this.options.version,
+    }, {
+      instructions: this.options.instructions,
     });
 
     for (const tool of Object.values(this.options.tools)) {
@@ -65,26 +68,36 @@ export class FpfMcpServer {
 export function createMcpServerSet(
   tools: ReturnType<typeof createMcpTools>,
 ) {
-  const fpfMemory = new FpfMcpServer({
-    name: 'fpf_memory',
+  const fpfReference = new FpfMcpServer({
+    name: 'fpf_reference',
     version: '1.0.0',
-    description: 'Local vectorless MCP runtime for the FPF spec with full tool surface.',
+    description: 'Local vectorless MCP reference runtime for the FPF spec with full tool surface.',
+    instructions: FPF_REFERENCE_SERVER_INSTRUCTIONS,
     tools: tools.fpfMcpTools,
   });
 
-  const fpfMemoryPublic = new FpfMcpServer({
-    name: 'fpf_memory',
+  const fpfReferencePublic = new FpfMcpServer({
+    name: 'fpf_reference',
     version: '1.0.0',
     description:
-      'FPF spec query runtime with public discovery surface (browse, search, ask, query, read, status).',
+      'FPF spec reference runtime with public discovery surface (browse, search, ask, query, read, status).',
+    instructions: FPF_REFERENCE_SERVER_INSTRUCTIONS,
     tools: tools.fpfPublicTools,
   });
 
   return {
-    fpfMemory,
-    fpfMemoryPublic,
+    fpfReference,
+    fpfReferencePublic,
   };
 }
+
+const FPF_REFERENCE_SERVER_INSTRUCTIONS = [
+  'Use fpf_reference only for First Principles Framework lookup and grounding:',
+  'exact FPF IDs, canonical terms, route suggestions, citations, exact generated docs, and index freshness.',
+  'Do not treat this MCP server as the workflow owner, persistent agent memory, project policy, or job-local context source.',
+  'For planning, review, shipping, QA, browser work, repo memory, or virtual-team roles, defer to active Claude Code skills and project instructions such as GStack and Superpowers.',
+  'Prefer get_fpf_index_status before trust-sensitive FPF use, query_fpf_spec for route and ID discovery, and read_fpf_doc for exact wording.',
+].join(' ');
 
 function registerFpfTool(server: McpServer, tool: FpfMcpTool): void {
   server.registerTool(

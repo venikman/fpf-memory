@@ -1,0 +1,71 @@
+name: FPF Reference Legacy Alias Reminder
+
+on:
+  schedule:
+    - cron: '23 9 * * 2'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: fpf-reference-legacy-alias-reminder
+  cancel-in-progress: false
+
+env:
+  LEGACY_ALIAS_NOT_BEFORE: '2026-06-30'
+  LEGACY_ALIAS_TITLE: 'Review removal of legacy fpf_memory MCP alias'
+
+jobs:
+  reminder:
+    name: Open cleanup review issue
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Wait until compatibility window ends
+        id: due
+        shell: bash
+        run: |
+          today="$(date -u +%F)"
+          if [[ "$today" < "$LEGACY_ALIAS_NOT_BEFORE" ]]; then
+            echo "due=false" >> "$GITHUB_OUTPUT"
+            echo "Legacy alias remains protected until $LEGACY_ALIAS_NOT_BEFORE."
+            exit 0
+          fi
+
+          echo "due=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open or reuse cleanup issue
+        if: steps.due.outputs.due == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          existing="$(
+            gh issue list \
+              --state open \
+              --search "$LEGACY_ALIAS_TITLE in:title" \
+              --json number \
+              --jq '.[0].number // ""'
+          )"
+
+          if [[ -n "$existing" ]]; then
+            echo "Cleanup issue already exists: #$existing"
+            exit 0
+          fi
+
+          gh issue create \
+            --title "$LEGACY_ALIAS_TITLE" \
+            --body "$(cat <<'ISSUE'
+The compatibility window ended on 2026-06-30.
+
+Review traffic and user commitments before removing the legacy MCP alias:
+
+- Keep canonical endpoint: `/api/mcp/fpf_reference/mcp`
+- Review legacy endpoint: `/api/mcp/fpf_memory/mcp`
+- Check public docs, deployed routing, support messages, and known client configs
+
+This reminder does not delete anything automatically. Extend the compatibility window if the legacy endpoint is still in active use.
+ISSUE
+            )"

@@ -32,6 +32,6 @@ test('connect-mcp page mentions the canonical MCP endpoint', async ({
   // The canonical endpoint URL appears in multiple copy-paste blocks. If
   // the constant drifts away from mcp.fpf.sh the docs would silently lie.
   await expect(
-    page.getByText('https://mcp.fpf.sh/api/mcp/fpf_memory/mcp').first(),
+    page.getByText('https://mcp.fpf.sh/api/mcp/fpf_reference/mcp').first(),
   ).toBeVisible();
 });

@@ -315,6 +315,12 @@ function makeCuratedDocs(overrides: Record<string, string> = {}): ContentQuality
       sourcePath: 'docs/automation-playbook.md',
       text: 'Keep publication evidence bounded.',
     },
+    {
+      label: 'fpf-reference-mcp-rename',
+      path: '/fpf-reference-mcp-rename',
+      sourcePath: 'docs/fpf-reference-mcp-rename.md',
+      text: 'Keep the fpf_memory compatibility alias until the review gate.',
+    },
   ];
 
   return docs.map((doc) => ({

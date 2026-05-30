@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-const MCP_PATH = '/api/mcp/fpf_memory/mcp';
+const MCP_PATH = '/api/mcp/fpf_reference/mcp';
+const LEGACY_MCP_PATH = '/api/mcp/fpf_memory/mcp';
 const MCP_HEADERS = {
   'Content-Type': 'application/json',
   Accept: 'application/json, text/event-stream',
@@ -54,7 +55,29 @@ test('MCP initialize returns valid serverInfo', async ({ request }) => {
   expect(response.status()).toBe(200);
   const body = (await response.json()) as JsonRpcEnvelope<ServerInfoResult>;
   expect(body.error).toBeUndefined();
-  expect(body.result?.serverInfo.name).toBe('fpf_memory');
+  expect(body.result?.serverInfo.name).toBe('fpf_reference');
+});
+
+test('legacy MCP alias still initializes during compatibility window', async ({
+  request,
+}) => {
+  const response = await request.post(LEGACY_MCP_PATH, {
+    headers: MCP_HEADERS,
+    data: {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'initialize',
+      params: {
+        protocolVersion: '2025-06-18',
+        capabilities: {},
+        clientInfo: { name: 'fpf-e2e-legacy', version: '1.0.0' },
+      },
+    },
+  });
+  expect(response.status()).toBe(200);
+  const body = (await response.json()) as JsonRpcEnvelope<ServerInfoResult>;
+  expect(body.error).toBeUndefined();
+  expect(body.result?.serverInfo.name).toBe('fpf_reference');
 });
 
 test('MCP tools/list exposes the public surface', async ({ request }) => {

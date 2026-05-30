@@ -1,4 +1,4 @@
 #:schema https://developers.openai.com/codex/config-schema.json
 
-[mcp_servers.fpf_memory]
-url = "https://fpf-memory-mcp-vercel-origin.vercel.app/api/mcp/fpf_memory/mcp"
+[mcp_servers.fpf_reference]
+url = "https://mcp.fpf.sh/api/mcp/fpf_reference/mcp"
