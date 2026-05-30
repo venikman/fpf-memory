@@ -87,6 +87,16 @@ describe('a11y shim regression checks', () => {
     expect(configSource).toContain('Skip to main content');
   });
 
+  it('uses the upstream commit date for the header provenance stamp', () => {
+    // The header reads "as of <sha> · <date>". That date must describe
+    // the same upstream commit as the SHA; the later local publish date
+    // remains available only as tooltip context.
+    expect(configSource).toContain('fpf-upstream-committed-at');
+    expect(configSource).toContain('rawCommittedAt||rawPublishedAt');
+    expect(configSource).toContain("' · committed '+rawCommittedAt");
+    expect(configSource).toContain("' · published '+rawPublishedAt");
+  });
+
   it('marks collapsed sidebar panels as `inert` so their descendants leave the tab order', () => {
     // R5-P1-003: rspress collapses sidebar groups by setting
     // `gridTemplateRows: 0fr` on the panel; descendants stay tabbable

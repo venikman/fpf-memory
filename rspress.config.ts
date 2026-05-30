@@ -64,13 +64,20 @@ if (currentRegistrySource !== nextRegistrySource) {
 let manifestSourceHash = '';
 let manifestUpstreamRef = '';
 let manifestPublishedAt = '';
+let manifestUpstreamCommittedAt = '';
 try {
   const manifest = JSON.parse(
     readFileSync(resolve(process.cwd(), 'published/current/manifest.json'), 'utf8'),
-  ) as { sourceHash?: string; upstreamRef?: string; publishedAt?: string };
+  ) as {
+    sourceHash?: string;
+    upstreamRef?: string;
+    publishedAt?: string;
+    upstreamCommittedAt?: string;
+  };
   manifestSourceHash = manifest.sourceHash ?? '';
   manifestUpstreamRef = manifest.upstreamRef ?? '';
   manifestPublishedAt = manifest.publishedAt ?? '';
+  manifestUpstreamCommittedAt = manifest.upstreamCommittedAt ?? '';
 } catch {
   // No manifest available — byline injection will be skipped.
 }
@@ -113,6 +120,7 @@ export default defineConfig({
     ['meta', { name: 'fpf-source-hash', content: manifestSourceHash }],
     ['meta', { name: 'fpf-upstream-ref', content: manifestUpstreamRef }],
     ['meta', { name: 'fpf-published-at', content: manifestPublishedAt }],
+    ['meta', { name: 'fpf-upstream-committed-at', content: manifestUpstreamCommittedAt }],
     ['meta', { property: 'og:site_name', content: 'FPF Reference' }],
     ['meta', { property: 'og:locale', content: 'en' }],
     ['meta', { name: 'twitter:card', content: 'summary' }],
@@ -164,7 +172,7 @@ function fixHomeFeatureCards(root){(root||document).querySelectorAll('.rp-home-f
 function fixNavDropdowns(root){(root||document).querySelectorAll('li.rp-nav-menu__item > .rp-nav-menu__item__container').forEach(function(trigger){if(trigger.dataset.fpfA11yPatched==='1')return;if(trigger.tagName==='A'||trigger.tagName==='BUTTON')return;var panel=trigger.nextElementSibling;if(!panel||!panel.classList||!panel.classList.contains('rp-hover-group'))return;trigger.dataset.fpfA11yPatched='1';trigger.setAttribute('role','button');trigger.setAttribute('tabindex','0');trigger.setAttribute('aria-haspopup','true');function isOpen(){return !panel.classList.contains('rp-hover-group--hidden');}function syncExpanded(){trigger.setAttribute('aria-expanded',String(isOpen()));}syncExpanded();function open(){panel.classList.remove('rp-hover-group--hidden');syncExpanded();}function close(){panel.classList.add('rp-hover-group--hidden');syncExpanded();}trigger.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '||e.key==='ArrowDown'){e.preventDefault();if(isOpen()){close();}else{open();var firstLink=panel.querySelector('a');if(firstLink)firstLink.focus();}}else if(e.key==='Escape'){close();}});panel.addEventListener('keydown',function(e){if(e.key==='Escape'){e.preventDefault();close();trigger.focus();}});var observer=new MutationObserver(syncExpanded);observer.observe(panel,{attributes:true,attributeFilter:['class']});});}
 function injectSkipLink(){if(document.getElementById('fpf-skip-link'))return;var link=document.createElement('a');link.id='fpf-skip-link';link.className='fpf-skip-link';link.href='#fpf-main-content';link.textContent='Skip to main content';if(document.body){document.body.insertBefore(link,document.body.firstChild);}var main=document.querySelector('main, .rspress-doc, .rp-doc-content');if(main){if(!main.id)main.id='fpf-main-content';if(!main.hasAttribute('tabindex'))main.setAttribute('tabindex','-1');}else{var doc=document.querySelector('article, .rspress-doc, #__rspress_root');if(doc&&!document.getElementById('fpf-main-content')){doc.id='fpf-main-content';doc.setAttribute('tabindex','-1');}}}
 function fixSidebarTitles(root){(root||document).querySelectorAll('.rp-doc-layout__sidebar a.rp-link').forEach(function(a){if(a.dataset.fpfA11yPatched==='1')return;a.dataset.fpfA11yPatched='1';var label=a.textContent.replace(/\s+/g,' ').trim();if(label&&!a.hasAttribute('title'))a.setAttribute('title',label);});}
-function injectHeaderProvenance(){if(document.getElementById('fpf-header-provenance'))return;var navLeft=document.querySelector('.rp-nav__left');if(!navLeft)return;function metaContent(name){var sel='meta[name='+JSON.stringify(name)+']';var el=document.querySelector(sel);return el?el.getAttribute('content')||'':'';}var ref=metaContent('fpf-upstream-ref');var rawDate=metaContent('fpf-published-at');if(!ref&&!rawDate)return;var date=rawDate;try{var parsed=new Date(rawDate);if(!isNaN(parsed.getTime())){var y=parsed.getUTCFullYear();var m=String(parsed.getUTCMonth()+1).padStart(2,'0');var d=String(parsed.getUTCDate()).padStart(2,'0');date=y+'-'+m+'-'+d;}}catch(e){}var shortRef=ref?ref.slice(0,8):'';var label=document.createElement('span');label.className='fpf-header-provenance__label';label.textContent='as of';var hashCode=document.createElement('code');hashCode.textContent=shortRef;var dateNode=document.createTextNode(' · '+date);var span=document.createElement('span');span.id='fpf-header-provenance';span.className='fpf-header-provenance';span.title='Spec source — upstream '+ref+' · published '+rawDate;span.appendChild(label);span.appendChild(document.createTextNode(' '));span.appendChild(hashCode);span.appendChild(dateNode);navLeft.appendChild(span);}
+function injectHeaderProvenance(){if(document.getElementById('fpf-header-provenance'))return;var navLeft=document.querySelector('.rp-nav__left');if(!navLeft)return;function metaContent(name){var sel='meta[name='+JSON.stringify(name)+']';var el=document.querySelector(sel);return el?el.getAttribute('content')||'':'';}var ref=metaContent('fpf-upstream-ref');var rawPublishedAt=metaContent('fpf-published-at');var rawCommittedAt=metaContent('fpf-upstream-committed-at');var rawDate=rawCommittedAt||rawPublishedAt;if(!ref&&!rawDate)return;var date=rawDate;try{var parsed=new Date(rawDate);if(!isNaN(parsed.getTime())){var y=parsed.getUTCFullYear();var m=String(parsed.getUTCMonth()+1).padStart(2,'0');var d=String(parsed.getUTCDate()).padStart(2,'0');date=y+'-'+m+'-'+d;}}catch(e){}var shortRef=ref?ref.slice(0,8):'';var label=document.createElement('span');label.className='fpf-header-provenance__label';label.textContent='as of';var hashCode=document.createElement('code');hashCode.textContent=shortRef;var dateNode=document.createTextNode(' · '+date);var span=document.createElement('span');span.id='fpf-header-provenance';span.className='fpf-header-provenance';span.title='Spec source — upstream '+ref+(rawCommittedAt?' · committed '+rawCommittedAt:'')+(rawPublishedAt?' · published '+rawPublishedAt:'');span.appendChild(label);span.appendChild(document.createTextNode(' '));span.appendChild(hashCode);span.appendChild(dateNode);navLeft.appendChild(span);}
 function applyAll(){fixTables();fixMobileSearch();fixSidebarGroups();fixSidebarInert();fixSidebarTitles();fixHomeFeatureCards();fixNavDropdowns();injectSkipLink();injectHeaderProvenance();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyAll);else applyAll();
 var observer=new MutationObserver(function(mutations){var needs=false;for(var i=0;i<mutations.length;i++){if(mutations[i].addedNodes.length){needs=true;break;}}if(needs)applyAll();});
