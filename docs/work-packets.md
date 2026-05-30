@@ -47,7 +47,7 @@ Use:
 - [E.8 Authoring conventions](/generated/patterns/E.8) for FPF pattern or specification wording changes
 - [E.19 — Pattern Quality Gates: Review & Refresh Profiles](/generated/patterns/E.19) as the pattern change-record gate
 - `route:writing-or-reviewing-patterns` via [Routes](/generated/routes/index) only when the PR changes FPF pattern or specification text
-- `route:boundary-unpacking-claim-routing` via [Routes](/generated/routes/index) for APIs, contracts, protocols, or CI/deploy gates
+- `route:boundary-unpacking-and-claim-decomposition` via [Routes](/generated/routes/index) for APIs, contracts, protocols, or CI/deploy gates
 - Otherwise use this packet as the review checklist and retrieve exact IDs only when a finding depends on FPF wording
 
 Packet:
