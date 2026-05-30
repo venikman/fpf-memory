@@ -198,7 +198,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.P",
-      "title": "U.RelationalPrecisionRestorationSuite — Relational Precision Restoration (RPR) — Kind-Explicit Qualified Relation Discipline",
+      "title": "Relational Precision Restoration (RPR) — Kind-Explicit Qualified Relation Discipline",
       "staticPath": "/generated/patterns/A.6.P"
     },
     {
@@ -330,6 +330,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "A.19.CPM",
       "title": "Unified Comparison Mechanism (CPM)",
       "staticPath": "/generated/patterns/A.19.CPM"
+    },
+    {
+      "id": "A.19.ECS",
+      "title": "Evaluation CharacteristicSpace Construction",
+      "staticPath": "/generated/patterns/A.19.ECS"
     },
     {
       "id": "A.19.SelectorMechanism",
@@ -582,6 +587,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.2.LS"
     },
     {
+      "id": "C.2.P",
+      "title": "Epistemic Precision Restoration",
+      "staticPath": "/generated/patterns/C.2.P"
+    },
+    {
       "id": "C.3",
       "title": "Kind‑CAL — Kinds, Intent/Extent, and Typed Reasoning",
       "staticPath": "/generated/patterns/C.3"
@@ -733,7 +743,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.24",
-      "title": "Agentic Tool‑Use & Call‑Planning (C.Agent‑Tools‑CAL)",
+      "title": "Agentic Tool-Use and Call Planning (C.Agent-Tools-CAL)",
       "staticPath": "/generated/patterns/C.24"
     },
     {
@@ -882,6 +892,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/E.2"
     },
     {
+      "id": "E.2.DA",
+      "title": "FPF Pillar-Adequacy Evaluation CharacteristicSpace",
+      "staticPath": "/generated/patterns/E.2.DA"
+    },
+    {
       "id": "E.3",
       "title": "Principle Taxonomy & Precedence Model",
       "staticPath": "/generated/patterns/E.3"
@@ -932,9 +947,19 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/E.8"
     },
     {
+      "id": "E.8.ECSPF",
+      "title": "Evaluation CharacteristicSpace FPF Pattern Publication Form",
+      "staticPath": "/generated/patterns/E.8.ECSPF"
+    },
+    {
       "id": "E.9",
       "title": "Design-Rationale Record (DRR) Method",
       "staticPath": "/generated/patterns/E.9"
+    },
+    {
+      "id": "E.9.DA",
+      "title": "DRR Decision-Adequacy Evaluation CharacteristicSpace",
+      "staticPath": "/generated/patterns/E.9.DA"
     },
     {
       "id": "E.10",
@@ -955,11 +980,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "E.10.P",
       "title": "Conceptual Prefixes (policy & registry)",
       "staticPath": "/generated/patterns/E.10.P"
-    },
-    {
-      "id": "E.10.SEMIO",
-      "title": "Episteme-Publication Semantic Rewrite Discipline",
-      "staticPath": "/generated/patterns/E.10.SEMIO"
     },
     {
       "id": "E.11",
@@ -1053,8 +1073,18 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.21",
-      "title": "FPF Pattern Quality Characteristic Space",
+      "title": "FPF Pattern-Quality Evaluation CharacteristicSpace",
       "staticPath": "/generated/patterns/E.21"
+    },
+    {
+      "id": "E.22",
+      "title": "Improvement-Oriented Quality-Read Question Framing",
+      "staticPath": "/generated/patterns/E.22"
+    },
+    {
+      "id": "E.23",
+      "title": "Quality Improvement Loop Method",
+      "staticPath": "/generated/patterns/E.23"
     },
     {
       "id": "F.0.1",
@@ -1329,9 +1359,29 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/routes/route_causal-use-and-counterfactual-support-repair"
     },
     {
+      "slug": "drr-decision-adequacy-before-authoring",
+      "title": "DRR decision adequacy before authoring",
+      "staticPath": "/generated/routes/route_drr-decision-adequacy-before-authoring"
+    },
+    {
+      "slug": "evaluation-characteristicspace-fpf-pattern-publication-form",
+      "title": "Evaluation CharacteristicSpace FPF pattern publication form",
+      "staticPath": "/generated/routes/route_evaluation-characteristicspace-fpf-pattern-publication-form"
+    },
+    {
+      "slug": "fpf-level-pillar-adequacy-and-whole-fpf-improvement",
+      "title": "FPF-level Pillar adequacy and whole-FPF improvement",
+      "staticPath": "/generated/routes/route_fpf-level-pillar-adequacy-and-whole-fpf-improvement"
+    },
+    {
       "slug": "generator-sota-or-portfolio-scaffold",
       "title": "Generator, SoTA, or portfolio scaffold",
       "staticPath": "/generated/routes/route_generator-sota-or-portfolio-scaffold"
+    },
+    {
+      "slug": "object-under-improvement-evaluation-setup-before-improvement",
+      "title": "Object-under-improvement evaluation setup before improvement",
+      "staticPath": "/generated/routes/route_object-under-improvement-evaluation-setup-before-improvement"
     },
     {
       "slug": "partly-said-cue-and-language-state-discovery",
@@ -1347,6 +1397,16 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "slug": "project-alignment",
       "title": "project alignment",
       "staticPath": "/generated/routes/route_project-alignment"
+    },
+    {
+      "slug": "quality-read-question-framing-before-review-or-improvement",
+      "title": "Quality-read question framing before review or improvement",
+      "staticPath": "/generated/routes/route_quality-read-question-framing-before-review-or-improvement"
+    },
+    {
+      "slug": "repeated-quality-improvement-loop",
+      "title": "Repeated quality-improvement loop",
+      "staticPath": "/generated/routes/route_repeated-quality-improvement-loop"
     },
     {
       "slug": "reusable-generator-sota-or-portfolio-kit",
