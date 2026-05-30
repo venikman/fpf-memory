@@ -30,15 +30,6 @@
 - End-to-end verification command + output excerpt:
 - Caveats or blocker:
 
-## TPR fast-track
-
-- [ ] Enable TPR review/merge timer
-
-Use this only for small, reversible PRs from trusted maintainers or collaborators. The timer does not fake approval or bypass branch protection:
-
-- after 1 hour without a non-author review signal, automation comments `@codex review`;
-- after 2 hours, automation enables auto-merge only when checks pass, no trusted reviewer requested changes, and at least one trusted non-author approval exists for the current head commit.
-
 ## Boundary check
 
 - Runtime remains a single spec file via `FPF_SPEC_SOURCE_PATH` — no additional corpora added

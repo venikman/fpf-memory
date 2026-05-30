@@ -87,7 +87,7 @@ A PR may be merged by the review/merge role only when:
 - the PR is not draft and is mergeable;
 - there is no unresolved blocking review or requested change on the current head;
 - validation evidence is sufficient for the changed surface;
-- the PR has independent approval or an approved fast-track condition for the current head.
+- the PR has independent approval for the current head.
 
 If any condition is missing, the role should report the exact blocker rather than waiting silently.
 
@@ -101,9 +101,9 @@ The production sync loop uses FPF as a quality model:
 
 Operational defaults:
 
-- `sync-fpf.yml` accepts `fpf-origin-updated` and `fpf-sync-updated` dispatches, polls every 6 hours, opens a PR, runs validation/build/preview, then auto-merges only after the review window and required evidence pass.
-- `fpf-sync-monitor.yml` polls hourly, runs `bun run monitor:sync`, triggers `sync-fpf.yml` when upstream is ahead, and fails the monitor if `fpf.sh` exceeds the drift SLO or the hosted runtime is stale.
-- The default drift SLO is 10 hours: 6-hour poll backstop plus 2-hour review window plus operational margin.
+- `sync-fpf.yml` accepts `fpf-origin-updated` and `fpf-sync-updated` dispatches or manual runs, closes superseded sync PRs, opens a current PR, runs validation/build/preview, then auto-merges only after the review window and required evidence pass.
+- `fpf-sync-monitor.yml` polls hourly, runs `bun run monitor:sync`, triggers `sync-fpf.yml` when upstream is ahead and no current-target sync PR is already open, and fails the monitor if `fpf.sh` exceeds the drift SLO or the hosted runtime is stale.
+- The default drift SLO is 10 hours: hourly detection plus a 2-hour review window plus operational margin.
 
 ## Publishing and outreach packets
 
