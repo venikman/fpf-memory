@@ -58,11 +58,11 @@ describe('Vercel MCP origin config', () => {
     expect(functionConfig.runtime).toBe('nodejs24.x');
   });
 
-  it('caps the origin function duration while keeping the current memory allocation explicit', () => {
+  it('keeps the origin function on cost guardrails for memory and duration', () => {
     const functionConfig = createVercelFunctionConfig();
 
-    expect(functionConfig.memory).toBe(2048);
-    expect(functionConfig.maxDuration).toBe(300);
+    expect(functionConfig.memory).toBe(1024);
+    expect(functionConfig.maxDuration).toBe(60);
   });
 
   it('documents canonical Vercel aliases and historical preview-error policy', async () => {

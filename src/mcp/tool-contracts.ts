@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // Public, unauthenticated MCP tools accept user-supplied strings; without
-// caps a single 4 MB payload can drive the runtime into Vercel's 5-minute
+// caps a single 4 MB payload can drive the runtime into Vercel's
 // `maxDuration` ceiling. These limits are generous for legitimate use
 // (a 2000-character question is far longer than anything a person types)
 // and refuse pathological input at the schema boundary.

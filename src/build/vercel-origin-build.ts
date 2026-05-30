@@ -32,8 +32,8 @@ const FUNCTION_NAME = '_origin';
 const FUNCTION_DIR = `${OUTPUT_DIR}/functions/${FUNCTION_NAME}.func`;
 const FUNCTION_DEST = `/${FUNCTION_NAME}`;
 export const VERCEL_FUNCTION_RUNTIME = 'nodejs24.x';
-export const VERCEL_FUNCTION_MEMORY_MB = 2048;
-export const VERCEL_FUNCTION_MAX_DURATION_SECONDS = 300;
+export const VERCEL_FUNCTION_MEMORY_MB = 1024;
+export const VERCEL_FUNCTION_MAX_DURATION_SECONDS = 60;
 const STATIC_DIR = `${OUTPUT_DIR}/static`;
 
 export type VercelOriginRoute =

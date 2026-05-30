@@ -129,7 +129,7 @@ test('MCP rejects oversized question payloads at the schema boundary', async ({
 }) => {
   // PR #98 added a 2000-char cap on the question field. A 2500-char payload
   // must produce a structured validation error in milliseconds, not silently
-  // drive the function to its 300s maxDuration.
+  // drive the function to its maxDuration ceiling.
   const huge = 'x'.repeat(2500);
   const response = await request.post(MCP_PATH, {
     headers: MCP_HEADERS,
