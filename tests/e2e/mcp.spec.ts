@@ -58,7 +58,7 @@ test('MCP initialize returns valid serverInfo', async ({ request }) => {
   expect(body.result?.serverInfo.name).toBe('fpf_reference');
 });
 
-test('legacy MCP alias still initializes during compatibility window', async ({
+test('legacy MCP alias initializes unless edge-blocked during incident mitigation', async ({
   request,
 }) => {
   const response = await request.post(LEGACY_MCP_PATH, {
@@ -74,6 +74,11 @@ test('legacy MCP alias still initializes during compatibility window', async ({
       },
     },
   });
+  if (response.status() === 403) {
+    expect(response.headers()['x-vercel-mitigated']).toBe('deny');
+    return;
+  }
+
   expect(response.status()).toBe(200);
   const body = (await response.json()) as JsonRpcEnvelope<ServerInfoResult>;
   expect(body.error).toBeUndefined();

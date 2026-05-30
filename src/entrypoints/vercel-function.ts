@@ -7,6 +7,7 @@ import {
   createHostedComposition,
   createHostedErrorLogger,
   HOSTED_MCP_ROUTES,
+  tryHandleHostedMcpNodeGet,
 } from '../composition/hosted.js';
 
 type HostedComposition = ReturnType<typeof createHostedComposition>;
@@ -18,12 +19,17 @@ export default async function handler(
   response: ServerResponse,
 ): Promise<void> {
   try {
-    const { app, mcpServer } = await getHostedComposition();
     if (isMcpRoute(request)) {
+      if (tryHandleHostedMcpNodeGet(request, response)) {
+        return;
+      }
+
+      const { mcpServer } = await getHostedComposition();
       await mcpServer.handleNodeStreamableHttp(request, response);
       return;
     }
 
+    const { app } = await getHostedComposition();
     const webRequest = toWebRequest(request);
     const webResponse = await app.fetch(webRequest);
     await sendWebResponse(response, webResponse);

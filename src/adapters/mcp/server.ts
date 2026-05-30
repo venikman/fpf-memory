@@ -24,6 +24,10 @@ export class FpfMcpServer {
   }
 
   async handleStreamableHttp(request: Request): Promise<Response> {
+    if (isStandaloneMcpGet(request.method)) {
+      return createMcpGetDisabledResponse();
+    }
+
     const transport = new WebStandardStreamableHTTPServerTransport({
       enableJsonResponse: true,
     });
@@ -38,6 +42,11 @@ export class FpfMcpServer {
     request: IncomingMessage,
     response: ServerResponse,
   ): Promise<void> {
+    if (isStandaloneMcpGet(request.method)) {
+      writeMcpGetDisabledNodeResponse(response);
+      return;
+    }
+
     const transport = new StreamableHTTPServerTransport({
       enableJsonResponse: true,
     });
@@ -65,6 +74,25 @@ export class FpfMcpServer {
   }
 }
 
+export function isStandaloneMcpGet(method: string | undefined): boolean {
+  return method?.toUpperCase() === 'GET';
+}
+
+export function createMcpGetDisabledResponse(): Response {
+  return new Response(JSON.stringify(createMcpGetDisabledPayload()), {
+    status: 405,
+    headers: mcpGetDisabledHeaders(),
+  });
+}
+
+export function writeMcpGetDisabledNodeResponse(response: ServerResponse): void {
+  response.statusCode = 405;
+  for (const [key, value] of Object.entries(mcpGetDisabledHeaders())) {
+    response.setHeader(key, value);
+  }
+  response.end(JSON.stringify(createMcpGetDisabledPayload()));
+}
+
 export function createMcpServerSet(
   tools: ReturnType<typeof createMcpTools>,
 ) {
@@ -89,6 +117,26 @@ export function createMcpServerSet(
     fpfReference,
     fpfReferencePublic,
   };
+}
+
+function mcpGetDisabledHeaders(): Record<string, string> {
+  return {
+    Allow: 'POST, DELETE',
+    'Cache-Control': 'no-store',
+    'Content-Type': 'application/json; charset=utf-8',
+  };
+}
+
+function createMcpGetDisabledPayload() {
+  return {
+    jsonrpc: '2.0',
+    error: {
+      code: -32000,
+      message:
+        'Standalone MCP SSE GET is disabled on this endpoint; use POST Streamable HTTP JSON-RPC requests.',
+    },
+    id: null,
+  } as const;
 }
 
 const FPF_REFERENCE_SERVER_INSTRUCTIONS = [
