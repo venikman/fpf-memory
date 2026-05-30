@@ -93,6 +93,7 @@ Out:
 - Work performed: download `FPF-Spec.md`, run `publish:current`, validate `published/current/**`, build the static docs, build the Vercel-origin MCP bundle, and open a publication PR only when files changed.
 - Hosted MCP handoff: before opening a new PR, the workflow closes superseded `chore/sync-fpf-*` PRs. After the review window and required checks pass, it squash-merges the current PR. The resulting `main` push gives Vercel's Git integration the refreshed `fpf.sh` inputs.
 - Monitor: `.github/workflows/fpf-sync-monitor.yml` runs hourly, checks `ailev/FPF` HEAD against `https://fpf.sh/api/fpf/status`, triggers `sync-fpf.yml` when upstream is ahead, and redispatches it when a current generated PR exists but no worker is queued or running. It fails only when drift exceeds the configured SLO or the hosted runtime is internally stale.
+- Spend guardrail: `.github/workflows/vercel-spend-monitor.yml` runs every 15 minutes with `VERCEL_TOKEN`, checks Vercel Function Duration GB-hours, platform error-code rows, and legacy `/api/mcp/fpf_memory` function invocations, then fails the run when a configured cost-risk threshold is breached.
 
 Minimal dispatch payload:
 
@@ -125,6 +126,12 @@ Copy `.env.example` to `.env`. The most common settings:
 | `FPF_UPSTREAM_SPEC_PATH`                  | `FPF-Spec.md`                        | Path to the spec inside the upstream repo.                             |
 | `FPF_SYNC_MONITOR_STATUS_URL`             | `https://fpf.sh/api/fpf/status`      | Production status endpoint checked by `monitor:sync`.                  |
 | `FPF_SYNC_MONITOR_MAX_DRIFT_HOURS`        | `10`                                 | Allowed upstream-to-production drift before monitor failure.           |
+| `FPF_VERCEL_PROJECT`                      | `fpf-sh`                             | Vercel project checked by `monitor:vercel:spend`.                      |
+| `FPF_VERCEL_SCOPE`                        | *(empty)*                            | Vercel team scope for metrics queries.                                 |
+| `FPF_VERCEL_SPEND_WINDOW_MINUTES`         | `30`                                 | Metrics lookback window for spend guardrails.                          |
+| `FPF_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR` | `0.25`                            | Maximum Function Duration GB-hours allowed in the lookback window.     |
+| `FPF_VERCEL_SPEND_MAX_LEGACY_INVOCATIONS` | `0`                                  | Maximum function invocations allowed for the legacy MCP route.         |
+| `FPF_VERCEL_SPEND_MAX_ERROR_INVOCATIONS`  | `0`                                  | Maximum function invocations allowed with non-empty Vercel `error_code`. |
 | `FPF_RUNTIME_ARTIFACT_DIR`                | `.runtime/fpf-index`                 | Where compiled artifacts are written.                                 |
 | `FPF_QUERY_DEFAULT_MODE`                  | `verbose`                            | Default `mode` for `query_fpf_spec` and `ask_fpf`.                    |
 | `FPF_HOSTED_MCP_DISABLED`                 | `false`                              | Emergency hosted `/api/mcp/*` shutoff; returns `503` before loading the MCP runtime. |
@@ -165,6 +172,7 @@ bun run spec:download            # download FPF-Spec.md into .fpf-upstream/
 bun run publish:current          # refresh published/current/** from FPF_PUBLISH_SOURCE_PATH
 bun run stage:from-published     # stage published/current/** for commit
 bun run monitor:sync             # compare fpf.sh status with upstream HEAD
+bun run monitor:vercel:spend     # check Vercel Function Duration and legacy-route guardrails
 bun run hooks:install            # install local git hooks
 ```
 
