@@ -576,6 +576,50 @@ describe('direct MCP server', () => {
       });
     }
   });
+
+  it('rejects standalone hosted MCP GET streams through the Vercel Node adapter', async () => {
+    const server = createServer((request, response) => {
+      vercelHandler(request, response).catch((error: unknown) => {
+        response.statusCode = 500;
+        response.end(error instanceof Error ? error.message : String(error));
+      });
+    });
+
+    await new Promise<void>((resolveListen) => {
+      server.listen(0, '127.0.0.1', resolveListen);
+    });
+
+    try {
+      const address = server.address();
+      expect(typeof address).toBe('object');
+      expect(address).not.toBeNull();
+      const port = (address as { port: number }).port;
+      for (const route of HOSTED_MCP_ROUTES) {
+        const response = await fetch(`http://127.0.0.1:${port}${route}`, {
+          method: 'GET',
+          headers: {
+            accept: 'text/event-stream',
+            'MCP-Protocol-Version': '2025-06-18',
+          },
+          signal: AbortSignal.timeout(5_000),
+        });
+        await response.body?.cancel().catch(() => undefined);
+
+        expect(response.status).toBe(405);
+        expect(response.headers.get('allow')).toBe('POST, DELETE');
+      }
+    } finally {
+      await new Promise<void>((resolveClose, rejectClose) => {
+        server.close((error) => {
+          if (error) {
+            rejectClose(error);
+            return;
+          }
+          resolveClose();
+        });
+      });
+    }
+  });
 });
 
 function asToolPayload(message: JsonRpcResponse): Record<string, unknown> {

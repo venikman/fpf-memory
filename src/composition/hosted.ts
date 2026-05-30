@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 
 import {
   parseHostedConfig,
@@ -10,6 +11,10 @@ import {
   HOSTED_FPF_STATUS_ROUTE,
   readHostedFpfStatus,
 } from '../adapters/hosted/status-page.js';
+import {
+  isStandaloneMcpGet,
+  writeMcpGetDisabledNodeResponse,
+} from '../adapters/mcp/server.js';
 import { applyHostedEnvDefaults } from './hosted-env.js';
 import { getSharedMcpComposition } from './mcp.js';
 
@@ -90,4 +95,16 @@ export function createHostedComposition(env: NodeJS.ProcessEnv) {
 
 export function createHostedErrorLogger(env: NodeJS.ProcessEnv) {
   return getRuntimeLogger(parseLoggingConfig(env));
+}
+
+export function tryHandleHostedMcpNodeGet(
+  request: IncomingMessage,
+  response: ServerResponse,
+): boolean {
+  if (!isStandaloneMcpGet(request.method)) {
+    return false;
+  }
+
+  writeMcpGetDisabledNodeResponse(response);
+  return true;
 }
