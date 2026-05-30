@@ -31,8 +31,10 @@ const OUTPUT_DIR = '.vercel/output';
 const FUNCTION_NAME = '_origin';
 const FUNCTION_DIR = `${OUTPUT_DIR}/functions/${FUNCTION_NAME}.func`;
 const FUNCTION_DEST = `/${FUNCTION_NAME}`;
+export const VERCEL_FUNCTION_RUNTIME = 'nodejs24.x';
+export const VERCEL_FUNCTION_MEMORY_MB = 2048;
+export const VERCEL_FUNCTION_MAX_DURATION_SECONDS = 300;
 const STATIC_DIR = `${OUTPUT_DIR}/static`;
-const DOCS_BUILD_DIR = process.env.FPF_DOCS_OUT_DIR ?? 'doc_build';
 
 export type VercelOriginRoute =
   | {
@@ -67,7 +69,7 @@ export async function buildVercelOrigin(
   const outputDir = resolve(rootDir, OUTPUT_DIR);
   const functionDir = resolve(rootDir, FUNCTION_DIR);
   const staticDir = resolve(rootDir, STATIC_DIR);
-  const docsBuildDir = resolve(rootDir, DOCS_BUILD_DIR);
+  const docsBuildDir = resolve(rootDir, buildConfig.docsOutDir);
 
   await rm(outputDir, { recursive: true, force: true });
   await mkdir(functionDir, { recursive: true });
@@ -135,11 +137,15 @@ export function createVercelOriginOutputConfig(): VercelOriginOutputConfig {
 }
 
 async function writeFunctionConfig(functionDir: string): Promise<void> {
-  await writeJson(resolve(functionDir, '.vc-config.json'), {
-    runtime: 'nodejs22.x',
+  await writeJson(resolve(functionDir, '.vc-config.json'), createVercelFunctionConfig());
+}
+
+export function createVercelFunctionConfig() {
+  return {
+    runtime: VERCEL_FUNCTION_RUNTIME,
     handler: 'index.mjs',
-    memory: 2048,
-    maxDuration: 300,
+    memory: VERCEL_FUNCTION_MEMORY_MB,
+    maxDuration: VERCEL_FUNCTION_MAX_DURATION_SECONDS,
     regions: ['iad1'],
     supportsResponseStreaming: true,
     launcherType: 'Nodejs',
@@ -150,7 +156,7 @@ async function writeFunctionConfig(functionDir: string): Promise<void> {
     // off so the request stream stays readable for the transport.
     shouldAddHelpers: false,
     shouldAddSourcemapSupport: true,
-  });
+  };
 }
 
 async function copyHostedStage(

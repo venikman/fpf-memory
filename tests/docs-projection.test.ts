@@ -14,6 +14,7 @@ import {
   buildDocsProjection,
   resolveDocTarget,
 } from '../src/core/documents.js';
+import { normalizeForLookup } from '../src/core/text.js';
 import { compileFpfSource } from '../src/runtime/compiler.js';
 import type { Snapshot } from '../src/runtime/types.js';
 
@@ -39,6 +40,25 @@ function routeGeneratedMarkdownPath(routeId: string) {
 function routeGeneratedHtmlPath(routeId: string) {
   const slug = routeId.replace(/^route:/, '');
   return `generated/routes/route_${slug}.html`;
+}
+
+function findPatternByTitleFragment(snapshot: Snapshot, fragment: string) {
+  const normalizedFragment = normalizeHomeNavTitle(fragment);
+  const pattern = Object.values(snapshot.patternGraph.nodes).find((candidate) => {
+    const labels = [candidate.title, ...candidate.aliases].map(normalizeHomeNavTitle);
+    return labels.some((label) => label.includes(normalizedFragment));
+  });
+  if (!pattern) {
+    throw new Error(`Expected a pattern title or alias containing ${fragment}`);
+  }
+  return pattern;
+}
+
+function normalizeHomeNavTitle(value: string): string {
+  return normalizeForLookup(value)
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 async function copyNonGeneratedDocs(srcRoot: string, dstRoot: string) {
@@ -449,10 +469,10 @@ describe('docs projection', () => {
       expect(
         await readFile(resolve(docsRoot, 'generated/patterns/index.md'), 'utf8'),
       ).toContain('# Pattern Catalog');
-      // The site root `/` is now a plain chapter list: a slim header (title,
-      // intro line, three CTAs, provenance line) followed by the same
-      // Part-by-Part chapter listing as `/patterns`. Same information, no
-      // curation — visitors scan one list and click straight through.
+      // The site root `/` is now a plain chapter list: a slim header,
+      // navigation/provenance sections, and the same Part-by-Part chapter
+      // listing as `/patterns`. Same information, no curation — visitors
+      // scan one list and click straight through.
       const rootIndex = await readFile(resolve(docsRoot, 'index.md'), 'utf8');
       expect(rootIndex).toContain('title: "FPF Reference"');
       expect(rootIndex).not.toContain('pageType: home');
@@ -466,10 +486,26 @@ describe('docs projection', () => {
       expect(rootIndex).toContain('Anatoly Levenchuk');
       expect(rootIndex).toContain('https://github.com/ailev/FPF');
       expect(rootIndex).toContain('Cite this spec');
+      expect(rootIndex).toContain('## Navigate');
       expect(rootIndex).toContain('[Start here](/start-here)');
       expect(rootIndex).toContain('[Connect MCP](/connect-mcp)');
-      expect(rootIndex).toContain('[Open the catalog](/patterns)');
+      expect(rootIndex).toContain('[Patterns](/generated/patterns/index)');
       expect(rootIndex).toContain('[Routes](/generated/routes/index)');
+      const glossaryTarget = resolveDocTarget(
+        snapshot,
+        findPatternByTitleFragment(snapshot, 'alphabetic glossary').id,
+      );
+      const changeLogTarget = resolveDocTarget(
+        snapshot,
+        findPatternByTitleFragment(snapshot, 'change log').id,
+      );
+      expect(glossaryTarget).toBeDefined();
+      expect(changeLogTarget).toBeDefined();
+      expect(rootIndex).toContain(`[Glossary](${glossaryTarget?.docRef.staticPath})`);
+      expect(rootIndex).toContain(`[Change log](${changeLogTarget?.docRef.staticPath})`);
+      expect(rootIndex).toContain('## Published from');
+      expect(rootIndex).toContain('source hash `sha256:');
+      expect(rootIndex).toContain('Production readiness is checked with hosted status');
       // Chapter list — at least Part A through the last canonical Part should
       // be present as ## headings.
       expect(rootIndex).toMatch(/^## Part A\b/m);
@@ -495,6 +531,32 @@ describe('docs projection', () => {
       await rm(tempRoot, { recursive: true, force: true });
     }
   }, 20_000);
+
+  it('omits optional home navigation links when the selected spec lacks those IDs', () => {
+    const optionalHomePatternIds = new Set([
+      findPatternByTitleFragment(snapshot, 'alphabetic glossary').id,
+      findPatternByTitleFragment(snapshot, 'change log').id,
+    ]);
+    const alternateSnapshot: Snapshot = {
+      ...snapshot,
+      patternGraph: {
+        ...snapshot.patternGraph,
+        nodes: Object.fromEntries(
+          Object.entries(snapshot.patternGraph.nodes).filter(
+            ([id]) => !optionalHomePatternIds.has(id),
+          ),
+        ),
+      },
+    };
+
+    const rootIndex =
+      buildDocsProjection(alternateSnapshot).pagesByMarkdownPath['docs/index.md']?.markdown ?? '';
+
+    expect(rootIndex).toContain('[Start here](/start-here)');
+    expect(rootIndex).toContain('[Patterns](/generated/patterns/index)');
+    expect(rootIndex).not.toContain('[Glossary](/generated/patterns/');
+    expect(rootIndex).not.toContain('[Change log](/generated/patterns/');
+  });
 
   it('builds rspress output into a disposable outDir', async () => {
     // Rspress's `pageType: home` layout detection requires the docsRoot to
@@ -535,13 +597,15 @@ describe('docs projection', () => {
       );
 
       // `/` now renders as a plain chapter list. The headline title, the
-      // three CTAs, and at least one Part heading should be present in the
-      // built HTML.
+      // navigation/provenance links, and at least one Part heading should be
+      // present in the built HTML.
       const indexHtml = await readFile(resolve(outDir, 'index.html'), 'utf8');
       expect(indexHtml).toContain('FPF Reference');
       expect(indexHtml).toContain('Start here');
       expect(indexHtml).toContain('Connect MCP');
-      expect(indexHtml).toContain('Open the catalog');
+      expect(indexHtml).toContain('Patterns');
+      expect(indexHtml).toContain('Glossary');
+      expect(indexHtml).toContain('Published from');
       expect(indexHtml).toContain('Part A');
 
       // `/patterns` is the short-URL Pattern Catalog. Verify it lists Part A

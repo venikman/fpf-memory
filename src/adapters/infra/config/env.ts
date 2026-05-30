@@ -5,6 +5,11 @@ import {
   DEFAULT_ARTIFACT_DIR,
   DEFAULT_SOURCE_PATH,
 } from '../../../core/constants.js';
+import {
+  DEFAULT_LM_STUDIO_BASE_URL,
+  DEFAULT_LM_STUDIO_MODEL,
+  DEFAULT_LM_STUDIO_TIMEOUT_MS,
+} from './lm-studio-defaults.js';
 import type {
   BuildConfig,
   DocsConfig,
@@ -24,9 +29,6 @@ const DEFAULT_DIST_DIR = 'dist';
 const DEFAULT_SERVER_PORT = 4111;
 const MAX_TCP_PORT = 65_535;
 const DEFAULT_MAX_SESSIONS = 50;
-const DEFAULT_LM_STUDIO_BASE_URL = 'http://localhost:1234/v1';
-const DEFAULT_LM_STUDIO_MODEL = 'google/gemma-4-31b';
-const DEFAULT_LM_STUDIO_TIMEOUT_MS = 20_000;
 
 const answerModeSchema = z.enum(['compact', 'verbose', 'proof']);
 const mcpSurfaceSchema = z.enum(['public', 'full']);
@@ -153,7 +155,7 @@ export function parseBuildConfig(env: NodeJS.ProcessEnv): BuildConfig {
     runtimeArtifactDir: parseString(env.FPF_RUNTIME_ARTIFACT_DIR, DEFAULT_ARTIFACT_DIR),
     distDir: parseString(env.FPF_DIST_DIR, DEFAULT_DIST_DIR),
     hostedPublicDir: parseString(env.FPF_HOSTED_PUBLIC_DIR, DEFAULT_HOSTED_PUBLIC_DIR),
-    docsRoot: parseString(env.FPF_DOCS_ROOT, DEFAULT_DOCS_ROOT),
+    docsOutDir: parseString(env.FPF_DOCS_OUT_DIR, DEFAULT_DOCS_OUT_DIR),
   };
 }
 

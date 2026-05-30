@@ -79,6 +79,74 @@ describe('FPF work evaluator', () => {
     expect(report.overallStatus).toBe('needs_work');
   });
 
+  it('requires optional term links to point at the matching generated pages when present', () => {
+    const facts = makeFacts({
+      fileTexts: {
+        ...defaultFileTexts(),
+        docsIndex: [
+          '# FPF Reference',
+          '## Navigate',
+          '[Patterns](/generated/patterns/index)',
+          '[Routes](/generated/routes/index)',
+          '[Glossary](/generated/patterns/A.0)',
+          '[Change log](/generated/patterns/renumbered-change-log)',
+          '## Published from',
+        ].join('\n'),
+      },
+    });
+
+    const report = evaluateFpfWorkFacts(facts);
+    const termSheet = report.scorecard.find((item) => item.id === 'term-sheet');
+
+    expect(termSheet?.status).toBe('partial');
+    expect(report.overallStatus).toBe('usable_with_followups');
+  });
+
+  it('does not require optional term links when matching pages are absent from the snapshot', () => {
+    const facts = makeFacts({
+      fileTexts: {
+        ...defaultFileTexts(),
+        docsIndex: [
+          '# FPF Reference',
+          '## Navigate',
+          '[Patterns](/generated/patterns/index)',
+          '[Routes](/generated/routes/index)',
+          '## Published from',
+        ].join('\n'),
+        publishedSnapshot: '{"sourceHash":"sha256:test","patternGraph":{"nodes":{}}}',
+      },
+    });
+
+    const report = evaluateFpfWorkFacts(facts);
+    const termSheet = report.scorecard.find((item) => item.id === 'term-sheet');
+
+    expect(termSheet?.status).toBe('pass');
+    expect(report.overallStatus).toBe('aligned');
+  });
+
+  it('rejects stale optional term links when matching pages are absent from the snapshot', () => {
+    const facts = makeFacts({
+      fileTexts: {
+        ...defaultFileTexts(),
+        docsIndex: [
+          '# FPF Reference',
+          '## Navigate',
+          '[Patterns](/generated/patterns/index)',
+          '[Routes](/generated/routes/index)',
+          '[Glossary](/generated/patterns/stale-glossary)',
+          '## Published from',
+        ].join('\n'),
+        publishedSnapshot: '{"sourceHash":"sha256:test","patternGraph":{"nodes":{}}}',
+      },
+    });
+
+    const report = evaluateFpfWorkFacts(facts);
+    const termSheet = report.scorecard.find((item) => item.id === 'term-sheet');
+
+    expect(termSheet?.status).toBe('partial');
+    expect(report.overallStatus).toBe('usable_with_followups');
+  });
+
   it('fails clearly when the evaluation spec is missing', () => {
     tempRoot = mkdtempSync(resolve(tmpdir(), 'fpf-work-evaluator-'));
 
@@ -167,8 +235,8 @@ function defaultFileTexts(): FpfWorkFacts['fileTexts'] {
       '## Navigate',
       '[Patterns](/generated/patterns/index)',
       '[Routes](/generated/routes/index)',
-      '[Glossary](/generated/patterns/H.1)',
-      '[Change log](/generated/patterns/I.3)',
+      '[Glossary](/generated/patterns/renumbered-glossary)',
+      '[Change log](/generated/patterns/renumbered-change-log)',
       '## Published from',
     ].join('\n'),
     ciWorkflow: [
@@ -193,7 +261,25 @@ function defaultFileTexts(): FpfWorkFacts['fileTexts'] {
       '"deploy": "bun run vercel:origin:deploy:prod"',
     ].join(',\n'),
     publishedSpec: '# FPF',
-    publishedSnapshot: '{"sourceHash":"sha256:test"}',
+    publishedSnapshot: JSON.stringify({
+      sourceHash: 'sha256:test',
+      patternGraph: {
+        nodes: {
+          'renumbered-glossary': {
+            id: 'renumbered-glossary',
+            title: 'Alphabetic Glossary',
+            aliases: ['Alphabetic Glossary'],
+            part: 'Part H - Glossary & Definitional Pattern Index',
+          },
+          'renumbered-change-log': {
+            id: 'renumbered-change-log',
+            title: 'Change-Log (auto-generated)',
+            aliases: ['Change-Log (auto-generated)'],
+            part: 'Part I - Annexes & Extended Tutorials',
+          },
+        },
+      },
+    }),
     publishedManifest:
       '{"sourceHash":"sha256:test","upstreamRef":"abc","publishedAt":"2026-04-30T00:00:00.000Z","compilerFingerprint":"sha256:test"}',
   };

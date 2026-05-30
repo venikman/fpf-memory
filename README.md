@@ -300,6 +300,11 @@ Call ask_fpf with:
 For a proof-style grounded answer, add `mode: "proof"`. For the raw structured envelope, call `query_fpf_spec` instead. For a deterministic retrieval/debug trace, call `trace_fpf_path`.
 
 The direct Vercel origin is canonical for clients. There is no separate Vercel forwarding project in this repo.
+The canonical client aliases are `https://fpf.sh/` for the static reference and `https://mcp.fpf.sh/api/mcp/fpf_reference/mcp` for MCP clients.
+`https://mcp.fpf.sh/api/mcp/fpf_memory/mcp` remains a legacy compatibility endpoint during the transition.
+`fpf-memory-mcp-vercel-origin.vercel.app` is a legacy compatibility alias only; do not add it to new docs, scripts, or client setup examples.
+Historical errored preview deployments can remain in Vercel as audit records.
+Treat current production readiness as the latest `fpf.sh` production alias plus status, smoke, QA, and bundle-size gates, not as an absence of old preview errors.
 
 ```bash
 bun run vercel:origin:link

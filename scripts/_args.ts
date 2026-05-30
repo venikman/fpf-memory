@@ -1,4 +1,5 @@
 export type FlagValues = Map<string, string | true>;
+export type OutputFormat = 'json' | 'markdown';
 
 export function parseFlagMap(args: string[]): FlagValues {
   const values: FlagValues = new Map();
@@ -90,6 +91,13 @@ export function asOptionalString(value: unknown): string | undefined {
 
 export function round(value: number): number {
   return Math.round(value * 100) / 100;
+}
+
+export function readOutputFormat(value: string): OutputFormat {
+  if (value === 'json' || value === 'markdown') {
+    return value;
+  }
+  throw new Error(`Unknown format: ${value}`);
 }
 
 export function assert(condition: unknown, message: string): asserts condition {

@@ -8,6 +8,13 @@ import {
   PUBLISHED_MANIFEST_PATH,
   PUBLISHED_SPEC_PATH,
 } from '../core/constants.js';
+import {
+  OPTIONAL_TERM_LINKS,
+  resolveOptionalTermPatternId,
+  type OptionalTermLinkDefinition,
+  type OptionalTermLinkKey,
+  type OptionalTermPatternCandidate,
+} from '../core/optional-term-links.js';
 import type { FpfWorkEvaluationFormat, FpfWorkEvaluationTarget } from './types.js';
 
 export type FpfRubricStatus = 'pass' | 'partial' | 'missing' | 'not_applicable';
@@ -386,15 +393,15 @@ function scoreUnifiedTermSheet(
   const hasSlimNavigation =
     contains(facts, 'docsIndex', '[Patterns](/generated/patterns/index)') &&
     contains(facts, 'docsIndex', '[Routes](/generated/routes/index)');
-  const hasTermRoutes =
-    contains(facts, 'docsIndex', '[Glossary](/generated/patterns/H.1)') &&
-    contains(facts, 'docsIndex', '[Change log](/generated/patterns/I.3)');
+  const hasTermRoutes = OPTIONAL_TERM_LINKS.every((link) =>
+    containsOptionalTermLink(facts, link),
+  );
 
   if (hasSlimNavigation && hasTermRoutes) {
     return rubricPass(
       'term-sheet',
       anchor,
-      'The slim wiki landing page exposes routes, patterns, glossary, and change log entry points.',
+      'The slim wiki landing page exposes routes, patterns, and available glossary/change-log entry points.',
       'Keep terminology links short and plain-language oriented as generated docs grow.',
       evidenceIds,
     );
@@ -766,6 +773,76 @@ function readAnchorPresence(specText: string): Record<FpfAnchorId, boolean> {
 
 function contains(facts: FpfWorkFacts, file: KnownWorkFile, needle: string): boolean {
   return facts.fileTexts[file]?.includes(needle) ?? false;
+}
+
+interface EvaluationSnapshotPattern {
+  id?: unknown;
+  title?: unknown;
+  aliases?: unknown;
+  part?: unknown;
+}
+
+interface EvaluationSnapshot {
+  patternGraph?: {
+    nodes?: Record<string, EvaluationSnapshotPattern>;
+  };
+}
+
+function containsOptionalTermLink(
+  facts: FpfWorkFacts,
+  link: OptionalTermLinkDefinition,
+): boolean {
+  const targetPath = resolveOptionalTermPatternPath(facts, link.key);
+  if (targetPath === undefined) return false;
+  if (targetPath === null) {
+    return !containsGeneratedPatternLinkLabel(facts, 'docsIndex', link.label);
+  }
+  return contains(facts, 'docsIndex', `[${link.label}](${targetPath})`);
+}
+
+function containsGeneratedPatternLinkLabel(
+  facts: FpfWorkFacts,
+  file: KnownWorkFile,
+  label: string,
+): boolean {
+  const text = facts.fileTexts[file];
+  if (!text) return false;
+  const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+  return new RegExp(`\\[${escapedLabel}\\]\\(/generated/patterns/[^)]+\\)`, 'u').test(text);
+}
+
+function resolveOptionalTermPatternPath(
+  facts: FpfWorkFacts,
+  key: OptionalTermLinkKey,
+): string | null | undefined {
+  const snapshot = parseEvaluationSnapshot(facts);
+  const nodes = snapshot?.patternGraph?.nodes;
+  if (!nodes) return undefined;
+
+  const patterns: OptionalTermPatternCandidate[] = Object.entries(nodes).map(([nodeId, pattern]) => {
+    const id = typeof pattern.id === 'string' ? pattern.id : nodeId;
+    return {
+      id,
+      title: typeof pattern.title === 'string' ? pattern.title : undefined,
+      aliases: Array.isArray(pattern.aliases)
+        ? pattern.aliases.filter((alias): alias is string => typeof alias === 'string')
+        : undefined,
+      part: typeof pattern.part === 'string' ? pattern.part : undefined,
+    };
+  });
+  const patternId = resolveOptionalTermPatternId(patterns, key);
+
+  return patternId ? `/generated/patterns/${patternId}` : null;
+}
+
+function parseEvaluationSnapshot(facts: FpfWorkFacts): EvaluationSnapshot | undefined {
+  const snapshotText = facts.fileTexts.publishedSnapshot;
+  if (!snapshotText) return undefined;
+  try {
+    return JSON.parse(snapshotText) as EvaluationSnapshot;
+  } catch {
+    return undefined;
+  }
 }
 
 function isDefined<T>(value: T | undefined): value is T {

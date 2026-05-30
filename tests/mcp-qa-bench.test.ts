@@ -176,6 +176,110 @@ describe('MCP Q&A benchmark harness', () => {
     expect(result.ok).toBe(true);
   });
 
+  it('accepts low-confidence unsupported abstentions for low-signal cases', async () => {
+    const fakeClient = {
+      async callTool() {
+        return {
+          result: {},
+          httpStatus: 200,
+          contentType: 'application/json',
+          bodyBytes: 2,
+          structuredContent: {
+            status: 'unsupported',
+            confidence: 0.2,
+            ids: [],
+            candidateIds: ['C.26'],
+            gaps: ['Re-ask with the work context and desired output.'],
+          },
+        };
+      },
+    };
+
+    const result = await runQaCase(
+      fakeClient as never,
+      {
+        id: 'low_signal_abstain',
+        question: 'banana wallpaper coffee quantum spoon',
+        mode: 'compact',
+        allowedStatuses: ['not_found', 'ambiguous', 'degraded', 'unsupported'],
+        maxConfidence: 0.3,
+      },
+      new Set(['C.26']),
+    );
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('flags overconfident low-signal abstentions', async () => {
+    const fakeClient = {
+      async callTool() {
+        return {
+          result: {},
+          httpStatus: 200,
+          contentType: 'application/json',
+          bodyBytes: 2,
+          structuredContent: {
+            status: 'unsupported',
+            confidence: 0.6,
+            ids: [],
+            candidateIds: ['C.26'],
+            gaps: ['Re-ask with the work context and desired output.'],
+          },
+        };
+      },
+    };
+
+    const result = await runQaCase(
+      fakeClient as never,
+      {
+        id: 'low_signal_abstain',
+        question: 'banana wallpaper coffee quantum spoon',
+        mode: 'compact',
+        allowedStatuses: ['not_found', 'ambiguous', 'degraded', 'unsupported'],
+        maxConfidence: 0.3,
+      },
+      new Set(['C.26']),
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.failures).toContain('confidence 0.6 exceeded 0.3');
+  });
+
+  it('requires numeric confidence for low-signal max-confidence gates', async () => {
+    const fakeClient = {
+      async callTool() {
+        return {
+          result: {},
+          httpStatus: 200,
+          contentType: 'application/json',
+          bodyBytes: 2,
+          structuredContent: {
+            status: 'unsupported',
+            confidence: null,
+            ids: [],
+            candidateIds: ['C.26'],
+            gaps: ['Re-ask with the work context and desired output.'],
+          },
+        };
+      },
+    };
+
+    const result = await runQaCase(
+      fakeClient as never,
+      {
+        id: 'low_signal_abstain',
+        question: 'banana wallpaper coffee quantum spoon',
+        mode: 'compact',
+        allowedStatuses: ['not_found', 'ambiguous', 'degraded', 'unsupported'],
+        maxConfidence: 0.3,
+      },
+      new Set(['C.26']),
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.failures).toContain('confidence was <missing> instead of a number');
+  });
+
   it('requires degraded answers to null confidence', async () => {
     const fakeClient = {
       async callTool() {

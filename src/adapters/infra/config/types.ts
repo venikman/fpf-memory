@@ -58,5 +58,5 @@ export interface BuildConfig {
   runtimeArtifactDir: string;
   distDir: string;
   hostedPublicDir: string;
-  docsRoot: string;
+  docsOutDir: string;
 }

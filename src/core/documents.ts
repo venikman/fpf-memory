@@ -7,6 +7,10 @@ import type {
   RouteRecord,
   Snapshot,
 } from './types.js';
+import {
+  OPTIONAL_TERM_LINKS,
+  resolveOptionalTermPatternId,
+} from './optional-term-links.js';
 import { normalizeForLookup, unique } from './text.js';
 
 export interface GeneratedDocPage {
@@ -525,9 +529,15 @@ function renderHomeMarkdown(
     '',
     `Hosted **FPF Reference** MCP server + slim wiki projection of the **First Principles Framework (FPF)**. ${patternCount} pattern pages, ${routeCount} working routes, and the preface — addressable by stable FPF IDs, browsable here and queryable through MCP.`,
     '',
-    '[Start here](/start-here) · [Connect MCP](/connect-mcp) · [Open the catalog](/patterns) · [Routes](/generated/routes/index)',
+    '## Navigate',
     '',
-    `> ${provenanceDetail}`,
+    renderHomeNavigateLine(snapshot),
+    '',
+    '## Published from',
+    '',
+    provenanceDetail,
+    '',
+    'Production readiness is checked with hosted status, MCP smoke, Q&A benchmark, and Vercel bundle-size gates.',
     '',
     '## FPF Reference MCP — what this server does',
     '',
@@ -560,12 +570,34 @@ function renderHomeMarkdown(
   return `${lines.join('\n')}\n`;
 }
 
+function renderHomeNavigateLine(snapshot: Snapshot): string {
+  const links: DocsNavLink[] = [
+    { text: 'Start here', link: '/start-here' },
+    { text: 'Connect MCP', link: '/connect-mcp' },
+    { text: 'Patterns', link: '/generated/patterns/index' },
+    { text: 'Routes', link: '/generated/routes/index' },
+  ];
+
+  const orderedPatterns = sortedPatterns(snapshot);
+  for (const candidate of OPTIONAL_TERM_LINKS) {
+    const patternId = resolveOptionalTermPatternId(orderedPatterns, candidate.key);
+    const pattern = patternId ? snapshot.patternGraph.nodes[patternId] : undefined;
+    if (pattern) {
+      links.push({
+        text: candidate.label,
+        link: patternDocRef(pattern.id).staticPath,
+      });
+    }
+  }
+
+  return links.map((link) => `[${link.text}](${link.link})`).join(' · ');
+}
+
 function renderHomeProvenanceDetail(manifest?: PublicationManifestSummary): string {
   if (!manifest) {
     return 'Generated reference pages, route IDs, and source status remain discoverable in the site chrome and reference catalog.';
   }
 
-  const shortHash = manifest.sourceHash.replace(/^sha256:/, '').slice(0, 8);
   const shortRef = manifest.upstreamRef.slice(0, 8);
 
   // Prefer upstream commit metadata when present: link the date to the
@@ -575,12 +607,12 @@ function renderHomeProvenanceDetail(manifest?: PublicationManifestSummary): stri
     const upstreamDate = formatPublishedDate(manifest.upstreamCommittedAt);
     const commitUrl = `${manifest.upstreamRepoUrl}/commit/${manifest.upstreamRef}`;
     const repoLabel = manifest.upstreamRepoUrl.replace(/^https:\/\/github\.com\//, '');
-    return `Upstream FPF commit [${upstreamDate}](${commitUrl}) (\`${shortRef}\`) in [${repoLabel}](${manifest.upstreamRepoUrl}) · source ${shortHash}.`;
+    return `Upstream FPF commit [${upstreamDate}](${commitUrl}) (\`${shortRef}\`) in [${repoLabel}](${manifest.upstreamRepoUrl}) · source hash \`${manifest.sourceHash}\`.`;
   }
 
   // Fallback for older snapshots without upstream commit metadata.
   const publishedAt = formatPublishedDate(manifest.publishedAt);
-  return `Published ${publishedAt} · upstream ${shortRef} · source ${shortHash}.`;
+  return `Published ${publishedAt} · upstream ${shortRef} · source hash \`${manifest.sourceHash}\`.`;
 }
 
 function formatPublishedDate(value: string): string {

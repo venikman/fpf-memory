@@ -3,6 +3,7 @@ import { describe, expect, it } from '@rstest/core';
 import {
   buildOperationPlan,
   formatMarkdownSummary,
+  McpHttpClient,
   parseBenchArgs,
   readJsonRpcResponse,
   summarizeDurations,
@@ -156,6 +157,40 @@ describe('hosted MCP benchmark harness', () => {
       id: 2,
       result: { ok: true },
     });
+  });
+
+  it('rejects malformed tool descriptors instead of hiding them from smoke checks', async () => {
+    const originalFetch = globalThis.fetch;
+    const mockedFetch = (async () =>
+      new Response(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          result: {
+            tools: [
+              { name: 'browse_fpf_catalog' },
+              { name: 123 },
+            ],
+          },
+        }),
+        {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        },
+      )) as unknown as typeof fetch;
+    mockedFetch.preconnect = originalFetch.preconnect;
+    globalThis.fetch = mockedFetch;
+
+    try {
+      const client = new McpHttpClient(
+        'https://example.test/api/mcp/fpf_memory/mcp',
+        1_000,
+      );
+
+      await expect(client.listTools()).rejects.toThrow('tool 1 name was not a string');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 
   it('preserves HTTP status context for non-JSON error bodies', () => {

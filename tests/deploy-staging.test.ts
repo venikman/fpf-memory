@@ -78,7 +78,7 @@ describe('stageFromPublished', () => {
         runtimeArtifactDir: publishedArtifactDir,
         distDir: resolve(tempRoot, 'dist'),
         hostedPublicDir,
-        docsRoot: resolve(tempRoot, 'docs'),
+        docsOutDir: resolve(tempRoot, 'doc_build'),
       },
       {
         publishedSpecPath,
@@ -176,7 +176,7 @@ describe('stageFromPublished', () => {
           runtimeArtifactDir: publishedArtifactDir,
           distDir: resolve(tempRoot, 'dist'),
           hostedPublicDir,
-          docsRoot: resolve(tempRoot, 'docs'),
+          docsOutDir: resolve(tempRoot, 'doc_build'),
         },
         {
           publishedSpecPath,
@@ -197,7 +197,7 @@ describe('stageFromPublished', () => {
           runtimeArtifactDir: publishedArtifactDir,
           distDir: resolve(tempRoot, 'dist'),
           hostedPublicDir,
-          docsRoot: resolve(tempRoot, 'docs'),
+          docsOutDir: resolve(tempRoot, 'doc_build'),
         },
         {
           publishedSpecPath,
@@ -218,7 +218,7 @@ describe('stageFromPublished', () => {
           runtimeArtifactDir: publishedArtifactDir,
           distDir: resolve(tempRoot, 'dist'),
           hostedPublicDir,
-          docsRoot: resolve(tempRoot, 'docs'),
+          docsOutDir: resolve(tempRoot, 'doc_build'),
         },
         {
           publishedSpecPath,
@@ -253,7 +253,7 @@ describe('stageFromPublished', () => {
           runtimeArtifactDir: publishedArtifactDir,
           distDir: resolve(tempRoot, 'dist'),
           hostedPublicDir,
-          docsRoot: resolve(tempRoot, 'docs'),
+          docsOutDir: resolve(tempRoot, 'doc_build'),
         },
         {
           publishedSpecPath,

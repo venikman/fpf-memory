@@ -4,7 +4,10 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from '@rstest/core';
 
 import { HOSTED_FPF_STATUS_ROUTE } from '../src/adapters/hosted/status-page.js';
-import { createVercelOriginOutputConfig } from '../src/build/vercel-origin-build.js';
+import {
+  createVercelFunctionConfig,
+  createVercelOriginOutputConfig,
+} from '../src/build/vercel-origin-build.js';
 import {
   HOSTED_MCP_ROUTE,
   LEGACY_HOSTED_MCP_ROUTE,
@@ -12,6 +15,8 @@ import {
 
 interface VercelConfig {
   buildCommand?: string | null;
+  framework?: string | null;
+  installCommand?: string | null;
 }
 
 describe('Vercel MCP origin config', () => {
@@ -20,6 +25,8 @@ describe('Vercel MCP origin config', () => {
       await readFile(resolve(process.cwd(), 'vercel.json'), 'utf8'),
     ) as VercelConfig;
 
+    expect(config.framework).toBeNull();
+    expect(config.installCommand).toBe('bun install --frozen-lockfile');
     expect(config.buildCommand).toBe('bun run vercel:origin:build');
   });
 
@@ -39,6 +46,40 @@ describe('Vercel MCP origin config', () => {
     expect(
       Object.keys(packageJson.scripts).some((script) => script.startsWith(retiredScriptPrefix)),
     ).toBe(false);
+  });
+
+  it('keeps the package Node floor separate from the generated Vercel function runtime', async () => {
+    const packageJson = JSON.parse(
+      await readFile(resolve(process.cwd(), 'package.json'), 'utf8'),
+    ) as { engines: Record<string, string> };
+    const functionConfig = createVercelFunctionConfig();
+
+    expect(packageJson.engines.node).toBe('>=22.13.0');
+    expect(functionConfig.runtime).toBe('nodejs24.x');
+  });
+
+  it('caps the origin function duration while keeping the current memory allocation explicit', () => {
+    const functionConfig = createVercelFunctionConfig();
+
+    expect(functionConfig.memory).toBe(2048);
+    expect(functionConfig.maxDuration).toBe(300);
+  });
+
+  it('documents canonical Vercel aliases and historical preview-error policy', async () => {
+    const readme = await readFile(resolve(process.cwd(), 'README.md'), 'utf8');
+    const codexConfig = await readFile(resolve(process.cwd(), '.codex/config.toml'), 'utf8');
+
+    expect(readme).toContain('https://fpf.sh/');
+    expect(readme).toContain('https://mcp.fpf.sh/api/mcp/fpf_reference/mcp');
+    expect(readme).toContain('https://mcp.fpf.sh/api/mcp/fpf_memory/mcp');
+    expect(readme).toContain(
+      '`fpf-memory-mcp-vercel-origin.vercel.app` is a legacy compatibility alias only',
+    );
+    expect(readme).toContain('Historical errored preview deployments can remain in Vercel');
+    expect(codexConfig).toContain(
+      'url = "https://mcp.fpf.sh/api/mcp/fpf_reference/mcp"',
+    );
+    expect(codexConfig).not.toContain('fpf-memory-mcp-vercel-origin.vercel.app');
   });
 
   it('routes the hosted freshness status endpoint through the Vercel origin function', () => {

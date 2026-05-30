@@ -7,6 +7,11 @@ import {
   parseObservabilityConfig,
 } from '../adapters/infra/config/env.js';
 import type { ObservabilityConfig } from '../adapters/infra/config/types.js';
+import {
+  DEFAULT_LM_STUDIO_BASE_URL,
+  DEFAULT_LM_STUDIO_MODEL,
+  DEFAULT_LM_STUDIO_TIMEOUT_MS,
+} from '../adapters/infra/config/lm-studio-defaults.js';
 import type {
   AnswerSlice,
   AnswerSynthesizerInput,
@@ -16,6 +21,12 @@ import type {
   LocalAnswerSynthesizerInfo,
 } from './types.js';
 import { createAiTraceRecorderFromPath } from './ai-trace-log.js';
+
+export {
+  DEFAULT_LM_STUDIO_BASE_URL,
+  DEFAULT_LM_STUDIO_MODEL,
+  DEFAULT_LM_STUDIO_TIMEOUT_MS,
+} from '../adapters/infra/config/lm-studio-defaults.js';
 
 export type FetchLike = (
   input: URL | RequestInfo,
@@ -66,10 +77,6 @@ export interface LmStudioHealthCheckResult {
     error?: string;
   };
 }
-
-export const DEFAULT_LM_STUDIO_BASE_URL = 'http://localhost:1234/v1';
-export const DEFAULT_LM_STUDIO_MODEL = 'google/gemma-4-31b';
-export const DEFAULT_LM_STUDIO_TIMEOUT_MS = 20_000;
 
 interface AnthropicMessagesPayload {
   content?: Array<{

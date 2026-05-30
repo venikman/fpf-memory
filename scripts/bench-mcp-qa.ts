@@ -10,14 +10,15 @@ import {
   assert,
   parseFlagMap,
   readOptionalString,
+  readOutputFormat,
   readPositiveInteger,
   readString,
   round,
+  type OutputFormat,
 } from './_args.js';
 import { McpHttpClient } from './bench-hosted-mcp.js';
 
 type AnswerMode = 'compact' | 'verbose' | 'proof';
-type OutputFormat = 'json' | 'markdown';
 type QaStatus =
   | 'ok'
   | 'degraded'
@@ -47,6 +48,7 @@ interface QaCase {
   expectedAnyIds?: string[];
   forbiddenIds?: string[];
   allowedStatuses?: QaStatus[];
+  maxConfidence?: number;
   maxConfidenceWhenDegraded?: number;
 }
 
@@ -143,7 +145,8 @@ const QA_CASES: Record<string, QaCase[]> = {
       id: 'low_signal_abstain',
       question: 'banana wallpaper coffee quantum spoon',
       mode: 'compact',
-      allowedStatuses: ['not_found', 'ambiguous', 'degraded'],
+      allowedStatuses: ['not_found', 'ambiguous', 'degraded', 'unsupported'],
+      maxConfidence: 0.3,
       maxConfidenceWhenDegraded: 0.5,
     },
   ],
@@ -282,6 +285,15 @@ export async function runQaCase(
   }
   if (status === 'degraded' && confidence !== null) {
     failures.push(`degraded answer confidence was ${confidence ?? '<missing>'} instead of null`);
+  }
+  if (typeof testCase.maxConfidence === 'number' && status !== 'degraded') {
+    if (typeof confidence !== 'number') {
+      failures.push(`confidence was ${confidence ?? '<missing>'} instead of a number`);
+    } else if (confidence > testCase.maxConfidence) {
+      failures.push(
+        `confidence ${confidence} exceeded ${testCase.maxConfidence}`,
+      );
+    }
   }
   if (
     degraded &&
@@ -436,13 +448,6 @@ async function runSessionCheck(
     sessionIds,
     primeIds,
   };
-}
-
-function readOutputFormat(value: string): OutputFormat {
-  if (value === 'json' || value === 'markdown') {
-    return value;
-  }
-  throw new Error(`Unknown format: ${value}`);
 }
 
 function asStringArray(value: unknown, label: string, issues: string[]): string[] {

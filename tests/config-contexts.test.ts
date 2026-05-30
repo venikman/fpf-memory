@@ -87,7 +87,7 @@ describe('context config parsing', () => {
       runtimeArtifactDir: '/tmp/fpf/.runtime/fpf-index',
       distDir: '/tmp/fpf/dist',
       hostedPublicDir: '/tmp/fpf/public',
-      docsRoot: '/tmp/fpf/docs',
+      docsOutDir: '/tmp/fpf/doc_build',
     });
   });
 

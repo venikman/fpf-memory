@@ -11,12 +11,14 @@ import {
   parseFlagMap,
   readNonNegativeInteger,
   readOptionalString,
+  readOutputFormat,
   readPositiveInteger,
   readString,
   round,
+  type OutputFormat,
 } from './_args.js';
 
-const EXPECTED_PUBLIC_TOOLS = [
+export const EXPECTED_PUBLIC_TOOLS = [
   'browse_fpf_catalog',
   'search_fpf',
   'ask_fpf',
@@ -32,7 +34,6 @@ const DEFAULT_WARMUP = 5;
 const DEFAULT_TIMEOUT_MS = 60_000;
 
 type Scenario = 'mixed' | 'query' | 'read' | 'discovery' | 'status';
-type OutputFormat = 'json' | 'markdown';
 type OperationName = 'status' | 'browse' | 'search' | 'read' | 'query';
 
 export interface BenchOptions {
@@ -153,7 +154,7 @@ export class McpHttpClient {
     );
     assert(initialize.serverInfo !== undefined, 'initialize did not return serverInfo.');
     assert(
-      asRecord(initialize.serverInfo, 'serverInfo').name === 'fpf_memory',
+      asRecord(initialize.serverInfo, 'serverInfo').name === 'fpf_reference',
       'initialize returned an unexpected server name.',
     );
     await this.notify('notifications/initialized');
@@ -162,7 +163,11 @@ export class McpHttpClient {
   async listTools(): Promise<string[]> {
     const toolsList = asRecord((await this.rpc('tools/list')).result, 'tools/list result');
     const tools = asArray(toolsList.tools, 'tools/list tools');
-    return tools.map((tool) => asRecord(tool, 'tool').name).filter(isString);
+    return tools.map((tool, index) => {
+      const name = asRecord(tool, `tool ${index}`).name;
+      assert(typeof name === 'string', `tool ${index} name was not a string.`);
+      return name;
+    });
   }
 
   async callTool(
@@ -207,6 +212,10 @@ export class McpHttpClient {
       );
     }
     return { status: response.status, contentType };
+  }
+
+  getSessionId(): string | undefined {
+    return this.sessionId;
   }
 
   private async rpc(method: string, params?: Record<string, unknown>): Promise<RpcResult> {
@@ -653,13 +662,6 @@ function readScenario(value: string): Scenario {
     return value;
   }
   throw new Error(`Unknown scenario: ${value}`);
-}
-
-function readOutputFormat(value: string): OutputFormat {
-  if (value === 'json' || value === 'markdown') {
-    return value;
-  }
-  throw new Error(`Unknown format: ${value}`);
 }
 
 function percentile(sortedValues: number[], rank: number): number {
