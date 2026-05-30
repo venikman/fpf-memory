@@ -76,6 +76,7 @@ describe('context config parsing', () => {
     expect(parseHostedConfig(env)).toEqual({
       port: 4112,
       surface: 'full',
+      mcpDisabled: false,
     });
     expect(parseDocsConfig(env)).toEqual({
       sourcePath: '/tmp/fpf/FPF-spec.md',
@@ -119,6 +120,20 @@ describe('context config parsing', () => {
     expect(parseHostedConfig(env)).toEqual({
       port: 65535,
       surface: 'public',
+      mcpDisabled: false,
+    });
+  });
+
+  it('parses the hosted MCP emergency disable flag', () => {
+    expect(parseHostedConfig({
+      FPF_HOSTED_MCP_DISABLED: 'true',
+    } as NodeJS.ProcessEnv)).toMatchObject({
+      mcpDisabled: true,
+    });
+    expect(parseHostedConfig({
+      FPF_HOSTED_MCP_DISABLED: 'false',
+    } as NodeJS.ProcessEnv)).toMatchObject({
+      mcpDisabled: false,
     });
   });
 

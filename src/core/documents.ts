@@ -552,7 +552,7 @@ function renderHomeMarkdown(
     '- `read_fpf_doc` — exact canonical page for a selector (preview + full modes)',
     '- `get_fpf_index_status` — snapshot freshness, source hash, build time',
     '',
-    'Endpoint: `https://mcp.fpf.sh/api/mcp/fpf_reference/mcp` · Legacy: `https://mcp.fpf.sh/api/mcp/fpf_memory/mcp` · Status: [`mcp.fpf.sh/api/fpf/status`](https://mcp.fpf.sh/api/fpf/status) · [Connect setup →](/connect-mcp)',
+    'Endpoint: `https://mcp.fpf.sh/api/mcp/fpf_reference/mcp` · Legacy blocked during May 2026 mitigation: `https://mcp.fpf.sh/api/mcp/fpf_memory/mcp` · Status: [`mcp.fpf.sh/api/fpf/status`](https://mcp.fpf.sh/api/fpf/status) · [Connect setup →](/connect-mcp)',
     '',
     '## FPF — the framework this server projects',
     '',

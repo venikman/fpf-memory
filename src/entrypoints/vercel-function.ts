@@ -7,7 +7,7 @@ import {
   createHostedComposition,
   createHostedErrorLogger,
   HOSTED_MCP_ROUTES,
-  tryHandleHostedMcpNodeGet,
+  tryHandleHostedMcpNodeGuard,
 } from '../composition/hosted.js';
 
 type HostedComposition = ReturnType<typeof createHostedComposition>;
@@ -20,7 +20,7 @@ export default async function handler(
 ): Promise<void> {
   try {
     if (isMcpRoute(request)) {
-      if (tryHandleHostedMcpNodeGet(request, response)) {
+      if (tryHandleHostedMcpNodeGuard(request, response)) {
         return;
       }
 

@@ -435,7 +435,7 @@ export function renderHostedHomePage(): string {
         <div class="endpoint">
           <span>Streamable HTTP endpoint</span>
           <code>${HOSTED_MCP_ENDPOINT}</code>
-          <small>Legacy <code>${LEGACY_HOSTED_MCP_ENDPOINT}</code> remains available during the transition.</small>
+          <small>Legacy <code>${LEGACY_HOSTED_MCP_ENDPOINT}</code> is blocked during the May 2026 mitigation; use the endpoint above.</small>
         </div>
       </section>
 

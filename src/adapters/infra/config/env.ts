@@ -138,6 +138,7 @@ export function parseHostedConfig(env: NodeJS.ProcessEnv): HostedConfig {
   return {
     port: parsePort(env.PORT),
     surface: parseMcpSurface(env.FPF_MCP_SURFACE),
+    mcpDisabled: parseBoolean(env.FPF_HOSTED_MCP_DISABLED, false),
   };
 }
 

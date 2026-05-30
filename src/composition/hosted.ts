@@ -82,7 +82,13 @@ export function createHostedComposition(env: NodeJS.ProcessEnv) {
     }
   });
   for (const route of HOSTED_MCP_ROUTES) {
-    app.all(route, (c) => mcpServer.handleStreamableHttp(c.req.raw));
+    if (hostedConfig.mcpDisabled) {
+      app.all(route, () => createHostedMcpDisabledResponse());
+    } else if (route === LEGACY_HOSTED_MCP_ROUTE) {
+      app.all(route, () => createHostedLegacyMcpDisabledResponse());
+    } else {
+      app.all(route, (c) => mcpServer.handleStreamableHttp(c.req.raw));
+    }
   }
 
   return {
@@ -97,14 +103,99 @@ export function createHostedErrorLogger(env: NodeJS.ProcessEnv) {
   return getRuntimeLogger(parseLoggingConfig(env));
 }
 
-export function tryHandleHostedMcpNodeGet(
+export function tryHandleHostedMcpNodeGuard(
   request: IncomingMessage,
   response: ServerResponse,
 ): boolean {
+  if (parseHostedConfig(process.env).mcpDisabled) {
+    writeHostedMcpDisabledNodeResponse(response);
+    return true;
+  }
+
+  if (isHostedMcpRoute(request, LEGACY_HOSTED_MCP_ROUTE)) {
+    writeHostedLegacyMcpDisabledNodeResponse(response);
+    return true;
+  }
+
   if (!isStandaloneMcpGet(request.method)) {
     return false;
   }
 
   writeMcpGetDisabledNodeResponse(response);
   return true;
+}
+
+function isHostedMcpRoute(
+  request: IncomingMessage,
+  route: (typeof HOSTED_MCP_ROUTES)[number],
+): boolean {
+  const url = new URL(request.url ?? '/', 'https://localhost');
+  return url.pathname === route;
+}
+
+function createHostedLegacyMcpDisabledResponse(): Response {
+  return createHostedMcpBlockedResponse(
+    403,
+    'Legacy FPF MCP endpoint is disabled; use https://mcp.fpf.sh/api/mcp/fpf_reference/mcp.',
+    {
+      'X-Vercel-Mitigated': 'deny',
+      Link: '<https://mcp.fpf.sh/api/mcp/fpf_reference/mcp>; rel="successor-version"',
+    },
+  );
+}
+
+function createHostedMcpDisabledResponse(): Response {
+  return createHostedMcpBlockedResponse(503, 'Hosted FPF MCP is temporarily disabled.', {
+    'Retry-After': '3600',
+  });
+}
+
+function createHostedMcpBlockedResponse(
+  status: number,
+  message: string,
+  headers: Record<string, string>,
+): Response {
+  return new Response(JSON.stringify(createHostedMcpBlockedPayload(message)), {
+    status,
+    headers: {
+      'Cache-Control': 'no-store',
+      'Content-Type': 'application/json; charset=utf-8',
+      ...headers,
+    },
+  });
+}
+
+function writeHostedLegacyMcpDisabledNodeResponse(response: ServerResponse): void {
+  response.statusCode = 403;
+  response.setHeader('Cache-Control', 'no-store');
+  response.setHeader('Content-Type', 'application/json; charset=utf-8');
+  response.setHeader('X-Vercel-Mitigated', 'deny');
+  response.setHeader(
+    'Link',
+    '<https://mcp.fpf.sh/api/mcp/fpf_reference/mcp>; rel="successor-version"',
+  );
+  response.end(JSON.stringify(createHostedMcpBlockedPayload(
+    'Legacy FPF MCP endpoint is disabled; use https://mcp.fpf.sh/api/mcp/fpf_reference/mcp.',
+  )));
+}
+
+function writeHostedMcpDisabledNodeResponse(response: ServerResponse): void {
+  response.statusCode = 503;
+  response.setHeader('Cache-Control', 'no-store');
+  response.setHeader('Content-Type', 'application/json; charset=utf-8');
+  response.setHeader('Retry-After', '3600');
+  response.end(JSON.stringify(createHostedMcpBlockedPayload(
+    'Hosted FPF MCP is temporarily disabled.',
+  )));
+}
+
+function createHostedMcpBlockedPayload(message: string) {
+  return {
+    jsonrpc: '2.0',
+    error: {
+      code: -32000,
+      message,
+    },
+    id: null,
+  } as const;
 }

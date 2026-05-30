@@ -9,7 +9,9 @@ import { afterEach, describe, expect, it } from '@rstest/core';
 
 import {
   createHostedComposition,
+  HOSTED_MCP_ROUTE,
   HOSTED_MCP_ROUTES,
+  LEGACY_HOSTED_MCP_ROUTE,
 } from '../src/composition/hosted.js';
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
 import vercelHandler from '../src/entrypoints/vercel-function.js';
@@ -550,10 +552,18 @@ describe('direct MCP server', () => {
                 name: 'rstest-vercel-node-adapter',
                 version: '1.0.0',
               },
-          },
+            },
           }),
           signal: AbortSignal.timeout(5_000),
         });
+
+        if (route === LEGACY_HOSTED_MCP_ROUTE) {
+          expect(response.status).toBe(403);
+          expect(response.headers.get('x-vercel-mitigated')).toBe('deny');
+          const payload = await response.json() as JsonRpcResponse;
+          expect(payload.error?.message).toContain('Legacy FPF MCP endpoint is disabled');
+          continue;
+        }
 
         expect(response.status).toBe(200);
         expect(response.headers.get('content-type')).toContain('application/json');
@@ -594,21 +604,86 @@ describe('direct MCP server', () => {
       expect(typeof address).toBe('object');
       expect(address).not.toBeNull();
       const port = (address as { port: number }).port;
+      const response = await fetch(`http://127.0.0.1:${port}${HOSTED_MCP_ROUTE}`, {
+        method: 'GET',
+        headers: {
+          accept: 'text/event-stream',
+          'MCP-Protocol-Version': '2025-06-18',
+        },
+        signal: AbortSignal.timeout(5_000),
+      });
+      await response.body?.cancel().catch(() => undefined);
+
+      expect(response.status).toBe(405);
+      expect(response.headers.get('allow')).toBe('POST, DELETE');
+    } finally {
+      await new Promise<void>((resolveClose, rejectClose) => {
+        server.close((error) => {
+          if (error) {
+            rejectClose(error);
+            return;
+          }
+          resolveClose();
+        });
+      });
+    }
+  });
+
+  it('short-circuits all hosted MCP routes when the production disable flag is set', async () => {
+    const previous = process.env.FPF_HOSTED_MCP_DISABLED;
+    process.env.FPF_HOSTED_MCP_DISABLED = 'true';
+    const server = createServer((request, response) => {
+      vercelHandler(request, response).catch((error: unknown) => {
+        response.statusCode = 500;
+        response.end(error instanceof Error ? error.message : String(error));
+      });
+    });
+
+    await new Promise<void>((resolveListen) => {
+      server.listen(0, '127.0.0.1', resolveListen);
+    });
+
+    try {
+      const address = server.address();
+      expect(typeof address).toBe('object');
+      expect(address).not.toBeNull();
+      const port = (address as { port: number }).port;
       for (const route of HOSTED_MCP_ROUTES) {
         const response = await fetch(`http://127.0.0.1:${port}${route}`, {
-          method: 'GET',
+          method: 'POST',
           headers: {
-            accept: 'text/event-stream',
+            'content-type': 'application/json',
+            accept: 'application/json, text/event-stream',
             'MCP-Protocol-Version': '2025-06-18',
           },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'initialize',
+            params: {
+              protocolVersion: '2025-06-18',
+              capabilities: {},
+              clientInfo: {
+                name: 'rstest-disabled-hosted-mcp',
+                version: '1.0.0',
+              },
+            },
+          }),
           signal: AbortSignal.timeout(5_000),
         });
-        await response.body?.cancel().catch(() => undefined);
 
-        expect(response.status).toBe(405);
-        expect(response.headers.get('allow')).toBe('POST, DELETE');
+        expect(response.status).toBe(503);
+        expect(response.headers.get('cache-control')).toBe('no-store');
+        expect(response.headers.get('retry-after')).toBe('3600');
+        const payload = await response.json() as JsonRpcResponse;
+        expect(payload.error?.message).toContain('temporarily disabled');
       }
     } finally {
+      if (previous === undefined) {
+        delete process.env.FPF_HOSTED_MCP_DISABLED;
+      } else {
+        process.env.FPF_HOSTED_MCP_DISABLED = previous;
+      }
       await new Promise<void>((resolveClose, rejectClose) => {
         server.close((error) => {
           if (error) {

@@ -16,15 +16,15 @@ https://mcp.fpf.sh/api/mcp/fpf_reference/mcp
 
 This endpoint is the direct Vercel-hosted MCP origin over streamable HTTP. It exposes the public FPF Reference tools for catalog browsing, search, compact answers, exact generated doc reads, and index health.
 
-The legacy endpoint remains available during the compatibility window:
+The legacy endpoint is blocked during the May 2026 cost incident mitigation:
 
 ```txt
 https://mcp.fpf.sh/api/mcp/fpf_memory/mcp
 ```
 
-Do not remove the legacy endpoint before the scheduled compatibility review on 2026-06-30. Existing users may still have the old URL or `fpf_memory` client name in their local MCP configs.
+Keep the route entry until the scheduled compatibility review on 2026-06-30 so old clients fail cheaply with a migration signal instead of falling through to an expensive timeout. Existing users with the old URL or `fpf_memory` client name should move to the canonical endpoint above.
 
-It is a JSON-RPC endpoint, not a web page. A bare browser GET returns **406 Not Acceptable** because the MCP server requires `Accept: application/json, text/event-stream`. Paste the URL into your client's MCP config; do not open it in a tab.
+It is a JSON-RPC endpoint, not a web page. A bare browser GET returns **405 Method Not Allowed** because standalone MCP SSE streams are disabled on the hosted endpoint. Paste the canonical URL into your client's MCP config; do not open it in a tab.
 
 For a browser-readable health check, use the freshness page instead:
 

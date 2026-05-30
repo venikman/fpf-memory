@@ -127,6 +127,7 @@ Copy `.env.example` to `.env`. The most common settings:
 | `FPF_SYNC_MONITOR_MAX_DRIFT_HOURS`        | `10`                                 | Allowed upstream-to-production drift before monitor failure.           |
 | `FPF_RUNTIME_ARTIFACT_DIR`                | `.runtime/fpf-index`                 | Where compiled artifacts are written.                                 |
 | `FPF_QUERY_DEFAULT_MODE`                  | `verbose`                            | Default `mode` for `query_fpf_spec` and `ask_fpf`.                    |
+| `FPF_HOSTED_MCP_DISABLED`                 | `false`                              | Emergency hosted `/api/mcp/*` shutoff; returns `503` before loading the MCP runtime. |
 | `FPF_LOCAL_LLM_BASE_URL`                  | `http://localhost:1234/v1`           | Optional LM Studio endpoint. Omit to stay fully deterministic.        |
 | `FPF_LOCAL_LLM_MODEL`                     | `google/gemma-4-31b`                 | Optional LM Studio model.                                             |
 | `FPF_LOCAL_LLM_API_KEY`                   | *(empty)*                            | LM Studio API token (Developer → Server Settings → Manage Tokens).    |
@@ -250,13 +251,13 @@ url = "https://mcp.fpf.sh/api/mcp/fpf_reference/mcp"
 
 This repo ships the same project-scoped configuration at `.codex/config.toml` and `.mcp.json`. Once the project is trusted, Codex can load the hosted `fpf_reference` server directly from the repo.
 
-The legacy `fpf_memory` client name and endpoint remain available for existing users:
+The legacy `fpf_memory` client name and endpoint are blocked during the May 2026 cost incident mitigation:
 
 ```text
 https://mcp.fpf.sh/api/mcp/fpf_memory/mcp
 ```
 
-Do not remove the legacy endpoint before the scheduled compatibility review on 2026-06-30. The rename is intentionally small so parallel deployment and publication-sync work can merge without replacing this branch's compatibility contract. The detailed compatibility note lives in [`docs/fpf-reference-mcp-rename.md`](docs/fpf-reference-mcp-rename.md).
+Do not remove the legacy route before the scheduled compatibility review on 2026-06-30; keep it explicitly routed so stale clients fail cheaply with a migration signal. The rename is intentionally small so parallel deployment and publication-sync work can merge without replacing this branch's compatibility contract. The detailed compatibility note lives in [`docs/fpf-reference-mcp-rename.md`](docs/fpf-reference-mcp-rename.md).
 
 **Recommended Codex tasks** (public surface):
 
@@ -301,7 +302,7 @@ For a proof-style grounded answer, add `mode: "proof"`. For the raw structured e
 
 The direct Vercel origin is canonical for clients. There is no separate Vercel forwarding project in this repo.
 The canonical client aliases are `https://fpf.sh/` for the static reference and `https://mcp.fpf.sh/api/mcp/fpf_reference/mcp` for MCP clients.
-`https://mcp.fpf.sh/api/mcp/fpf_memory/mcp` remains a legacy compatibility endpoint during the transition.
+`https://mcp.fpf.sh/api/mcp/fpf_memory/mcp` is the legacy compatibility path and is blocked during the May 2026 cost incident mitigation; new and working clients must use the canonical `fpf_reference` endpoint.
 `fpf-memory-mcp-vercel-origin.vercel.app` is a legacy compatibility alias only; do not add it to new docs, scripts, or client setup examples.
 Historical errored preview deployments can remain in Vercel as audit records.
 Treat current production readiness as the latest `fpf.sh` production alias plus status, smoke, QA, and bundle-size gates, not as an absence of old preview errors.

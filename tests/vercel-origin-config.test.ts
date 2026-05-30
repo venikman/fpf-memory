@@ -62,7 +62,7 @@ describe('Vercel MCP origin config', () => {
     const functionConfig = createVercelFunctionConfig();
 
     expect(functionConfig.memory).toBe(1024);
-    expect(functionConfig.maxDuration).toBe(60);
+    expect(functionConfig.maxDuration).toBe(20);
   });
 
   it('documents canonical Vercel aliases and historical preview-error policy', async () => {
@@ -102,7 +102,7 @@ describe('Vercel MCP origin config', () => {
     );
     expect(srcRoutes).not.toContain('^/$');
     expect(srcRoutes).not.toContain('^/connect-mcp$');
-    // API routes remain, including the temporary legacy MCP alias.
+    // API routes remain, including the blocked legacy MCP alias.
     expect(srcRoutes).toContain(`^${HOSTED_MCP_ROUTE}$`);
     expect(srcRoutes).toContain(`^${LEGACY_HOSTED_MCP_ROUTE}$`);
   });

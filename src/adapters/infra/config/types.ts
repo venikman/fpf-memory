@@ -45,6 +45,7 @@ export interface McpConfig {
 export interface HostedConfig {
   port: number;
   surface: McpSurface;
+  mcpDisabled: boolean;
 }
 
 export interface DocsConfig {
