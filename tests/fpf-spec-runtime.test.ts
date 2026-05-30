@@ -18,6 +18,8 @@ import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
 import { ARTIFACT_FILENAMES } from '../src/runtime/constants.js';
 import { FpfRuntime } from '../src/runtime/runtime.js';
 
+const SNAPSHOT_REUSE_TEST_TIMEOUT_MS = 70_000;
+
 describe('FpfRuntime', () => {
   const canonicalSourcePath = resolve(process.cwd(), DEFAULT_SOURCE_PATH);
   let tempRoot: string;
@@ -44,70 +46,78 @@ describe('FpfRuntime', () => {
     return JSON.parse(await readFile(resolve(artifactDir, filename), 'utf8')) as T;
   }
 
-  it('builds a local artifact set and reuses the snapshot when the source hash is unchanged', async () => {
-    const first = await runtime.refresh();
-    expect(first.rebuilt).toBe(true);
-    expect(first.reason).toBe('missing_snapshot');
-    expect(first.compiler.mode).toBe('local_vectorless');
-    expect(first.validation.parsedPatterns).toBeGreaterThan(50);
-    expect(first.validation.parsedRoutes).toBe(first.compiler.routeNodes);
-    expect(first.validation.parsedLexiconEntries).toBeGreaterThan(0);
+  // This exercises initial build, current-snapshot reuse, artifact backfill,
+  // source-hash rebuild, and forced rebuild. Large upstream specs can push the
+  // chain past Rstest's default 20s timeout on GitHub runners.
+  it(
+    'builds a local artifact set and reuses the snapshot when the source hash is unchanged',
+    async () => {
+      const first = await runtime.refresh();
+      expect(first.rebuilt).toBe(true);
+      expect(first.reason).toBe('missing_snapshot');
+      expect(first.compiler.mode).toBe('local_vectorless');
+      expect(first.validation.parsedPatterns).toBeGreaterThan(50);
+      expect(first.validation.parsedRoutes).toBe(first.compiler.routeNodes);
+      expect(first.validation.parsedLexiconEntries).toBeGreaterThan(0);
 
-    for (const filename of Object.values(ARTIFACT_FILENAMES)) {
-      const content = await readFile(resolve(artifactDir, filename), 'utf8');
-      expect(content.length).toBeGreaterThan(0);
-    }
+      for (const filename of Object.values(ARTIFACT_FILENAMES)) {
+        const content = await readFile(resolve(artifactDir, filename), 'utf8');
+        expect(content.length).toBeGreaterThan(0);
+      }
 
-    const indexMap = await readArtifact<{
-      roots: string[];
-      nodes: Record<
-        string,
-        {
-          description: string;
-          metadata: {
-            patternId?: string;
-            role: string;
-            routeBearing: boolean;
-          };
-        }
-      >;
-    }>(ARTIFACT_FILENAMES.indexMap);
-    expect(indexMap.nodes['A.1.1']?.description.length).toBeGreaterThan(0);
-    expect(indexMap.nodes['A.1.1']?.metadata.patternId).toBe('A.1.1');
-    expect(indexMap.nodes['J.4']?.metadata.routeBearing).toBe(true);
+      const indexMap = await readArtifact<{
+        roots: string[];
+        nodes: Record<
+          string,
+          {
+            description: string;
+            metadata: {
+              patternId?: string;
+              role: string;
+              routeBearing: boolean;
+            };
+          }
+        >;
+      }>(ARTIFACT_FILENAMES.indexMap);
+      expect(indexMap.nodes['A.1.1']?.description.length).toBeGreaterThan(0);
+      expect(indexMap.nodes['A.1.1']?.metadata.patternId).toBe('A.1.1');
+      expect(indexMap.nodes['J.4']?.metadata.routeBearing).toBe(true);
 
-    const snapshot = await readArtifact<{
-      relationGraph: Array<{ from: string; relation: string; to: string }>;
-    }>(ARTIFACT_FILENAMES.snapshot);
-    expect(
-      snapshot.relationGraph.some(
-        (edge) => edge.from === 'A.15' && edge.relation === 'outline_child' && edge.to === 'A.15.2',
-      ),
-    ).toBe(true);
-    expect(
-      snapshot.relationGraph.some((edge) => edge.relation === 'explicit_reference'),
-    ).toBe(true);
+      const snapshot = await readArtifact<{
+        relationGraph: Array<{ from: string; relation: string; to: string }>;
+      }>(ARTIFACT_FILENAMES.snapshot);
+      expect(
+        snapshot.relationGraph.some(
+          (edge) =>
+            edge.from === 'A.15' && edge.relation === 'outline_child' && edge.to === 'A.15.2',
+        ),
+      ).toBe(true);
+      expect(
+        snapshot.relationGraph.some((edge) => edge.relation === 'explicit_reference'),
+      ).toBe(true);
 
-    const second = await runtime.refresh();
-    expect(second.rebuilt).toBe(false);
-    expect(second.reason).toBe('snapshot_current');
+      const second = await runtime.refresh();
+      expect(second.rebuilt).toBe(false);
+      expect(second.reason).toBe('snapshot_current');
 
-    await rm(resolve(artifactDir, ARTIFACT_FILENAMES.routeGraph), { force: true });
-    const backfilled = await runtime.refresh();
-    expect(backfilled.rebuilt).toBe(false);
-    expect(await readFile(resolve(artifactDir, ARTIFACT_FILENAMES.routeGraph), 'utf8')).toContain(
-      '"relations"',
-    );
+      await rm(resolve(artifactDir, ARTIFACT_FILENAMES.routeGraph), { force: true });
+      const backfilled = await runtime.refresh();
+      expect(backfilled.rebuilt).toBe(false);
+      expect(await readFile(resolve(artifactDir, ARTIFACT_FILENAMES.routeGraph), 'utf8')).toContain(
+        '"relations"',
+      );
 
-    await writeFile(sourcePath, `${await readFile(sourcePath, 'utf8')}\n<!-- hash-shift -->\n`);
-    const third = await runtime.refresh();
-    expect(third.rebuilt).toBe(true);
-    expect(third.reason).toBe('source_hash_changed');
+      await writeFile(sourcePath, `${await readFile(sourcePath, 'utf8')}\n<!-- hash-shift -->\n`);
+      const third = await runtime.refresh();
+      expect(third.rebuilt).toBe(true);
+      expect(third.reason).toBe('source_hash_changed');
 
-    const forced = await runtime.refresh(true);
-    expect(forced.rebuilt).toBe(true);
-    expect(forced.reason).toBe('forced');
-  });
+      const forced = await runtime.refresh(true);
+      expect(forced.rebuilt).toBe(true);
+      expect(forced.reason).toBe('forced');
+    },
+    SNAPSHOT_REUSE_TEST_TIMEOUT_MS,
+  );
 
   it('does not depend on any remote indexing path', async () => {
     const originalFetch = globalThis.fetch;
