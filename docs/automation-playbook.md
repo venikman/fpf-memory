@@ -34,6 +34,7 @@ The main safety rule is simple: discovery roles stay read-only, implementation r
 | Discussion steward | Keep GitHub Discussions actionable. | Inspect discussions, issues, and PRs; dedupe signals; maintain a Top 3 work list. | Implement fixes or create noisy new threads by default. | Discussion change report and issue-conversion recommendation. |
 | Implementation PR agent | Turn one ready item into a bounded PR. | Edit code/docs, validate, open or update one PR. | Self-merge or perform broad product scouting. | PR with source links, validation output, and residual risk. |
 | PR review and merge captain | Keep PRs moving with independent judgment. | Review PRs, check CI/reviews/mergeability, comment on blockers, merge when policy is met. | Implement fixes or silently wait on blocked PRs. | Merge/no-merge decision with evidence. |
+| FPF sync monitor | Keep fpf.sh self-sustaining against upstream FPF. | Compare upstream HEAD, hosted status, manifest provenance, runtime freshness, and drift SLO; trigger guarded sync when upstream is ahead. | Bypass CI, merge a failed sync PR, or publish unproven source/ref pairs. | Monitor run summary and sync workflow trigger. |
 | Manager brief | Compress automation state for the user. | Read automation memory, repo state, PRs, discussions, docs, and hosted MCP health. | Replace the specialist roles or make external commitments. | Product readiness, changed, validated, Top 3 next actions, decisions needed. |
 | Technical architect | Make periodic system-level judgment. | Review MCP server, index/runtime, docs/adoption UX, CLI, evaluator, packaging/deploy, CI, and automation health. | Create implementation work unless explicitly asked. | Architecture state, risks, recommendations, handoffs, and stop/replan triggers. |
 | Growth and publishing scout | Turn validated evidence into draft public material. | Draft Medium/Substack posts, short social posts, README/forum blurbs, and outreach notes. | Publish, email, DM, post, or log into external accounts without explicit approval. | Share packet with audience, proof points, caveats, links, and call to action. |
@@ -49,6 +50,8 @@ Implementation PR agent
   -> validated PR
 PR review and merge captain
   -> merge or blocker
+FPF sync monitor
+  -> sync trigger or SLO breach evidence
 Manager brief
 
 Technical architect
@@ -87,6 +90,20 @@ A PR may be merged by the review/merge role only when:
 - the PR has independent approval or an approved fast-track condition for the current head.
 
 If any condition is missing, the role should report the exact blocker rather than waiting silently.
+
+## fpf.sh Sync QA and Monitoring
+
+The production sync loop uses FPF as a quality model:
+
+- `B.5.1` keeps the worker and monitor separate: `sync-fpf.yml` operates the publication PR; `fpf-sync-monitor.yml` observes production state and triggers recovery.
+- `A.10` and `G.6` define the evidence: upstream SHA, upstream commit date, manifest `upstreamRef`, source hash, hosted runtime freshness, CI run URL, Vercel preview, and Playwright preview.
+- `B.3`, `E.19`, and `E.21` define gates and characteristics: source/ref coherence, runtime freshness, recoverability, traceability, and max drift are checked separately.
+
+Operational defaults:
+
+- `sync-fpf.yml` accepts `fpf-origin-updated` and `fpf-sync-updated` dispatches, polls every 6 hours, opens a PR, runs validation/build/preview, then auto-merges only after the review window and required evidence pass.
+- `fpf-sync-monitor.yml` polls hourly, runs `bun run monitor:sync`, triggers `sync-fpf.yml` when upstream is ahead, and fails the monitor if `fpf.sh` exceeds the drift SLO or the hosted runtime is stale.
+- The default drift SLO is 10 hours: 6-hour poll backstop plus 2-hour review window plus operational margin.
 
 ## Publishing and outreach packets
 

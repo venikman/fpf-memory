@@ -15,6 +15,7 @@
     "spec:download": "bun scripts/download-upstream-spec.ts",
     "publish:current": "bun scripts/publish-current.ts",
     "validate:published": "bun scripts/validate-published-current.ts",
+    "monitor:sync": "bun scripts/monitor-fpf-sync.ts",
     "evaluate:work": "bun src/cli.ts evaluate-work --target current-pr --base origin/main --format markdown",
     "stage:from-published": "bun scripts/stage-from-published.ts",
     "smoke:mcp:http": "bun scripts/smoke-hosted-mcp.ts",

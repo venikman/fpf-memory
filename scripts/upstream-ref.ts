@@ -12,6 +12,7 @@ export {
   DEFAULT_UPSTREAM_REPO_URL,
   DEFAULT_UPSTREAM_SPEC_PATH,
   DEFAULT_UPSTREAM_URL,
+  normalizeUpstreamRef,
   parseUpstreamSpecSourceEnv,
   resolveUpstreamSpecUrl,
 } from '../src/build/upstream-source.js';

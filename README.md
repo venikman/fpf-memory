@@ -88,10 +88,11 @@ Out:
 
 `.github/workflows/sync-fpf.yml` keeps both public surfaces current when FPF changes upstream in [ailev/FPF](https://github.com/ailev/FPF):
 
-- Fast path: a trusted origin notifier can send this repo a `repository_dispatch` event named `fpf-origin-updated` with `client_payload.sha`/`after`, `client_payload.ref`/`branch`, and optionally `client_payload.spec_url`.
+- Fast path: a trusted origin notifier can send this repo a `repository_dispatch` event named `fpf-origin-updated` or `fpf-sync-updated` with `client_payload.sha`/`after`, `client_payload.ref`/`branch`, and optionally `client_payload.spec_url`.
 - Backstops: the workflow also runs every 6 hours and can be triggered manually with a branch, tag, commit SHA, or raw spec URL paired with an explicit upstream ref.
 - Work performed: download `FPF-Spec.md`, run `publish:current`, validate `published/current/**`, build the static docs, build the Vercel-origin MCP bundle, and open a publication PR only when files changed.
 - Hosted MCP handoff: after the review window and required checks pass, the workflow squash-merges the PR. The resulting `main` push gives Vercel's Git integration the refreshed `fpf.sh` inputs.
+- Monitor: `.github/workflows/fpf-sync-monitor.yml` runs hourly, checks `ailev/FPF` HEAD against `https://fpf.sh/api/fpf/status`, triggers `sync-fpf.yml` when upstream is ahead, and fails only when drift exceeds the configured SLO or the hosted runtime is internally stale.
 
 Minimal dispatch payload:
 
@@ -103,6 +104,12 @@ Minimal dispatch payload:
   }
 }
 ```
+
+Publication QA follows FPF anchors directly:
+
+- `B.5.1` separates exploration, shaping, evidence, and operation: sync PRs do publication work; monitor runs production evidence.
+- `A.10` and `G.6` make SHA, manifest, source hash, runtime freshness, and check URLs the evidence graph.
+- `B.3`, `E.19`, and `E.21` keep quality gates explicit: source/ref coherence, runtime freshness, preview/E2E, CI, recoverability, and max drift are separate characteristics, not one vague "green" claim.
 
 ## Configuration
 
@@ -116,6 +123,8 @@ Copy `.env.example` to `.env`. The most common settings:
 | `FPF_UPSTREAM_REPO`                       | `FPF`                                | GitHub repo for upstream publication provenance and downloads.         |
 | `FPF_UPSTREAM_REF`                        | `main`                               | Branch, tag, or SHA used by `spec:download` and `publish:current`.     |
 | `FPF_UPSTREAM_SPEC_PATH`                  | `FPF-Spec.md`                        | Path to the spec inside the upstream repo.                             |
+| `FPF_SYNC_MONITOR_STATUS_URL`             | `https://fpf.sh/api/fpf/status`      | Production status endpoint checked by `monitor:sync`.                  |
+| `FPF_SYNC_MONITOR_MAX_DRIFT_HOURS`        | `10`                                 | Allowed upstream-to-production drift before monitor failure.           |
 | `FPF_RUNTIME_ARTIFACT_DIR`                | `.runtime/fpf-index`                 | Where compiled artifacts are written.                                 |
 | `FPF_QUERY_DEFAULT_MODE`                  | `verbose`                            | Default `mode` for `query_fpf_spec` and `ask_fpf`.                    |
 | `FPF_LOCAL_LLM_BASE_URL`                  | `http://localhost:1234/v1`           | Optional LM Studio endpoint. Omit to stay fully deterministic.        |
@@ -130,6 +139,8 @@ Copy `.env.example` to `.env`. The most common settings:
 <summary>Detailed notes on these variables</summary>
 
 `FPF_SPEC_SOURCE_PATH` must be a **local filesystem path** — the runtime does not fetch `https://` URLs. The default is the committed publication surface: `published/current/FPF-Spec.md`. Local memory preparation uses `FPF_PUBLISH_SOURCE_PATH`, which defaults to `.fpf-upstream/FPF-Spec.md` after `bun run spec:download`. You can instead point `FPF_PUBLISH_SOURCE_PATH` at a local checkout of [github.com/ailev/FPF](https://github.com/ailev/FPF) such as [`FPF-Spec.md`](https://github.com/ailev/FPF/blob/main/FPF-Spec.md). `bun run spec:download` tracks `ailev/FPF` `main` by default; the sync workflow resolves one upstream ref and passes it to both download and publish before writing `published/current/manifest.json`. Override owner/repo/ref/spec path with `FPF_UPSTREAM_OWNER`, `FPF_UPSTREAM_REPO`, `FPF_UPSTREAM_REF`, and `FPF_UPSTREAM_SPEC_PATH`; override the raw download URL or output path with `FPF_UPSTREAM_SPEC_URL` and `FPF_DOWNLOAD_SPEC_OUTPUT`. In automation, a raw `spec_url` must be paired with an explicit ref or SHA so manifest provenance remains verifiable. Keep `FPF_SPEC_SOURCE_PATH` aligned across `.env`, your shell, and any MCP config (`server.json` `env`) so every runtime/docs entrypoint agrees on the published file it should read.
+
+`FPF_UPSTREAM_SPEC_URL` is intentionally constrained to the canonical `https://raw.githubusercontent.com/<owner>/<repo>/<ref>/<specPath>` shape matching the declared owner, repo, ref, and spec path. This prevents publishing one source while recording another provenance ref.
 
 `FPF_QUERY_DEFAULT_MODE` applies to `query_fpf_spec` and `ask_fpf` when `mode` is omitted. `trace_fpf_path` stays `compact` by default.
 
@@ -152,6 +163,7 @@ bun install
 bun run spec:download            # download FPF-Spec.md into .fpf-upstream/
 bun run publish:current          # refresh published/current/** from FPF_PUBLISH_SOURCE_PATH
 bun run stage:from-published     # stage published/current/** for commit
+bun run monitor:sync             # compare fpf.sh status with upstream HEAD
 bun run hooks:install            # install local git hooks
 ```
 

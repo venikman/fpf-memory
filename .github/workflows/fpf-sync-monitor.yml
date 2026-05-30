@@ -1,0 +1,59 @@
+name: FPF Sync Monitor
+
+on:
+  schedule:
+    # Hourly sentinel. sync-fpf.yml is the worker; this workflow is the SLO monitor
+    # and recovery trigger when upstream changed but no dispatch arrived.
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      max_drift_hours:
+        description: 'Allowed upstream-to-fpf.sh drift before this monitor fails'
+        required: false
+        default: '10'
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: fpf-sync-monitor
+  cancel-in-progress: false
+
+env:
+  BUN_VERSION: '1.3.5'
+  FPF_SYNC_MONITOR_STATUS_URL: https://fpf.sh/api/fpf/status
+  FPF_SYNC_MONITOR_MAX_DRIFT_HOURS: ${{ github.event.inputs.max_drift_hours || '10' }}
+
+jobs:
+  monitor:
+    name: Check fpf.sh sync SLO
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - run: bun install --frozen-lockfile
+
+      - name: Evaluate hosted sync health
+        id: monitor
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bun run monitor:sync -- --format markdown
+
+      - name: Trigger guarded publication sync
+        if: steps.monitor.outputs.needs_sync == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPSTREAM_REF: ${{ steps.monitor.outputs.upstream_ref }}
+        run: gh workflow run sync-fpf.yml --ref main -f upstream_ref="$UPSTREAM_REF"
+
+      - name: Enforce sync SLO
+        if: steps.monitor.outputs.breached == 'true'
+        run: |
+          echo "::error::${{ steps.monitor.outputs.summary }}"
+          exit 1

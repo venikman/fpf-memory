@@ -11,6 +11,9 @@ import { createHostedComposition } from '../src/composition/hosted.js';
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
 import vercelHandler from '../src/entrypoints/vercel-function.js';
 
+const MCP_REQUEST_TIMEOUT_MS = 30_000;
+const FULL_SURFACE_TEST_TIMEOUT_MS = 70_000;
+
 interface JsonRpcResponse {
   jsonrpc: '2.0';
   id: string | number | null;
@@ -82,7 +85,7 @@ class StdioMcpHarness {
         reject(
           new Error(`Timed out waiting for MCP response to ${method}\n${this.stderr.join('')}`),
         );
-      }, 15_000);
+      }, MCP_REQUEST_TIMEOUT_MS);
       this.pending.set(id, { resolve, reject, timeout });
     });
 
@@ -257,6 +260,10 @@ describe('direct MCP server', () => {
     expect(statusSchema?.additionalProperties).toBe(false);
   });
 
+  // This chains multiple full-surface MCP calls through the stdio transport.
+  // Large upstream spec refreshes can push the query/ask phase past Rstest's
+  // default 20s test timeout on GitHub runners, even when each individual MCP
+  // request is healthy.
   it('serves status, query, and ask surfaces without schema failures', async () => {
     const harness = await startHarness();
     await initializeHarness(harness);
@@ -477,7 +484,7 @@ describe('direct MCP server', () => {
         true,
       );
     }
-  });
+  }, FULL_SURFACE_TEST_TIMEOUT_MS);
 
   it('defaults to public tools when FPF_MCP_SURFACE is unset', async () => {
     const harness = await startHarness('public');

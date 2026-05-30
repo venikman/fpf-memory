@@ -15,7 +15,7 @@ name: Sync FPF Publication
 # the same E2E gates that protect every other change to main.
 on:
   repository_dispatch:
-    types: [fpf-origin-updated]
+    types: [fpf-origin-updated, fpf-sync-updated]
   schedule:
     # Every 6 hours. Dispatch should usually win; this is the freshness backstop.
     - cron: '0 */6 * * *'
@@ -206,6 +206,25 @@ jobs:
             exit 0
           fi
 
+          PR_HEAD_SHA=$(gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid)
+          CI_RUN_JSON=$(gh run list \
+            --workflow ci.yml \
+            --branch "chore/sync-fpf-${{ steps.detect.outputs.short_ref }}" \
+            --json databaseId,headSha,status,conclusion,url \
+            --limit 20 \
+            --jq "[.[] | select(.headSha == \"$PR_HEAD_SHA\")] | first // empty")
+          if [ -z "$CI_RUN_JSON" ]; then
+            echo "::warning::No manually triggered CI run found for PR #$PR_NUMBER head $PR_HEAD_SHA; leaving it open."
+            exit 0
+          fi
+          CI_STATUS=$(jq -r .status <<<"$CI_RUN_JSON")
+          CI_CONCLUSION=$(jq -r .conclusion <<<"$CI_RUN_JSON")
+          if [ "$CI_STATUS" != "completed" ] || [ "$CI_CONCLUSION" != "success" ]; then
+            echo "::warning::Manual CI run for PR #$PR_NUMBER is not passing; leaving it open."
+            jq -r '"- ci: status=\(.status) conclusion=\(.conclusion) \(.url)"' <<<"$CI_RUN_JSON"
+            exit 0
+          fi
+
           CHECKS_JSON=$(gh pr checks "$PR_NUMBER" --json name,bucket,state,link)
           CHECK_COUNT=$(jq 'length' <<<"$CHECKS_JSON")
           if [ "$CHECK_COUNT" -eq 0 ]; then
@@ -213,7 +232,7 @@ jobs:
             exit 0
           fi
 
-          REQUIRED_CHECK_NAMES='["ci","Vercel","Playwright on Vercel preview"]'
+          REQUIRED_CHECK_NAMES='["Vercel","Playwright on Vercel preview"]'
           MISSING_REQUIRED=$(jq --argjson required "$REQUIRED_CHECK_NAMES" '
             ($required - [.[] | select(.bucket == "pass") | .name])
           ' <<<"$CHECKS_JSON")
