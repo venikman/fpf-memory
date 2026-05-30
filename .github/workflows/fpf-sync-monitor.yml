@@ -77,14 +77,52 @@ jobs:
 
           if [ -n "$PR_NUMBER" ]; then
             echo "target_exists=true" >> "$GITHUB_OUTPUT"
-            echo "Sync PR #$PR_NUMBER already exists for $TARGET_BRANCH."
+            echo "Sync PR #$PR_NUMBER already exists for $TARGET_BRANCH; a worker retry can recheck merge eligibility."
           else
             echo "target_exists=false" >> "$GITHUB_OUTPUT"
             echo "No automation-owned open sync PR exists for $TARGET_BRANCH."
           fi
 
+      - name: Check for active sync worker
+        id: active_sync_worker
+        if: steps.monitor.outputs.needs_sync == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          ACTIVE_RUN="$(
+            gh run list \
+              --workflow sync-fpf.yml \
+              --limit 20 \
+              --json databaseId,status,url |
+            jq -r '
+              [
+                .[]
+                | select(
+                  .status == "queued"
+                  or .status == "in_progress"
+                  or .status == "waiting"
+                  or .status == "pending"
+                  or .status == "requested"
+                )
+              ]
+              | first
+              | if . == null then "" else "\(.databaseId)\t\(.status)\t\(.url)" end
+            '
+          )"
+
+          if [ -n "$ACTIVE_RUN" ]; then
+            IFS=$'\t' read -r run_id run_status run_url <<< "$ACTIVE_RUN"
+            echo "active=true" >> "$GITHUB_OUTPUT"
+            echo "Sync worker run $run_id is $run_status: $run_url"
+          else
+            echo "active=false" >> "$GITHUB_OUTPUT"
+            echo "No active sync worker run found; dispatch can open or retry the current sync PR."
+          fi
+
       - name: Trigger guarded publication sync
-        if: steps.monitor.outputs.needs_sync == 'true' && steps.open_sync_pr.outputs.target_exists != 'true'
+        if: steps.monitor.outputs.needs_sync == 'true' && steps.active_sync_worker.outputs.active != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           UPSTREAM_REF: ${{ steps.monitor.outputs.upstream_ref }}

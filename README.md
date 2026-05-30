@@ -89,10 +89,10 @@ Out:
 `.github/workflows/sync-fpf.yml` keeps both public surfaces current when FPF changes upstream in [ailev/FPF](https://github.com/ailev/FPF):
 
 - Fast path: a trusted origin notifier can send this repo a `repository_dispatch` event named `fpf-origin-updated` or `fpf-sync-updated` with `client_payload.sha`/`after`, `client_payload.ref`/`branch`, and optionally `client_payload.spec_url`.
-- Backstops: `.github/workflows/fpf-sync-monitor.yml` runs hourly and triggers this worker when production is behind; the worker can also be triggered manually with a branch, tag, commit SHA, or raw spec URL paired with an explicit upstream ref.
+- Backstops: `.github/workflows/fpf-sync-monitor.yml` runs hourly and triggers this worker when production is behind and no sync worker is already active; the worker can also be triggered manually with a branch, tag, commit SHA, or raw spec URL paired with an explicit upstream ref.
 - Work performed: download `FPF-Spec.md`, run `publish:current`, validate `published/current/**`, build the static docs, build the Vercel-origin MCP bundle, and open a publication PR only when files changed.
 - Hosted MCP handoff: before opening a new PR, the workflow closes superseded `chore/sync-fpf-*` PRs. After the review window and required checks pass, it squash-merges the current PR. The resulting `main` push gives Vercel's Git integration the refreshed `fpf.sh` inputs.
-- Monitor: `.github/workflows/fpf-sync-monitor.yml` runs hourly, checks `ailev/FPF` HEAD against `https://fpf.sh/api/fpf/status`, triggers `sync-fpf.yml` when upstream is ahead, and fails only when drift exceeds the configured SLO or the hosted runtime is internally stale.
+- Monitor: `.github/workflows/fpf-sync-monitor.yml` runs hourly, checks `ailev/FPF` HEAD against `https://fpf.sh/api/fpf/status`, triggers `sync-fpf.yml` when upstream is ahead, and redispatches it when a current generated PR exists but no worker is queued or running. It fails only when drift exceeds the configured SLO or the hosted runtime is internally stale.
 
 Minimal dispatch payload:
 

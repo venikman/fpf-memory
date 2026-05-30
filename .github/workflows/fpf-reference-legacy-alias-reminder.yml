@@ -55,17 +55,18 @@ jobs:
             exit 0
           fi
 
+          BODY=$(printf '%s\n' \
+            'The compatibility window ended on 2026-06-30.' \
+            '' \
+            'Review traffic and user commitments before removing the legacy MCP alias:' \
+            '' \
+            '- Keep canonical endpoint: `/api/mcp/fpf_reference/mcp`' \
+            '- Review legacy endpoint: `/api/mcp/fpf_memory/mcp`' \
+            '- Check public docs, deployed routing, support messages, and known client configs' \
+            '' \
+            'This reminder does not delete anything automatically. Extend the compatibility window if the legacy endpoint is still in active use.'
+          )
+
           gh issue create \
             --title "$LEGACY_ALIAS_TITLE" \
-            --body "$(cat <<'ISSUE'
-The compatibility window ended on 2026-06-30.
-
-Review traffic and user commitments before removing the legacy MCP alias:
-
-- Keep canonical endpoint: `/api/mcp/fpf_reference/mcp`
-- Review legacy endpoint: `/api/mcp/fpf_memory/mcp`
-- Check public docs, deployed routing, support messages, and known client configs
-
-This reminder does not delete anything automatically. Extend the compatibility window if the legacy endpoint is still in active use.
-ISSUE
-            )"
+            --body "$BODY"
