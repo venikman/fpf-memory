@@ -14,10 +14,12 @@ docs/generated/
 docs/index.md
 docs/patterns.md
 .claude
+.agents/
 .cursor/hooks/state/
 .env
 .env.development
 output.txt
+reports/
 *.db
 *.db-*
 .vercel

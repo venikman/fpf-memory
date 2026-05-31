@@ -9,7 +9,6 @@ import { afterEach, describe, expect, it } from '@rstest/core';
 
 import {
   createHostedComposition,
-  HOSTED_MCP_ROUTE,
   HOSTED_MCP_ROUTES,
   LEGACY_HOSTED_MCP_ROUTE,
 } from '../src/composition/hosted.js';
@@ -600,18 +599,26 @@ describe('direct MCP server', () => {
       expect(typeof address).toBe('object');
       expect(address).not.toBeNull();
       const port = (address as { port: number }).port;
-      const response = await fetch(`http://127.0.0.1:${port}${HOSTED_MCP_ROUTE}`, {
-        method: 'GET',
-        headers: {
-          accept: 'text/event-stream',
-          'MCP-Protocol-Version': '2025-06-18',
-        },
-        signal: AbortSignal.timeout(5_000),
-      });
-      await response.body?.cancel().catch(() => undefined);
+      for (const route of HOSTED_MCP_ROUTES) {
+        const response = await fetch(`http://127.0.0.1:${port}${route}`, {
+          method: 'GET',
+          headers: {
+            accept: 'text/event-stream',
+            'MCP-Protocol-Version': '2025-06-18',
+          },
+          signal: AbortSignal.timeout(5_000),
+        });
+        await response.body?.cancel().catch(() => undefined);
 
-      expect(response.status).toBe(405);
-      expect(response.headers.get('allow')).toBe('POST, DELETE');
+        if (route === LEGACY_HOSTED_MCP_ROUTE) {
+          expect(response.status).toBe(403);
+          expect(response.headers.get('x-vercel-mitigated')).toBe('deny');
+          continue;
+        }
+
+        expect(response.status).toBe(405);
+        expect(response.headers.get('allow')).toBe('POST, DELETE');
+      }
     } finally {
       await new Promise<void>((resolveClose, rejectClose) => {
         server.close((error) => {

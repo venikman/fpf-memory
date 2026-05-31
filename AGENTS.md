@@ -1,6 +1,8 @@
-# fpf_memory MCP Usage
+# FPF Reference MCP Usage
 
-Use the `fpf_memory` MCP server whenever the task requires grounded answers, exact FPF IDs, canonical generated docs, or deterministic retrieval provenance from the local FPF spec runtime (spec path from `FPF_SPEC_SOURCE_PATH`, default `published/current/FPF-Spec.md`).
+Use the `fpf_reference` MCP server whenever the task requires grounded answers, exact FPF IDs, canonical generated docs, or deterministic retrieval provenance from the local FPF spec runtime (spec path from `FPF_SPEC_SOURCE_PATH`, default `published/current/FPF-Spec.md`).
+
+The legacy `fpf_memory` server name is compatibility-only. Do not use it in new setup snippets, final summaries, memory notes, or public-facing guidance unless the text is explicitly about the legacy alias.
 
 Public tools (deployed MCP surface):
 

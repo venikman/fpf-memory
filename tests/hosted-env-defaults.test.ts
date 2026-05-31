@@ -78,7 +78,7 @@ describe('applyHostedEnvDefaults', () => {
   });
 
   it('discovers hosted staged files from the bundle module root when cwd lacks them', async () => {
-    const bundleRoot = resolve(tempRoot, '.vercel/output/functions/_origin.func');
+    const bundleRoot = resolve(tempRoot, '.vercel/output/functions/_mcp.func');
     const bundleModulePath = resolve(bundleRoot, 'chunks/runtime.mjs');
 
     await writeHostedStage(bundleRoot);

@@ -22,10 +22,3 @@ for (const path of STATIC_PATHS) {
     expect(response.status(), `unexpected status for ${path}`).toBe(200);
   });
 }
-
-test('GET /api/fpf/status returns ok JSON', async ({ request }) => {
-  const response = await request.get('/api/fpf/status');
-  expect(response.status()).toBe(200);
-  const body = (await response.json()) as { status: string };
-  expect(body.status).toBe('ok');
-});

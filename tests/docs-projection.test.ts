@@ -177,9 +177,9 @@ describe('docs projection', () => {
       : '';
 
     expect(glossaryPage).toContain('This is the FPF glossary');
-    expect(glossaryPage).toContain('not a glossary of fpf-memory UI');
+    expect(glossaryPage).toContain('not a glossary of FPF Reference UI');
     expect(changeLogPage).toContain('This is the FPF specification change log');
-    expect(changeLogPage).toContain('not the fpf-memory product changelog');
+    expect(changeLogPage).toContain('not the FPF Reference product changelog');
     expect(routeIndex).toContain('They are not website routes');
     expect(routeIndex).toContain(
       `Generated pages: ${Object.keys(snapshot.routeGraph.nodes).length}`,

@@ -12,6 +12,7 @@ import type { InspectAppService } from '../../app/services/inspect-app-service.j
 import type { QueryAppService } from '../../app/services/query-app-service.js';
 import type { RefreshAppService } from '../../app/services/refresh-app-service.js';
 import type { TraceAppService } from '../../app/services/trace-app-service.js';
+import type { RuntimeLogger } from '../infra/logging/runtime-logger.js';
 import { unwrapOutcome } from '../../app/commands/index.js';
 import {
   askFpfInputSchema,
@@ -37,6 +38,7 @@ import {
   traceFpfPathInputSchema,
   traceResultSchema,
 } from '../../mcp/tool-contracts.js';
+import { withMcpUsageTelemetry } from './usage-telemetry.js';
 
 export interface McpToolDependencies {
   defaultQueryMode: AnswerMode;
@@ -45,6 +47,7 @@ export interface McpToolDependencies {
   inspectAppService: InspectAppService;
   refreshAppService: RefreshAppService;
   discoveryAppService: DiscoveryAppService;
+  logger?: RuntimeLogger;
 }
 
 export interface FpfMcpTool<
@@ -72,6 +75,9 @@ function createFpfMcpTool<
 }
 
 export function createMcpTools(dependencies: McpToolDependencies) {
+  const withTelemetry = <TTool extends FpfMcpTool>(tool: TTool): TTool =>
+    withMcpUsageTelemetry(tool, dependencies.logger);
+
   const runQuery = async (input: {
     question: string;
     mode: AnswerMode | undefined;
@@ -87,7 +93,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
       }),
     );
 
-  const refreshFpfIndexTool = createFpfMcpTool({
+  const refreshFpfIndexTool = withTelemetry(createFpfMcpTool({
     id: 'refresh_fpf_index',
     description:
       'Build or rebuild the compiler-backed vectorless FPF index from the configured spec source and persist the artifact set.',
@@ -95,9 +101,9 @@ export function createMcpTools(dependencies: McpToolDependencies) {
     outputSchema: buildAuditSchema,
     execute: async ({ force }) =>
       unwrapOutcome(await dependencies.refreshAppService.refresh({ force: force ?? false })),
-  });
+  }));
 
-  const queryFpfSpecTool = createFpfMcpTool({
+  const queryFpfSpecTool = withTelemetry(createFpfMcpTool({
     id: 'query_fpf_spec',
     description:
       'Answer questions against the compiler-backed vectorless FPF runtime with auditable IDs, citations, constraints, and freshness metadata.',
@@ -110,9 +116,9 @@ export function createMcpTools(dependencies: McpToolDependencies) {
         forceRefresh: forceRefresh ?? false,
         sessionId,
       }),
-  });
+  }));
 
-  const askFpfTool = createFpfMcpTool({
+  const askFpfTool = withTelemetry(createFpfMcpTool({
     id: 'ask_fpf',
     description:
       'Return an FPF answer in markdown with grounding metadata using the compiler-backed vectorless runtime.',
@@ -127,18 +133,18 @@ export function createMcpTools(dependencies: McpToolDependencies) {
       });
       return renderAskFpfResult(result);
     },
-  });
+  }));
 
-  const getFpfIndexStatusTool = createFpfMcpTool({
+  const getFpfIndexStatusTool = withTelemetry(createFpfMcpTool({
     id: 'get_fpf_index_status',
     description:
       'Inspect whether the current FPF runtime index exists, whether it is fresh against the current source hash, and which artifacts are present.',
     inputSchema: getFpfIndexStatusInputSchema,
     outputSchema: runtimeStatusSchema,
     execute: async () => unwrapOutcome(await dependencies.refreshAppService.status()),
-  });
+  }));
 
-  const inspectFpfNodeTool = createFpfMcpTool({
+  const inspectFpfNodeTool = withTelemetry(createFpfMcpTool({
     id: 'inspect_fpf_node',
     description:
       'Inspect one compiled FPF node by exact ID, route name, or lexeme and return anchors plus neighboring relations.',
@@ -152,9 +158,9 @@ export function createMcpTools(dependencies: McpToolDependencies) {
           forceRefresh: forceRefresh ?? false,
         }),
       ),
-  });
+  }));
 
-  const readFpfDocTool = createFpfMcpTool({
+  const readFpfDocTool = withTelemetry(createFpfMcpTool({
     id: 'read_fpf_doc',
     description:
       'Resolve one FPF selector to the canonical generated markdown page and return exact text plus stable markdown/static paths. Pass `mode: "preview"` for headings + size + a short snippet without the full markdown body.',
@@ -170,9 +176,9 @@ export function createMcpTools(dependencies: McpToolDependencies) {
           forceRefresh: forceRefresh ?? false,
         }),
       ),
-  });
+  }));
 
-  const inspectFpfAnchorTool = createFpfMcpTool({
+  const inspectFpfAnchorTool = withTelemetry(createFpfMcpTool({
     id: 'inspect_fpf_anchor',
     description:
       'Inspect one compiled FPF anchor by exact anchor ID and return raw anchor text plus owning node context.',
@@ -185,9 +191,9 @@ export function createMcpTools(dependencies: McpToolDependencies) {
           forceRefresh: forceRefresh ?? false,
         }),
       ),
-  });
+  }));
 
-  const expandFpfCitationsTool = createFpfMcpTool({
+  const expandFpfCitationsTool = withTelemetry(createFpfMcpTool({
     id: 'expand_fpf_citations',
     description:
       'Expand multiple exact citation IDs into raw anchor text plus owning node context without adding new semantics.',
@@ -200,9 +206,9 @@ export function createMcpTools(dependencies: McpToolDependencies) {
           forceRefresh: forceRefresh ?? false,
         }),
       ),
-  });
+  }));
 
-  const traceFpfPathTool = createFpfMcpTool({
+  const traceFpfPathTool = withTelemetry(createFpfMcpTool({
     id: 'trace_fpf_path',
     description:
       'Return the deterministic retrieval trace showing normalization, candidate scores, graph expansion, and selected slices.',
@@ -217,9 +223,9 @@ export function createMcpTools(dependencies: McpToolDependencies) {
           sessionId: sessionId ? asSessionId(sessionId) : undefined,
         }),
       ),
-  });
+  }));
 
-  const browseFpfCatalogTool = createFpfMcpTool({
+  const browseFpfCatalogTool = withTelemetry(createFpfMcpTool({
     id: 'browse_fpf_catalog',
     description:
       'Browse the FPF catalog of compiled patterns, routes, and lexicon entries. Filter by part, status, or kind to discover relevant material before drilling into individual nodes.',
@@ -235,9 +241,9 @@ export function createMcpTools(dependencies: McpToolDependencies) {
           forceRefresh: forceRefresh ?? false,
         }),
       ),
-  });
+  }));
 
-  const searchFpfTool = createFpfMcpTool({
+  const searchFpfTool = withTelemetry(createFpfMcpTool({
     id: 'search_fpf',
     description:
       'Full-text search across all compiled FPF nodes. Returns ranked hits with contextual snippets. Use this to find patterns, routes, or lexicon entries by keyword or concept.',
@@ -252,7 +258,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
           forceRefresh: forceRefresh ?? false,
         }),
       ),
-  });
+  }));
 
   const fpfPublicTools = {
     browse_fpf_catalog: browseFpfCatalogTool,

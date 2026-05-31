@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# fpf-memory pre-push hook — local memory preparation surface owner.
+# FPF Reference pre-push hook — local publication preparation surface owner.
 #
 # Runs before `git push`. Fails the push on any error so stale or
 # un-prepared commits never reach CI. Skip by setting FPF_SKIP_PUBLISH=1,

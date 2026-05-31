@@ -45,7 +45,7 @@ jobs:
 
       - name: Run Playwright suite against preview
         env:
-          FPF_E2E_BASE_URL: ${{ github.event.deployment_status.environment_url }}
+          PREVIEW_URL: ${{ github.event.deployment_status.environment_url }}
           # Optional. If the project's Deployment Protection requires a
           # bypass token, generate one in Vercel project settings ("Protection
           # Bypass for Automation") and add it as the repo secret
@@ -53,7 +53,19 @@ jobs:
           # against protected previews; with it Playwright sends the token
           # via the `x-vercel-protection-bypass` header.
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-        run: bun run test:e2e
+        run: |
+          set -euo pipefail
+          PREVIEW_HOST=$(node -e 'console.log(new URL(process.env.PREVIEW_URL).hostname)')
+
+          if [[ "$PREVIEW_HOST" == "mcp.fpf.sh" || "$PREVIEW_HOST" == "fpf-reference-mcp.vercel.app" || "$PREVIEW_HOST" == fpf-reference-mcp-* ]]; then
+            FPF_E2E_MCP_BASE_URL="$PREVIEW_URL" bunx playwright test tests/e2e/mcp.spec.ts
+          else
+            FPF_E2E_BASE_URL="$PREVIEW_URL" bunx playwright test \
+              tests/e2e/rendering.spec.ts \
+              tests/e2e/routes.spec.ts \
+              tests/e2e/head-shape.spec.ts \
+              tests/e2e/keybindings.spec.ts
+          fi
 
       - name: Upload Playwright report
         if: always()

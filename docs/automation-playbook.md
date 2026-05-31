@@ -1,16 +1,16 @@
 ---
 title: "Automation Playbook"
-description: "Operating model for fpf-memory automation roles, evidence, access, and publishing drafts."
+description: "Operating model for FPF Reference automation roles, evidence, access, and publishing drafts."
 outline: deep
 ---
 
 # Automation Playbook
 
-Use this page when you want agentic help around fpf-memory without collapsing every job into one agent.
+Use this page when you want agentic help around FPF Reference without collapsing every job into one agent.
 
 ## What this page is
 
-This is the public operating model for fpf-memory automation. It explains the roles, what each role may do, what evidence it should produce, and where user approval is required.
+This is the public operating model for FPF Reference automation. It explains the roles, what each role may do, what evidence it should produce, and where user approval is required.
 
 It is not a list of private automation records, thread IDs, local paths, account credentials, or personal scheduling details.
 
@@ -103,7 +103,7 @@ The production sync loop uses FPF as a quality model:
 Operational defaults:
 
 - `sync-fpf.yml` accepts `fpf-origin-updated` and `fpf-sync-updated` dispatches or manual runs, closes superseded sync PRs, opens a current PR, runs validation/build/preview, then auto-merges only after the review window and required evidence pass.
-- `fpf-sync-monitor.yml` polls hourly, runs `bun run monitor:sync`, triggers `sync-fpf.yml` when upstream is ahead and no sync worker is queued or running, and fails the monitor if `fpf.sh` exceeds the drift SLO or the hosted runtime is stale. If a current generated PR already exists, the dispatch is a retry path for CI and merge eligibility rather than a duplicate PR path.
+- `fpf-sync-monitor.yml` polls hourly, runs `bun run monitor:sync`, triggers `sync-fpf.yml` when upstream is ahead and no sync worker is queued or running, and fails the monitor if `mcp.fpf.sh` exceeds the drift SLO or the hosted runtime is stale. If a current generated PR already exists, the dispatch is a retry path for CI and merge eligibility rather than a duplicate PR path.
 - The default drift SLO is 10 hours: hourly detection plus a 2-hour review window plus operational margin.
 - `vercel-spend-monitor.yml` polls Vercel metrics every 15 minutes with `bun run monitor:vercel:spend`, failing when Function Duration exceeds the configured GB-hour window, the legacy MCP route reaches Functions again, or Vercel reports function error-code rows. It requires the repo secret `VERCEL_TOKEN`.
 
@@ -127,19 +127,19 @@ Channel: Medium or Substack
 Audience: agent-tool builders and technical leads who keep pasting large framework specs into coding chats
 
 Working title:
-Stop pasting the whole spec: using fpf-memory as bounded FPF context for agents
+Stop pasting the whole spec: using FPF Reference as bounded FPF context for agents
 
 Hook:
 FPF work needs exact IDs, routes, and evidence, but a whole-spec dump is the wrong interface for daily agent work.
 
 Claim:
-fpf-memory turns the published FPF spec into deterministic lookup surfaces: MCP tools, CLI queries, and generated docs.
+FPF Reference turns the published FPF spec into deterministic lookup surfaces: MCP tools, CLI queries, and generated docs.
 
 Proof points:
 - compiler-backed vectorless index;
 - hosted MCP endpoint;
 - generated docs and work packets;
-- deterministic retrieval first, optional synthesis second.
+- deterministic retrieval first.
 
 Caveat:
 Do not claim broad adoption or benchmark superiority unless current evidence supports it.
@@ -156,14 +156,14 @@ Channel: LinkedIn, X, Mastodon, or another short-form surface
 Draft:
 Built a small MCP-oriented runtime for FPF.
 
-fpf-memory compiles the published FPF spec into deterministic lookup surfaces so agents can ask for exact routes, IDs, docs, and bounded context instead of loading the whole spec.
+FPF Reference compiles the published FPF spec into deterministic lookup surfaces so agents can ask for exact routes, IDs, docs, and bounded context instead of loading the whole spec.
 
 Useful for PR review, project alignment, spec writing, and adoption UX checks.
 
 Docs: https://fpf.sh/
 Connect MCP: https://fpf.sh/connect-mcp
 
-Caveat: deterministic retrieval first; synthesis is optional.
+Caveat: deterministic retrieval is the source of truth; request counts are not unique users.
 ```
 
 ### One-to-one outreach packet
@@ -180,7 +180,7 @@ Hi <name>,
 
 I have a compact artifact that may be relevant to your agent/MCP work.
 
-fpf-memory is a compiler-backed runtime for the published First Principles Framework spec. The basic idea is to avoid pasting the whole framework into agents. Instead, the agent can retrieve exact FPF routes, IDs, generated docs, and bounded context through MCP or CLI.
+FPF Reference is a compiler-backed runtime for the published First Principles Framework spec. The basic idea is to avoid pasting the whole framework into agents. Instead, the agent can retrieve exact FPF routes, IDs, generated docs, and bounded context through MCP or CLI.
 
 The current material:
 - Website: https://fpf.sh/

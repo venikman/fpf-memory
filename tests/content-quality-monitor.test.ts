@@ -91,7 +91,10 @@ describe('FPF content quality monitor', () => {
       curatedDocs: makeCuratedDocs(),
       live: {
         baseUrl: 'https://fpf.sh',
+        statusUrl: 'https://mcp.fpf.sh/api/fpf/status',
         hostedStatus: makeHostedStatus({ sourceHash: 'sha256:wrong' }),
+        websiteManifestUrl: 'https://fpf.sh/fpf-publication-manifest.json',
+        websiteManifest: makeManifest(),
         upstreamSpecUrl: 'https://raw.githubusercontent.com/ailev/FPF/main/FPF-Spec.md',
         upstreamSourceHash: 'sha256:wrong',
       },
@@ -101,6 +104,33 @@ describe('FPF content quality monitor', () => {
     expect(report.state).toBe('breach');
     expect(report.live?.statusSourceCoherent).toBe(false);
     expect(report.live?.upstreamSourceMatchesPublished).toBe(false);
+    expect(report.quality.find((item) => item.characteristic === 'published source coherence')?.status)
+      .toBe('fail');
+  });
+
+  it('breaches live mode when the website manifest is stale even if MCP is fresh', () => {
+    const report = evaluateContentQuality({
+      mode: 'live',
+      snapshot: makeSnapshot(),
+      sourceHash: SOURCE_HASH,
+      manifest: makeManifest(),
+      routeProjection: makeRouteProjection(),
+      curatedDocs: makeCuratedDocs(),
+      live: {
+        baseUrl: 'https://fpf.sh',
+        statusUrl: 'https://mcp.fpf.sh/api/fpf/status',
+        hostedStatus: makeHostedStatus(),
+        websiteManifestUrl: 'https://fpf.sh/fpf-publication-manifest.json',
+        websiteManifest: { ...makeManifest(), sourceHash: 'sha256:website-stale' },
+        upstreamSpecUrl: 'https://raw.githubusercontent.com/ailev/FPF/main/FPF-Spec.md',
+        upstreamSourceHash: SOURCE_HASH,
+      },
+      now: new Date('2026-05-30T16:00:00Z'),
+    });
+
+    expect(report.state).toBe('breach');
+    expect(report.live?.statusSourceCoherent).toBe(true);
+    expect(report.live?.websiteSourceMatchesPublished).toBe(false);
     expect(report.quality.find((item) => item.characteristic === 'published source coherence')?.status)
       .toBe('fail');
   });
@@ -120,7 +150,10 @@ describe('FPF content quality monitor', () => {
       }),
       live: {
         baseUrl: 'https://fpf.sh',
+        statusUrl: 'https://mcp.fpf.sh/api/fpf/status',
         hostedStatus: makeHostedStatus(),
+        websiteManifestUrl: 'https://fpf.sh/fpf-publication-manifest.json',
+        websiteManifest: makeManifest(),
         upstreamSpecUrl: 'https://raw.githubusercontent.com/ailev/FPF/main/FPF-Spec.md',
         upstreamSourceHash: SOURCE_HASH,
       },

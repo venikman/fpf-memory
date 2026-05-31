@@ -18,6 +18,7 @@ export const PUBLISHED_CHANNEL_DIR = 'published/current';
 export const PUBLISHED_SPEC_PATH = `${PUBLISHED_CHANNEL_DIR}/FPF-Spec.md`;
 export const PUBLISHED_ARTIFACT_DIR = `${PUBLISHED_CHANNEL_DIR}/fpf-index`;
 export const PUBLISHED_MANIFEST_PATH = `${PUBLISHED_CHANNEL_DIR}/manifest.json`;
+export const WEBSITE_PUBLICATION_MANIFEST_PATH = 'fpf-publication-manifest.json';
 
 /**
  * Default upstream working copy for `publish:current`. Gitignored and
@@ -37,9 +38,6 @@ export const HOSTED_STAGED_SOURCE_PATH = 'hosted/FPF-Spec.md';
 export const HOSTED_STAGED_ARTIFACT_DIR = 'hosted/fpf-index';
 export const HOSTED_STAGED_MANIFEST_PATH = 'hosted/manifest.json';
 export const SERVERLESS_ARTIFACT_DIR = '/tmp/fpf-memory/fpf-index';
-
-export const HOSTED_MCP_ENDPOINT =
-  'https://mcp.fpf.sh/api/mcp/fpf_memory/mcp';
 
 export const ARTIFACT_FILENAMES = {
   snapshot: 'snapshot.json',

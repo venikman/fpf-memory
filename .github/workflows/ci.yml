@@ -24,7 +24,7 @@ env:
   # in every job and baked into the cache key so a version bump invalidates
   # incompatible node_modules caches.
   BUN_VERSION: '1.3.5'
-  VERCEL_FUNCTION_BUNDLE_PATH: .vercel/output/functions/_origin.func
+  VERCEL_MCP_FUNCTION_BUNDLE_PATH: .vercel/output/functions/_mcp.func
 
 jobs:
   setup:
@@ -137,7 +137,7 @@ jobs:
         run: bun scripts/run-test-shard.ts --shard=${{ matrix.shard }}/4
 
   build:
-    name: Build (docs + MCP + Vercel origin dry-run)
+    name: Build (docs + MCP + Vercel dry-runs)
     runs-on: ubuntu-latest
     needs: setup
     timeout-minutes: 15
@@ -153,22 +153,30 @@ jobs:
             node_modules
           key: ${{ needs.setup.outputs.cache-key }}
       - run: bun install --frozen-lockfile
-      - run: bun run docs:build
       - run: bun run build:mcp
-      - name: Build Vercel origin bundle without uploading
+      - name: Build website Vercel output without uploading
         # Assemble the Vercel Build Output API bundle without uploading.
         # Catches packaging regressions on every PR without requiring
         # deploy credentials.
         run: |
-          bun run vercel:origin:build
-          test -d "$VERCEL_FUNCTION_BUNDLE_PATH"
-          test -f "$VERCEL_FUNCTION_BUNDLE_PATH/index.mjs"
-          test -f "$VERCEL_FUNCTION_BUNDLE_PATH/hosted/FPF-Spec.md"
-          test -f "$VERCEL_FUNCTION_BUNDLE_PATH/hosted/manifest.json"
-          test -f "$VERCEL_FUNCTION_BUNDLE_PATH/hosted/fpf-index/snapshot.json"
+          bun run vercel:website:build
           test -f .vercel/output/static/index.html
+          test -f .vercel/output/static/fpf-publication-manifest.json
           test -f .vercel/output/static/start-here.html
           test -f .vercel/output/static/generated/patterns/A.6.9.html
+          test ! -d .vercel/output/functions
+
+      - name: Build MCP Vercel output without uploading
+        # MCP/API deploys from a separate Vercel project and should not carry
+        # the static docs tree in its serverless bundle.
+        run: |
+          bun run vercel:mcp:build
+          test -d "$VERCEL_MCP_FUNCTION_BUNDLE_PATH"
+          test -f "$VERCEL_MCP_FUNCTION_BUNDLE_PATH/index.mjs"
+          test -f "$VERCEL_MCP_FUNCTION_BUNDLE_PATH/hosted/FPF-Spec.md"
+          test -f "$VERCEL_MCP_FUNCTION_BUNDLE_PATH/hosted/manifest.json"
+          test -f "$VERCEL_MCP_FUNCTION_BUNDLE_PATH/hosted/fpf-index/snapshot.json"
+          test ! -d .vercel/output/static
 
   # Single green check for branch protection: this is the only required
   # status. It goes green iff every parallel job above succeeded. The job

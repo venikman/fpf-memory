@@ -7,36 +7,30 @@ import {
   HOSTED_STAGED_ARTIFACT_DIR,
   HOSTED_STAGED_MANIFEST_PATH,
   HOSTED_STAGED_SOURCE_PATH,
+  PUBLISHED_MANIFEST_PATH,
+  WEBSITE_PUBLICATION_MANIFEST_PATH,
 } from '../core/constants.js';
 import {
   HOSTED_FPF_STATUS_ROUTE,
   HOSTED_MCP_ROUTES,
 } from '../composition/hosted.js';
 
-export interface BuildVercelOriginOptions {
+export interface BuildVercelDeploymentOptions {
   rootDir?: string;
   env?: NodeJS.ProcessEnv;
 }
 
 const OUTPUT_DIR = '.vercel/output';
-// Mount the MCP origin function at `/_origin` rather than `/index` so it
-// can't shadow the static `index.html` that Rspress emits at the project
-// root. Vercel's filesystem-resolution for bare `/` was matching the
-// `functions/index.func/` directory before falling through to
-// `static/index.html`, sending docs visitors to the function's hosted
-// landing instead of the chapter list. The leading underscore signals an
-// internal route — direct visits to `/_origin` aren't advertised, and the
-// Hono app inside the function 404s anything outside its registered
-// `/api/...` handlers.
-const FUNCTION_NAME = '_origin';
-const FUNCTION_DIR = `${OUTPUT_DIR}/functions/${FUNCTION_NAME}.func`;
-const FUNCTION_DEST = `/${FUNCTION_NAME}`;
+const MCP_FUNCTION_NAME = '_mcp';
+export const VERCEL_MCP_FUNCTION_BUNDLE_PATH =
+  `${OUTPUT_DIR}/functions/${MCP_FUNCTION_NAME}.func`;
+const MCP_FUNCTION_DEST = `/${MCP_FUNCTION_NAME}`;
 export const VERCEL_FUNCTION_RUNTIME = 'nodejs24.x';
 export const VERCEL_FUNCTION_MEMORY_MB = 1024;
 export const VERCEL_FUNCTION_MAX_DURATION_SECONDS = 20;
 const STATIC_DIR = `${OUTPUT_DIR}/static`;
 
-export type VercelOriginRoute =
+export type VercelDeploymentRoute =
   | {
       // Phase marker — `handle: "filesystem"` tells Vercel to try the
       // .vercel/output/static/ tree before evaluating the routes that follow.
@@ -55,30 +49,47 @@ export type VercelOriginRoute =
       caseSensitive?: boolean;
     };
 
-export interface VercelOriginOutputConfig {
+export interface VercelDeploymentOutputConfig {
   version: 3;
-  routes: VercelOriginRoute[];
+  routes: VercelDeploymentRoute[];
 }
 
-export async function buildVercelOrigin(
-  options: BuildVercelOriginOptions = {},
+export async function buildVercelWebsite(
+  options: BuildVercelDeploymentOptions = {},
 ): Promise<void> {
   const rootDir = resolve(options.rootDir ?? process.cwd());
   const env = options.env ?? process.env;
   const buildConfig = parseBuildConfig(env);
   const outputDir = resolve(rootDir, OUTPUT_DIR);
-  const functionDir = resolve(rootDir, FUNCTION_DIR);
   const staticDir = resolve(rootDir, STATIC_DIR);
   const docsBuildDir = resolve(rootDir, buildConfig.docsOutDir);
+
+  await rm(outputDir, { recursive: true, force: true });
+
+  await writeVercelConfig(outputDir, createVercelWebsiteOutputConfig());
+  await copyDocsToStatic(docsBuildDir, staticDir);
+  await copyFile(
+    resolve(rootDir, PUBLISHED_MANIFEST_PATH),
+    resolve(staticDir, WEBSITE_PUBLICATION_MANIFEST_PATH),
+  );
+}
+
+export async function buildVercelMcp(
+  options: BuildVercelDeploymentOptions = {},
+): Promise<void> {
+  const rootDir = resolve(options.rootDir ?? process.cwd());
+  const env = options.env ?? process.env;
+  const buildConfig = parseBuildConfig(env);
+  const outputDir = resolve(rootDir, OUTPUT_DIR);
+  const functionDir = resolve(rootDir, VERCEL_MCP_FUNCTION_BUNDLE_PATH);
 
   await rm(outputDir, { recursive: true, force: true });
   await mkdir(functionDir, { recursive: true });
 
   await bundleFunction(rootDir, functionDir);
-  await writeVercelConfig(outputDir);
+  await writeVercelConfig(outputDir, createVercelMcpOutputConfig());
   await writeFunctionConfig(functionDir);
   await copyHostedStage(rootDir, buildConfig.hostedPublicDir, functionDir);
-  await copyDocsToStatic(docsBuildDir, staticDir);
 }
 
 async function bundleFunction(rootDir: string, functionDir: string): Promise<void> {
@@ -95,43 +106,49 @@ async function bundleFunction(rootDir: string, functionDir: string): Promise<voi
 
   if (!result.success) {
     const messages = result.logs.map((log) => log.message).join('\n');
-    throw new Error(`Vercel origin bundle failed:${messages ? `\n${messages}` : ''}`);
+    throw new Error(`Vercel MCP bundle failed:${messages ? `\n${messages}` : ''}`);
   }
 }
 
-async function writeVercelConfig(outputDir: string): Promise<void> {
+async function writeVercelConfig(
+  outputDir: string,
+  config: VercelDeploymentOutputConfig,
+): Promise<void> {
   await mkdir(outputDir, { recursive: true });
-  await writeJson(resolve(outputDir, 'config.json'), createVercelOriginOutputConfig());
+  await writeJson(resolve(outputDir, 'config.json'), config);
 }
 
-export function createVercelOriginOutputConfig(): VercelOriginOutputConfig {
-  const dest = FUNCTION_DEST;
+export function createVercelWebsiteOutputConfig(): VercelDeploymentOutputConfig {
   // Phase order in `routes` is significant. Flow for every request:
   //
   //   1. `handle: "filesystem"` — try static exact match
   //      (`/index.html`, `/start-here.html`, `/generated/patterns/A.6.9.html`).
   //      Vercel resolves bare `/` to `index.html` for free in this phase.
-  //   2. Function routes — only `/api/*` surfaces.
-  //   3. `handle: "miss"` — only enters this phase if filesystem missed
-  //      AND none of the function routes matched. Inside, rewrite
+  //   2. `handle: "miss"` — only enters this phase if filesystem missed.
+  //      Inside, rewrite
   //      `/foo` → `/foo.html` with `check: true` so Vercel re-runs from
   //      the top of the routes table; the second filesystem pass picks
   //      up the rewritten `.html` file.
   //
-  // PR #106 review history: the rewrite originally lived in the main
-  // routes phase, where its greedy `^/(.*)$` matched the `/index`
-  // function destination on its way through the table and rewrote
-  // `/api/...` traffic to `.html`. Confining the rewrite to the `miss`
-  // phase scopes it to "filesystem missed and no function matched",
-  // which is exactly when clean-URL fallback should fire.
+  // The website deployment deliberately has no function routes; MCP and
+  // status APIs are packaged by the separate MCP deployment.
   return {
     version: 3,
     routes: [
       { handle: 'filesystem' },
-      { src: `^${HOSTED_FPF_STATUS_ROUTE}$`, dest },
-      ...HOSTED_MCP_ROUTES.map((route) => ({ src: `^${route}$`, dest })),
       { handle: 'miss' },
       { src: '^/(.*)$', dest: '/$1.html', check: true },
+    ],
+  };
+}
+
+export function createVercelMcpOutputConfig(): VercelDeploymentOutputConfig {
+  const dest = MCP_FUNCTION_DEST;
+  return {
+    version: 3,
+    routes: [
+      { src: `^${HOSTED_FPF_STATUS_ROUTE}$`, dest },
+      ...HOSTED_MCP_ROUTES.map((route) => ({ src: `^${route}$`, dest })),
     ],
   };
 }
@@ -199,7 +216,7 @@ async function copyDocsToStatic(docsBuildDir: string, staticDir: string): Promis
     }
   } catch (error) {
     throw new Error(
-      `Vercel origin bundle: missing built docs at ${docsBuildDir}. Did \`bun run docs:build\` run first?`,
+      `Vercel website bundle: missing built docs at ${docsBuildDir}. Did \`bun run docs:build\` run first?`,
       { cause: error },
     );
   }
@@ -215,7 +232,7 @@ async function copyStagedFile(source: string, target: string, label: string): Pr
     }
   } catch (error) {
     throw new Error(
-      `Vercel origin bundle: missing staged ${label} at ${source}. Did \`bun run stage:from-published\` run first?`,
+      `Vercel MCP bundle: missing staged ${label} at ${source}. Did \`bun run stage:from-published\` run first?`,
       { cause: error },
     );
   }

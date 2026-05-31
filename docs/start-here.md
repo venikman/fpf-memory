@@ -12,7 +12,7 @@ Use this page to choose the first doorway, then move into the reference only whe
 
 ## What this page is
 
-This is the adoption entry surface for fpf-memory's FPF wiki. It helps a person, team, or agent choose a first practical path; it is not the full FPF specification and it is not a product changelog.
+This is the adoption entry surface for the FPF Reference wiki. It helps a person, team, or agent choose a first practical path; it is not the full FPF specification and it is not a product changelog.
 
 ## Methodology
 

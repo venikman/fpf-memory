@@ -48,7 +48,7 @@ FPF Reference should cooperate with GStack, Superpowers, and project instruction
 
 ## Parallel-work contract
 
-Until the compatibility review date, any deployment, sync, docs, or Vercel-origin branch must preserve both route entries in `HOSTED_MCP_ROUTES`:
+Until the compatibility review date, any deployment, sync, docs, or Vercel MCP branch must preserve both entries in `HOSTED_MCP_ROUTES`:
 
 - `/api/mcp/fpf_reference/mcp` as canonical
 - `/api/mcp/fpf_memory/mcp` as blocked legacy compatibility

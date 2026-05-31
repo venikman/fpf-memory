@@ -2,7 +2,7 @@ import { readdir, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const BYTES_PER_MB = 1_000_000;
-const DEFAULT_FUNCTION_PATH = '.vercel/output/functions/_origin.func';
+const DEFAULT_FUNCTION_PATH = '.vercel/output/functions/_mcp.func';
 const DEFAULT_WARN_MB = 235;
 const DEFAULT_FAIL_MB = 240;
 
@@ -27,7 +27,10 @@ export function parseBundleBudgetArgs(
   args: string[],
   env: NodeJS.ProcessEnv = process.env,
 ): BundleBudgetOptions {
-  let functionPath = env.VERCEL_FUNCTION_BUNDLE_PATH ?? DEFAULT_FUNCTION_PATH;
+  let functionPath =
+    env.VERCEL_MCP_FUNCTION_BUNDLE_PATH
+    ?? env.VERCEL_FUNCTION_BUNDLE_PATH
+    ?? DEFAULT_FUNCTION_PATH;
   let warnMb = parsePositiveNumber(
     env.VERCEL_FUNCTION_WARN_MB,
     DEFAULT_WARN_MB,

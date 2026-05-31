@@ -14,7 +14,7 @@ import {
 describe('Vercel spend monitor', () => {
   it('passes when Function Duration, legacy route traffic, and errors stay under threshold', () => {
     const report = evaluateVercelSpendMonitor({
-      project: 'fpf-sh',
+      project: 'fpf-reference-mcp',
       windowMinutes: 30,
       legacyPath: DEFAULT_VERCEL_SPEND_LEGACY_PATH,
       now: new Date('2026-05-30T23:50:00Z'),
@@ -30,7 +30,7 @@ describe('Vercel spend monitor', () => {
 
   it('breaches when Function Duration GB-hours cross the configured window threshold', () => {
     const report = evaluateVercelSpendMonitor({
-      project: 'fpf-sh',
+      project: 'fpf-reference-mcp',
       windowMinutes: 30,
       legacyPath: DEFAULT_VERCEL_SPEND_LEGACY_PATH,
       now: new Date('2026-05-30T23:50:00Z'),
@@ -46,7 +46,7 @@ describe('Vercel spend monitor', () => {
 
   it('breaches if the legacy MCP route reaches Functions again', () => {
     const report = evaluateVercelSpendMonitor({
-      project: 'fpf-sh',
+      project: 'fpf-reference-mcp',
       windowMinutes: 30,
       legacyPath: DEFAULT_VERCEL_SPEND_LEGACY_PATH,
       now: new Date('2026-05-30T23:50:00Z'),
@@ -105,7 +105,7 @@ ${JSON.stringify(metricResponse([]))}
 
   it('renders markdown with explicit thresholds and FPF anchors', () => {
     const report = evaluateVercelSpendMonitor({
-      project: 'fpf-sh',
+      project: 'fpf-reference-mcp',
       windowMinutes: 30,
       legacyPath: DEFAULT_VERCEL_SPEND_LEGACY_PATH,
       now: new Date('2026-05-30T23:50:00Z'),

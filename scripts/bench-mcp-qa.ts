@@ -178,7 +178,7 @@ export async function runQaBenchmark(options: QaBenchOptions): Promise<QaBenchSu
 
   const startedAt = new Date();
   const client = new McpHttpClient(options.url, options.timeoutMs);
-  await client.initialize(`fpf-memory-qa-${options.name}`);
+  await client.initialize(`fpf-reference-qa-${options.name}`);
   const statusResult = await client.callTool('get_fpf_index_status', {});
   const status = asRecord(statusResult.structuredContent, 'status structuredContent');
   assert(status.snapshotExists === true, 'status snapshotExists was not true.');
@@ -366,7 +366,7 @@ async function runSessionCheck(
   knownIds: ReadonlySet<string>,
 ): Promise<SessionCheckResult> {
   const client = new McpHttpClient(options.url, options.timeoutMs);
-  await client.initialize(`fpf-memory-qa-${options.name}-session`);
+  await client.initialize(`fpf-reference-qa-${options.name}-session`);
   const sessionId = `qa-${Date.now()}`;
   const failures: string[] = [];
 

@@ -89,9 +89,9 @@ Out:
 
 - Fast path: a trusted origin notifier can send this repo a `repository_dispatch` event named `fpf-origin-updated` or `fpf-sync-updated` with `client_payload.sha`/`after`, `client_payload.ref`/`branch`, and optionally `client_payload.spec_url`.
 - Backstops: `.github/workflows/fpf-sync-monitor.yml` runs hourly and triggers this worker when production is behind and no sync worker is already active; the worker can also be triggered manually with a branch, tag, commit SHA, or raw spec URL paired with an explicit upstream ref.
-- Work performed: download `FPF-Spec.md`, run `publish:current`, validate `published/current/**`, build the static docs, build the Vercel-origin MCP bundle, and open a publication PR only when files changed.
-- Hosted MCP handoff: before opening a new PR, the workflow closes superseded `chore/sync-fpf-*` PRs. After the review window and required checks pass, it squash-merges the current PR. The resulting `main` push gives Vercel's Git integration the refreshed `fpf.sh` inputs.
-- Monitor: `.github/workflows/fpf-sync-monitor.yml` runs hourly, checks `ailev/FPF` HEAD against `https://fpf.sh/api/fpf/status`, triggers `sync-fpf.yml` when upstream is ahead, and redispatches it when a current generated PR exists but no worker is queued or running. It fails only when drift exceeds the configured SLO or the hosted runtime is internally stale.
+- Work performed: download `FPF-Spec.md`, run `publish:current`, validate `published/current/**`, build the static website deployment, build the separate hosted MCP deployment, and open a publication PR only when files changed.
+- Hosted MCP handoff: before opening a new PR, the workflow closes superseded `chore/sync-fpf-*` PRs. After the review window and required checks pass, it squash-merges the current PR and deploys the website and MCP production bundles through the repo CLI scripts.
+- Monitor: `.github/workflows/fpf-sync-monitor.yml` runs hourly, checks `ailev/FPF` HEAD against `https://mcp.fpf.sh/api/fpf/status`, triggers `sync-fpf.yml` when upstream is ahead, and redispatches it when a current generated PR exists but no worker is queued or running. It fails only when drift exceeds the configured SLO or the hosted runtime is internally stale.
 - Spend guardrail: `.github/workflows/vercel-spend-monitor.yml` runs every 15 minutes with `VERCEL_TOKEN`, checks Vercel Function Duration GB-hours, platform error-code rows, and legacy `/api/mcp/fpf_memory` function invocations, then fails the run when a configured cost-risk threshold is breached.
 
 Minimal dispatch payload:
@@ -123,10 +123,12 @@ Copy `.env.example` to `.env`. The most common settings:
 | `FPF_UPSTREAM_REPO`                       | `FPF`                                | GitHub repo for upstream publication provenance and downloads.         |
 | `FPF_UPSTREAM_REF`                        | `main`                               | Branch, tag, or SHA used by `spec:download` and `publish:current`.     |
 | `FPF_UPSTREAM_SPEC_PATH`                  | `FPF-Spec.md`                        | Path to the spec inside the upstream repo.                             |
-| `FPF_SYNC_MONITOR_STATUS_URL`             | `https://fpf.sh/api/fpf/status`      | Production status endpoint checked by `monitor:sync`.                  |
+| `FPF_SYNC_MONITOR_STATUS_URL`             | `https://mcp.fpf.sh/api/fpf/status`  | MCP production status endpoint checked by `monitor:sync`.              |
+| `FPF_CONTENT_QUALITY_BASE_URL`            | `https://fpf.sh`                     | Website production base URL checked by `monitor:content --mode live`.  |
+| `FPF_CONTENT_QUALITY_STATUS_URL`          | `https://mcp.fpf.sh/api/fpf/status`  | Runtime status URL used for live content provenance checks.            |
 | `FPF_SYNC_MONITOR_MAX_DRIFT_HOURS`        | `10`                                 | Allowed upstream-to-production drift before monitor failure.           |
-| `FPF_VERCEL_PROJECT`                      | `fpf-sh`                             | Vercel project checked by `monitor:vercel:spend`.                      |
-| `FPF_VERCEL_SCOPE`                        | *(empty)*                            | Vercel team scope for metrics queries.                                 |
+| `FPF_VERCEL_PROJECT`                      | `fpf-reference-mcp`                  | Vercel MCP/API project checked by `monitor:vercel:spend`.              |
+| `FPF_VERCEL_SCOPE`                        | `team_CnO1I5xd2OS0lzbbc4RkW7Ym`      | Vercel team scope for metrics and deploy commands.                     |
 | `FPF_VERCEL_SPEND_WINDOW_MINUTES`         | `30`                                 | Metrics lookback window for spend guardrails.                          |
 | `FPF_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR` | `0.25`                            | Maximum Function Duration GB-hours allowed in the lookback window.     |
 | `FPF_VERCEL_SPEND_MAX_LEGACY_INVOCATIONS` | `0`                                  | Maximum function invocations allowed for the legacy MCP route.         |
@@ -160,7 +162,7 @@ bun install
 bun run spec:download            # download FPF-Spec.md into .fpf-upstream/
 bun run publish:current          # refresh published/current/** from FPF_PUBLISH_SOURCE_PATH
 bun run stage:from-published     # stage published/current/** for commit
-bun run monitor:sync             # compare fpf.sh status with upstream HEAD
+bun run monitor:sync             # compare mcp.fpf.sh status with upstream HEAD
 bun run monitor:vercel:spend     # check Vercel Function Duration and legacy-route guardrails
 bun run hooks:install            # install local git hooks
 ```
@@ -172,7 +174,8 @@ bun run lint
 bun run check
 bun run test
 bun run build
-bun run vercel:origin:build
+bun run vercel:website:build
+bun run vercel:mcp:build
 ```
 
 **Docs**
@@ -204,7 +207,7 @@ bun run start                    # hosted HTTP runtime on Hono
 bun run smoke:mcp:http           # smoke-test the streamable HTTP endpoint
 bun run bench:mcp:qa             # hosted Q&A correctness gate
 bun run bench:mcp                # hosted latency/correctness benchmark
-bun run vercel:origin:build      # prebuild the direct Vercel-origin bundle
+bun run vercel:mcp:build         # prebuild the MCP Vercel bundle
 ```
 
 Public hosted status endpoint:
@@ -295,20 +298,24 @@ Call ask_fpf with:
 
 For a proof-style grounded answer, add `mode: "proof"`. For the raw structured envelope, call `query_fpf_spec` instead. For a deterministic retrieval/debug trace, call `trace_fpf_path`.
 
-The direct Vercel origin is canonical for clients. There is no separate Vercel forwarding project in this repo.
+Website and MCP are separate Vercel deployment surfaces. The `fpf-sh` project serves the static reference at `https://fpf.sh/`; the `fpf-reference-mcp` project serves the runtime API at `https://mcp.fpf.sh/`.
 The canonical client aliases are `https://fpf.sh/` for the static reference and `https://mcp.fpf.sh/api/mcp/fpf_reference/mcp` for MCP clients.
 `https://mcp.fpf.sh/api/mcp/fpf_memory/mcp` is the legacy compatibility path and is blocked during the May 2026 cost incident mitigation; new and working clients must use the canonical `fpf_reference` endpoint.
-`fpf-memory-mcp-vercel-origin.vercel.app` is a legacy compatibility alias only; do not add it to new docs, scripts, or client setup examples.
+Historical pre-rename project-origin URLs are audit records only; do not add project-origin hostnames to new client setup examples.
 Historical errored preview deployments can remain in Vercel as audit records.
-Treat current production readiness as the latest `fpf.sh` production alias plus status, smoke, QA, and bundle-size gates, not as an absence of old preview errors.
+Treat current production readiness as the latest `fpf.sh` website production alias plus `mcp.fpf.sh` status, smoke, QA, and bundle-size gates, not as an absence of old preview errors.
 
 ```bash
-bun run vercel:origin:link
-bun run vercel:origin:build
-bun run vercel:origin:deploy:prod
+bun run vercel:website:link
+bun run vercel:website:build
+bun run vercel:website:deploy:prod
+
+bun run vercel:mcp:link
+bun run vercel:mcp:build
+bun run vercel:mcp:deploy:prod
 FPF_MCP_SMOKE_URL=https://mcp.fpf.sh/api/mcp/fpf_reference/mcp bun run smoke:mcp:http
 
-bun run bench:mcp:qa -- --name vercel-origin --url https://mcp.fpf.sh/api/mcp/fpf_reference/mcp --format markdown
+bun run bench:mcp:qa -- --name mcp-production --url https://mcp.fpf.sh/api/mcp/fpf_reference/mcp --format markdown
 ```
 
 Status API:
@@ -346,7 +353,7 @@ All MCP tools are deterministic. Set `FPF_MCP_SURFACE=public` on the deployed se
 - `src/composition/` — canonical bridge layer for runtime/bootstrap composition
 - `src/entrypoints/mcp-stdio.ts` — stdio entry point for MCP clients
 - `src/entrypoints/vercel-function.ts` — Vercel Build Output API function entry point
-- `src/build/vercel-origin-build.ts` — direct Vercel-origin bundle builder
+- `src/build/vercel-origin-build.ts` — Vercel Build Output API builders for website and MCP deployments
 - `src/server.ts` — Hono HTTP server bootstrap for Bun
 - `src/runtime/` — compiler, retrieval, trace, and inspection runtime
 - `src/adapters/infra/logging/runtime-logger.ts` — structured runtime/MCP log writer

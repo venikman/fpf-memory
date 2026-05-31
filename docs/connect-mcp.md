@@ -105,7 +105,7 @@ Open the Agent Panel settings with `agent: open settings`, then add a custom ser
 ```json
 {
   "context_servers": {
-    "fpf-reference": {
+    "fpf_reference": {
       "url": "https://mcp.fpf.sh/api/mcp/fpf_reference/mcp"
     }
   }

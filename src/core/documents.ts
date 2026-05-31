@@ -414,7 +414,7 @@ function renderPatternCatalogMarkdown(
     '',
     '## What this page is',
     '',
-    'This is the full generated catalog of FPF pattern IDs from the published FPF snapshot. It is not the first adoption path and it is not a fpf-memory product feature list.',
+    'This is the full generated catalog of FPF pattern IDs from the published FPF snapshot. It is not the first adoption path and it is not a FPF Reference product feature list.',
     '',
     `Generated pages: ${Object.keys(snapshot.patternGraph.nodes).length}`,
   ];
@@ -692,7 +692,7 @@ function buildPrefaceIndexPage(snapshot: Snapshot): GeneratedDocPage {
     '',
     '## What this page is',
     '',
-    'This catalog lists generated reference pages from FPF preface and supporting sections. These pages explain how to read the specification; they are not fpf-memory product documentation.',
+    'This catalog lists generated reference pages from FPF preface and supporting sections. These pages explain how to read the specification; they are not FPF Reference product documentation.',
     '',
     '## Methodology',
     '',
@@ -845,7 +845,7 @@ function patternPageContext(pattern: PatternRecord): { what: string; methodology
   if (pattern.id === 'H.1') {
     return {
       what:
-        'This is the FPF glossary generated from the published FPF source. It defines framework terms; it is not a glossary of fpf-memory UI, repository, or deployment terms.',
+        'This is the FPF glossary generated from the published FPF source. It defines framework terms; it is not a glossary of FPF Reference UI, repository, or deployment terms.',
       methodology:
         'Use it to normalize terms before route or pattern work. When a term changes a decision, follow its linked or cited pattern ID instead of treating the glossary entry as a whole-task answer.',
     };
@@ -854,7 +854,7 @@ function patternPageContext(pattern: PatternRecord): { what: string; methodology
   if (pattern.id === 'I.3') {
     return {
       what:
-        'This is the FPF specification change log generated from the published FPF source. It is not the fpf-memory product changelog, product release notes, or GitHub history.',
+        'This is the FPF specification change log generated from the published FPF source. It is not the FPF Reference product changelog, product release notes, or GitHub history.',
       methodology:
         'Use it to understand semantic changes inside FPF itself. Use repository PRs, commits, or releases for product changes, and cite I.3 only when the specification evolution matters to the work.',
     };
@@ -862,7 +862,7 @@ function patternPageContext(pattern: PatternRecord): { what: string; methodology
 
   return {
     what:
-      'This is a generated FPF pattern page projected from the published FPF source. It is canonical FPF content for this ID; it is not a fpf-memory product feature page.',
+      'This is a generated FPF pattern page projected from the published FPF source. It is canonical FPF content for this ID; it is not a FPF Reference product feature page.',
     methodology:
       'Read the ID, status, type, and normativity first. Use the content for exact wording, the relations for adjacent concepts, and citations to keep active work grounded without pasting the whole specification.',
   };
@@ -971,7 +971,7 @@ function renderPrefacePage(snapshot: Snapshot, sectionId: string): string {
     '',
     '## What this page is',
     '',
-    'This is generated FPF reference text from the specification preface or supporting sections. It helps interpret FPF; it is not fpf-memory product documentation.',
+    'This is generated FPF reference text from the specification preface or supporting sections. It helps interpret FPF; it is not FPF Reference product documentation.',
     '',
     '## Methodology',
     '',
@@ -1174,7 +1174,7 @@ function autolinkPatternIdsInTableCells(
 }
 
 /**
- * Bare canonical phrases in prose that point to handwritten fpf-memory
+ * Bare canonical phrases in prose that point to handwritten FPF Reference
  * docs pages (those under `docs/`, not the spec-derived `/generated/`
  * tree). Multi-word and case-sensitive on purpose: matching exactly the
  * canonical capitalization keeps "you can start here…" prose untouched

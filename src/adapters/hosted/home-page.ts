@@ -59,7 +59,7 @@ const CLIENT_SECTIONS = [
     ],
     code: `{
   "context_servers": {
-    "fpf-reference": {
+    "fpf_reference": {
       "url": "${HOSTED_MCP_ENDPOINT}"
     }
   }

@@ -13,6 +13,7 @@ import {
 } from '../adapters/hosted/status-page.js';
 import {
   isStandaloneMcpGet,
+  type FpfMcpServer,
   writeMcpGetDisabledNodeResponse,
 } from '../adapters/mcp/server.js';
 import { applyHostedEnvDefaults } from './hosted-env.js';
@@ -30,11 +31,25 @@ export { HOSTED_FPF_STATUS_ROUTE };
 export function createHostedComposition(env: NodeJS.ProcessEnv) {
   const hostedEnv = applyHostedEnvDefaults(env, { moduleUrl: import.meta.url });
   const hostedConfig = parseHostedConfig(hostedEnv);
-  const mcpComposition = getSharedMcpComposition(hostedEnv);
-  const mcpServer =
-    hostedConfig.surface === 'full'
-      ? mcpComposition.fpfReference
-      : mcpComposition.fpfReferencePublic;
+  const logger = getRuntimeLogger(parseLoggingConfig(hostedEnv));
+  let mcpComposition: ReturnType<typeof getSharedMcpComposition> | undefined;
+  let mcpServer: FpfMcpServer | undefined;
+
+  const getMcpComposition = () => {
+    mcpComposition ??= getSharedMcpComposition(hostedEnv);
+    return mcpComposition;
+  };
+  const getMcpServer = () => {
+    if (mcpServer) {
+      return mcpServer;
+    }
+    const composition = getMcpComposition();
+    mcpServer =
+      hostedConfig.surface === 'full'
+        ? composition.fpfReference
+        : composition.fpfReferencePublic;
+    return mcpServer;
+  };
 
   const app = new Hono();
 
@@ -87,15 +102,17 @@ export function createHostedComposition(env: NodeJS.ProcessEnv) {
     } else if (route === LEGACY_HOSTED_MCP_ROUTE) {
       app.all(route, () => createHostedLegacyMcpDisabledResponse());
     } else {
-      app.all(route, (c) => mcpServer.handleStreamableHttp(c.req.raw));
+      app.all(route, (c) => getMcpServer().handleStreamableHttp(c.req.raw));
     }
   }
 
   return {
-    ...mcpComposition,
+    logger,
     hostedConfig,
     app,
-    mcpServer,
+    get mcpServer() {
+      return getMcpServer();
+    },
   };
 }
 
@@ -123,6 +140,25 @@ export function tryHandleHostedMcpNodeGuard(
 
   writeMcpGetDisabledNodeResponse(response);
   return true;
+}
+
+export async function writeHostedStatusNodeResponse(response: ServerResponse): Promise<void> {
+  try {
+    const status = await readHostedFpfStatus({ moduleUrl: import.meta.url });
+    response.statusCode = status.status === 'ok' ? 200 : 503;
+    response.setHeader('Cache-Control', 'no-store');
+    response.setHeader('Content-Type', 'application/json; charset=utf-8');
+    response.end(JSON.stringify(status));
+  } catch (error) {
+    response.statusCode = 500;
+    response.setHeader('Cache-Control', 'no-store');
+    response.setHeader('Content-Type', 'application/json; charset=utf-8');
+    response.end(JSON.stringify({
+      status: 'error',
+      servedAt: new Date().toISOString(),
+      message: error instanceof Error ? error.message : String(error),
+    }));
+  }
 }
 
 function isHostedMcpRoute(

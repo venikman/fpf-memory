@@ -6,8 +6,10 @@ import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import {
   createHostedComposition,
   createHostedErrorLogger,
+  HOSTED_FPF_STATUS_ROUTE,
   HOSTED_MCP_ROUTES,
   tryHandleHostedMcpNodeGuard,
+  writeHostedStatusNodeResponse,
 } from '../composition/hosted.js';
 
 type HostedComposition = ReturnType<typeof createHostedComposition>;
@@ -26,6 +28,11 @@ export default async function handler(
 
       const { mcpServer } = await getHostedComposition();
       await mcpServer.handleNodeStreamableHttp(request, response);
+      return;
+    }
+
+    if (isHostedStatusRoute(request)) {
+      await writeHostedStatusNodeResponse(response);
       return;
     }
 
@@ -60,6 +67,11 @@ function isMcpRoute(request: IncomingMessage): boolean {
   return HOSTED_MCP_ROUTES.includes(
     url.pathname as (typeof HOSTED_MCP_ROUTES)[number],
   );
+}
+
+function isHostedStatusRoute(request: IncomingMessage): boolean {
+  const url = new URL(request.url ?? '/', 'https://localhost');
+  return url.pathname === HOSTED_FPF_STATUS_ROUTE;
 }
 
 function toWebRequest(request: IncomingMessage): Request {

@@ -1,8 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// E2E target. Defaults to the public production URL (https://fpf.sh) for
-// local runs, but is normally overridden in CI to point at the Vercel
-// preview URL of the current PR.
+// Website E2E target. Defaults to the public production URL (https://fpf.sh)
+// for local runs, but is normally overridden in CI to point at the Vercel
+// website preview URL of the current PR. MCP tests use FPF_E2E_MCP_BASE_URL
+// and default to https://mcp.fpf.sh so website and MCP surfaces stay split.
 //
 //   FPF_E2E_BASE_URL=https://fpf-sh-<sha>.vercel.app \
 //     bun run test:e2e

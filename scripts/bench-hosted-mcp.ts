@@ -352,7 +352,7 @@ export async function runBenchmark(options: BenchOptions): Promise<BenchSummary>
   assert(options.url.startsWith('https://'), 'Benchmark URL must be an https:// URL.');
   const startedAt = new Date();
   const correctnessClient = new McpHttpClient(options.url, options.timeoutMs);
-  await correctnessClient.initialize(`fpf-memory-bench-${options.name}-correctness`);
+  await correctnessClient.initialize(`fpf-reference-bench-${options.name}-correctness`);
   const publicTools = await correctnessClient.listTools();
   assertArrayEquals(publicTools, EXPECTED_PUBLIC_TOOLS, 'tools/list did not return the public surface.');
 
@@ -365,7 +365,7 @@ export async function runBenchmark(options: BenchOptions): Promise<BenchSummary>
   const clients = await Promise.all(
     Array.from({ length: options.clients }, async (_, index) => {
       const client = new McpHttpClient(options.url, options.timeoutMs);
-      await client.initialize(`fpf-memory-bench-${options.name}-${index + 1}`);
+      await client.initialize(`fpf-reference-bench-${options.name}-${index + 1}`);
       return client;
     }),
   );

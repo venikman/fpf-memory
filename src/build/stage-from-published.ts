@@ -26,8 +26,8 @@ export interface StageFromPublishedOverrides {
 
 /**
  * Copy the committed `published/current/**` publication surface into the
- * hosted staging tree that `bun run build:vercel-origin` copies into the
- * Vercel function bundle.
+ * hosted staging tree that `bun run build:vercel-mcp` copies into the
+ * Vercel MCP function bundle.
  *
  * No runtime compile, no spec download — if `published/current/` is
  * missing or incomplete, fail fast so CI catches an un-prepared push

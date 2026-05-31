@@ -6,7 +6,7 @@ import {
   normalizeUpstreamRef,
 } from './upstream-source.js';
 
-export const DEFAULT_SYNC_MONITOR_STATUS_URL = 'https://fpf.sh/api/fpf/status';
+export const DEFAULT_SYNC_MONITOR_STATUS_URL = 'https://mcp.fpf.sh/api/fpf/status';
 export const DEFAULT_SYNC_MONITOR_MAX_DRIFT_HOURS = 10;
 
 export const FPF_SYNC_QA_ANCHORS = [
@@ -255,7 +255,7 @@ async function fetchUpstreamCommit(
   const response = await fetchImpl(url, {
     headers: {
       Accept: 'application/vnd.github+json',
-      'User-Agent': 'fpf-memory-sync-monitor',
+      'User-Agent': 'fpf-reference-sync-monitor',
       ...(config.githubToken ? { Authorization: `Bearer ${config.githubToken}` } : {}),
     },
   });
@@ -327,14 +327,14 @@ function summarizeState(
   maxDriftHours: number,
 ): string {
   if (state === 'ok') {
-    return 'fpf.sh is coherent and published from the current upstream ref.';
+    return 'mcp.fpf.sh is coherent and published from the current upstream ref.';
   }
   if (upstreamAhead && state === 'pending_sync') {
-    return `fpf.sh is behind upstream by ${driftHours}h, within the ${maxDriftHours}h sync SLO.`;
+    return `mcp.fpf.sh is behind upstream by ${driftHours}h, within the ${maxDriftHours}h sync SLO.`;
   }
   return upstreamAhead
-    ? `fpf.sh is behind upstream by ${driftHours}h, exceeding the ${maxDriftHours}h sync SLO.`
-    : 'fpf.sh hosted runtime is not internally coherent.';
+    ? `mcp.fpf.sh is behind upstream by ${driftHours}h, exceeding the ${maxDriftHours}h sync SLO.`
+    : 'mcp.fpf.sh hosted runtime is not internally coherent.';
 }
 
 function requireRecord(value: unknown, label: string): Record<string, unknown> {

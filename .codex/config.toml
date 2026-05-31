@@ -2,3 +2,9 @@
 
 [mcp_servers.fpf_reference]
 url = "https://mcp.fpf.sh/api/mcp/fpf_reference/mcp"
+
+[mcp_servers.fpf_reference.tools.get_fpf_index_status]
+approval_mode = "approve"
+
+[mcp_servers.fpf_reference.tools.browse_fpf_catalog]
+approval_mode = "approve"

@@ -8,6 +8,7 @@ import {
   DEFAULT_VERCEL_SPEND_MAX_ERROR_INVOCATIONS,
   DEFAULT_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR,
   DEFAULT_VERCEL_SPEND_MAX_LEGACY_INVOCATIONS,
+  DEFAULT_VERCEL_SPEND_PROJECT,
   DEFAULT_VERCEL_SPEND_WINDOW_MINUTES,
   evaluateVercelSpendMonitor,
   formatVercelSpendMonitorMarkdown,
@@ -23,7 +24,11 @@ const format = readString(
   process.env.FPF_VERCEL_SPEND_MONITOR_FORMAT ?? 'json',
 );
 const failOnBreach = flags.has('fail-on-breach');
-const project = readString(flags, 'project', process.env.FPF_VERCEL_PROJECT ?? 'fpf-sh');
+const project = readString(
+  flags,
+  'project',
+  process.env.FPF_VERCEL_PROJECT ?? DEFAULT_VERCEL_SPEND_PROJECT,
+);
 const scope = readOptionalString(flags, 'scope', process.env.FPF_VERCEL_SCOPE);
 const token = readOptionalString(flags, 'token', process.env.VERCEL_TOKEN);
 const windowMinutes = readPositiveNumber(

@@ -9,7 +9,7 @@ import {
 } from '../src/build/sync-monitor.js';
 
 describe('FPF sync monitor', () => {
-  it('passes when fpf.sh is fresh and published from upstream HEAD', () => {
+  it('passes when mcp.fpf.sh is fresh and published from upstream HEAD', () => {
     const report = evaluateFpfSyncMonitor({
       upstream: makeUpstream({ sha: SHA_CURRENT }),
       hosted: makeHosted({ upstreamRef: SHA_CURRENT }),
@@ -126,7 +126,7 @@ describe('FPF sync monitor', () => {
 
     expect(githubHeaders).toMatchObject({
       Accept: 'application/vnd.github+json',
-      'User-Agent': 'fpf-memory-sync-monitor',
+      'User-Agent': 'fpf-reference-sync-monitor',
     });
   });
 });

@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test';
 
 const MCP_PATH = '/api/mcp/fpf_reference/mcp';
 const LEGACY_MCP_PATH = '/api/mcp/fpf_memory/mcp';
+const STATUS_PATH = '/api/fpf/status';
+const MCP_BASE_URL = process.env.FPF_E2E_MCP_BASE_URL ?? 'https://mcp.fpf.sh';
 const MCP_HEADERS = {
   'Content-Type': 'application/json',
   Accept: 'application/json, text/event-stream',
@@ -39,7 +41,7 @@ const EXPECTED_PUBLIC_TOOLS = [
 ];
 
 test('MCP initialize returns valid serverInfo', async ({ request }) => {
-  const response = await request.post(MCP_PATH, {
+  const response = await request.post(mcpUrl(MCP_PATH), {
     headers: MCP_HEADERS,
     data: {
       jsonrpc: '2.0',
@@ -61,7 +63,7 @@ test('MCP initialize returns valid serverInfo', async ({ request }) => {
 test('legacy MCP alias initializes unless edge-blocked during incident mitigation', async ({
   request,
 }) => {
-  const response = await request.post(LEGACY_MCP_PATH, {
+  const response = await request.post(mcpUrl(LEGACY_MCP_PATH), {
     headers: MCP_HEADERS,
     data: {
       jsonrpc: '2.0',
@@ -86,7 +88,7 @@ test('legacy MCP alias initializes unless edge-blocked during incident mitigatio
 });
 
 test('MCP tools/list exposes the public surface', async ({ request }) => {
-  const response = await request.post(MCP_PATH, {
+  const response = await request.post(mcpUrl(MCP_PATH), {
     headers: MCP_HEADERS,
     data: { jsonrpc: '2.0', id: 1, method: 'tools/list' },
   });
@@ -96,13 +98,20 @@ test('MCP tools/list exposes the public surface', async ({ request }) => {
   expect(names).toEqual([...EXPECTED_PUBLIC_TOOLS].sort());
 });
 
+test('MCP deployment status endpoint returns ok JSON', async ({ request }) => {
+  const response = await request.get(mcpUrl(STATUS_PATH));
+  expect(response.status()).toBe(200);
+  const body = (await response.json()) as { status: string };
+  expect(body.status).toBe('ok');
+});
+
 test('MCP query_fpf_spec resolves project alignment to its route', async ({
   request,
 }) => {
   // The smoke target the runtime test pins. With routes parsed correctly
   // (PR #104) and routing scored correctly (PR #93), this question must
   // resolve to route:project-alignment plus its ordered IDs.
-  const response = await request.post(MCP_PATH, {
+  const response = await request.post(mcpUrl(MCP_PATH), {
     headers: MCP_HEADERS,
     data: {
       jsonrpc: '2.0',
@@ -136,7 +145,7 @@ test('MCP rejects oversized question payloads at the schema boundary', async ({
   // must produce a structured validation error in milliseconds, not silently
   // drive the function to its maxDuration ceiling.
   const huge = 'x'.repeat(2500);
-  const response = await request.post(MCP_PATH, {
+  const response = await request.post(mcpUrl(MCP_PATH), {
     headers: MCP_HEADERS,
     data: {
       jsonrpc: '2.0',
@@ -157,3 +166,7 @@ test('MCP rejects oversized question payloads at the schema boundary', async ({
   const message = body.result?.content?.[0]?.text ?? '';
   expect(message).toMatch(/too big|maximum|2000/i);
 });
+
+function mcpUrl(path: string): string {
+  return new URL(path, MCP_BASE_URL).toString();
+}

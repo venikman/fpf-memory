@@ -24,5 +24,8 @@ describe('FPF content quality workflow', () => {
       'bun run monitor:content -- --mode live --format markdown --fail-on-breach',
     );
     expect(workflow).toContain('FPF_CONTENT_QUALITY_BASE_URL: https://fpf.sh');
+    expect(workflow).toContain(
+      'FPF_CONTENT_QUALITY_STATUS_URL: https://mcp.fpf.sh/api/fpf/status',
+    );
   });
 });

@@ -6,6 +6,7 @@ import {
   buildDocsProjection,
   type PublicationManifestSummary,
 } from '../core/documents.js';
+import { WEBSITE_PUBLICATION_MANIFEST_PATH } from '../core/constants.js';
 import type {
   RouteRecord,
   Snapshot,
@@ -21,6 +22,7 @@ import {
 } from './published-surface.js';
 
 export const DEFAULT_CONTENT_QUALITY_BASE_URL = 'https://fpf.sh';
+export const DEFAULT_CONTENT_QUALITY_STATUS_URL = 'https://mcp.fpf.sh/api/fpf/status';
 
 export const CONTENT_QUALITY_CURATED_DOCS = [
   { label: 'home', path: '/', sourcePath: 'docs/index.md' },
@@ -74,6 +76,7 @@ export type ContentQualityState = 'ok' | 'breach';
 export interface ContentQualityMonitorConfig {
   mode?: ContentQualityMode;
   baseUrl?: string;
+  statusUrl?: string;
   cwd?: string;
   now?: Date;
   fetchImpl?: typeof fetch;
@@ -132,7 +135,10 @@ export interface ContentQualityEvaluationInput {
 
 export interface ContentQualityLiveEvidence {
   baseUrl: string;
+  statusUrl: string;
   hostedStatus: HostedContentStatus;
+  websiteManifestUrl: string;
+  websiteManifest: PublicationManifestSummary;
   upstreamSpecUrl: string;
   upstreamSourceHash: string;
 }
@@ -194,13 +200,18 @@ export interface CuratedDocQualityReport {
 
 export interface ContentQualityLiveReport {
   baseUrl: string;
+  statusUrl: string;
+  websiteManifestUrl: string;
   upstreamSpecUrl: string;
   upstreamSourceHash: string;
   statusSourceCoherent: boolean;
+  websiteSourceMatchesPublished: boolean;
   upstreamSourceMatchesPublished: boolean;
   runtimeFresh: boolean;
   publishedRefMatchesManifest: boolean;
+  websitePublishedRefMatchesManifest: boolean;
   hostedPublishedRef?: string;
+  websitePublishedRef?: string;
   manifestUpstreamRef?: string;
 }
 
@@ -240,6 +251,7 @@ export async function runContentQualityMonitor(
     mode === 'live'
       ? await fetchLiveEvidence({
         baseUrl: config.baseUrl ?? DEFAULT_CONTENT_QUALITY_BASE_URL,
+        statusUrl: config.statusUrl ?? DEFAULT_CONTENT_QUALITY_STATUS_URL,
         fetchImpl,
         manifest,
       })
@@ -288,9 +300,11 @@ export function evaluateContentQuality(
   const curatedPass = staleCuratedRefs.length === 0 && driftedCuratedRefs.length === 0;
   const livePass = live
     ? live.statusSourceCoherent
+      && live.websiteSourceMatchesPublished
       && live.upstreamSourceMatchesPublished
       && live.runtimeFresh
       && live.publishedRefMatchesManifest
+      && live.websitePublishedRefMatchesManifest
     : true;
   const monitoredMcpDocs = new Set(curatedDocs.map((doc) => doc.label));
   const mcpPagesPresent = [
@@ -321,7 +335,7 @@ export function evaluateContentQuality(
       characteristic: 'published source coherence',
       status: livePass ? 'pass' : 'fail',
       evidence: live
-        ? `hosted source coherent=${String(live.statusSourceCoherent)}, raw upstream matches=${String(live.upstreamSourceMatchesPublished)}, runtime fresh=${String(live.runtimeFresh)}`
+        ? `mcp source coherent=${String(live.statusSourceCoherent)}, website manifest matches=${String(live.websiteSourceMatchesPublished)}, raw upstream matches=${String(live.upstreamSourceMatchesPublished)}, runtime fresh=${String(live.runtimeFresh)}`
         : `local published source hash ${input.sourceHash}`,
       fpf: ['B.3', 'G.6'],
     },
@@ -375,7 +389,7 @@ export function formatContentQualityMarkdown(report: ContentQualityReport): stri
     .map((anchor) => `- ${anchor.id} ${anchor.title}: ${anchor.use}`)
     .join('\n');
   const liveBlock = report.live
-    ? `\n## Live Provenance\n\n- Base URL: ${report.live.baseUrl}\n- Hosted upstream ref: ${report.live.hostedPublishedRef ?? 'unknown'}\n- Manifest upstream ref: ${report.live.manifestUpstreamRef ?? 'unknown'}\n- Raw upstream spec: ${report.live.upstreamSpecUrl}\n- Raw upstream hash: ${report.live.upstreamSourceHash}\n`
+    ? `\n## Live Provenance\n\n- Base URL: ${report.live.baseUrl}\n- Website manifest URL: ${report.live.websiteManifestUrl}\n- Status URL: ${report.live.statusUrl}\n- Website upstream ref: ${report.live.websitePublishedRef ?? 'unknown'}\n- Hosted upstream ref: ${report.live.hostedPublishedRef ?? 'unknown'}\n- Manifest upstream ref: ${report.live.manifestUpstreamRef ?? 'unknown'}\n- Raw upstream spec: ${report.live.upstreamSpecUrl}\n- Raw upstream hash: ${report.live.upstreamSourceHash}\n`
     : '';
 
   return `# FPF Content Quality Monitor
@@ -548,15 +562,22 @@ function evaluateLiveEvidence(
 
   return {
     baseUrl: live.baseUrl,
+    statusUrl: live.statusUrl,
+    websiteManifestUrl: live.websiteManifestUrl,
     upstreamSpecUrl: live.upstreamSpecUrl,
     upstreamSourceHash: live.upstreamSourceHash,
     statusSourceCoherent,
+    websiteSourceMatchesPublished: live.websiteManifest.sourceHash === sourceHash,
     upstreamSourceMatchesPublished: live.upstreamSourceHash === sourceHash,
     runtimeFresh: hosted.runtime.snapshotExists && hosted.runtime.fresh,
     publishedRefMatchesManifest: manifest?.upstreamRef
       ? hosted.publication.upstreamRef === manifest.upstreamRef
       : true,
+    websitePublishedRefMatchesManifest: manifest?.upstreamRef
+      ? live.websiteManifest.upstreamRef === manifest.upstreamRef
+      : true,
     hostedPublishedRef: hosted.publication.upstreamRef,
+    websitePublishedRef: live.websiteManifest.upstreamRef,
     manifestUpstreamRef: manifest?.upstreamRef,
   };
 }
@@ -657,6 +678,7 @@ async function fetchLiveCuratedDocs(
 
 async function fetchLiveEvidence(input: {
   baseUrl: string;
+  statusUrl: string;
   fetchImpl: typeof fetch;
   manifest: PublishCurrentManifest;
 }): Promise<ContentQualityLiveEvidence> {
@@ -665,14 +687,22 @@ async function fetchLiveEvidence(input: {
     repo: DEFAULT_UPSTREAM_REPO,
     ref: input.manifest.upstreamRef,
   });
-  const [hostedStatus, upstreamSpecText] = await Promise.all([
-    fetchJson<HostedContentStatus>(input.fetchImpl, input.baseUrl, '/api/fpf/status'),
+  const websiteManifestUrl = new URL(
+    WEBSITE_PUBLICATION_MANIFEST_PATH,
+    input.baseUrl,
+  ).toString();
+  const [hostedStatus, websiteManifest, upstreamSpecText] = await Promise.all([
+    fetchJsonUrl<HostedContentStatus>(input.fetchImpl, input.statusUrl),
+    fetchJsonUrl<PublicationManifestSummary>(input.fetchImpl, websiteManifestUrl),
     fetchTextUrl(input.fetchImpl, upstreamSpecUrl),
   ]);
 
   return {
     baseUrl: input.baseUrl,
+    statusUrl: input.statusUrl,
     hostedStatus,
+    websiteManifestUrl,
+    websiteManifest,
     upstreamSpecUrl,
     upstreamSourceHash: hashText(upstreamSpecText),
   };
@@ -751,12 +781,11 @@ function htmlToSearchText(text: string): string {
     .replace(/\s+/gu, ' ');
 }
 
-async function fetchJson<T>(
+async function fetchJsonUrl<T>(
   fetchImpl: typeof fetch,
-  baseUrl: string,
-  path: string,
+  url: string,
 ): Promise<T> {
-  const text = await fetchText(fetchImpl, baseUrl, path);
+  const text = await fetchTextUrl(fetchImpl, url);
   return JSON.parse(text) as T;
 }
 
@@ -772,7 +801,7 @@ async function fetchTextUrl(fetchImpl: typeof fetch, url: string): Promise<strin
   const response = await fetchImpl(url, {
     headers: {
       Accept: 'text/html,application/json,text/plain;q=0.9,*/*;q=0.8',
-      'User-Agent': 'fpf-memory-content-quality-monitor',
+      'User-Agent': 'fpf-reference-content-quality-monitor',
     },
   });
   if (!response.ok) {
@@ -810,7 +839,7 @@ function summarizeContentQuality(
 ): string {
   if (state === 'ok') {
     const liveSuffix = live
-      ? ` Live fpf.sh status and raw upstream spec hash match ${live.upstreamSourceHash}.`
+      ? ` Live website manifest, mcp.fpf.sh status, and raw upstream spec hash match ${live.upstreamSourceHash}.`
       : '';
     return `Content projection matches the published FPF source: route index, route pages, route refs, and curated selectors are all 100%.${liveSuffix}`;
   }
@@ -829,7 +858,12 @@ function summarizeContentQuality(
       ? `${routeCatalog.missingPatternLinks.length} missing route pattern links`
       : '',
     staleCuratedRefs.length > 0 ? `${staleCuratedRefs.length} stale curated refs` : '',
-    live && (!live.statusSourceCoherent || !live.upstreamSourceMatchesPublished || !live.runtimeFresh)
+    live && (
+      !live.statusSourceCoherent
+      || !live.websiteSourceMatchesPublished
+      || !live.upstreamSourceMatchesPublished
+      || !live.runtimeFresh
+    )
       ? 'live source coherence failed'
       : '',
   ].filter(Boolean);

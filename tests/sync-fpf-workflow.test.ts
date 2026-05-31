@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from '@rstest/core';
 
 describe('sync FPF publication workflow', () => {
-  it('keeps fpf.sh current from Anatoly Levenchuk FPF through dispatch and monitor handoff', async () => {
+  it('keeps published surfaces current from Anatoly Levenchuk FPF through dispatch and monitor handoff', async () => {
     const workflow = await readFile(
       resolve(process.cwd(), '.github/workflows/sync-fpf.yml'),
       'utf8',
@@ -47,7 +47,22 @@ describe('sync FPF publication workflow', () => {
     expect(workflow).toContain('--branch "chore/sync-fpf-${{ steps.detect.outputs.short_ref }}"');
     expect(workflow).toContain('select(.headSha == \\"$PR_HEAD_SHA\\")');
     expect(workflow).toContain('CI_CONCLUSION');
-    expect(workflow).toContain('REQUIRED_CHECK_NAMES=\'["Vercel","Playwright on Vercel preview"]\'');
+    expect(workflow).toContain(
+      'REQUIRED_CHECK_NAMES=\'["Build (docs + MCP + Vercel dry-runs)","Vercel","Playwright on Vercel preview"]\'',
+    );
+    expect(workflow).toContain('VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}');
+    expect(workflow).toContain('bun run deploy:prod');
+    expect(workflow).toContain('Repair production deploy when published/current is already current');
+    expect(workflow).toContain(
+      "if: steps.detect.outputs.changed == 'false' && github.ref == 'refs/heads/main'",
+    );
+    expect(workflow).toContain('FPF_VERCEL_SCOPE: team_CnO1I5xd2OS0lzbbc4RkW7Ym');
+    expect(workflow).toContain('SYNC_OK=false');
+    expect(workflow).toContain('CONTENT_OK=false');
+    expect(workflow).toContain('if [ "$SYNC_OK" = "true" ] && [ "$CONTENT_OK" = "true" ]; then');
+    expect(workflow).toContain('Production monitor failed while published/current has no upstream diff');
+    expect(workflow).toContain('bun run monitor:content -- --mode live --format markdown --fail-on-breach');
+    expect(workflow).toContain('test -f .vercel/output/static/fpf-publication-manifest.json');
   });
 
   it('monitors production drift and triggers sync without user intervention', async () => {
@@ -57,6 +72,9 @@ describe('sync FPF publication workflow', () => {
     );
 
     expect(workflow).toContain("- cron: '17 * * * *'");
+    expect(workflow).toContain(
+      'FPF_SYNC_MONITOR_STATUS_URL: https://mcp.fpf.sh/api/fpf/status',
+    );
     expect(workflow).toContain('bun run monitor:sync -- --format markdown');
     expect(workflow).toContain('Check for existing target sync PR');
     expect(workflow).toContain('--head "$TARGET_BRANCH"');

@@ -24,6 +24,8 @@ describe('hosted home page', () => {
     expect(html).toContain('Codex CLI');
     expect(html).toContain('Claude Code');
     expect(html).toContain('Pi');
+    expect(html).toContain('&quot;fpf_reference&quot;:');
+    expect(html).not.toContain('&quot;fpf-reference&quot;:');
     expect(html).toContain('codex mcp add fpf_reference --url');
     expect(html).toContain('claude mcp add --transport http fpf_reference');
     expect(html).toContain('pi install npm:pi-mcp-extension');

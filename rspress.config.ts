@@ -85,10 +85,7 @@ try {
 export default defineConfig({
   root: docsRoot,
   outDir,
-  // Apex custom domain (fpf.sh) means the site is served at root.
-  // The CNAME file is written into the deploy artifact by the
-  // `Deploy Docs to GitHub Pages` workflow so GH Pages picks up the
-  // custom domain on every build.
+  // Apex custom domain (fpf.sh) means the static website is served at root.
   base: '/',
   title: 'FPF Reference',
   description: 'Compiler-backed FPF reference docs generated from the configured spec source.',
@@ -247,8 +244,8 @@ document.addEventListener('keydown',function(e){
   },
   // Preview / dev server — route unknown URLs to 404.html instead of
   // falling back to the home page so missing pages don't masquerade as
-  // successful navigation (R4-P1-001). Production GitHub Pages already
-  // serves 404.html with a real 404 status; this aligns the local
+  // successful navigation (R4-P1-001). The Vercel website deployment serves
+  // 404.html with a real 404 status; this aligns the local
   // preview behavior so validation sees the same rendered content.
   // Static file serving (clean URLs) handles known routes before this
   // fallback fires.

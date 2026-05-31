@@ -2,6 +2,7 @@ import { appendFile } from 'node:fs/promises';
 
 import {
   DEFAULT_CONTENT_QUALITY_BASE_URL,
+  DEFAULT_CONTENT_QUALITY_STATUS_URL,
   formatContentQualityMarkdown,
   runContentQualityMonitor,
   type ContentQualityMode,
@@ -26,6 +27,11 @@ const report = await runContentQualityMonitor({
     flags,
     'base-url',
     process.env.FPF_CONTENT_QUALITY_BASE_URL ?? DEFAULT_CONTENT_QUALITY_BASE_URL,
+  ),
+  statusUrl: readString(
+    flags,
+    'status-url',
+    process.env.FPF_CONTENT_QUALITY_STATUS_URL ?? DEFAULT_CONTENT_QUALITY_STATUS_URL,
   ),
 });
 const markdown = formatContentQualityMarkdown(report);

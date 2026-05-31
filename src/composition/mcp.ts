@@ -52,6 +52,7 @@ export function createMcpComposition(env: NodeJS.ProcessEnv) {
     inspectAppService,
     refreshAppService,
     discoveryAppService,
+    logger,
   });
 
   return {
