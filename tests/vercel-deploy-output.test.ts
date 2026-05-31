@@ -1,6 +1,8 @@
 import { describe, expect, it } from '@rstest/core';
 
 import {
+  extractInspectedDeployment,
+  extractInspectedDeploymentUrl,
   extractLatestProductionDeploymentUrl,
   extractStagedDeploymentUrl,
 } from '../src/build/vercel-deploy-output.js';
@@ -57,6 +59,43 @@ describe('Vercel deploy output parsing', () => {
 
     expect(extractLatestProductionDeploymentUrl(output, 'previous website production')).toBe(
       'https://current-production.vercel.app',
+    );
+  });
+
+  it('uses the inspected deployment URL instead of custom aliases', () => {
+    const output = [
+      'Fetching deployment "mcp.fpf.sh" in venikmans-projects',
+      '  General',
+      '    id\t\tdpl_123',
+      '    name\tfpf-reference-mcp',
+      '    target\tproduction',
+      '    status\t● Ready',
+      '    url\t\thttps://fpf-reference-lurp5nppz-venikmans-projects.vercel.app',
+      '  Aliases',
+      '    ╶ https://mcp.fpf.sh',
+      '    ╶ https://fpf-reference-mcp-venikmans-projects.vercel.app',
+    ].join('\n');
+
+    expect(extractInspectedDeploymentUrl(output, 'inspected deployment')).toBe(
+      'https://fpf-reference-lurp5nppz-venikmans-projects.vercel.app',
+    );
+    expect(extractInspectedDeployment(output, 'inspected deployment')).toEqual({
+      name: 'fpf-reference-mcp',
+      status: '● Ready',
+      target: 'production',
+      url: 'https://fpf-reference-lurp5nppz-venikmans-projects.vercel.app',
+    });
+  });
+
+  it('rejects ambiguous inspected output without a deployment URL field', () => {
+    const output = [
+      'Aliases',
+      '  ╶ https://fpf-reference-mcp-venikmans-projects.vercel.app',
+      '  ╶ https://another-project-alias.vercel.app',
+    ].join('\n');
+
+    expect(() => extractInspectedDeploymentUrl(output, 'inspected deployment')).toThrow(
+      'Could not parse unique inspected deployment URL',
     );
   });
 });

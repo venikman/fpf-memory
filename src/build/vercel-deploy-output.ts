@@ -1,3 +1,10 @@
+export interface InspectedDeployment {
+  name?: string;
+  status?: string;
+  target?: string;
+  url: string;
+}
+
 export function extractStagedDeploymentUrl(output: string, label: string): string {
   const jsonUrl = extractJsonDeploymentUrl(output);
   if (jsonUrl) {
@@ -19,6 +26,41 @@ export function extractLatestProductionDeploymentUrl(output: string, label: stri
     throw new Error(`Could not parse ${label} URL from Vercel output.`);
   }
   return url;
+}
+
+export function extractInspectedDeploymentUrl(output: string, label: string): string {
+  return extractInspectedDeployment(output, label).url;
+}
+
+export function extractInspectedDeployment(
+  output: string,
+  label: string,
+): InspectedDeployment {
+  const details: Partial<InspectedDeployment> = {};
+  for (const line of stripAnsi(output).split(/\r?\n/u)) {
+    const fields = line.trim().split(/\s+/u);
+    const key = fields[0]?.toLowerCase();
+    if (key === 'name' || key === 'status' || key === 'target') {
+      details[key] = fields.slice(1).join(' ');
+      continue;
+    }
+    if (key === 'url') {
+      const url = fields.find(isVercelDeploymentUrl);
+      if (url) {
+        details.url = url;
+      }
+    }
+  }
+
+  if (!details.url) {
+    const matches = deploymentUrlMatches(output);
+    details.url = matches.length === 1 ? matches[0] : undefined;
+  }
+
+  if (!details.url) {
+    throw new Error(`Could not parse unique ${label} URL from Vercel inspect output.`);
+  }
+  return details as InspectedDeployment;
 }
 
 function extractLastDeploymentUrl(output: string, label: string): string {

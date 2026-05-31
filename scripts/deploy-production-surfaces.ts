@@ -4,6 +4,8 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
 import {
+  extractInspectedDeployment,
+  extractInspectedDeploymentUrl,
   extractLatestProductionDeploymentUrl,
   extractStagedDeploymentUrl,
 } from '../src/build/vercel-deploy-output.js';
@@ -11,6 +13,7 @@ import {
 interface Surface {
   id: string;
   project: string;
+  domain: string;
   config: string;
   buildScript: string;
   verifyOutput: (outputDir: string) => Promise<void>;
@@ -19,9 +22,11 @@ interface Surface {
 interface PreparedSurface {
   surface: Surface;
   outputDir: string;
-  previousProductionUrl: string;
+  previousProjectProductionUrl: string;
+  previousDomainDeploymentUrl: string;
   stagedDeploymentUrl?: string;
-  promoted: boolean;
+  projectPromoted: boolean;
+  domainAliased: boolean;
 }
 
 const rootDir = process.cwd();
@@ -33,6 +38,7 @@ const surfaces: Surface[] = [
   {
     id: 'website',
     project: 'fpf-sh',
+    domain: 'fpf.sh',
     config: 'vercel.json',
     buildScript: 'vercel:website:build',
     verifyOutput: assertWebsiteOutput,
@@ -40,18 +46,22 @@ const surfaces: Surface[] = [
   {
     id: 'mcp',
     project: 'fpf-reference-mcp',
+    domain: 'mcp.fpf.sh',
     config: 'vercel.mcp.json',
     buildScript: 'vercel:mcp:build',
     verifyOutput: assertMcpOutput,
   },
 ];
+const canonicalWebsiteBaseUrl = `https://${requiredSurface('website').domain}`;
+const canonicalMcpStatusUrl = `https://${requiredSurface('mcp').domain}/api/fpf/status`;
 
 try {
   run('bun', ['run', 'deploy:validate']);
 
   const prepared: PreparedSurface[] = [];
   for (const surface of surfaces) {
-    const previousProductionUrl = latestProductionDeploymentUrl(surface);
+    const previousProjectProductionUrl = latestProjectProductionDeploymentUrl(surface);
+    const previousDomainDeploymentUrl = currentDomainDeploymentUrl(surface);
     run('bun', ['run', surface.buildScript]);
     await surface.verifyOutput(outputDir);
 
@@ -60,8 +70,10 @@ try {
     prepared.push({
       surface,
       outputDir: surfaceOutputDir,
-      previousProductionUrl,
-      promoted: false,
+      previousProjectProductionUrl,
+      previousDomainDeploymentUrl,
+      projectPromoted: false,
+      domainAliased: false,
     });
   }
 
@@ -72,9 +84,21 @@ try {
   try {
     for (const state of prepared) {
       promoteDeployment(state.surface, requiredUrl(state));
-      state.promoted = true;
+      state.projectPromoted = true;
+      aliasCanonicalDomain(state.surface, requiredUrl(state));
+      state.domainAliased = true;
+      assertCanonicalDomainDeployment(state);
     }
-    run('bun', ['run', 'monitor:sync', '--', '--format', 'markdown', '--fail-on-breach']);
+    run('bun', [
+      'run',
+      'monitor:sync',
+      '--',
+      '--format',
+      'markdown',
+      '--fail-on-breach',
+      '--status-url',
+      canonicalMcpStatusUrl,
+    ]);
     run('bun', [
       'run',
       'monitor:content',
@@ -84,6 +108,10 @@ try {
       '--format',
       'markdown',
       '--fail-on-breach',
+      '--base-url',
+      canonicalWebsiteBaseUrl,
+      '--status-url',
+      canonicalMcpStatusUrl,
     ]);
   } catch (error) {
     rollbackPromotions(prepared);
@@ -127,7 +155,7 @@ async function deployStagedProduction(state: PreparedSurface): Promise<string> {
   return deploymentUrl;
 }
 
-function latestProductionDeploymentUrl(surface: Surface): string {
+function latestProjectProductionDeploymentUrl(surface: Surface): string {
   const output = runVercelCapture([
     'ls',
     surface.project,
@@ -140,10 +168,49 @@ function latestProductionDeploymentUrl(surface: Surface): string {
   ]);
   const deploymentUrl = extractLatestProductionDeploymentUrl(
     output,
-    `${surface.id} previous production deployment`,
+    `${surface.id} previous project production deployment`,
   );
-  process.stdout.write(`Previous ${surface.id} production deployment: ${deploymentUrl}\n`);
+  process.stdout.write(`Previous ${surface.id} project production deployment: ${deploymentUrl}\n`);
   return deploymentUrl;
+}
+
+function currentDomainDeploymentUrl(surface: Surface): string {
+  const output = runVercelCapture(['inspect', surface.domain, ...vercelScopeArgs()]);
+  const deploymentUrl = extractInspectedDeploymentUrl(
+    output,
+    `${surface.id} previous canonical domain deployment`,
+  );
+  process.stdout.write(
+    `Previous ${surface.id} canonical domain deployment: ${deploymentUrl}\n`,
+  );
+  return deploymentUrl;
+}
+
+function assertCanonicalDomainDeployment(state: PreparedSurface): void {
+  const expectedUrl = requiredUrl(state);
+  const output = runVercelCapture(['inspect', state.surface.domain, ...vercelScopeArgs()]);
+  const inspected = extractInspectedDeployment(
+    output,
+    `${state.surface.id} canonical domain deployment`,
+  );
+  const status = inspected.status?.toLowerCase() ?? '';
+  const target = inspected.target?.toLowerCase();
+  const failures = [
+    inspected.url === expectedUrl ? undefined : `url=${inspected.url}`,
+    inspected.name === state.surface.project ? undefined : `name=${inspected.name ?? 'unknown'}`,
+    target === 'production' ? undefined : `target=${inspected.target ?? 'unknown'}`,
+    status.includes('ready') ? undefined : `status=${inspected.status ?? 'unknown'}`,
+  ].filter((failure): failure is string => Boolean(failure));
+
+  if (failures.length > 0) {
+    throw new Error(
+      `${state.surface.domain} did not resolve to ${state.surface.project} ${expectedUrl}: ${failures.join(', ')}`,
+    );
+  }
+
+  process.stdout.write(
+    `Verified ${state.surface.domain} -> ${inspected.name} ${inspected.url} (${inspected.target}, ${inspected.status})\n`,
+  );
 }
 
 function promoteDeployment(surface: Surface, deploymentUrl: string): void {
@@ -158,17 +225,35 @@ function promoteDeployment(surface: Surface, deploymentUrl: string): void {
   ]);
 }
 
+function aliasCanonicalDomain(surface: Surface, deploymentUrl: string): void {
+  process.stdout.write(
+    `Aliasing ${surface.domain} to ${surface.id} deployment: ${deploymentUrl}\n`,
+  );
+  runVercel(['alias', 'set', deploymentUrl, surface.domain, ...vercelScopeArgs()]);
+}
+
 function rollbackPromotions(states: PreparedSurface[]): void {
   const rollbackFailures: string[] = [];
   for (const state of [...states].reverse()) {
-    if (!state.promoted) continue;
-    try {
-      process.stderr.write(
-        `Rolling back ${state.surface.id} to ${state.previousProductionUrl}\n`,
-      );
-      promoteDeployment(state.surface, state.previousProductionUrl);
-    } catch (error) {
-      rollbackFailures.push(`${state.surface.id}: ${errorMessage(error)}`);
+    if (state.projectPromoted) {
+      try {
+        process.stderr.write(
+          `Rolling back ${state.surface.id} project aliases to ${state.previousProjectProductionUrl}\n`,
+        );
+        promoteDeployment(state.surface, state.previousProjectProductionUrl);
+      } catch (error) {
+        rollbackFailures.push(`${state.surface.id} project aliases: ${errorMessage(error)}`);
+      }
+    }
+    if (state.projectPromoted || state.domainAliased) {
+      try {
+        process.stderr.write(
+          `Rolling back ${state.surface.domain} to ${state.previousDomainDeploymentUrl}\n`,
+        );
+        aliasCanonicalDomain(state.surface, state.previousDomainDeploymentUrl);
+      } catch (error) {
+        rollbackFailures.push(`${state.surface.domain}: ${errorMessage(error)}`);
+      }
     }
   }
 
@@ -232,6 +317,14 @@ function runVercelCapture(args: string[]): string {
 
 function vercelScopeArgs(): string[] {
   return scope ? ['--scope', scope] : [];
+}
+
+function requiredSurface(id: string): Surface {
+  const surface = surfaces.find((candidate) => candidate.id === id);
+  if (!surface) {
+    throw new Error(`Missing ${id} deployment surface.`);
+  }
+  return surface;
 }
 
 function run(command: string, args: string[], options?: { capture?: boolean }): string {
