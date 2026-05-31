@@ -93,7 +93,7 @@ Out:
 - Work performed: download `FPF-Spec.md`, run `publish:current`, validate `published/current/**`, build the static docs, build the Vercel-origin MCP bundle, and open a publication PR only when files changed.
 - Hosted MCP handoff: before opening a new PR, the workflow closes superseded `chore/sync-fpf-*` PRs. After the review window and required checks pass, it squash-merges the current PR. The resulting `main` push gives Vercel's Git integration the refreshed `fpf.sh` inputs.
 - Monitor: `.github/workflows/fpf-sync-monitor.yml` runs hourly, checks `ailev/FPF` HEAD against `https://fpf.sh/api/fpf/status`, triggers `sync-fpf.yml` when upstream is ahead, and redispatches it when a current generated PR exists but no worker is queued or running. It fails only when drift exceeds the configured SLO or the hosted runtime is internally stale.
-- Spend guardrail: `.github/workflows/vercel-spend-monitor.yml` runs every 15 minutes with `VERCEL_TOKEN`, checks Vercel Function Duration GB-hours, platform error-code rows, and legacy `/api/mcp/fpf_memory` function invocations, then fails the run when a configured cost-risk threshold is breached.
+- Spend guardrail: `.github/workflows/vercel-spend-monitor.yml` runs every 15 minutes with `VERCEL_TOKEN`, checks Vercel Function Duration GB-hours, platform error-code rows, and legacy `/api/mcp/fpf_memory` function invocations, then fails the run when a configured cost-risk threshold is breached. If `VERCEL_TOKEN` is missing, the monitor reports `config_error` before querying metrics; fix the secret and rerun before treating the issue as a spend breach.
 
 Minimal dispatch payload:
 

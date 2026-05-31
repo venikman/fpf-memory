@@ -105,7 +105,7 @@ Operational defaults:
 - `sync-fpf.yml` accepts `fpf-origin-updated` and `fpf-sync-updated` dispatches or manual runs, closes superseded sync PRs, opens a current PR, runs validation/build/preview, then auto-merges only after the review window and required evidence pass.
 - `fpf-sync-monitor.yml` polls hourly, runs `bun run monitor:sync`, triggers `sync-fpf.yml` when upstream is ahead and no sync worker is queued or running, and fails the monitor if `fpf.sh` exceeds the drift SLO or the hosted runtime is stale. If a current generated PR already exists, the dispatch is a retry path for CI and merge eligibility rather than a duplicate PR path.
 - The default drift SLO is 10 hours: hourly detection plus a 2-hour review window plus operational margin.
-- `vercel-spend-monitor.yml` polls Vercel metrics every 15 minutes with `bun run monitor:vercel:spend`, failing when Function Duration exceeds the configured GB-hour window, the legacy MCP route reaches Functions again, or Vercel reports function error-code rows. It requires the repo secret `VERCEL_TOKEN`.
+- `vercel-spend-monitor.yml` polls Vercel metrics every 15 minutes with `bun run monitor:vercel:spend`, failing when Function Duration exceeds the configured GB-hour window, the legacy MCP route reaches Functions again, or Vercel reports function error-code rows. It requires the repo secret `VERCEL_TOKEN`; missing credentials report `config_error` and must be fixed before interpreting the alert as spend evidence.
 
 ## Publishing and outreach packets
 

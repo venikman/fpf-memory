@@ -2,6 +2,7 @@ import { appendFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 
 import {
+  createVercelSpendConfigErrorReport,
   createVercelSpendSnapshot,
   DEFAULT_LEGACY_FUNCTION_DURATION_USD_PER_GBHR,
   DEFAULT_VERCEL_SPEND_LEGACY_PATH,
@@ -62,84 +63,103 @@ const legacyPath = readString(
   process.env.FPF_VERCEL_SPEND_LEGACY_PATH ?? DEFAULT_VERCEL_SPEND_LEGACY_PATH,
 );
 
-const common = [
-  '--project',
-  project,
-  '--since',
-  `${windowMinutes}m`,
-  '--granularity',
-  '5m',
-  '--format',
-  'json',
-  ...(scope ? ['--scope', scope] : []),
-  ...(token ? ['--token', token] : []),
-];
+const thresholds = {
+  maxFunctionDurationGbhr,
+  maxLegacyFunctionInvocations,
+  maxErrorFunctionInvocations,
+  functionDurationUsdPerGbhr,
+};
 
-const functionDurationMetrics = runVercelMetrics([
-  'vercel.function_invocation.function_duration_gbhr',
-  '--aggregation',
-  'sum',
-  '--group-by',
-  'request_path',
-  '--group-by',
-  'error_code',
-  ...common,
-]);
-const legacyInvocationMetrics = runVercelMetrics([
-  'vercel.function_invocation.count',
-  '--group-by',
-  'request_path',
-  '--filter',
-  `contains(request_path, '${escapeODataString(legacyPath)}')`,
-  ...common,
-]);
-const errorInvocationMetrics = runVercelMetrics([
-  'vercel.function_invocation.count',
-  '--group-by',
-  'request_path',
-  '--group-by',
-  'error_code',
-  '--filter',
-  "error_code ne ''",
-  ...common,
-]);
+const report = token
+  ? evaluateVercelSpendMonitor({
+    project,
+    windowMinutes,
+    legacyPath,
+    now: new Date(),
+    thresholds,
+    metrics: createVercelSpendSnapshot({
+      functionDurationMetrics: runVercelMetrics([
+        'vercel.function_invocation.function_duration_gbhr',
+        '--aggregation',
+        'sum',
+        '--group-by',
+        'request_path',
+        '--group-by',
+        'error_code',
+        ...commonMetricArgs(token),
+      ]),
+      legacyInvocationMetrics: runVercelMetrics([
+        'vercel.function_invocation.count',
+        '--group-by',
+        'request_path',
+        '--filter',
+        `contains(request_path, '${escapeODataString(legacyPath)}')`,
+        ...commonMetricArgs(token),
+      ]),
+      errorInvocationMetrics: runVercelMetrics([
+        'vercel.function_invocation.count',
+        '--group-by',
+        'request_path',
+        '--group-by',
+        'error_code',
+        '--filter',
+        "error_code ne ''",
+        ...commonMetricArgs(token),
+      ]),
+    }),
+  })
+  : createVercelSpendConfigErrorReport({
+    project,
+    windowMinutes,
+    legacyPath,
+    now: new Date(),
+    thresholds,
+    message:
+      'VERCEL_TOKEN is required for scheduled Vercel metrics monitoring; configure the repository secret and rerun before treating this as a spend breach.',
+  });
 
-const report = evaluateVercelSpendMonitor({
-  project,
-  windowMinutes,
-  legacyPath,
-  now: new Date(),
-  thresholds: {
-    maxFunctionDurationGbhr,
-    maxLegacyFunctionInvocations,
-    maxErrorFunctionInvocations,
-    functionDurationUsdPerGbhr,
-  },
-  metrics: createVercelSpendSnapshot({
-    functionDurationMetrics,
-    legacyInvocationMetrics,
-    errorInvocationMetrics,
-  }),
-});
 const markdown = formatVercelSpendMonitorMarkdown(report);
 
-if (process.env.GITHUB_OUTPUT) {
-  await appendFile(process.env.GITHUB_OUTPUT, renderGithubOutput(report), 'utf8');
-}
-if (process.env.GITHUB_STEP_SUMMARY) {
-  await appendFile(process.env.GITHUB_STEP_SUMMARY, markdown, 'utf8');
-}
+await emitReport(report, markdown);
 
-if (format === 'markdown') {
-  process.stdout.write(markdown);
-} else if (format === 'json') {
-  process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
-} else {
-  throw new Error('--format must be json or markdown.');
-}
-
-if (failOnBreach && report.breached) {
+if (!token || (failOnBreach && report.breached)) {
   process.exitCode = 1;
+}
+
+function commonMetricArgs(requiredToken: string): string[] {
+  return [
+    '--project',
+    project,
+    '--since',
+    `${windowMinutes}m`,
+    '--granularity',
+    '5m',
+    '--format',
+    'json',
+    ...(scope ? ['--scope', scope] : []),
+    '--token',
+    requiredToken,
+  ];
+}
+
+async function emitReport(
+  report: VercelSpendMonitorReport,
+  markdown: string,
+): Promise<void> {
+  if (process.env.GITHUB_OUTPUT) {
+    await appendFile(process.env.GITHUB_OUTPUT, renderGithubOutput(report), 'utf8');
+  }
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    await appendFile(process.env.GITHUB_STEP_SUMMARY, markdown, 'utf8');
+  }
+
+  if (format === 'markdown') {
+    process.stdout.write(markdown);
+  } else if (format === 'json') {
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+  } else {
+    throw new Error('--format must be json or markdown.');
+  }
 }
 
 function runVercelMetrics(args: string[]): unknown {
@@ -166,17 +186,30 @@ function runVercelMetrics(args: string[]): unknown {
 }
 
 function renderGithubOutput(report: VercelSpendMonitorReport): string {
+  const metricsWereQueried = report.state !== 'config_error';
   return [
     ['state', report.state],
     ['ok', String(report.ok)],
     ['breached', String(report.breached)],
     ['project', report.project],
     ['window_minutes', String(report.windowMinutes)],
-    ['function_duration_gbhr', String(report.metrics.functionDurationGbhr)],
+    [
+      'function_duration_gbhr',
+      metricsWereQueried ? String(report.metrics.functionDurationGbhr) : 'not_queried',
+    ],
     ['max_function_duration_gbhr', String(report.thresholds.maxFunctionDurationGbhr)],
-    ['estimated_function_duration_usd', String(report.estimatedFunctionDurationUsd)],
-    ['legacy_function_invocations', String(report.metrics.legacyFunctionInvocations)],
-    ['function_error_invocations', String(report.metrics.errorFunctionInvocations)],
+    [
+      'estimated_function_duration_usd',
+      metricsWereQueried ? String(report.estimatedFunctionDurationUsd) : 'not_queried',
+    ],
+    [
+      'legacy_function_invocations',
+      metricsWereQueried ? String(report.metrics.legacyFunctionInvocations) : 'not_queried',
+    ],
+    [
+      'function_error_invocations',
+      metricsWereQueried ? String(report.metrics.errorFunctionInvocations) : 'not_queried',
+    ],
     ['summary', report.summary],
   ].map(([key, value]) => `${key}=${sanitizeOutputValue(value)}\n`).join('');
 }

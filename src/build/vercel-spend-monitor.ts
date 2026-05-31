@@ -32,7 +32,7 @@ export const VERCEL_SPEND_QA_ANCHORS = [
   },
 ] as const;
 
-export type VercelSpendMonitorState = 'ok' | 'breach';
+export type VercelSpendMonitorState = 'ok' | 'breach' | 'config_error';
 
 export interface VercelMetricRow {
   value: number;
@@ -149,6 +149,46 @@ export function evaluateVercelSpendMonitor(input: {
   };
 }
 
+export function createVercelSpendConfigErrorReport(input: {
+  project: string;
+  windowMinutes: number;
+  legacyPath: string;
+  now: Date;
+  thresholds: VercelSpendMonitorThresholds;
+  message: string;
+}): VercelSpendMonitorReport {
+  const metrics = emptyVercelSpendSnapshot();
+  return {
+    state: 'config_error',
+    ok: false,
+    breached: false,
+    generatedAt: input.now.toISOString(),
+    project: input.project,
+    windowMinutes: input.windowMinutes,
+    legacyPath: input.legacyPath,
+    thresholds: input.thresholds,
+    metrics,
+    estimatedFunctionDurationUsd: 0,
+    quality: [
+      {
+        characteristic: 'monitor-configuration',
+        status: 'fail',
+        evidence: input.message,
+        fpf: ['B.5.1', 'A.10'],
+      },
+      {
+        characteristic: 'traceability',
+        status: 'pass',
+        evidence: `project=${input.project}, window=${input.windowMinutes}m, generatedAt=${input.now.toISOString()}`,
+        fpf: ['A.10'],
+      },
+    ],
+    fpfAnchors: VERCEL_SPEND_QA_ANCHORS,
+    summary:
+      `Vercel spend monitor configuration failed before metrics were queried: ${input.message}`,
+  };
+}
+
 export function createVercelSpendSnapshot(input: {
   functionDurationMetrics: unknown;
   legacyInvocationMetrics: unknown;
@@ -177,6 +217,17 @@ export function createVercelSpendSnapshot(input: {
   };
 }
 
+function emptyVercelSpendSnapshot(): VercelSpendMetricSnapshot {
+  return {
+    functionDurationGbhr: 0,
+    legacyFunctionInvocations: 0,
+    errorFunctionInvocations: 0,
+    functionDurationRows: [],
+    legacyInvocationRows: [],
+    errorInvocationRows: [],
+  };
+}
+
 export function parseVercelMetricsJson(output: string): unknown {
   const start = output.indexOf('{');
   const end = output.lastIndexOf('}');
@@ -195,6 +246,13 @@ export function formatVercelSpendMonitorMarkdown(report: VercelSpendMonitorRepor
   const anchorRows = report.fpfAnchors
     .map((anchor) => `- ${anchor.id} ${anchor.title}: ${anchor.use}`)
     .join('\n');
+  const observed = report.state === 'config_error'
+    ? '- Metrics were not queried because the monitor configuration failed before Vercel metrics access.'
+    : [
+      `- Function Duration: ${formatNumber(report.metrics.functionDurationGbhr)} GB-hours (~$${formatNumber(report.estimatedFunctionDurationUsd)})`,
+      `- Legacy function invocations: ${formatNumber(report.metrics.legacyFunctionInvocations)}`,
+      `- Function error-code invocations: ${formatNumber(report.metrics.errorFunctionInvocations)}`,
+    ].join('\n');
 
   return `# Vercel Spend Monitor
 
@@ -215,9 +273,7 @@ ${qualityRows}
 
 ## Observed
 
-- Function Duration: ${formatNumber(report.metrics.functionDurationGbhr)} GB-hours (~$${formatNumber(report.estimatedFunctionDurationUsd)})
-- Legacy function invocations: ${formatNumber(report.metrics.legacyFunctionInvocations)}
-- Function error-code invocations: ${formatNumber(report.metrics.errorFunctionInvocations)}
+${observed}
 
 ## Strategy Anchors
 

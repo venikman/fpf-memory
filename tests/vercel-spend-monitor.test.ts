@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@rstest/core';
 
 import {
+  createVercelSpendConfigErrorReport,
   createVercelSpendSnapshot,
   DEFAULT_LEGACY_FUNCTION_DURATION_USD_PER_GBHR,
   DEFAULT_VERCEL_SPEND_LEGACY_PATH,
@@ -57,6 +58,26 @@ describe('Vercel spend monitor', () => {
     expect(report.state).toBe('breach');
     expect(report.summary).toContain('legacy MCP route reached 1 function invocations');
     expect(report.quality.find((item) => item.characteristic === 'legacy-route-isolation')?.status)
+      .toBe('fail');
+  });
+
+  it('reports missing Vercel metrics credentials as configuration failure, not spend breach', () => {
+    const report = createVercelSpendConfigErrorReport({
+      project: 'fpf-sh',
+      windowMinutes: 30,
+      legacyPath: DEFAULT_VERCEL_SPEND_LEGACY_PATH,
+      now: new Date('2026-05-31T01:56:00Z'),
+      thresholds: makeThresholds(),
+      message:
+        'VERCEL_TOKEN is required for scheduled Vercel metrics monitoring; configure the repository secret and rerun before treating this as a spend breach.',
+    });
+
+    expect(report.state).toBe('config_error');
+    expect(report.ok).toBe(false);
+    expect(report.breached).toBe(false);
+    expect(report.summary).toContain('failed before metrics were queried');
+    expect(report.summary).toContain('VERCEL_TOKEN is required');
+    expect(report.quality.find((item) => item.characteristic === 'monitor-configuration')?.status)
       .toBe('fail');
   });
 
@@ -119,6 +140,26 @@ ${JSON.stringify(metricResponse([]))}
     expect(markdown).toContain('Legacy function invocations: 0');
     expect(markdown).toContain('B.5.1');
     expect(markdown).toContain('A.10');
+  });
+
+  it('renders config failures without implying observed spend', () => {
+    const report = createVercelSpendConfigErrorReport({
+      project: 'fpf-sh',
+      windowMinutes: 30,
+      legacyPath: DEFAULT_VERCEL_SPEND_LEGACY_PATH,
+      now: new Date('2026-05-31T01:56:00Z'),
+      thresholds: makeThresholds(),
+      message: 'VERCEL_TOKEN is required for scheduled Vercel metrics monitoring.',
+    });
+
+    const markdown = formatVercelSpendMonitorMarkdown(report);
+    const observedSection = markdown.slice(markdown.indexOf('## Observed'));
+
+    expect(markdown).toContain('State: **config_error**');
+    expect(markdown).toContain('monitor-configuration | fail');
+    expect(markdown).toContain('Metrics were not queried');
+    expect(observedSection).not.toContain('Function Duration: 0 GB-hours');
+    expect(observedSection).not.toContain('Legacy function invocations: 0');
   });
 });
 

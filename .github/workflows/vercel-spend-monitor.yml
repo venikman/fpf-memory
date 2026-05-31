@@ -55,10 +55,6 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          if [ -z "${VERCEL_TOKEN:-}" ]; then
-            echo "::error::VERCEL_TOKEN is required for scheduled Vercel metrics monitoring."
-            exit 1
-          fi
           bun run monitor:vercel:spend -- --format markdown --fail-on-breach
 
       - name: Open or update spend breach issue
@@ -85,17 +81,31 @@ jobs:
           )"
 
           body="$(
-            printf '%s\n' \
-              'The scheduled Vercel spend monitor failed or breached.' \
-              '' \
-              "- State: $STATE" \
-              "- Summary: $SUMMARY" \
-              "- Function Duration: $FUNCTION_DURATION_GBHR GB-hours (threshold $MAX_FUNCTION_DURATION_GBHR)" \
-              "- Legacy route function invocations: $LEGACY_INVOCATIONS" \
-              "- Function error-code invocations: $ERROR_INVOCATIONS" \
-              "- Run: $RUN_URL" \
-              '' \
-              'Check the workflow summary for the full metric table before changing billing or deploy settings.'
+            if [ "$STATE" = "config_error" ]; then
+              printf '%s\n' \
+                'The scheduled Vercel spend monitor failed before querying metrics.' \
+                '' \
+                "- State: $STATE" \
+                "- Summary: $SUMMARY" \
+                "- Function Duration: not queried" \
+                "- Legacy route function invocations: not queried" \
+                "- Function error-code invocations: not queried" \
+                "- Run: $RUN_URL" \
+                '' \
+                'Fix the monitor configuration or repository secrets and rerun before changing billing or deploy settings.'
+            else
+              printf '%s\n' \
+                'The scheduled Vercel spend monitor failed or reported a breach.' \
+                '' \
+                "- State: $STATE" \
+                "- Summary: $SUMMARY" \
+                "- Function Duration: $FUNCTION_DURATION_GBHR GB-hours (threshold $MAX_FUNCTION_DURATION_GBHR)" \
+                "- Legacy route function invocations: $LEGACY_INVOCATIONS" \
+                "- Function error-code invocations: $ERROR_INVOCATIONS" \
+                "- Run: $RUN_URL" \
+                '' \
+                'Check the workflow summary for the full metric table before changing billing or deploy settings.'
+            fi
           )"
 
           if [ -n "$existing" ]; then
