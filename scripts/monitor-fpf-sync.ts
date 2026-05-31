@@ -70,7 +70,7 @@ function renderGithubOutput(report: SyncMonitorReport): string {
     ['published_short_ref', report.hosted.publication.upstreamRef.slice(0, 8)],
     ['drift_hours', String(report.driftHours)],
     ['max_drift_hours', String(report.maxDriftHours)],
-    ['runtime_fresh', String(report.runtimeFresh)],
+    ['runtime_snapshot_consistent', String(report.runtimeFresh)],
     ['source_coherent', String(report.sourceCoherent)],
     ['summary', report.summary],
   ].map(([key, value]) => `${key}=${sanitizeOutputValue(value)}\n`).join('');

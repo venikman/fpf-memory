@@ -37,7 +37,7 @@ describe('semantic production smoke', () => {
       fetchImpl: createSmokeFetch({
         statusSourceHash: 'sha256:old',
         statusUpstreamRef: 'fedcba0987654321fedcba0987654321fedcba09',
-        statusRuntimeFresh: true,
+        statusSnapshotConsistent: true,
       }),
     });
 
@@ -45,8 +45,20 @@ describe('semantic production smoke', () => {
     expect(report.summary).toContain('status endpoint publication artifact');
     expect(report.summary).toContain('status endpoint runtime source');
     expect(formatProductionSmokeMarkdown(report)).toContain(
-      'freshness requires both internal snapshot consistency and match to the expected published/current artifact',
+      'freshnessBasis=source_hash_match, upstreamCurrentness=unknown',
     );
+  });
+
+  it('accepts transitional legacy runtime.fresh status payloads', async () => {
+    const report = await runProductionSmoke({
+      websiteBaseUrl: 'https://docs.example.test',
+      mcpBaseUrl: 'https://mcp.example.test',
+      expectedPublication: EXPECTED,
+      fetchImpl: createSmokeFetch({ legacyStatusFresh: true }),
+    });
+
+    expect(report.ok).toBe(true);
+    expect(formatProductionSmokeMarkdown(report)).toContain('legacy_runtime_fresh');
   });
 
   it('breaches when old fpf_memory onboarding is primary or unlabeled', async () => {
@@ -89,10 +101,12 @@ function createSmokeFetch(overrides: {
   mcpConnectText?: string;
   statusSourceHash?: string;
   statusUpstreamRef?: string;
-  statusRuntimeFresh?: boolean;
+  statusSnapshotConsistent?: boolean;
+  legacyStatusFresh?: boolean;
 } = {}): typeof fetch {
   const statusSourceHash = overrides.statusSourceHash ?? EXPECTED.sourceHash;
   const statusUpstreamRef = overrides.statusUpstreamRef ?? EXPECTED.upstreamRef;
+  const statusSnapshotConsistent = overrides.statusSnapshotConsistent ?? true;
 
   const fakeFetch = async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
     const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
@@ -113,8 +127,20 @@ function createSmokeFetch(overrides: {
           currentSourceHash: statusSourceHash,
           builtAt: '2026-05-31T09:25:00.097Z',
           snapshotExists: true,
-          fresh: overrides.statusRuntimeFresh ?? true,
+          ...(overrides.legacyStatusFresh
+            ? { fresh: statusSnapshotConsistent }
+            : { snapshotConsistent: statusSnapshotConsistent }),
         },
+        ...(overrides.legacyStatusFresh
+          ? {}
+          : {
+            freshness: {
+              snapshotConsistent: statusSnapshotConsistent,
+              publicationCurrentAgainstConfiguredSource: statusSnapshotConsistent,
+              freshnessBasis: statusSnapshotConsistent ? 'source_hash_match' : 'unknown',
+              upstreamCurrentness: 'unknown',
+            },
+          }),
       });
     }
 

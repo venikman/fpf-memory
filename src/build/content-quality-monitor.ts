@@ -117,7 +117,14 @@ export interface HostedContentStatus {
     currentSourceHash: string;
     builtAt?: string;
     snapshotExists: boolean;
-    fresh: boolean;
+    fresh?: boolean;
+    snapshotConsistent?: boolean;
+    artifactSourceMatchesConfiguredSource?: boolean;
+  };
+  freshness?: {
+    publicationCurrentAgainstConfiguredSource: boolean;
+    freshnessBasis: string;
+    upstreamCurrentness: 'unknown';
   };
 }
 
@@ -335,7 +342,7 @@ export function evaluateContentQuality(
       characteristic: 'published source coherence',
       status: livePass ? 'pass' : 'fail',
       evidence: live
-        ? `mcp source coherent=${String(live.statusSourceCoherent)}, website manifest matches=${String(live.websiteSourceMatchesPublished)}, raw upstream matches=${String(live.upstreamSourceMatchesPublished)}, runtime fresh=${String(live.runtimeFresh)}`
+        ? `mcp source coherent=${String(live.statusSourceCoherent)}, website manifest matches=${String(live.websiteSourceMatchesPublished)}, raw upstream matches=${String(live.upstreamSourceMatchesPublished)}, runtime snapshot consistent=${String(live.runtimeFresh)}`
         : `local published source hash ${input.sourceHash}`,
       fpf: ['B.3', 'G.6'],
     },
@@ -569,7 +576,9 @@ function evaluateLiveEvidence(
     statusSourceCoherent,
     websiteSourceMatchesPublished: live.websiteManifest.sourceHash === sourceHash,
     upstreamSourceMatchesPublished: live.upstreamSourceHash === sourceHash,
-    runtimeFresh: hosted.runtime.snapshotExists && hosted.runtime.fresh,
+    runtimeFresh:
+      hosted.runtime.snapshotExists
+      && (hosted.runtime.snapshotConsistent ?? hosted.runtime.fresh ?? false),
     publishedRefMatchesManifest: manifest?.upstreamRef
       ? hosted.publication.upstreamRef === manifest.upstreamRef
       : true,

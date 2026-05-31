@@ -60,6 +60,65 @@ describe('FPF sync monitor', () => {
     expect(report.summary).toContain('exceeding the 10h sync SLO');
   });
 
+  it('does not treat internal snapshot consistency as upstream currentness', () => {
+    const report = evaluateFpfSyncMonitor({
+      upstream: makeUpstream({
+        sha: SHA_CURRENT,
+        committedAt: '2026-05-29T20:00:00Z',
+      }),
+      hosted: makeHosted({
+        upstreamRef: SHA_PUBLISHED,
+        runtimeFresh: true,
+      }),
+      now: new Date('2026-05-30T12:00:00Z'),
+      maxDriftHours: 10,
+    });
+
+    expect(report.runtimeFresh).toBe(true);
+    expect(report.sourceCoherent).toBe(true);
+    expect(report.upstreamAhead).toBe(true);
+    expect(report.state).toBe('breach');
+    expect(report.summary).toContain('exceeding the 10h sync SLO');
+  });
+
+  it('accepts the transitional legacy runtime.fresh field while parsing hosted status', async () => {
+    const fetchImpl = Object.assign(
+      async (url: Parameters<typeof fetch>[0]) => {
+        if (String(url).includes('api.github.com')) {
+          return jsonResponse({
+            sha: SHA_CURRENT,
+            html_url: `https://github.com/ailev/FPF/commit/${SHA_CURRENT}`,
+            commit: {
+              message: 'quality improvement campaign results',
+              author: { date: '2026-05-30T08:00:00Z' },
+            },
+          });
+        }
+
+        const status = makeHosted({ upstreamRef: SHA_CURRENT });
+        return jsonResponse({
+          ...status,
+          runtime: {
+            ...status.runtime,
+            snapshotConsistent: undefined,
+            artifactSourceMatchesConfiguredSource: undefined,
+            fresh: true,
+          },
+        });
+      },
+      { preconnect: fetch.preconnect },
+    ) satisfies typeof fetch;
+
+    const report = await runFpfSyncMonitor({
+      fetchImpl,
+      now: new Date('2026-05-30T12:00:00Z'),
+      maxDriftHours: 10,
+    });
+
+    expect(report.runtimeFresh).toBe(true);
+    expect(report.state).toBe('ok');
+  });
+
   it('breaches when the hosted runtime is internally stale', () => {
     const report = evaluateFpfSyncMonitor({
       upstream: makeUpstream({ sha: SHA_CURRENT }),
@@ -173,7 +232,13 @@ function makeHosted(
       currentSourceHash: sourceHash,
       builtAt: '2026-05-30T10:00:00Z',
       snapshotExists: true,
-      fresh: overrides.runtimeFresh ?? true,
+      snapshotConsistent: overrides.runtimeFresh ?? true,
+      artifactSourceMatchesConfiguredSource: overrides.runtimeFresh ?? true,
+    },
+    freshness: {
+      publicationCurrentAgainstConfiguredSource: overrides.runtimeFresh ?? true,
+      freshnessBasis: overrides.runtimeFresh ?? true ? 'source_hash_match' : 'unknown',
+      upstreamCurrentness: 'unknown',
     },
   };
 }

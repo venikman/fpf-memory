@@ -79,7 +79,13 @@ export interface HostedSyncStatus {
     currentSourceHash: string;
     builtAt: string;
     snapshotExists: boolean;
-    fresh: boolean;
+    snapshotConsistent: boolean;
+    artifactSourceMatchesConfiguredSource: boolean;
+  };
+  freshness?: {
+    publicationCurrentAgainstConfiguredSource: boolean;
+    freshnessBasis: string;
+    upstreamCurrentness: 'unknown';
   };
 }
 
@@ -149,7 +155,7 @@ export function evaluateFpfSyncMonitor(input: {
   const runtimeFresh =
     input.hosted.status === 'ok'
     && input.hosted.runtime.snapshotExists
-    && input.hosted.runtime.fresh
+    && input.hosted.runtime.snapshotConsistent
     && sourceCoherent;
   const upstreamAhead = input.hosted.publication.upstreamRef !== input.upstream.sha;
   const driftHours = upstreamAhead
@@ -172,8 +178,8 @@ export function evaluateFpfSyncMonitor(input: {
       characteristic: 'coherence',
       status: runtimeFresh ? 'pass' : 'fail',
       evidence: runtimeFresh
-        ? `hosted runtime is fresh at ${input.hosted.runtime.currentSourceHash}`
-        : `hosted status=${input.hosted.status}, fresh=${String(input.hosted.runtime.fresh)}, sourceCoherent=${String(sourceCoherent)}`,
+        ? `hosted runtime snapshot is internally consistent at ${input.hosted.runtime.currentSourceHash}`
+        : `hosted status=${input.hosted.status}, snapshotConsistent=${String(input.hosted.runtime.snapshotConsistent)}, sourceCoherent=${String(sourceCoherent)}`,
       fpf: ['B.3', 'A.10'],
     },
     {
@@ -305,6 +311,14 @@ function parseHostedStatus(value: unknown): HostedSyncStatus {
     })
     .parse(record.publication);
   const runtime = requireRecord(record.runtime, 'hosted runtime');
+  const legacyFresh = typeof runtime.fresh === 'boolean' ? runtime.fresh : undefined;
+  const snapshotConsistent =
+    typeof runtime.snapshotConsistent === 'boolean'
+      ? runtime.snapshotConsistent
+      : legacyFresh;
+  if (snapshotConsistent === undefined) {
+    throw new Error('hosted runtime missing runtime.snapshotConsistent.');
+  }
   return {
     status: requireString(record.status, 'status'),
     servedAt: requireString(record.servedAt, 'servedAt'),
@@ -315,8 +329,25 @@ function parseHostedStatus(value: unknown): HostedSyncStatus {
       currentSourceHash: requireString(runtime.currentSourceHash, 'runtime.currentSourceHash'),
       builtAt: requireString(runtime.builtAt, 'runtime.builtAt'),
       snapshotExists: requireBoolean(runtime.snapshotExists, 'runtime.snapshotExists'),
-      fresh: requireBoolean(runtime.fresh, 'runtime.fresh'),
+      snapshotConsistent,
+      artifactSourceMatchesConfiguredSource:
+        typeof runtime.artifactSourceMatchesConfiguredSource === 'boolean'
+          ? runtime.artifactSourceMatchesConfiguredSource
+          : snapshotConsistent,
     },
+    freshness: typeof record.freshness === 'object' && record.freshness !== null
+      ? {
+        publicationCurrentAgainstConfiguredSource: requireBoolean(
+          (record.freshness as Record<string, unknown>).publicationCurrentAgainstConfiguredSource,
+          'freshness.publicationCurrentAgainstConfiguredSource',
+        ),
+        freshnessBasis: requireString(
+          (record.freshness as Record<string, unknown>).freshnessBasis,
+          'freshness.freshnessBasis',
+        ),
+        upstreamCurrentness: 'unknown',
+      }
+      : undefined,
   };
 }
 

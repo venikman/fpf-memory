@@ -395,7 +395,13 @@ function makeHostedStatus(overrides: { sourceHash?: string } = {}): HostedConten
       snapshotSourceHash: sourceHash,
       currentSourceHash: sourceHash,
       snapshotExists: true,
-      fresh: true,
+      snapshotConsistent: true,
+      artifactSourceMatchesConfiguredSource: true,
+    },
+    freshness: {
+      publicationCurrentAgainstConfiguredSource: true,
+      freshnessBasis: 'source_hash_match',
+      upstreamCurrentness: 'unknown',
     },
   };
 }

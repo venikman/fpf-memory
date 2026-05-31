@@ -216,7 +216,7 @@ Public hosted status endpoint:
 /api/fpf/status
 ```
 
-This returns the published `upstreamRef`, `sourceHash`, `publishedAt`, `specBytes`, and runtime freshness evidence for the same bundled FPF source and snapshot used by the hosted MCP endpoint.
+This returns the published `upstreamRef`, `sourceHash`, `publishedAt`, `specBytes`, and split runtime evidence for the same bundled FPF source and snapshot used by the hosted MCP endpoint. `runtime.snapshotConsistent` means the deployed source, manifest, and snapshot agree internally. `freshness.upstreamCurrentness` is `unknown` on this endpoint by design; production currentness is proven only by monitors that compare `publication.upstreamRef` and `publication.sourceHash` against the intended upstream/current artifact.
 
 ## FPF work evaluation
 

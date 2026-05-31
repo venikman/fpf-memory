@@ -26,9 +26,11 @@ export interface HostedFpfStatusOptions {
 export interface HostedFpfStatus {
   status: 'ok' | 'stale';
   servedAt: string;
+  statusMeaning: string;
   publication: {
     channel: string;
     upstreamRef: string;
+    upstreamDate: string;
     publishedAt: string;
     sourceHash: string;
     compilerFingerprint: string;
@@ -44,9 +46,23 @@ export interface HostedFpfStatus {
     snapshotSourceHash: string;
     currentSourceHash: string;
     builtAt: string;
+    artifactBuiltAt: string;
+    artifactSourceHash: string;
     snapshotExists: boolean;
-    fresh: boolean;
+    snapshotConsistent: boolean;
+    artifactSourceMatchesConfiguredSource: boolean;
     compilerMode: 'local_vectorless';
+  };
+  freshness: {
+    snapshotConsistent: boolean;
+    artifactBuiltAt: string;
+    artifactSourceHash: string;
+    publicationUpstreamRef: string;
+    publicationUpstreamDate: string;
+    publicationCurrentAgainstConfiguredSource: boolean;
+    deployedAt: string | null;
+    freshnessBasis: 'source_hash_match' | 'unknown';
+    upstreamCurrentness: 'unknown';
   };
 }
 
@@ -88,18 +104,23 @@ export async function readHostedFpfStatus(
   );
   const snapshot = publicationSnapshotSchema.parse(JSON.parse(snapshotBytes.toString('utf8')));
   const currentSourceHash = `sha256:${createHash('sha256').update(sourceBytes).digest('hex')}`;
-  const fresh =
+  const snapshotConsistent =
     manifest.sourceHash === currentSourceHash
     && snapshot.sourceHash === currentSourceHash
     && manifest.compilerFingerprint === snapshot.compilerFingerprint
     && manifest.specBytes === sourceBytes.byteLength;
+  const artifactSourceMatchesConfiguredSource = snapshot.sourceHash === currentSourceHash;
+  const deployedAt = process.env.FPF_DEPLOYED_AT?.trim() || null;
 
   return {
-    status: fresh ? 'ok' : 'stale',
+    status: snapshotConsistent ? 'ok' : 'stale',
     servedAt: new Date().toISOString(),
+    statusMeaning:
+      'ok means the deployed source, manifest, and snapshot are internally consistent; upstream currentness is checked by monitors that compare publication.upstreamRef externally.',
     publication: {
       channel: manifest.channel,
       upstreamRef: manifest.upstreamRef,
+      upstreamDate: manifest.upstreamCommittedAt,
       publishedAt: manifest.publishedAt,
       sourceHash: manifest.sourceHash,
       compilerFingerprint: manifest.compilerFingerprint,
@@ -115,9 +136,23 @@ export async function readHostedFpfStatus(
       snapshotSourceHash: snapshot.sourceHash,
       currentSourceHash,
       builtAt: snapshot.builtAt,
+      artifactBuiltAt: snapshot.builtAt,
+      artifactSourceHash: snapshot.sourceHash,
       snapshotExists: true,
-      fresh,
+      snapshotConsistent,
+      artifactSourceMatchesConfiguredSource,
       compilerMode: 'local_vectorless',
+    },
+    freshness: {
+      snapshotConsistent,
+      artifactBuiltAt: snapshot.builtAt,
+      artifactSourceHash: snapshot.sourceHash,
+      publicationUpstreamRef: manifest.upstreamRef,
+      publicationUpstreamDate: manifest.upstreamCommittedAt,
+      publicationCurrentAgainstConfiguredSource: snapshotConsistent,
+      deployedAt,
+      freshnessBasis: snapshotConsistent ? 'source_hash_match' : 'unknown',
+      upstreamCurrentness: 'unknown',
     },
   };
 }

@@ -111,7 +111,8 @@ Done means each claim has current evidence. Do not treat a green local build, a 
 
 3. **Publication freshness**
    - Hosted status `publication.sourceHash`, `runtime.sourceHash`, and `runtime.currentSourceHash` match.
-   - Hosted status reports `fresh: true`.
+   - Hosted status reports `runtime.snapshotConsistent: true` and `freshness.freshnessBasis: source_hash_match`.
+   - Treat `freshness.upstreamCurrentness: unknown` as expected until an external monitor compares the hosted publication to the intended upstream/current artifact.
    - The upstream ref in hosted status matches the committed `published/current/manifest.json` for the release being claimed.
 
 4. **Deployment ownership**

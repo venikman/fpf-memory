@@ -69,10 +69,13 @@ export interface ObservedStatusEndpoint {
   publicationSourceHash?: string;
   publicationPublishedAt?: string;
   runtimeBuiltAt?: string;
-  runtimeFresh?: boolean;
+  runtimeSnapshotConsistent?: boolean;
   runtimeSourceHash?: string;
   runtimeCurrentSourceHash?: string;
   runtimeSnapshotSourceHash?: string;
+  freshnessPublicationCurrent?: boolean;
+  freshnessBasis?: string;
+  freshnessUpstreamCurrentness?: string;
 }
 
 export interface ObservedMcpEndpoint {
@@ -310,6 +313,11 @@ async function fetchStatusEndpoint(
   const body = asRecord(await response.json(), 'status endpoint response');
   const publication = asRecord(body.publication, 'status publication');
   const runtime = asRecord(body.runtime, 'status runtime');
+  const freshness = typeof body.freshness === 'object' && body.freshness !== null
+    ? asRecord(body.freshness, 'status freshness')
+    : undefined;
+  const runtimeSnapshotConsistent =
+    booleanField(runtime.snapshotConsistent) ?? booleanField(runtime.fresh);
 
   return {
     servedAt: stringField(body.servedAt),
@@ -318,10 +326,17 @@ async function fetchStatusEndpoint(
     publicationSourceHash: stringField(publication.sourceHash),
     publicationPublishedAt: stringField(publication.publishedAt),
     runtimeBuiltAt: stringField(runtime.builtAt),
-    runtimeFresh: booleanField(runtime.fresh),
+    runtimeSnapshotConsistent,
     runtimeSourceHash: stringField(runtime.sourceHash),
     runtimeCurrentSourceHash: stringField(runtime.currentSourceHash),
     runtimeSnapshotSourceHash: stringField(runtime.snapshotSourceHash),
+    freshnessPublicationCurrent: freshness
+      ? booleanField(freshness.publicationCurrentAgainstConfiguredSource)
+      : runtimeSnapshotConsistent,
+    freshnessBasis: freshness ? stringField(freshness.freshnessBasis) : undefined,
+    freshnessUpstreamCurrentness: freshness
+      ? stringField(freshness.upstreamCurrentness)
+      : undefined,
   };
 }
 
@@ -336,8 +351,17 @@ function checkStatusEndpoint(
   const runtimeInternallyConsistent =
     status.runtimeSourceHash === status.runtimeCurrentSourceHash
     && status.runtimeSnapshotSourceHash === status.runtimeCurrentSourceHash
-    && status.runtimeFresh === true;
+    && status.runtimeSnapshotConsistent === true;
   const runtimeMatchesExpected = status.runtimeCurrentSourceHash === expected.sourceHash;
+  const freshnessBasisValid =
+    status.freshnessBasis === undefined || status.freshnessBasis === 'source_hash_match';
+  const upstreamCurrentnessDelimited =
+    status.freshnessUpstreamCurrentness === undefined
+    || status.freshnessUpstreamCurrentness === 'unknown';
+  const freshnessEnvelopeValid =
+    (status.freshnessPublicationCurrent ?? runtimeInternallyConsistent) === true
+    && freshnessBasisValid
+    && upstreamCurrentnessDelimited;
 
   return [
     {
@@ -351,14 +375,20 @@ function checkStatusEndpoint(
       characteristic: 'status endpoint runtime source',
       status: runtimeInternallyConsistent && runtimeMatchesExpected ? 'pass' : 'fail',
       evidence:
-        `runtime internalFresh=${String(status.runtimeFresh)}, runtimeSourceHash=${status.runtimeCurrentSourceHash ?? 'unknown'}`,
+        `runtime snapshotConsistent=${String(status.runtimeSnapshotConsistent)}, runtimeSourceHash=${status.runtimeCurrentSourceHash ?? 'unknown'}`,
       url,
     },
     {
       characteristic: 'status freshness basis',
-      status: publicationMatches && runtimeInternallyConsistent && runtimeMatchesExpected ? 'pass' : 'fail',
+      status:
+        publicationMatches
+        && runtimeInternallyConsistent
+        && runtimeMatchesExpected
+        && freshnessEnvelopeValid
+          ? 'pass'
+          : 'fail',
       evidence:
-        'freshness requires both internal snapshot consistency and match to the expected published/current artifact',
+        `freshnessBasis=${status.freshnessBasis ?? 'legacy_runtime_fresh'}, upstreamCurrentness=${status.freshnessUpstreamCurrentness ?? 'legacy_unspecified'}`,
       url,
     },
   ];

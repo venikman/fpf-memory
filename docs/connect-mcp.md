@@ -32,7 +32,7 @@ For a browser-readable health check, use the freshness page instead:
 https://mcp.fpf.sh/api/fpf/status
 ```
 
-It returns JSON the browser will render — source hash, snapshot age, and the upstream ref the index was built from.
+It returns JSON the browser will render — source hash, snapshot age, and the upstream ref the index was built from. `runtime.snapshotConsistent` is an internal deployed-artifact check; upstream/currentness stays `unknown` there unless a monitor compares the status payload to the intended upstream ref and source hash.
 
 Public tools:
 

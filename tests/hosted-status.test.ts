@@ -37,19 +37,47 @@ describe('hosted FPF status endpoint', () => {
     const response = await app.request(HOSTED_FPF_STATUS_ROUTE);
     const body = await response.json() as {
       status: string;
-      publication: { upstreamRef: string; sourceHash: string; publishedAt: string };
-      runtime: { fresh: boolean; currentSourceHash: string; compilerMode: string };
+      statusMeaning: string;
+      publication: {
+        upstreamRef: string;
+        upstreamDate: string;
+        sourceHash: string;
+        publishedAt: string;
+      };
+      runtime: {
+        snapshotConsistent: boolean;
+        artifactBuiltAt: string;
+        artifactSourceHash: string;
+        currentSourceHash: string;
+        compilerMode: string;
+        fresh?: boolean;
+      };
+      freshness: {
+        snapshotConsistent: boolean;
+        publicationCurrentAgainstConfiguredSource: boolean;
+        freshnessBasis: string;
+        upstreamCurrentness: string;
+      };
     };
 
     expect(response.status).toBe(200);
     expect(response.headers.get('Cache-Control')).toBe('no-store');
     expect(body.status).toBe('ok');
+    expect(body.statusMeaning).toContain('internally consistent');
     expect(body.publication.upstreamRef).toMatch(/^[0-9a-f]{40}$/);
+    expect(body.publication.upstreamDate).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(body.publication.sourceHash).toMatch(/^sha256:/);
     expect(body.publication.publishedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
-    expect(body.runtime.fresh).toBe(true);
+    expect(body.runtime.fresh).toBeUndefined();
+    expect(body.runtime.snapshotConsistent).toBe(true);
+    expect(body.runtime.artifactBuiltAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(body.runtime.artifactSourceHash).toBe(body.publication.sourceHash);
     expect(body.runtime.currentSourceHash).toBe(body.publication.sourceHash);
     expect(body.runtime.compilerMode).toBe('local_vectorless');
+    expect(body.freshness.snapshotConsistent).toBe(true);
+    expect(body.freshness.publicationCurrentAgainstConfiguredSource).toBe(true);
+    expect(body.freshness.freshnessBasis).toBe('source_hash_match');
+    expect(body.freshness.upstreamCurrentness).toBe('unknown');
   }, 20_000);
 
   it('reads hosted staged manifest, source, and snapshot when present', async () => {
@@ -67,13 +95,19 @@ describe('hosted FPF status endpoint', () => {
 
     expect(status.status).toBe('ok');
     expect(status.publication.upstreamRef).toBe('1234567890abcdef1234567890abcdef12345678');
+    expect(status.publication.upstreamDate).toBe('2026-05-08T17:00:40Z');
     expect(status.publication.specBytes).toBe(Buffer.byteLength(specText));
-    expect(status.runtime.fresh).toBe(true);
+    expect(status.runtime.snapshotConsistent).toBe(true);
+    expect(status.runtime.artifactSourceMatchesConfiguredSource).toBe(true);
+    expect(status.runtime.artifactBuiltAt).toBe('2026-05-09T00:00:00.000Z');
     expect(status.runtime.sourcePath).toBe(HOSTED_STAGED_SOURCE_PATH);
     expect(status.runtime.manifestPath).toBe(HOSTED_STAGED_MANIFEST_PATH);
+    expect(status.freshness.publicationCurrentAgainstConfiguredSource).toBe(true);
+    expect(status.freshness.freshnessBasis).toBe('source_hash_match');
+    expect(status.freshness.upstreamCurrentness).toBe('unknown');
   });
 
-  it('reports stale when the staged snapshot does not match the staged source', async () => {
+  it('reports stale internal consistency without implying upstream currentness', async () => {
     const specText = '# Fake FPF\n\nHosted status fixture.\n';
     const sourceHash = `sha256:${createHash('sha256').update(specText).digest('hex')}`;
     await writeHostedStage({
@@ -87,9 +121,14 @@ describe('hosted FPF status endpoint', () => {
     const status = await readHostedFpfStatus({ cwd: tempRoot });
 
     expect(status.status).toBe('stale');
-    expect(status.runtime.fresh).toBe(false);
+    expect(status.runtime.snapshotConsistent).toBe(false);
+    expect(status.runtime.artifactSourceMatchesConfiguredSource).toBe(false);
     expect(status.runtime.currentSourceHash).toBe(sourceHash);
     expect(status.runtime.snapshotSourceHash).toBe('sha256:stale');
+    expect(status.freshness.snapshotConsistent).toBe(false);
+    expect(status.freshness.publicationCurrentAgainstConfiguredSource).toBe(false);
+    expect(status.freshness.freshnessBasis).toBe('unknown');
+    expect(status.freshness.upstreamCurrentness).toBe('unknown');
   });
 });
 
