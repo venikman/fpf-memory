@@ -10,6 +10,7 @@ import {
   createVercelWebsiteOutputConfig,
 } from '../src/build/vercel-origin-build.js';
 import {
+  HOSTED_HOME_ROUTES,
   HOSTED_MCP_ROUTE,
   LEGACY_HOSTED_MCP_ROUTE,
 } from '../src/composition/hosted.js';
@@ -170,6 +171,17 @@ describe('Vercel deployment configs', () => {
     });
   });
 
+  it('routes hosted home pages through the MCP deployment function', () => {
+    const config = createVercelMcpOutputConfig();
+
+    for (const route of HOSTED_HOME_ROUTES) {
+      expect(config.routes).toContainEqual({
+        src: `^${route}$`,
+        dest: '/_mcp',
+      });
+    }
+  });
+
   it('keeps website output static-only with clean URL fallback', () => {
     const config = createVercelWebsiteOutputConfig();
     const srcRoutes = config.routes.flatMap((route) =>
@@ -201,13 +213,16 @@ describe('Vercel deployment configs', () => {
     expect(ci).toContain('test -f .vercel/output/static/fpf-publication-manifest.json');
   });
 
-  it('keeps MCP output API-only without static docs routes', () => {
+  it('keeps MCP output function-only without static docs fallback routes', () => {
     const config = createVercelMcpOutputConfig();
     const srcRoutes = config.routes.flatMap((route) =>
       'src' in route ? [route.src] : [],
     );
 
     expect(config.routes.some((route) => 'handle' in route)).toBe(false);
+    for (const route of HOSTED_HOME_ROUTES) {
+      expect(srcRoutes).toContain(`^${route}$`);
+    }
     expect(srcRoutes).toContain(`^${HOSTED_FPF_STATUS_ROUTE}$`);
     expect(srcRoutes).toContain(`^${HOSTED_MCP_ROUTE}$`);
     expect(srcRoutes).toContain(`^${LEGACY_HOSTED_MCP_ROUTE}$`);

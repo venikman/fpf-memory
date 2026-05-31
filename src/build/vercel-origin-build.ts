@@ -12,6 +12,7 @@ import {
 } from '../core/constants.js';
 import {
   HOSTED_FPF_STATUS_ROUTE,
+  HOSTED_HOME_ROUTES,
   HOSTED_MCP_ROUTES,
 } from '../composition/hosted.js';
 
@@ -147,6 +148,7 @@ export function createVercelMcpOutputConfig(): VercelDeploymentOutputConfig {
   return {
     version: 3,
     routes: [
+      ...HOSTED_HOME_ROUTES.map((route) => ({ src: `^${route}$`, dest })),
       { src: `^${HOSTED_FPF_STATUS_ROUTE}$`, dest },
       ...HOSTED_MCP_ROUTES.map((route) => ({ src: `^${route}$`, dest })),
     ],
