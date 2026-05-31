@@ -57,22 +57,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          write_output() {
-            key="$1"
-            value="$2"
-            sanitized="$(printf '%s' "$value" | tr '\r\n' '  ' | sed -E 's/[[:space:]]+/ /g' | cut -c1-900)"
-            printf '%s=%s\n' "$key" "$sanitized" >> "$GITHUB_OUTPUT"
-          }
-
-          if [ -z "${VERCEL_TOKEN:-}" ]; then
-            message="VERCEL_SPEND_MONITOR_TOKEN or VERCEL_TOKEN is required for scheduled Vercel metrics monitoring."
-            write_output state monitor_error
-            write_output summary "$message"
-            write_output monitor_error "$message"
-            echo "::error::$message"
-            exit 1
-          fi
-
           monitor_log="$(mktemp)"
           set +e
           bun run monitor:vercel:spend -- --format markdown --fail-on-breach > "$monitor_log" 2>&1
@@ -81,9 +65,17 @@ jobs:
           cat "$monitor_log"
 
           if [ "$status" -ne 0 ] && ! grep -q '^state=' "$GITHUB_OUTPUT"; then
+            write_output() {
+              key="$1"
+              value="$2"
+              sanitized="$(printf '%s' "$value" | tr '\r\n' '  ' | sed -E 's/[[:space:]]+/ /g' | cut -c1-900)"
+              printf '%s=%s\n' "$key" "$sanitized" >> "$GITHUB_OUTPUT"
+            }
+
             error_tail="$(tail -n 20 "$monitor_log" | tr '\r\n' '  ' | sed -E 's/[[:space:]]+/ /g' | cut -c1-900)"
             message="Monitor failed before producing a metric summary: $error_tail"
-            write_output state monitor_error
+            write_output state metrics_unavailable
+            write_output metrics_queried false
             write_output summary "$message"
             write_output monitor_error "$error_tail"
             echo "::error::$message"
@@ -99,6 +91,7 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           STATE: ${{ steps.spend.outputs.state || 'unknown' }}
           SUMMARY: ${{ steps.spend.outputs.summary || 'Monitor failed before producing a summary.' }}
+          METRICS_QUERIED: ${{ steps.spend.outputs.metrics_queried || 'unknown' }}
           FUNCTION_DURATION_GBHR: ${{ steps.spend.outputs.function_duration_gbhr || 'unknown' }}
           MAX_FUNCTION_DURATION_GBHR: ${{ steps.spend.outputs.max_function_duration_gbhr || env.FPF_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR }}
           LEGACY_INVOCATIONS: ${{ steps.spend.outputs.legacy_function_invocations || 'unknown' }}
@@ -118,10 +111,11 @@ jobs:
           body_file="$(mktemp)"
           {
             printf '%s\n' \
-              'The scheduled Vercel spend monitor failed or breached.' \
+              'The scheduled Vercel spend monitor needs attention.' \
               '' \
               "- State: $STATE" \
               "- Summary: $SUMMARY" \
+              "- Metrics queried: $METRICS_QUERIED" \
               "- Function Duration: $FUNCTION_DURATION_GBHR GB-hours (threshold $MAX_FUNCTION_DURATION_GBHR)" \
               "- Legacy route function invocations: $LEGACY_INVOCATIONS" \
               "- Function error-code invocations: $ERROR_INVOCATIONS" \
@@ -131,7 +125,7 @@ jobs:
             fi
             printf '%s\n' \
               '' \
-              'Check the workflow summary for the full metric table before changing billing or deploy settings.'
+              'If metrics were not queried, fix monitor credentials/config before treating this as spend evidence. Check the workflow summary for the full metric table before changing billing or deploy settings.'
           } > "$body_file"
 
           if [ -n "$existing" ]; then

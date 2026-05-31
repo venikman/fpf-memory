@@ -2,6 +2,8 @@ import { appendFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 
 import {
+  createVercelSpendConfigErrorReport,
+  createVercelSpendMetricsUnavailableReport,
   createVercelSpendSnapshot,
   DEFAULT_LEGACY_FUNCTION_DURATION_USD_PER_GBHR,
   DEFAULT_VERCEL_SPEND_LEGACY_PATH,
@@ -70,6 +72,12 @@ const legacyPath = readString(
   'legacy-path',
   process.env.FPF_VERCEL_SPEND_LEGACY_PATH ?? DEFAULT_VERCEL_SPEND_LEGACY_PATH,
 );
+const thresholds = {
+  maxFunctionDurationGbhr,
+  maxLegacyFunctionInvocations,
+  maxErrorFunctionInvocations,
+  functionDurationUsdPerGbhr,
+};
 
 const common = [
   '--project',
@@ -84,52 +92,7 @@ const common = [
   ...(token ? ['--token', token] : []),
 ];
 
-const functionDurationMetrics = runVercelMetrics([
-  'vercel.function_invocation.function_duration_gbhr',
-  '--aggregation',
-  'sum',
-  '--group-by',
-  'request_path',
-  '--group-by',
-  'error_code',
-  ...common,
-]);
-const legacyInvocationMetrics = runVercelMetrics([
-  'vercel.function_invocation.count',
-  '--group-by',
-  'request_path',
-  '--filter',
-  `contains(request_path, '${escapeODataString(legacyPath)}')`,
-  ...common,
-]);
-const errorInvocationMetrics = runVercelMetrics([
-  'vercel.function_invocation.count',
-  '--group-by',
-  'request_path',
-  '--group-by',
-  'error_code',
-  '--filter',
-  "error_code ne ''",
-  ...common,
-]);
-
-const report = evaluateVercelSpendMonitor({
-  project,
-  windowMinutes,
-  legacyPath,
-  now: new Date(),
-  thresholds: {
-    maxFunctionDurationGbhr,
-    maxLegacyFunctionInvocations,
-    maxErrorFunctionInvocations,
-    functionDurationUsdPerGbhr,
-  },
-  metrics: createVercelSpendSnapshot({
-    functionDurationMetrics,
-    legacyInvocationMetrics,
-    errorInvocationMetrics,
-  }),
-});
+const report = createReport();
 const markdown = formatVercelSpendMonitorMarkdown(report);
 
 if (process.env.GITHUB_OUTPUT) {
@@ -147,8 +110,75 @@ if (format === 'markdown') {
   throw new Error('--format must be json or markdown.');
 }
 
-if (failOnBreach && report.breached) {
+if (failOnBreach && (report.breached || report.operatorActionRequired)) {
   process.exitCode = 1;
+}
+
+function createReport(): VercelSpendMonitorReport {
+  const now = new Date();
+  if (!token) {
+    return createVercelSpendConfigErrorReport({
+      project,
+      windowMinutes,
+      legacyPath,
+      now,
+      thresholds,
+      message: 'VERCEL_SPEND_MONITOR_TOKEN or VERCEL_TOKEN is required; metrics were not queried.',
+    });
+  }
+
+  try {
+    const functionDurationMetrics = runVercelMetrics([
+      'vercel.function_invocation.function_duration_gbhr',
+      '--aggregation',
+      'sum',
+      '--group-by',
+      'request_path',
+      '--group-by',
+      'error_code',
+      ...common,
+    ]);
+    const legacyInvocationMetrics = runVercelMetrics([
+      'vercel.function_invocation.count',
+      '--group-by',
+      'request_path',
+      '--filter',
+      `contains(request_path, '${escapeODataString(legacyPath)}')`,
+      ...common,
+    ]);
+    const errorInvocationMetrics = runVercelMetrics([
+      'vercel.function_invocation.count',
+      '--group-by',
+      'request_path',
+      '--group-by',
+      'error_code',
+      '--filter',
+      "error_code ne ''",
+      ...common,
+    ]);
+
+    return evaluateVercelSpendMonitor({
+      project,
+      windowMinutes,
+      legacyPath,
+      now,
+      thresholds,
+      metrics: createVercelSpendSnapshot({
+        functionDurationMetrics,
+        legacyInvocationMetrics,
+        errorInvocationMetrics,
+      }),
+    });
+  } catch (error) {
+    return createVercelSpendMetricsUnavailableReport({
+      project,
+      windowMinutes,
+      legacyPath,
+      now,
+      thresholds,
+      message: sanitizeMonitorError(error),
+    });
+  }
 }
 
 function runVercelMetrics(args: string[]): unknown {
@@ -179,15 +209,22 @@ function renderGithubOutput(report: VercelSpendMonitorReport): string {
     ['state', report.state],
     ['ok', String(report.ok)],
     ['breached', String(report.breached)],
+    ['metrics_queried', String(report.metricsQueried)],
+    ['operator_action_required', String(report.operatorActionRequired)],
     ['project', report.project],
     ['window_minutes', String(report.windowMinutes)],
-    ['function_duration_gbhr', String(report.metrics.functionDurationGbhr)],
+    ['function_duration_gbhr', metricValue(report.metrics?.functionDurationGbhr)],
     ['max_function_duration_gbhr', String(report.thresholds.maxFunctionDurationGbhr)],
-    ['estimated_function_duration_usd', String(report.estimatedFunctionDurationUsd)],
-    ['legacy_function_invocations', String(report.metrics.legacyFunctionInvocations)],
-    ['function_error_invocations', String(report.metrics.errorFunctionInvocations)],
+    ['estimated_function_duration_usd', metricValue(report.estimatedFunctionDurationUsd ?? undefined)],
+    ['legacy_function_invocations', metricValue(report.metrics?.legacyFunctionInvocations)],
+    ['function_error_invocations', metricValue(report.metrics?.errorFunctionInvocations)],
+    ['monitor_error', report.monitorError ?? ''],
     ['summary', report.summary],
   ].map(([key, value]) => `${key}=${sanitizeOutputValue(value)}\n`).join('');
+}
+
+function metricValue(value: number | undefined): string {
+  return value === undefined ? 'not_queried' : String(value);
 }
 
 function readPositiveNumber(
@@ -236,4 +273,10 @@ function escapeODataString(value: string): string {
 
 function sanitizeOutputValue(value: string): string {
   return value.replace(/\r?\n/gu, ' ').trim();
+}
+
+function sanitizeMonitorError(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error);
+  const withoutToken = token ? raw.split(token).join('[redacted-token]') : raw;
+  return sanitizeOutputValue(withoutToken).slice(0, 900);
 }

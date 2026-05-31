@@ -33,7 +33,14 @@ export const VERCEL_SPEND_QA_ANCHORS = [
   },
 ] as const;
 
-export type VercelSpendMonitorState = 'ok' | 'breach';
+export type VercelSpendMonitorState =
+  | 'ok'
+  | 'breach'
+  | 'config_error'
+  | 'metrics_unavailable'
+  | 'expected_blocked_traffic';
+
+export type VercelSpendQualityStatus = 'pass' | 'fail' | 'warn' | 'not_available';
 
 export interface VercelMetricRow {
   value: number;
@@ -62,21 +69,24 @@ export interface VercelSpendMonitorReport {
   state: VercelSpendMonitorState;
   ok: boolean;
   breached: boolean;
+  metricsQueried: boolean;
+  operatorActionRequired: boolean;
   generatedAt: string;
   project: string;
   windowMinutes: number;
   legacyPath: string;
   thresholds: VercelSpendMonitorThresholds;
-  metrics: VercelSpendMetricSnapshot;
-  estimatedFunctionDurationUsd: number;
+  metrics: VercelSpendMetricSnapshot | null;
+  estimatedFunctionDurationUsd: number | null;
   quality: Array<{
     characteristic: string;
-    status: 'pass' | 'fail';
+    status: VercelSpendQualityStatus;
     evidence: string;
     fpf: string[];
   }>;
   fpfAnchors: typeof VERCEL_SPEND_QA_ANCHORS;
   summary: string;
+  monitorError?: string;
 }
 
 export function evaluateVercelSpendMonitor(input: {
@@ -93,7 +103,12 @@ export function evaluateVercelSpendMonitor(input: {
     input.metrics.legacyFunctionInvocations > input.thresholds.maxLegacyFunctionInvocations;
   const errorsBreached =
     input.metrics.errorFunctionInvocations > input.thresholds.maxErrorFunctionInvocations;
-  const breached = durationBreached || legacyBreached || errorsBreached;
+  const expectedBlockedTraffic =
+    !durationBreached
+    && !legacyBreached
+    && errorsBreached
+    && errorRowsAreExpectedBlockedTraffic(input.metrics.errorInvocationRows, input.legacyPath);
+  const breached = durationBreached || legacyBreached || (errorsBreached && !expectedBlockedTraffic);
   const estimatedFunctionDurationUsd = roundMoney(
     input.metrics.functionDurationGbhr * input.thresholds.functionDurationUsdPerGbhr,
   );
@@ -113,8 +128,10 @@ export function evaluateVercelSpendMonitor(input: {
     },
     {
       characteristic: 'platform-errors',
-      status: errorsBreached ? 'fail' : 'pass',
-      evidence: `${formatNumber(input.metrics.errorFunctionInvocations)} function invocations had non-empty error_code; threshold ${formatNumber(input.thresholds.maxErrorFunctionInvocations)}`,
+      status: expectedBlockedTraffic ? 'warn' : errorsBreached ? 'fail' : 'pass',
+      evidence: expectedBlockedTraffic
+        ? `${formatNumber(input.metrics.errorFunctionInvocations)} function error-code invocations match expected blocked legacy traffic; threshold ${formatNumber(input.thresholds.maxErrorFunctionInvocations)}`
+        : `${formatNumber(input.metrics.errorFunctionInvocations)} function invocations had non-empty error_code; threshold ${formatNumber(input.thresholds.maxErrorFunctionInvocations)}`,
       fpf: ['B.3', 'E.21'],
     },
     {
@@ -126,9 +143,11 @@ export function evaluateVercelSpendMonitor(input: {
   ];
 
   return {
-    state: breached ? 'breach' : 'ok',
+    state: expectedBlockedTraffic ? 'expected_blocked_traffic' : breached ? 'breach' : 'ok',
     ok: !breached,
     breached,
+    metricsQueried: true,
+    operatorActionRequired: breached,
     generatedAt: input.now.toISOString(),
     project: input.project,
     windowMinutes: input.windowMinutes,
@@ -143,11 +162,42 @@ export function evaluateVercelSpendMonitor(input: {
       durationBreached,
       legacyBreached,
       errorsBreached,
+      expectedBlockedTraffic,
       metrics: input.metrics,
       thresholds: input.thresholds,
       windowMinutes: input.windowMinutes,
     }),
   };
+}
+
+export function createVercelSpendConfigErrorReport(input: {
+  project: string;
+  windowMinutes: number;
+  legacyPath: string;
+  now: Date;
+  thresholds: VercelSpendMonitorThresholds;
+  message: string;
+}): VercelSpendMonitorReport {
+  return createUnavailableVercelSpendReport({
+    ...input,
+    state: 'config_error',
+    summary: `Metrics were not queried: ${input.message}`,
+  });
+}
+
+export function createVercelSpendMetricsUnavailableReport(input: {
+  project: string;
+  windowMinutes: number;
+  legacyPath: string;
+  now: Date;
+  thresholds: VercelSpendMonitorThresholds;
+  message: string;
+}): VercelSpendMonitorReport {
+  return createUnavailableVercelSpendReport({
+    ...input,
+    state: 'metrics_unavailable',
+    summary: `Vercel metrics were unavailable: ${input.message}`,
+  });
 }
 
 export function createVercelSpendSnapshot(input: {
@@ -203,6 +253,9 @@ State: **${report.state}**
 
 ${report.summary}
 
+- Metrics queried: ${report.metricsQueried ? 'yes' : 'no'}
+- Operator action required: ${report.operatorActionRequired ? 'yes' : 'no'}
+
 | Characteristic | Status | Evidence | FPF anchors |
 | --- | --- | --- | --- |
 ${qualityRows}
@@ -216,9 +269,9 @@ ${qualityRows}
 
 ## Observed
 
-- Function Duration: ${formatNumber(report.metrics.functionDurationGbhr)} GB-hours (~$${formatNumber(report.estimatedFunctionDurationUsd)})
-- Legacy function invocations: ${formatNumber(report.metrics.legacyFunctionInvocations)}
-- Function error-code invocations: ${formatNumber(report.metrics.errorFunctionInvocations)}
+- Function Duration: ${formatMaybeNumber(report.metrics?.functionDurationGbhr)} GB-hours${report.estimatedFunctionDurationUsd === null ? '' : ` (~$${formatNumber(report.estimatedFunctionDurationUsd)})`}
+- Legacy function invocations: ${formatMaybeNumber(report.metrics?.legacyFunctionInvocations)}
+- Function error-code invocations: ${formatMaybeNumber(report.metrics?.errorFunctionInvocations)}
 
 ## Strategy Anchors
 
@@ -258,10 +311,15 @@ function summarizeSpendState(input: {
   durationBreached: boolean;
   legacyBreached: boolean;
   errorsBreached: boolean;
+  expectedBlockedTraffic: boolean;
   metrics: VercelSpendMetricSnapshot;
   thresholds: VercelSpendMonitorThresholds;
   windowMinutes: number;
 }): string {
+  if (input.expectedBlockedTraffic) {
+    return 'Vercel reported function error-code rows, but they match expected blocked legacy traffic rather than a Function Duration or canonical MCP breach.';
+  }
+
   if (!input.breached) {
     return `Vercel Function Duration and MCP route guardrails are within thresholds for the last ${input.windowMinutes}m.`;
   }
@@ -285,6 +343,73 @@ function summarizeSpendState(input: {
   return `Vercel spend guardrail breached: ${reasons.join('; ')}.`;
 }
 
+function createUnavailableVercelSpendReport(input: {
+  state: 'config_error' | 'metrics_unavailable';
+  project: string;
+  windowMinutes: number;
+  legacyPath: string;
+  now: Date;
+  thresholds: VercelSpendMonitorThresholds;
+  message: string;
+  summary: string;
+}): VercelSpendMonitorReport {
+  return {
+    state: input.state,
+    ok: false,
+    breached: false,
+    metricsQueried: false,
+    operatorActionRequired: true,
+    generatedAt: input.now.toISOString(),
+    project: input.project,
+    windowMinutes: input.windowMinutes,
+    legacyPath: input.legacyPath,
+    thresholds: input.thresholds,
+    metrics: null,
+    estimatedFunctionDurationUsd: null,
+    quality: [
+      {
+        characteristic: 'function-duration',
+        status: 'not_available',
+        evidence: `not queried: ${input.message}`,
+        fpf: ['B.3', 'E.21'],
+      },
+      {
+        characteristic: 'legacy-route-isolation',
+        status: 'not_available',
+        evidence: `not queried: ${input.message}`,
+        fpf: ['B.5.1', 'A.10'],
+      },
+      {
+        characteristic: 'platform-errors',
+        status: 'not_available',
+        evidence: `not queried: ${input.message}`,
+        fpf: ['B.3', 'E.21'],
+      },
+      {
+        characteristic: 'traceability',
+        status: 'fail',
+        evidence: `project=${input.project}, window=${input.windowMinutes}m, generatedAt=${input.now.toISOString()}`,
+        fpf: ['A.10'],
+      },
+    ],
+    fpfAnchors: VERCEL_SPEND_QA_ANCHORS,
+    summary: input.summary,
+    monitorError: input.message,
+  };
+}
+
+function errorRowsAreExpectedBlockedTraffic(
+  rows: VercelMetricRow[],
+  legacyPath: string,
+): boolean {
+  return rows.length > 0 && rows.every((row) => {
+    const requestPath = row.requestPath ?? '';
+    const errorCode = row.errorCode ?? '';
+    return requestPath.startsWith(legacyPath)
+      && /403|blocked|deny|forbidden|mitigated/iu.test(errorCode);
+  });
+}
+
 function requireRecord(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error(`${label} was not an object.`);
@@ -302,4 +427,8 @@ function roundMoney(value: number): number {
 
 function formatNumber(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(4).replace(/0+$/u, '').replace(/\.$/u, '');
+}
+
+function formatMaybeNumber(value: number | undefined): string {
+  return value === undefined ? 'not_queried' : formatNumber(value);
 }

@@ -92,7 +92,7 @@ Out:
 - Work performed: download `FPF-Spec.md`, run `publish:current`, validate `published/current/**`, build the static website deployment, build the separate hosted MCP deployment, and open a publication PR only when files changed.
 - Hosted MCP handoff: before opening a new PR, the workflow closes superseded `chore/sync-fpf-*` PRs. After the review window and required checks pass, it squash-merges the current PR and deploys the website and MCP production bundles through the repo CLI scripts.
 - Monitor: `.github/workflows/fpf-sync-monitor.yml` runs hourly, checks `ailev/FPF` HEAD against `https://mcp.fpf.sh/api/fpf/status`, triggers `sync-fpf.yml` when upstream is ahead, and redispatches it when a current generated PR exists but no worker is queued or running. It fails only when drift exceeds the configured SLO or the hosted runtime is internally stale.
-- Spend guardrail: `.github/workflows/vercel-spend-monitor.yml` runs every 15 minutes with `VERCEL_SPEND_MONITOR_TOKEN` or `VERCEL_TOKEN`, checks Vercel Function Duration GB-hours, platform error-code rows, and legacy `/api/mcp/fpf_memory` function invocations, updates one open issue on breach, and closes it after a clean monitor window.
+- Spend guardrail: `.github/workflows/vercel-spend-monitor.yml` runs every 15 minutes with `VERCEL_SPEND_MONITOR_TOKEN` or `VERCEL_TOKEN`, checks Vercel Function Duration GB-hours, platform error-code rows, and legacy `/api/mcp/fpf_memory` function invocations, distinguishes `ok`, `breach`, `config_error`, `metrics_unavailable`, and `expected_blocked_traffic`, updates one open issue only when operator action is required, and closes it after a clean monitor window.
 
 Minimal dispatch payload:
 

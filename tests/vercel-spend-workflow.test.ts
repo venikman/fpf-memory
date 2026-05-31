@@ -21,8 +21,13 @@ describe('Vercel spend monitor workflow', () => {
     expect(workflow).toContain(
       'VERCEL_TOKEN: ${{ secrets.VERCEL_SPEND_MONITOR_TOKEN || secrets.VERCEL_TOKEN }}',
     );
-    expect(workflow).toContain('write_output state monitor_error');
+    expect(workflow).not.toContain('write_output state monitor_error');
+    expect(workflow).toContain('write_output state metrics_unavailable');
+    expect(workflow).toContain('write_output metrics_queried false');
     expect(workflow).toContain('monitor_error');
+    expect(workflow).toContain('- Metrics queried: $METRICS_QUERIED');
+    expect(workflow).toContain('The scheduled Vercel spend monitor needs attention.');
+    expect(workflow).toContain('If metrics were not queried, fix monitor credentials/config');
     expect(workflow).toContain(
       'bun run monitor:vercel:spend -- --format markdown --fail-on-breach',
     );
@@ -54,5 +59,7 @@ describe('Vercel spend monitor workflow', () => {
     expect(monitorScript).toContain(
       'process.env.VERCEL_SPEND_MONITOR_TOKEN || process.env.VERCEL_TOKEN',
     );
+    expect(monitorScript).toContain('createVercelSpendConfigErrorReport');
+    expect(monitorScript).toContain('createVercelSpendMetricsUnavailableReport');
   });
 });
