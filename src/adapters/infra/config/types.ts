@@ -2,8 +2,6 @@ import type { AnswerMode } from '../../../core/types.js';
 
 export type McpSurface = 'public' | 'full';
 export type LoggingLevel = 'debug' | 'info' | 'warn' | 'error';
-export type ObservabilityFormat = 'flat' | 'tree' | 'normalized';
-export type ObservabilityLogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
 export interface RuntimeCoreConfig {
   sourcePath: string;
@@ -17,24 +15,6 @@ export interface LoggingConfig {
   filePath: string;
   level: LoggingLevel;
   serviceName: string;
-}
-
-export interface ObservabilityConfig {
-  filePath: string;
-  format: ObservabilityFormat;
-  includeInternalSpans: boolean;
-  logLevel: ObservabilityLogLevel;
-  excludeModelChunks: boolean;
-  serviceName: string;
-}
-
-export interface LmStudioConfig {
-  enabled: boolean;
-  baseUrl: string;
-  model: string;
-  apiKey?: string;
-  timeoutMs: number;
-  traceLogPath: string;
 }
 
 export interface McpConfig {

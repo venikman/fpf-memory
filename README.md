@@ -24,7 +24,7 @@ A local **FPF spec** runtime. Given a single markdown spec file, it compiles a d
 - a **Bun CLI** for queries, traces, and inspections
 - a **static docs site** built from the same compiled artifacts
 
-No vector database, no remote indexing, no Python. Optional local LLM synthesis via LM Studio is layered *on top of* deterministic retrieval — it is never the primary search path.
+No vector database, no remote indexing, no Python, and no local LLM dependency. Answers are produced from deterministic retrieval over the compiled spec snapshot.
 
 ## Quick start
 
@@ -57,8 +57,7 @@ On each refresh trigger the runtime:
 3. enriches the index with deterministic section descriptions plus per-node metadata (role, route-bearing status, …)
 4. follows explicit references, route hints, and outline adjacency in a bounded frontier loop when the first anchor set is insufficient
 5. optionally reuses a short-lived in-memory session context when `query` or `trace` is called with `--session` / `sessionId`
-6. optionally calls a local LM Studio model on bounded slices plus a compact retrieval summary only
-7. answers with IDs, citations, constraints, relations, and snapshot metadata
+6. answers with IDs, citations, constraints, relations, and snapshot metadata
 
 ## Stack
 
@@ -135,13 +134,7 @@ Copy `.env.example` to `.env`. The most common settings:
 | `FPF_RUNTIME_ARTIFACT_DIR`                | `.runtime/fpf-index`                 | Where compiled artifacts are written.                                 |
 | `FPF_QUERY_DEFAULT_MODE`                  | `verbose`                            | Default `mode` for `query_fpf_spec` and `ask_fpf`.                    |
 | `FPF_HOSTED_MCP_DISABLED`                 | `false`                              | Emergency hosted `/api/mcp/*` shutoff; returns `503` before loading the MCP runtime. |
-| `FPF_LOCAL_LLM_BASE_URL`                  | `http://localhost:1234/v1`           | Optional LM Studio endpoint. Omit to stay fully deterministic.        |
-| `FPF_LOCAL_LLM_MODEL`                     | `google/gemma-4-31b`                 | Optional LM Studio model.                                             |
-| `FPF_LOCAL_LLM_API_KEY`                   | *(empty)*                            | LM Studio API token (Developer → Server Settings → Manage Tokens).    |
-| `FPF_LOCAL_LLM_TIMEOUT_MS`                | `20000`                              | LM Studio request timeout.                                            |
 | `FPF_RUNTIME_LOG_PATH`                    | `.runtime/logs/fpf-runtime.log`      | Structured runtime/MCP logs.                                          |
-| `FPF_RUNTIME_OBSERVABILITY_PATH`          | `.runtime/logs/runtime-observability.json` | Observability snapshot file.                                  |
-| `FPF_AI_TRACE_LOG_PATH`                   | `.runtime/logs/ai-traces.jsonl`      | Per-call LM Studio synthesis traces (JSONL).                          |
 
 <details>
 <summary>Detailed notes on these variables</summary>
@@ -152,11 +145,7 @@ Copy `.env.example` to `.env`. The most common settings:
 
 `FPF_QUERY_DEFAULT_MODE` applies to `query_fpf_spec` and `ask_fpf` when `mode` is omitted. `trace_fpf_path` stays `compact` by default.
 
-`FPF_LOCAL_LLM_*` is optional. If present, the runtime calls the local LM Studio Anthropic-compatible API (`POST /v1/messages` with model discovery at `GET /v1/models`) only after deterministic retrieval has selected a bounded slice set. If absent, the runtime stays fully deterministic. If you opt into the LM Studio path by setting either `FPF_LOCAL_LLM_BASE_URL` or `FPF_LOCAL_LLM_MODEL`, the missing half falls back to the defaults above. The synthesizer posts to `{FPF_LOCAL_LLM_BASE_URL}/messages` with the Anthropic Messages request shape (`system` + `messages` + `max_tokens`) and parses `content[].text` from the response.
-
-`FPF_RUNTIME_OBSERVABILITY_*` configures the runtime observability snapshot file, which includes `model_generation` spans around the local LM Studio synthesis call. Additional knobs: `FPF_RUNTIME_LOG_LEVEL=info`, `FPF_RUNTIME_OBSERVABILITY_FORMAT=flat`, `FPF_RUNTIME_OBSERVABILITY_INCLUDE_INTERNAL_SPANS=true`, `FPF_RUNTIME_OBSERVABILITY_INCLUDE_MODEL_CHUNKS=false`, `FPF_RUNTIME_OBSERVABILITY_LOG_LEVEL=info`.
-
-`FPF_AI_TRACE_LOG_PATH` writes bounded LM Studio synthesis traces as JSON lines. This is the actual local model call path in this project; the synthesizer uses a direct `fetch` to the LM Studio-compatible endpoint.
+`FPF_RUNTIME_LOG_PATH` receives structured MCP usage events named `mcp_tool_usage`. These events capture the tool name, outcome, duration, coarse input shape, resolved FPF IDs/kinds, result counts, and status fields. They deliberately do not log raw questions, search text, selectors, markdown bodies, answer text, or session IDs. In Vercel, the same runtime logger writes JSON to stdout so Vercel logs can be used for privacy-preserving usage analysis.
 
 </details>
 
@@ -204,7 +193,6 @@ bun run cli -- query    --question "How does it connect to role assignment?" --s
 bun run cli -- inspect  --selector "A.1.1"
 bun run cli -- read-doc --selector "A.1.1"
 bun run cli -- trace    --question "How do U.RoleAssignment and U.BoundedContext connect?" --mode proof --session s1
-bun run cli -- lm-check --timeout-ms 60000
 ```
 
 **MCP server**
@@ -283,7 +271,6 @@ Smoke-test the local full-surface runtime before using expert tools or deploying
 
 ```bash
 bun run cli -- status
-bun run cli -- lm-check --timeout-ms 60000
 bun run cli -- refresh
 bun run cli -- query   --question "What is U.BoundedContext?" --mode verbose
 bun run cli -- trace   --question "How do U.RoleAssignment and U.BoundedContext connect?" --mode proof
@@ -347,9 +334,7 @@ https://mcp.fpf.sh/api/fpf/status
 - `trace_fpf_path` — retrieval evidence and provenance
 - `refresh_fpf_index` — rebuild the local artifact set
 
-Only `query_fpf_spec` and `ask_fpf` can use the optional synthesizer. All other MCP tools stay deterministic. Set `FPF_MCP_SURFACE=public` on the deployed server to restrict it to public tools only.
-
-When a configured synthesizer fails or reports unavailable, answer tools return `degraded` with low confidence and `candidateIds`; deterministic citations, relations, and constraints remain available as evidence. Deterministic retrieval tools still return normal `ok` envelopes.
+All MCP tools are deterministic. Set `FPF_MCP_SURFACE=public` on the deployed server to restrict it to public tools only.
 
 ## Project layout
 
@@ -363,9 +348,8 @@ When a configured synthesizer fails or reports unavailable, answer tools return 
 - `src/entrypoints/vercel-function.ts` — Vercel Build Output API function entry point
 - `src/build/vercel-origin-build.ts` — direct Vercel-origin bundle builder
 - `src/server.ts` — Hono HTTP server bootstrap for Bun
-- `src/runtime/` — compiler, retrieval, trace, inspect, synthesis
+- `src/runtime/` — compiler, retrieval, trace, and inspection runtime
 - `src/adapters/infra/logging/runtime-logger.ts` — structured runtime/MCP log writer
-- `src/adapters/infra/observability/runtime-observability.ts` — observability wrapper for local synthesis
 
 **Docs**
 
@@ -385,8 +369,8 @@ The docs pipeline does not use an LLM step. `bun run docs:generate` writes the c
 ## Logs
 
 - `.runtime/logs/fpf-runtime.log` — structured runtime server/tool logs
-- `.runtime/logs/runtime-observability.json` — observability snapshot containing manual LM Studio `model_generation` traces
-- `.runtime/logs/ai-traces.jsonl` — request/response/error traces for local LM Studio synthesis calls
+
+MCP tool usage events are privacy-preserving summaries. They are suitable for answering which tools, FPF IDs, route kinds, and document surfaces are being used, but not for reconstructing user questions.
 
 ## Citing FPF
 

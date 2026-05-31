@@ -9,14 +9,11 @@ import {
 import type {
   AnchorRef,
   AnswerMode,
-  AnswerSlice,
   QueryResult,
   RequestedShape,
   Snapshot,
   TraceResult,
 } from './types.js';
-
-import { MAX_SYNTHESIS_SLICES } from './constants.js';
 
 /**
  * Detect a requested output shape in a natural-language question.
@@ -358,23 +355,6 @@ export function answerPartCDrafts(
           ]
         : undefined,
   });
-}
-
-export function prepareSynthesisSlices(trace: TraceResult, snapshot: Snapshot): AnswerSlice[] {
-  return trace.selectedAnchorIds
-    .map((anchorId) => snapshot.anchorMap[anchorId])
-    .filter((anchor): anchor is Snapshot['anchorMap'][string] => Boolean(anchor))
-    .slice(0, MAX_SYNTHESIS_SLICES)
-    .map<AnswerSlice>((anchor) => ({
-      anchorId: anchor.id,
-      nodeId: anchor.nodeId,
-      heading: anchor.heading,
-      role: anchor.role,
-      lineStart: anchor.lineStart,
-      lineEnd: anchor.lineEnd,
-      text: anchor.text,
-      plainText: anchor.plainText,
-    }));
 }
 
 export function confidenceFromTrace(

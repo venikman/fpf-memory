@@ -5,20 +5,13 @@ import {
   DEFAULT_ARTIFACT_DIR,
   DEFAULT_SOURCE_PATH,
 } from '../../../core/constants.js';
-import {
-  DEFAULT_LM_STUDIO_BASE_URL,
-  DEFAULT_LM_STUDIO_MODEL,
-  DEFAULT_LM_STUDIO_TIMEOUT_MS,
-} from './lm-studio-defaults.js';
 import type {
   BuildConfig,
   DocsConfig,
   HostedConfig,
-  LmStudioConfig,
   LoggingConfig,
   McpConfig,
   McpSurface,
-  ObservabilityConfig,
   RuntimeCoreConfig,
 } from './types.js';
 
@@ -33,8 +26,6 @@ const DEFAULT_MAX_SESSIONS = 50;
 const answerModeSchema = z.enum(['compact', 'verbose', 'proof']);
 const mcpSurfaceSchema = z.enum(['public', 'full']);
 const loggingLevelSchema = z.enum(['debug', 'info', 'warn', 'error']);
-const observabilityFormatSchema = z.enum(['flat', 'tree', 'normalized']);
-const observabilityLogLevelSchema = z.enum(['debug', 'info', 'warn', 'error', 'fatal']);
 
 export function parseRuntimeCoreConfig(
   env: NodeJS.ProcessEnv,
@@ -64,66 +55,6 @@ export function parseLoggingConfig(env: NodeJS.ProcessEnv): LoggingConfig {
       'info',
     ),
     serviceName: 'fpf-spec-runtime',
-  };
-}
-
-export function parseObservabilityConfig(
-  env: NodeJS.ProcessEnv,
-): ObservabilityConfig {
-  return {
-    filePath: parseStringWithLegacy(
-      env,
-      'FPF_RUNTIME_OBSERVABILITY_PATH',
-      'FPF_MASTRA_OBSERVABILITY_PATH',
-      '.runtime/logs/runtime-observability.json',
-    ),
-    format: parseEnumWithLegacy(
-      env,
-      'FPF_RUNTIME_OBSERVABILITY_FORMAT',
-      'FPF_MASTRA_OBSERVABILITY_FORMAT',
-      observabilityFormatSchema,
-      'flat',
-    ),
-    includeInternalSpans: parseBooleanWithLegacy(
-      env,
-      'FPF_RUNTIME_OBSERVABILITY_INCLUDE_INTERNAL_SPANS',
-      'FPF_MASTRA_OBSERVABILITY_INCLUDE_INTERNAL_SPANS',
-      true,
-    ),
-    logLevel: parseEnumWithLegacy(
-      env,
-      'FPF_RUNTIME_OBSERVABILITY_LOG_LEVEL',
-      'FPF_MASTRA_OBSERVABILITY_LOG_LEVEL',
-      observabilityLogLevelSchema,
-      'info',
-    ),
-    excludeModelChunks: !parseBooleanWithLegacy(
-      env,
-      'FPF_RUNTIME_OBSERVABILITY_INCLUDE_MODEL_CHUNKS',
-      'FPF_MASTRA_OBSERVABILITY_INCLUDE_MODEL_CHUNKS',
-      false,
-    ),
-    serviceName: 'fpf-spec-runtime',
-  };
-}
-
-export function parseLmStudioConfig(env: NodeJS.ProcessEnv): LmStudioConfig {
-  const configuredBaseUrl = normalizeOptionalString(env.FPF_LOCAL_LLM_BASE_URL);
-  const configuredModel = normalizeOptionalString(env.FPF_LOCAL_LLM_MODEL);
-  const enabled = Boolean(configuredBaseUrl || configuredModel);
-  const baseUrl = configuredBaseUrl ?? DEFAULT_LM_STUDIO_BASE_URL;
-  const model = configuredModel ?? DEFAULT_LM_STUDIO_MODEL;
-
-  return {
-    enabled,
-    baseUrl,
-    model,
-    apiKey: normalizeOptionalString(env.FPF_LOCAL_LLM_API_KEY),
-    timeoutMs: parsePositiveInteger(
-      env.FPF_LOCAL_LLM_TIMEOUT_MS,
-      DEFAULT_LM_STUDIO_TIMEOUT_MS,
-    ),
-    traceLogPath: parseString(env.FPF_AI_TRACE_LOG_PATH, '.runtime/logs/ai-traces.jsonl'),
   };
 }
 
@@ -203,19 +134,6 @@ function parseBoolean(value: string | undefined, fallback: boolean): boolean {
     default:
       return fallback;
   }
-}
-
-function parseBooleanWithLegacy(
-  env: NodeJS.ProcessEnv,
-  currentName: string,
-  legacyName: string,
-  fallback: boolean,
-): boolean {
-  return parseBoolean(
-    normalizeOptionalString(env[currentName])
-      ?? readLegacyEnv(env, currentName, legacyName),
-    fallback,
-  );
 }
 
 function parsePositiveInteger(value: string | undefined, fallback: number): number {

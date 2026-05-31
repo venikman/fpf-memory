@@ -10,31 +10,7 @@ import {
   evaluateFpfWork,
   formatFpfWorkEvaluationReport,
 } from '../evaluation/fpf-work-evaluator.js';
-import { runLmStudioHealthCheck } from '../runtime/lm-studio-synthesizer.js';
 import { createCliComposition } from './cli.js';
-
-/**
- * When `lm-check` overrides `--base-url`, do not forward env-derived API keys unless the caller
- * passes `--api-key` (avoids sending e.g. GEMINI tokens to an arbitrary CLI destination).
- */
-export function resolveLmCheckApiKey(input: {
-  commandBaseUrl: string | undefined;
-  envBaseUrl: string | undefined;
-  commandApiKey: string | undefined;
-  envApiKey: string | undefined;
-}): string | undefined {
-  const fromCli = input.commandApiKey?.trim();
-  if (fromCli) {
-    return fromCli;
-  }
-  const cliBase = input.commandBaseUrl?.trim();
-  const envBase = input.envBaseUrl?.trim() ?? '';
-  if (cliBase && cliBase !== envBase) {
-    return undefined;
-  }
-  const fromEnv = input.envApiKey?.trim();
-  return fromEnv ? fromEnv : undefined;
-}
 
 export async function runCli(argv = process.argv.slice(2)): Promise<void> {
   const command = parseCliCommand(argv);
@@ -77,7 +53,6 @@ export async function runCli(argv = process.argv.slice(2)): Promise<void> {
     traceAppService,
     inspectAppService,
     refreshAppService,
-    lmStudioHealthCheckOptions,
   } = createCliComposition(process.env);
   const commandName = command.kind;
 
@@ -146,28 +121,6 @@ export async function runCli(argv = process.argv.slice(2)): Promise<void> {
           ),
         );
         break;
-      case 'lm-check': {
-        const envLm = lmStudioHealthCheckOptions;
-        const effectiveBaseUrl = command.baseUrl ?? envLm.baseUrl;
-        const apiKey = resolveLmCheckApiKey({
-          commandBaseUrl: command.baseUrl,
-          envBaseUrl: envLm.baseUrl,
-          commandApiKey: command.apiKey,
-          envApiKey: envLm.apiKey,
-        });
-        await print(
-          runLmStudioHealthCheck({
-            ...envLm,
-            baseUrl: effectiveBaseUrl,
-            model: command.model ?? envLm.model,
-            apiKey,
-            timeoutMs: command.timeoutMs ?? envLm.timeoutMs,
-            systemPrompt: command.systemPrompt,
-            input: command.input,
-          }),
-        );
-        break;
-      }
     }
 
     logger.info('CLI command finished', {
@@ -205,7 +158,6 @@ function printHelp(): void {
   bun run cli -- inspect --selector "A.1.1" [--kind auto|id|route|lexeme] [--force]
   bun run cli -- read-doc --selector "A.1.1" [--kind auto|id|route|lexeme] [--force]
   bun run cli -- trace --question "How do routes work?" [--mode compact|verbose|proof] [--session s1] [--force]
-  bun run cli -- lm-check [--base-url http://localhost:1234/v1] [--model google/gemma-4-31b] [--api-key <token>] [--timeout-ms 60000]
   bun run cli -- evaluate-work [--target current-pr|working-tree] [--base origin/main] [--format markdown|json] [--spec path/to/FPF-Spec.md] [--out reports/fpf-work.md]
 `);
 }

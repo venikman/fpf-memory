@@ -16,7 +16,6 @@ export const nodeKindSchema = z.enum(['pattern', 'route', 'lexeme', 'preface']);
 export const selectorKindSchema = z.enum(['auto', 'id', 'route', 'lexeme']);
 export const answerStatusSchema = z.enum([
   'ok',
-  'degraded',
   'not_found',
   'ambiguous',
   'unsupported',
@@ -39,23 +38,8 @@ export const buildReasonSchema = z.enum([
   'source_hash_changed',
   'snapshot_current',
 ]);
-export const observabilityFormatSchema = z.enum(['flat', 'tree', 'normalized']);
-export const observabilityLogLevelSchema = z.enum([
-  'debug',
-  'info',
-  'warn',
-  'error',
-  'fatal',
-]);
 export const resolvedAsSchema = z.enum(['id', 'route', 'lexeme', 'not_found']);
 export const inspectStatusSchema = z.enum(['ok', 'not_found']);
-export const synthesizerAvailabilitySchema = z.enum([
-  'not_configured',
-  'available',
-  'degraded',
-  'unavailable',
-  'unknown',
-]);
 export const frontierOriginSchema = z.enum([
   'exact_match',
   'reference_follow',
@@ -259,34 +243,6 @@ export const runtimeStatusSchema = z
     fresh: z.boolean(),
     compilerMode: z.literal('local_vectorless'),
     artifacts: z.record(z.string(), z.boolean()),
-    synthesizer: z
-      .object({
-        configured: z.boolean(),
-        provider: z.string().optional(),
-        model: z.string().optional(),
-        baseUrl: z.string().optional(),
-        availability: synthesizerAvailabilitySchema.optional(),
-        checkedAt: z.string().optional(),
-        failure: z
-          .object({
-            message: z.string(),
-            httpStatus: z.number().optional(),
-            endpoint: z.string().optional(),
-          })
-          .strict()
-          .optional(),
-      })
-      .strict(),
-    observability: z
-      .object({
-        configured: z.boolean(),
-        filePath: z.string(),
-        format: observabilityFormatSchema,
-        includeInternalSpans: z.boolean(),
-        logLevel: observabilityLogLevelSchema,
-        excludeModelChunks: z.boolean(),
-      })
-      .strict(),
     sessionCache: z
       .object({
         enabled: z.boolean(),

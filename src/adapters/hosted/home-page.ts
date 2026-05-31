@@ -442,7 +442,7 @@ export function renderHostedHomePage(): string {
       <section class="quick" aria-label="First validation path">
         <div>
           <strong>1. Check health</strong>
-          <p>Call <code>get_fpf_index_status</code> and distinguish index freshness from synthesizer availability.</p>
+          <p>Call <code>get_fpf_index_status</code> and confirm the compiled index is fresh.</p>
         </div>
         <div>
           <strong>2. Query a route</strong>

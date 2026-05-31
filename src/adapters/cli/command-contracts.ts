@@ -49,16 +49,6 @@ const traceCommandSchema = z.object({
   sessionId: z.string().min(1).optional(),
 });
 
-const lmCheckCommandSchema = z.object({
-  kind: z.literal('lm-check'),
-  baseUrl: z.string().url().optional(),
-  model: z.string().min(1).optional(),
-  apiKey: z.string().min(1).optional(),
-  timeoutMs: z.number().int().positive().optional(),
-  systemPrompt: z.string().min(1).optional(),
-  input: z.string().min(1).optional(),
-});
-
 const evaluateWorkCommandSchema = z.object({
   kind: z.literal('evaluate-work'),
   target: fpfWorkEvaluationTargetSchema,
@@ -75,7 +65,6 @@ export const cliCommandSchema = z.discriminatedUnion('kind', [
   inspectCommandSchema,
   readDocCommandSchema,
   traceCommandSchema,
-  lmCheckCommandSchema,
   evaluateWorkCommandSchema,
 ]);
 
@@ -143,26 +132,6 @@ export function parseCliCommand(args: string[]): ParsedCliCommand {
         mode: value(parsed, '--mode'),
         forceRefresh: flag(parsed, '--force'),
         sessionId: value(parsed, '--session'),
-      });
-    }
-    case 'lm-check': {
-      const parsed = scanArgs(commandArgs, [
-        '--base-url',
-        '--model',
-        '--api-key',
-        '--timeout-ms',
-        '--system-prompt',
-        '--input',
-      ]);
-      const timeoutRaw = value(parsed, '--timeout-ms');
-      return cliCommandSchema.parse({
-        kind: 'lm-check',
-        baseUrl: value(parsed, '--base-url'),
-        model: value(parsed, '--model'),
-        apiKey: value(parsed, '--api-key'),
-        timeoutMs: timeoutRaw ? Number(timeoutRaw) : undefined,
-        systemPrompt: value(parsed, '--system-prompt'),
-        input: value(parsed, '--input'),
       });
     }
     case 'evaluate-work': {

@@ -30,7 +30,6 @@ import type {
   IndexingView,
   InspectAnchorResult,
   InspectResult,
-  LocalAnswerSynthesizer,
   NodeKind,
   QueryResult,
   ReadDocResult,
@@ -46,10 +45,8 @@ export interface FpfRuntimeOptions {
   sourcePath?: string;
   artifactDir?: string;
   artifactSeedDir?: string;
-  synthesizer?: LocalAnswerSynthesizer;
   maxSessions?: number;
   persistSessionCache?: boolean;
-  observability?: RuntimeStatus['observability'];
   /**
    * Pre-computed compiler fingerprint to use instead of attempting to derive
    * one from on-disk source files. Required in bundled environments (e.g. the
@@ -69,9 +66,7 @@ export class FpfRuntime {
   private readonly artifactDir: string;
   private readonly artifactPaths: Record<keyof typeof ARTIFACT_FILENAMES, string>;
   private readonly artifactSeedPaths?: Record<keyof typeof ARTIFACT_FILENAMES, string>;
-  private readonly synthesizer?: LocalAnswerSynthesizer;
   private readonly sessionCache: SessionCache;
-  private readonly observabilitySummary: RuntimeStatus['observability'];
   private readonly configuredCompilerFingerprint?: string;
   private snapshotIntegrityVerified = false;
   private cachedSnapshot?: Snapshot;
@@ -114,17 +109,7 @@ export class FpfRuntime {
         ) as Record<keyof typeof ARTIFACT_FILENAMES, string>;
       }
     }
-    this.synthesizer = options.synthesizer;
     this.configuredCompilerFingerprint = options.compilerFingerprint;
-    this.observabilitySummary =
-      options.observability ?? {
-        configured: false,
-        filePath: '',
-        format: 'flat',
-        includeInternalSpans: false,
-        logLevel: 'info',
-        excludeModelChunks: true,
-      };
     const persistSession = options.persistSessionCache ?? false;
     this.sessionCache = new SessionCache({
       maxSessions: options.maxSessions ?? 50,
@@ -305,7 +290,6 @@ export class FpfRuntime {
     }
 
     const currentSourceHash = await hashFile(this.sourcePath);
-    const synthesizer = await this.synthesizerStatus();
     return {
       sourcePath: this.sourcePath,
       sourceHash: existingSnapshot?.sourceHash,
@@ -318,54 +302,8 @@ export class FpfRuntime {
         existingSnapshot.sourceHash === currentSourceHash,
       compilerMode: 'local_vectorless',
       artifacts: await this.getArtifactPresence(),
-      synthesizer,
-      observability: this.observabilitySummary,
       sessionCache: this.sessionCache.summary(),
     };
-  }
-
-  private async synthesizerStatus(): Promise<RuntimeStatus['synthesizer']> {
-    if (!this.synthesizer) {
-      return {
-        configured: false,
-        availability: 'not_configured',
-      };
-    }
-
-    const base = this.synthesizer.describe
-      ? {
-          configured: true,
-          ...this.synthesizer.describe(),
-        }
-      : { configured: true };
-
-    if (!this.synthesizer.checkAvailability) {
-      const available = await this.synthesizer.isAvailable();
-      return {
-        ...base,
-        availability: available ? 'unknown' : 'unavailable',
-        checkedAt: new Date().toISOString(),
-      };
-    }
-
-    try {
-      return {
-        ...base,
-        ...(await this.synthesizer.checkAvailability()),
-      };
-    } catch (error) {
-      return {
-        ...base,
-        availability: 'unknown',
-        checkedAt: new Date().toISOString(),
-        failure: {
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Synthesizer availability check failed with an unknown error.',
-        },
-      };
-    }
   }
 
   async browse(
@@ -514,7 +452,6 @@ export class FpfRuntime {
     return new QueryEngine(
       await this.requireSnapshot(),
       audit.rebuilt,
-      this.synthesizer,
       sessionId ? this.sessionCache.get(sessionId) : undefined,
     );
   }

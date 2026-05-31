@@ -7,7 +7,6 @@
  *   3. candidate-ranker.ts   (CandidateRanker)
  *   4. frontier-expander.ts  (FrontierExpander)
  *   5. answer-projector.ts   (AnswerProjector)
- *   6. synthesis-adapter.ts  (SynthesisAdapter)
  *
  * This file wires the stages together and exposes query(), trace(),
  * inspect(), readDoc(), inspectAnchor(), and expandCitations().
@@ -20,7 +19,6 @@ import {
 import {
   MAX_EXCLUDED,
   MAX_SELECTED_ANCHORS,
-  MAX_SYNTHESIS_SLICES,
 } from './constants.js';
 import {
   buildDocsProjection,
@@ -34,9 +32,7 @@ import {
   answerPartCDrafts,
   buildPatternAnswer,
   buildRouteAnswer,
-  prepareSynthesisSlices,
 } from './answer-projector.js';
-import { synthesizeAnswer } from './synthesis-adapter.js';
 import { type RetrievalSessionState } from './session-cache.js';
 import {
   extractIds,
@@ -51,7 +47,6 @@ import type {
   InspectAnchorResult,
   InspectNeighbor,
   InspectResult,
-  LocalAnswerSynthesizer,
   QueryResult,
   ReadDocResult,
   Snapshot,
@@ -64,7 +59,6 @@ export class QueryEngine {
   constructor(
     private readonly snapshot: Snapshot,
     private readonly rebuilt: boolean,
-    private readonly synthesizer?: LocalAnswerSynthesizer,
     private readonly sessionState?: RetrievalSessionState,
   ) {}
 
@@ -141,21 +135,7 @@ export class QueryEngine {
       ? buildRouteAnswer(question, mode, routeNodeId, trace, this.snapshot, this.rebuilt)
       : buildPatternAnswer(question, mode, trace, this.snapshot, this.rebuilt);
 
-    if (routeNodeId && shouldUseDeterministicRouteFastPath(mode, trace)) {
-      return deterministic;
-    }
-
-    if (!this.synthesizer) {
-      return deterministic;
-    }
-
-    const nodes = trace.selectedNodeIds
-      .map((nodeId) => this.snapshot.compiledNodes[nodeId])
-      .filter((node): node is CompiledNode => Boolean(node))
-      .slice(0, MAX_SYNTHESIS_SLICES);
-    const slices = prepareSynthesisSlices(trace, this.snapshot);
-
-    return synthesizeAnswer(question, mode, trace, nodes, slices, deterministic, this.synthesizer);
+    return deterministic;
   }
 
   trace(question: string, mode: AnswerMode = 'compact'): TraceResult {
@@ -707,13 +687,6 @@ export class QueryEngine {
       snapshot: { ...this.snapshotRef(), rebuilt: this.rebuilt },
     };
   }
-}
-
-function shouldUseDeterministicRouteFastPath(
-  mode: AnswerMode,
-  trace: TraceResult,
-): boolean {
-  return mode === 'compact' && trace.routeWins && trace.status === 'ok';
 }
 
 const MARKDOWN_PREVIEW_MAX_CHARS = 320;

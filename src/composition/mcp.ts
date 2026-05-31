@@ -1,8 +1,6 @@
 import {
-  parseLmStudioConfig,
   parseLoggingConfig,
   parseMcpConfig,
-  parseObservabilityConfig,
   parseRuntimeCoreConfig,
 } from '../adapters/infra/config/env.js';
 import { getRuntimeLogger } from '../adapters/infra/logging/runtime-logger.js';
@@ -69,8 +67,6 @@ function buildMcpCompositionCacheKey(env: NodeJS.ProcessEnv): string {
   return JSON.stringify({
     runtime: parseRuntimeCoreConfig(env),
     logging: parseLoggingConfig(env),
-    observability: parseObservabilityConfig(env),
-    lmStudio: parseLmStudioConfig(env),
     mcp: parseMcpConfig(env),
   });
 }

@@ -65,7 +65,6 @@ export const BOUNDARY_UNPACKING_CLAIM_ROUTING_ROUTE_NAME =
 export const MAX_HOPS = 6;
 export const MAX_SELECTED_ANCHORS = 12;
 export const MAX_EXCLUDED = 5;
-export const MAX_SYNTHESIS_SLICES = 8;
 
 export const PART_C_LABEL = 'Part C - Kernel Extension Specifications';
 

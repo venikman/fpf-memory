@@ -32,7 +32,6 @@ export type AnswerMode = 'compact' | 'verbose' | 'proof';
 
 export type AnswerStatus =
   | 'ok'
-  | 'degraded'
   | 'not_found'
   | 'ambiguous'
   | 'unsupported'
@@ -567,93 +566,12 @@ export interface RuntimeStatus {
   fresh: boolean;
   compilerMode: 'local_vectorless';
   artifacts: Record<string, boolean>;
-  synthesizer: {
-    configured: boolean;
-    provider?: string;
-    model?: string;
-    baseUrl?: string;
-    availability?: SynthesizerAvailabilityState;
-    checkedAt?: string;
-    failure?: SynthesizerAvailabilityFailure;
-  };
-  observability: {
-    configured: boolean;
-    filePath: string;
-    format: 'flat' | 'tree' | 'normalized';
-    includeInternalSpans: boolean;
-    logLevel: 'debug' | 'info' | 'warn' | 'error' | 'fatal';
-    excludeModelChunks: boolean;
-  };
   sessionCache: {
     enabled: boolean;
     maxSessions: number;
     activeSessions: number;
     persistent: boolean;
   };
-}
-
-export type SynthesizerAvailabilityState =
-  | 'not_configured'
-  | 'available'
-  | 'degraded'
-  | 'unavailable'
-  | 'unknown';
-
-export interface SynthesizerAvailabilityFailure {
-  message: string;
-  httpStatus?: number;
-  endpoint?: string;
-}
-
-export interface AnswerSlice {
-  anchorId: string;
-  nodeId?: string;
-  heading: string;
-  role: SectionRole;
-  lineStart: number;
-  lineEnd: number;
-  text: string;
-  plainText: string;
-}
-
-export interface AnswerSynthesizerInput {
-  question: string;
-  mode: AnswerMode;
-  trace: TraceResult;
-  nodes: CompiledNode[];
-  slices: AnswerSlice[];
-  deterministicResult: QueryResult;
-}
-
-export interface AnswerSynthesizerOutput {
-  answer?: string;
-  constraints?: string[];
-  confidence?: number;
-  gaps?: string[];
-  groundingChain?: string[];
-}
-
-export interface LocalAnswerSynthesizerInfo {
-  provider: string;
-  model?: string;
-  baseUrl?: string;
-}
-
-export interface LocalAnswerSynthesizerAvailability {
-  availability: Exclude<SynthesizerAvailabilityState, 'not_configured'>;
-  checkedAt: string;
-  failure?: SynthesizerAvailabilityFailure;
-}
-
-export interface LocalAnswerSynthesizer {
-  isAvailable(): Promise<boolean> | boolean;
-  synthesize(
-    input: AnswerSynthesizerInput,
-  ): Promise<AnswerSynthesizerOutput> | AnswerSynthesizerOutput;
-  describe?(): LocalAnswerSynthesizerInfo;
-  checkAvailability?():
-    | Promise<LocalAnswerSynthesizerAvailability>
-    | LocalAnswerSynthesizerAvailability;
 }
 
 // ---------------------------------------------------------------------------

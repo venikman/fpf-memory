@@ -145,21 +145,17 @@ describe('MCP session-continuity roundtrip', () => {
       env: {
         ...process.env,
         // Isolate the child from any ambient host/CI state so the test is
-        // hermetic: (1) no live LM Studio call, (2) per-harness artifact
-        // dir to avoid sharing `.runtime/fpf-index` with parallel workers
-        // (which would bump `builtAt` between our status assertions),
-        // (3) pinned spec source so the test doesn't drift with the host's
-        // `FPF_SPEC_SOURCE_PATH`, (4) no persistent session cache so
+        // hermetic: (1) per-harness artifact dir to avoid sharing
+        // `.runtime/fpf-index` with parallel workers (which would bump
+        // `builtAt` between our status assertions), (2) pinned spec source
+        // so the test doesn't drift with the host's `FPF_SPEC_SOURCE_PATH`,
+        // (3) no persistent session cache so
         // `activeSessions` resets per run.
-        FPF_LOCAL_LLM_BASE_URL: '',
-        FPF_LOCAL_LLM_MODEL: '',
-        FPF_LOCAL_LLM_API_KEY: '',
         FPF_SPEC_SOURCE_PATH: resolve(process.cwd(), DEFAULT_SOURCE_PATH),
         FPF_RUNTIME_ARTIFACT_DIR: resolve(tempDir, 'fpf-index'),
         FPF_PERSIST_SESSION_CACHE: 'false',
         FPF_MCP_SURFACE: 'full',
         FPF_RUNTIME_LOG_PATH: resolve(tempDir, 'fpf-runtime.log'),
-        FPF_RUNTIME_OBSERVABILITY_PATH: resolve(tempDir, 'runtime-observability.json'),
       },
       stdio: ['pipe', 'pipe', 'pipe'],
     });

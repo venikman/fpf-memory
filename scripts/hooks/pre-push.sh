@@ -8,10 +8,8 @@
 #
 # Steps:
 #   1. Refresh the runtime snapshot against the upstream working copy.
-#   2. Optional LM Studio health check (skipped unless
-#      FPF_LOCAL_LLM_BASE_URL or FPF_LOCAL_LLM_MODEL is set).
-#   3. Publish the committed `published/current/**` surface.
-#   4. Stage the published files so the user decides whether to amend
+#   2. Publish the committed `published/current/**` surface.
+#   3. Stage the published files so the user decides whether to amend
 #      or make a new commit.
 
 set -eu
@@ -31,16 +29,6 @@ fi
 
 echo "pre-push: refreshing runtime snapshot from $PUBLISH_SOURCE"
 FPF_SPEC_SOURCE_PATH="$PUBLISH_SOURCE" bun run cli -- refresh
-
-if [ -n "${FPF_LOCAL_LLM_BASE_URL:-}${FPF_LOCAL_LLM_MODEL:-}" ]; then
-  echo "pre-push: running LM Studio health check"
-  bun run cli -- lm-check --timeout-ms 60000 || {
-    echo "pre-push: lm-check failed — set FPF_SKIP_PUBLISH=1 to bypass, or fix LM Studio." >&2
-    exit 1
-  }
-else
-  echo "pre-push: LM Studio not configured; skipping lm-check"
-fi
 
 echo "pre-push: publishing ./published/current/"
 FPF_PUBLISH_SOURCE_PATH="$PUBLISH_SOURCE" bun run publish:current

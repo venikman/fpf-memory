@@ -220,25 +220,6 @@ describe('FpfRuntime', () => {
     expect(agentWorkflow.answer.length).toBeGreaterThan(0);
     expect(agentWorkflow.citations.length).toBeGreaterThan(0);
 
-    const unavailableSynthesizer = new FpfRuntime({
-      artifactDir: resolve(tempRoot, 'deterministic-artifacts'),
-      sourcePath,
-      synthesizer: {
-        isAvailable: async () => false,
-        synthesize: async () => {
-          throw new Error('deterministic fallback should skip unavailable synthesis');
-        },
-      },
-    });
-    const degradedAnswer = await unavailableSynthesizer.query(
-      'What is U.BoundedContext?',
-      'compact',
-    );
-    expect(degradedAnswer.status).toBe('degraded');
-    expect(degradedAnswer.ids).toEqual([]);
-    expect(degradedAnswer.candidateIds).toContain('A.1.1');
-    expect(degradedAnswer.confidence).toBeNull();
-
     const creativity = await runtime.query(
       'How is creativity and open-ended search represented in FPF?',
       'verbose',
@@ -463,9 +444,6 @@ describe('FpfRuntime', () => {
     expect(status.snapshotExists).toBe(true);
     expect(status.compilerMode).toBe('local_vectorless');
     expect(status.fresh).toBe(true);
-    expect(status.synthesizer.configured).toBe(false);
-    expect(status.observability.configured).toBe(false);
-    expect(status.observability.filePath).toBe('');
     expect(status.sessionCache.enabled).toBe(true);
     for (const key of Object.keys(ARTIFACT_FILENAMES)) {
       expect(status.artifacts[key]).toBe(true);

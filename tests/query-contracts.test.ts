@@ -18,13 +18,9 @@ import {
   buildRouteAnswer,
   confidenceFromTrace,
   gapsFromTrace,
-  prepareSynthesisSlices,
 } from '../src/runtime/answer-projector.js';
-import { synthesizeAnswer } from '../src/runtime/synthesis-adapter.js';
 import { MAX_EXCLUDED } from '../src/runtime/constants.js';
 import type {
-  CompiledNode,
-  LocalAnswerSynthesizer,
   RelationEdge,
   RouteRecord,
   Snapshot,
@@ -182,8 +178,8 @@ function addRouteFixtures(baseSnapshot: Snapshot): Snapshot {
 
 /**
  * Assemble a TraceResult from stage outputs, mirroring QueryEngine.trace().
- * Used by projection and synthesis tests so they can feed stage outputs
- * forward without routing through QueryEngine.
+ * Used by projection tests so they can feed stage outputs forward without
+ * routing through QueryEngine.
  */
 function assembleTrace(
   question: string,
@@ -830,181 +826,6 @@ describe('Query / Projection stability stage', () => {
 
     const gaps = gapsFromTrace(trace);
     expect(Array.isArray(gaps)).toBe(true);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Stage 6: Synthesis isolation  (synthesizeAnswer)
-// ---------------------------------------------------------------------------
-describe('Query / Synthesis isolation stage', () => {
-  it('returns an honest degraded envelope when a configured synthesizer is unavailable', async () => {
-    const snapshot = await getSnapshot();
-    const trace = assembleTrace('What is A.1.1?', 'verbose', snapshot);
-    const deterministicResult = buildPatternAnswer('What is A.1.1?', 'verbose', trace, snapshot, false);
-    const nodes = trace.selectedNodeIds
-      .map((nodeId) => snapshot.compiledNodes[nodeId])
-      .filter((node): node is CompiledNode => Boolean(node))
-      .slice(0, 8);
-    const slices = prepareSynthesisSlices(trace, snapshot);
-
-    const unavailable: LocalAnswerSynthesizer = {
-      isAvailable: async () => false,
-      synthesize: async () => {
-        throw new Error('should not be called');
-      },
-    };
-
-    const result = await synthesizeAnswer(
-      'What is A.1.1?', 'verbose', trace, nodes, slices, deterministicResult, unavailable,
-    );
-
-    expect(result.status).toBe('degraded');
-    expect(result.ids).toEqual([]);
-    expect(result.candidateIds).toContain('A.1.1');
-    expect(result.confidence).toBeNull();
-    expect(result.answer).toContain('no synthesized answer was committed');
-  });
-
-  it('falls back to deterministic answer when synthesizer throws', async () => {
-    const snapshot = await getSnapshot();
-    const trace = assembleTrace('What is A.1.1?', 'verbose', snapshot);
-    const deterministicResult = buildPatternAnswer('What is A.1.1?', 'verbose', trace, snapshot, false);
-    const nodes = trace.selectedNodeIds
-      .map((nodeId) => snapshot.compiledNodes[nodeId])
-      .filter((node): node is CompiledNode => Boolean(node))
-      .slice(0, 8);
-    const slices = prepareSynthesisSlices(trace, snapshot);
-
-    const failing: LocalAnswerSynthesizer = {
-      isAvailable: async () => true,
-      synthesize: async () => {
-        throw new Error('synthesizer crashed');
-      },
-    };
-
-    const result = await synthesizeAnswer(
-      'What is A.1.1?', 'verbose', trace, nodes, slices, deterministicResult, failing,
-    );
-
-    expect(result.status).toBe('degraded');
-    expect(result.ids).toEqual([]);
-    expect(result.candidateIds).toContain('A.1.1');
-    expect(result.confidence).toBeNull();
-    expect(result.gaps.some((gap) => gap.includes('synthesis skipped') || gap.includes('synthesizer crashed'))).toBe(true);
-  });
-
-  it('moves deterministic IDs to candidateIds while preserving deterministic evidence', async () => {
-    const snapshot = await getSnapshot();
-    const trace = assembleTrace('What is A.1.1?', 'verbose', snapshot);
-    const deterministicResult = buildPatternAnswer('What is A.1.1?', 'verbose', trace, snapshot, false);
-    const nodes = trace.selectedNodeIds
-      .map((nodeId) => snapshot.compiledNodes[nodeId])
-      .filter((node): node is CompiledNode => Boolean(node))
-      .slice(0, 8);
-    const slices = prepareSynthesisSlices(trace, snapshot);
-
-    const failing: LocalAnswerSynthesizer = {
-      isAvailable: async () => true,
-      synthesize: async () => {
-        throw new Error('test failure');
-      },
-    };
-
-    const failedSynthResult = await synthesizeAnswer(
-      'What is A.1.1?', 'verbose', trace, nodes, slices, deterministicResult, failing,
-    );
-
-    expect(failedSynthResult.ids).toEqual([]);
-    expect(failedSynthResult.candidateIds).toEqual(
-      expect.arrayContaining(deterministicResult.ids),
-    );
-    expect(failedSynthResult.citations).toEqual(deterministicResult.citations);
-    expect(failedSynthResult.relations).toEqual(deterministicResult.relations);
-    expect(failedSynthResult.constraints).toEqual(deterministicResult.constraints);
-  });
-
-  it('does not call synthesize when synthesizer reports unavailable', async () => {
-    const snapshot = await getSnapshot();
-    const trace = assembleTrace('What is A.1.1?', 'verbose', snapshot);
-    const deterministicResult = buildPatternAnswer('What is A.1.1?', 'verbose', trace, snapshot, false);
-    const nodes = trace.selectedNodeIds
-      .map((nodeId) => snapshot.compiledNodes[nodeId])
-      .filter((node): node is CompiledNode => Boolean(node))
-      .slice(0, 8);
-    const slices = prepareSynthesisSlices(trace, snapshot);
-
-    let synthesizeCalled = false;
-    const unavailable: LocalAnswerSynthesizer = {
-      isAvailable: async () => false,
-      synthesize: async () => {
-        synthesizeCalled = true;
-        return {};
-      },
-    };
-
-    await synthesizeAnswer(
-      'What is A.1.1?', 'compact', trace, nodes, slices, deterministicResult, unavailable,
-    );
-
-    expect(synthesizeCalled).toBe(false);
-  });
-
-  it('skips synthesis for compact route answers even when a synthesizer is available', async () => {
-    const snapshot = await getSnapshotWithRouteFixtures();
-    const question =
-      'Using route:project-alignment, give a compact project kickoff work packet.';
-    const trace = assembleTrace(question, 'compact', snapshot);
-    let isAvailableCalled = false;
-    let synthesizeCalled = false;
-    const synthesizer: LocalAnswerSynthesizer = {
-      isAvailable: async () => {
-        isAvailableCalled = true;
-        return true;
-      },
-      synthesize: async () => {
-        synthesizeCalled = true;
-        return { answer: 'unexpected synthesized route answer' };
-      },
-    };
-    const engine = new QueryEngine(snapshot, false, synthesizer);
-
-    const result = await engine.answerFromTrace(question, 'compact', trace);
-
-    expect(trace.routeWins).toBe(true);
-    expect(result.ids[0]).toBe('route:project-alignment');
-    expect(result.answer).toContain(
-      'route:project-alignment (project alignment) is the matched first-practical route',
-    );
-    expect(result.answer).toContain('Acceptance check:');
-    expect(isAvailableCalled).toBe(false);
-    expect(synthesizeCalled).toBe(false);
-  });
-
-  it('still allows synthesis for non-compact route answers', async () => {
-    const snapshot = await getSnapshotWithRouteFixtures();
-    const question =
-      'Using route:project-alignment, explain the project kickoff work packet.';
-    const trace = assembleTrace(question, 'verbose', snapshot);
-    let synthesizeCalled = false;
-    const synthesizer: LocalAnswerSynthesizer = {
-      isAvailable: async () => true,
-      synthesize: async () => {
-        synthesizeCalled = true;
-        return {
-          answer: 'synthesized verbose route answer',
-          confidence: 1,
-          gaps: [],
-        };
-      },
-    };
-    const engine = new QueryEngine(snapshot, false, synthesizer);
-
-    const result = await engine.answerFromTrace(question, 'verbose', trace);
-
-    expect(trace.routeWins).toBe(true);
-    expect(synthesizeCalled).toBe(true);
-    expect(result.ids[0]).toBe('route:project-alignment');
-    expect(result.answer).toBe('synthesized verbose route answer');
   });
 });
 

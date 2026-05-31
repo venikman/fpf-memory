@@ -21,7 +21,6 @@ import { McpHttpClient } from './bench-hosted-mcp.js';
 type AnswerMode = 'compact' | 'verbose' | 'proof';
 type QaStatus =
   | 'ok'
-  | 'degraded'
   | 'not_found'
   | 'ambiguous'
   | 'unsupported'
@@ -49,7 +48,6 @@ interface QaCase {
   forbiddenIds?: string[];
   allowedStatuses?: QaStatus[];
   maxConfidence?: number;
-  maxConfidenceWhenDegraded?: number;
 }
 
 interface QaCaseResult {
@@ -107,7 +105,7 @@ const QA_CASES: Record<string, QaCase[]> = {
       question: 'What is A.1.1 and when should I use it?',
       mode: 'verbose',
       expectedIds: ['A.1.1'],
-      allowedStatuses: ['ok', 'ambiguous', 'degraded'],
+      allowedStatuses: ['ok', 'ambiguous'],
     },
     {
       id: 'role_method_work',
@@ -115,7 +113,7 @@ const QA_CASES: Record<string, QaCase[]> = {
         'A team is confusing who performs a role, the method being used, and the actual work record. Which FPF pattern helps?',
       mode: 'verbose',
       expectedIds: ['A.15'],
-      allowedStatuses: ['ok', 'ambiguous', 'degraded'],
+      allowedStatuses: ['ok', 'ambiguous'],
     },
     {
       id: 'boundary_review',
@@ -131,7 +129,7 @@ const QA_CASES: Record<string, QaCase[]> = {
         'How should I define a measurement template with a characteristic, scale, and evidence?',
       mode: 'verbose',
       expectedIds: ['C.16'],
-      allowedStatuses: ['ok', 'ambiguous', 'degraded'],
+      allowedStatuses: ['ok', 'ambiguous'],
     },
     {
       id: 'prompt_injection_as_text',
@@ -145,9 +143,8 @@ const QA_CASES: Record<string, QaCase[]> = {
       id: 'low_signal_abstain',
       question: 'banana wallpaper coffee quantum spoon',
       mode: 'compact',
-      allowedStatuses: ['not_found', 'ambiguous', 'degraded', 'unsupported'],
+      allowedStatuses: ['not_found', 'ambiguous', 'unsupported'],
       maxConfidence: 0.3,
-      maxConfidenceWhenDegraded: 0.5,
     },
   ],
 };
@@ -240,8 +237,7 @@ export async function runQaCase(
     typeof content.confidence === 'number' || content.confidence === null
       ? content.confidence
       : undefined;
-  const gaps = asStringArray(content.gaps, 'gaps', warnings);
-  const groundingIds = status === 'degraded' ? candidateIds : ids;
+  asStringArray(content.gaps, 'gaps', warnings);
 
   if (testCase.allowedStatuses && (!status || !testCase.allowedStatuses.includes(status as QaStatus))) {
     failures.push(
@@ -249,13 +245,13 @@ export async function runQaCase(
     );
   }
   for (const expectedId of testCase.expectedIds ?? []) {
-    if (!groundingIds.includes(expectedId)) {
+    if (!ids.includes(expectedId)) {
       failures.push(`missing expected id ${expectedId}`);
     }
   }
   if (
     testCase.expectedAnyIds &&
-    !testCase.expectedAnyIds.some((expectedId) => groundingIds.includes(expectedId))
+    !testCase.expectedAnyIds.some((expectedId) => ids.includes(expectedId))
   ) {
     failures.push(`missing any expected id: ${testCase.expectedAnyIds.join(', ')}`);
   }
@@ -271,22 +267,7 @@ export async function runQaCase(
       failures.push(`returned unknown id ${id}`);
     }
   }
-  const degraded = gaps.some((gap) => /synthesis|LM Studio|failed|skipped/iu.test(gap));
-  if (degraded && status !== 'degraded') {
-    failures.push(
-      `degraded synthesis gap conflicts with status=${status ?? '<missing>'}`,
-    );
-  }
-  if (status === 'degraded' && ids.length > 0) {
-    failures.push('degraded answer committed ids instead of using candidateIds');
-  }
-  if (status === 'degraded' && candidateIds.length === 0) {
-    failures.push('degraded answer did not expose candidateIds');
-  }
-  if (status === 'degraded' && confidence !== null) {
-    failures.push(`degraded answer confidence was ${confidence ?? '<missing>'} instead of null`);
-  }
-  if (typeof testCase.maxConfidence === 'number' && status !== 'degraded') {
+  if (typeof testCase.maxConfidence === 'number') {
     if (typeof confidence !== 'number') {
       failures.push(`confidence was ${confidence ?? '<missing>'} instead of a number`);
     } else if (confidence > testCase.maxConfidence) {
@@ -294,15 +275,6 @@ export async function runQaCase(
         `confidence ${confidence} exceeded ${testCase.maxConfidence}`,
       );
     }
-  }
-  if (
-    degraded &&
-    typeof confidence === 'number' &&
-    confidence > (testCase.maxConfidenceWhenDegraded ?? 0.5)
-  ) {
-    failures.push(
-      `degraded synthesis confidence ${confidence ?? '<missing>'} exceeded ${testCase.maxConfidenceWhenDegraded ?? 0.5}`,
-    );
   }
   if (ids.length !== new Set(ids).size) {
     warnings.push('ids contained duplicates');

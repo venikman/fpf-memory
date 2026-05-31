@@ -106,7 +106,7 @@ describe('MCP Q&A benchmark harness', () => {
     );
   });
 
-  it('flags high-confidence degraded synthesis answers', async () => {
+  it('requires expected IDs to be committed ids', async () => {
     const fakeClient = {
       async callTool() {
         return {
@@ -116,10 +116,10 @@ describe('MCP Q&A benchmark harness', () => {
           bodyBytes: 2,
           structuredContent: {
             status: 'ok',
-            confidence: 0.98,
-            ids: ['A.1.1'],
-            candidateIds: [],
-            gaps: ['Local synthesis skipped: LM Studio failed with 404.'],
+            confidence: null,
+            ids: [],
+            candidateIds: ['A.1.1'],
+            gaps: [],
           },
         };
       },
@@ -138,42 +138,7 @@ describe('MCP Q&A benchmark harness', () => {
     );
 
     expect(result.ok).toBe(false);
-    expect(result.failures).toContain('degraded synthesis gap conflicts with status=ok');
-    expect(result.failures).toContain('degraded synthesis confidence 0.98 exceeded 0.5');
-  });
-
-  it('accepts degraded answers that expose expected retrieval candidates without committed ids', async () => {
-    const fakeClient = {
-      async callTool() {
-        return {
-          result: {},
-          httpStatus: 200,
-          contentType: 'application/json',
-          bodyBytes: 2,
-          structuredContent: {
-            status: 'degraded',
-            confidence: null,
-            ids: [],
-            candidateIds: ['A.1.1'],
-            gaps: ['Local synthesis skipped: configured local synthesizer reported unavailable.'],
-          },
-        };
-      },
-    };
-
-    const result = await runQaCase(
-      fakeClient as never,
-      {
-        id: 'case',
-        question: 'question',
-        mode: 'verbose',
-        expectedIds: ['A.1.1'],
-        allowedStatuses: ['ok', 'degraded'],
-      },
-      new Set(['A.1.1']),
-    );
-
-    expect(result.ok).toBe(true);
+    expect(result.failures).toContain('missing expected id A.1.1');
   });
 
   it('accepts low-confidence unsupported abstentions for low-signal cases', async () => {
@@ -201,7 +166,7 @@ describe('MCP Q&A benchmark harness', () => {
         id: 'low_signal_abstain',
         question: 'banana wallpaper coffee quantum spoon',
         mode: 'compact',
-        allowedStatuses: ['not_found', 'ambiguous', 'degraded', 'unsupported'],
+        allowedStatuses: ['not_found', 'ambiguous', 'unsupported'],
         maxConfidence: 0.3,
       },
       new Set(['C.26']),
@@ -235,7 +200,7 @@ describe('MCP Q&A benchmark harness', () => {
         id: 'low_signal_abstain',
         question: 'banana wallpaper coffee quantum spoon',
         mode: 'compact',
-        allowedStatuses: ['not_found', 'ambiguous', 'degraded', 'unsupported'],
+        allowedStatuses: ['not_found', 'ambiguous', 'unsupported'],
         maxConfidence: 0.3,
       },
       new Set(['C.26']),
@@ -270,7 +235,7 @@ describe('MCP Q&A benchmark harness', () => {
         id: 'low_signal_abstain',
         question: 'banana wallpaper coffee quantum spoon',
         mode: 'compact',
-        allowedStatuses: ['not_found', 'ambiguous', 'degraded', 'unsupported'],
+        allowedStatuses: ['not_found', 'ambiguous', 'unsupported'],
         maxConfidence: 0.3,
       },
       new Set(['C.26']),
@@ -278,41 +243,6 @@ describe('MCP Q&A benchmark harness', () => {
 
     expect(result.ok).toBe(false);
     expect(result.failures).toContain('confidence was <missing> instead of a number');
-  });
-
-  it('requires degraded answers to null confidence', async () => {
-    const fakeClient = {
-      async callTool() {
-        return {
-          result: {},
-          httpStatus: 200,
-          contentType: 'application/json',
-          bodyBytes: 2,
-          structuredContent: {
-            status: 'degraded',
-            confidence: 0.45,
-            ids: [],
-            candidateIds: ['A.1.1'],
-            gaps: ['Local synthesis skipped: configured local synthesizer reported unavailable.'],
-          },
-        };
-      },
-    };
-
-    const result = await runQaCase(
-      fakeClient as never,
-      {
-        id: 'case',
-        question: 'question',
-        mode: 'verbose',
-        expectedIds: ['A.1.1'],
-        allowedStatuses: ['ok', 'degraded'],
-      },
-      new Set(['A.1.1']),
-    );
-
-    expect(result.ok).toBe(false);
-    expect(result.failures).toContain('degraded answer confidence was 0.45 instead of null');
   });
 
   it('formats markdown summaries', () => {
