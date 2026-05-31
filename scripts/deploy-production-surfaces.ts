@@ -3,6 +3,11 @@ import { cp, mkdir, mkdtemp, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
+import {
+  extractLatestProductionDeploymentUrl,
+  extractStagedDeploymentUrl,
+} from '../src/build/vercel-deploy-output.js';
+
 interface Surface {
   id: string;
   project: string;
@@ -117,7 +122,7 @@ async function deployStagedProduction(state: PreparedSurface): Promise<string> {
     configPath,
     ...vercelScopeArgs(),
   ]);
-  const deploymentUrl = extractDeploymentUrl(output, `${state.surface.id} staged deployment`);
+  const deploymentUrl = extractStagedDeploymentUrl(output, `${state.surface.id} staged deployment`);
   process.stdout.write(`Staged ${state.surface.id} production deployment: ${deploymentUrl}\n`);
   return deploymentUrl;
 }
@@ -133,7 +138,7 @@ function latestProductionDeploymentUrl(surface: Surface): string {
     '--yes',
     ...vercelScopeArgs(),
   ]);
-  const deploymentUrl = extractFirstDeploymentUrl(
+  const deploymentUrl = extractLatestProductionDeploymentUrl(
     output,
     `${surface.id} previous production deployment`,
   );
@@ -215,33 +220,6 @@ function requiredUrl(state: PreparedSurface): string {
     throw new Error(`Missing staged deployment URL for ${state.surface.id}.`);
   }
   return state.stagedDeploymentUrl;
-}
-
-function extractDeploymentUrl(output: string, label: string): string {
-  const matches = deploymentUrlMatches(output);
-  const url = matches.at(-1)?.[0];
-  if (!url) {
-    throw new Error(`Could not parse ${label} URL from Vercel output.`);
-  }
-  return url;
-}
-
-function extractFirstDeploymentUrl(output: string, label: string): string {
-  const matches = deploymentUrlMatches(output);
-  const url = matches[0]?.[0];
-  if (!url) {
-    throw new Error(`Could not parse ${label} URL from Vercel output.`);
-  }
-  return url;
-}
-
-function deploymentUrlMatches(output: string): RegExpMatchArray[] {
-  const sanitizedOutput = stripAnsi(output);
-  return [...sanitizedOutput.matchAll(/https:\/\/[^\s]+?\.vercel\.app\b/giu)];
-}
-
-function stripAnsi(value: string): string {
-  return value.replace(/\u001b\[[0-9;]*m/gu, '');
 }
 
 function runVercel(args: string[]): void {

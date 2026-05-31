@@ -111,7 +111,8 @@ describe('Vercel deployment configs', () => {
     expect(deployHelper).toContain('vercelScopeArgs(args.scope)');
     expect(prodDeploy).toContain("'--skip-domain'");
     expect(prodDeploy).toContain("'promote'");
-    expect(prodDeploy).toContain('extractFirstDeploymentUrl');
+    expect(prodDeploy).toContain('extractStagedDeploymentUrl');
+    expect(prodDeploy).toContain('extractLatestProductionDeploymentUrl');
     expect(prodDeploy).toContain('rollbackPromotions');
     expect(prodDeploy).toContain('monitor:sync');
     expect(prodDeploy).toContain('monitor:content');
