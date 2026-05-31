@@ -13,7 +13,7 @@ describe('Vercel spend monitor workflow', () => {
     expect(workflow).toContain("- cron: '*/15 * * * *'");
     expect(workflow).toContain('issues: write');
     expect(workflow).toContain('FPF_VERCEL_PROJECT: fpf-reference-mcp');
-    expect(workflow).toContain('FPF_VERCEL_SCOPE: venikmans-projects');
+    expect(workflow).toContain('FPF_VERCEL_SCOPE: team_CnO1I5xd2OS0lzbbc4RkW7Ym');
     expect(workflow).toContain('FPF_VERCEL_SPEND_WINDOW_MINUTES');
     expect(workflow).toContain('FPF_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR');
     expect(workflow).toContain('FPF_VERCEL_SPEND_MAX_LEGACY_INVOCATIONS:');
@@ -51,5 +51,8 @@ describe('Vercel spend monitor workflow', () => {
     );
     expect(monitorScript).toContain('DEFAULT_VERCEL_SPEND_PROJECT');
     expect(monitorScript).toContain('VERCEL_SPEND_MONITOR_TOKEN');
+    expect(monitorScript).toContain(
+      'process.env.VERCEL_SPEND_MONITOR_TOKEN || process.env.VERCEL_TOKEN',
+    );
   });
 });
