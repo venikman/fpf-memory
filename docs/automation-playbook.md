@@ -105,7 +105,7 @@ Done means each claim has current evidence. Do not treat a green local build, a 
 
 2. **MCP protocol surface**
    - `https://mcp.fpf.sh/api/fpf/status` returns `200` with `status: ok`.
-   - `GET https://mcp.fpf.sh/api/mcp/fpf_reference/mcp` returns the expected method-level response, not a Vercel `404`.
+   - `GET https://mcp.fpf.sh/api/mcp/fpf_reference/mcp` returns `405` with the JSON-RPC disabled payload, not a Vercel `404`.
    - JSON-RPC initialize and one tool call succeed against `https://mcp.fpf.sh/api/mcp/fpf_reference/mcp`.
    - The public tool list is limited to the intended public tools.
 
