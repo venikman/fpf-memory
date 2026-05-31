@@ -32,6 +32,8 @@ describe('hosted home page', () => {
     expect(html).toContain('get_fpf_index_status');
     expect(html).toContain('query_fpf_spec');
     expect(html).toContain('read_fpf_doc');
+    expect(html).toContain('405 Method Not Allowed');
+    expect(html).not.toContain('406');
   });
 
   it('serves the connection page from the hosted root', async () => {

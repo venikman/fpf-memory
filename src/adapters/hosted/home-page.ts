@@ -436,6 +436,7 @@ export function renderHostedHomePage(): string {
           <span>Streamable HTTP endpoint</span>
           <code>${HOSTED_MCP_ENDPOINT}</code>
           <small>Legacy <code>${LEGACY_HOSTED_MCP_ENDPOINT}</code> is blocked during the May 2026 mitigation; use the endpoint above.</small>
+          <small>Browser GET returns <strong>405 Method Not Allowed</strong>; MCP clients should use POST Streamable HTTP JSON-RPC requests.</small>
         </div>
       </section>
 

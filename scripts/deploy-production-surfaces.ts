@@ -113,6 +113,7 @@ try {
       '--status-url',
       canonicalMcpStatusUrl,
     ]);
+    run('bun', ['run', 'smoke:production', '--', '--format', 'markdown', '--fail-on-breach']);
   } catch (error) {
     rollbackPromotions(prepared);
     throw error;

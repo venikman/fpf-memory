@@ -178,6 +178,13 @@ jobs:
           test -f "$VERCEL_MCP_FUNCTION_BUNDLE_PATH/hosted/fpf-index/snapshot.json"
           test ! -d .vercel/output/static
 
+      - name: Run semantic production smoke against local build
+        # Exercise the same semantic assertions used for production against
+        # local docs + hosted MCP surfaces. This catches name, route, status,
+        # and standalone GET drift without depending on live production from
+        # pull-request CI.
+        run: bun run smoke:production -- --local --format markdown --fail-on-breach
+
   # Single green check for branch protection: this is the only required
   # status. It goes green iff every parallel job above succeeded. The job
   # ID stays `ci` (no `name:` override) so the status-check context

@@ -11,6 +11,10 @@ describe('FPF content quality workflow', () => {
     expect(workflow).toContain(
       'bun run monitor:content -- --mode local --format markdown --fail-on-breach',
     );
+    expect(workflow).toContain('Run semantic production smoke against local build');
+    expect(workflow).toContain(
+      'bun run smoke:production -- --local --format markdown --fail-on-breach',
+    );
   });
 
   it('monitors production route and curated page drift on a schedule', async () => {
@@ -22,6 +26,9 @@ describe('FPF content quality workflow', () => {
     expect(workflow).toContain("- cron: '37 * * * *'");
     expect(workflow).toContain(
       'bun run monitor:content -- --mode live --format markdown --fail-on-breach',
+    );
+    expect(workflow).toContain(
+      'bun run smoke:production -- --format markdown --fail-on-breach',
     );
     expect(workflow).toContain('FPF_CONTENT_QUALITY_BASE_URL: https://fpf.sh');
     expect(workflow).toContain(

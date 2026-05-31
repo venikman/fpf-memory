@@ -35,3 +35,6 @@ jobs:
 
       - name: Evaluate hosted generated and curated pages
         run: bun run monitor:content -- --mode live --format markdown --fail-on-breach
+
+      - name: Evaluate semantic production smoke
+        run: bun run smoke:production -- --format markdown --fail-on-breach

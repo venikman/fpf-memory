@@ -47,6 +47,9 @@ describe('production deployment workflow', () => {
     expect(commands).toContain(
       'bun run monitor:content -- --mode live --format markdown --fail-on-breach --base-url https://fpf.sh --status-url https://mcp.fpf.sh/api/fpf/status',
     );
+    expect(commands).toContain(
+      'bun run smoke:production -- --format markdown --fail-on-breach',
+    );
     expect(
       commands.some((command) =>
         command.includes(`alias set ${oldMcpDeployment} mcp.fpf.sh`),
@@ -92,7 +95,7 @@ set -eu
 printf 'bun %s\\n' "$*" >> "$FPF_DEPLOY_COMMAND_LOG"
 if [ "$1" = "run" ]; then
   case "$2" in
-    deploy:validate|monitor:sync|monitor:content)
+    deploy:validate|monitor:sync|monitor:content|smoke:production)
       exit 0
       ;;
     vercel:website:build)
