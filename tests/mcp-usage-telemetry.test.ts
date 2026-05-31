@@ -36,12 +36,18 @@ describe('MCP usage telemetry', () => {
     });
 
     expect(event.toolName).toBe('query_fpf_spec');
+    expect(event.schemaVersion).toBe(2);
     expect(event.input).toEqual({
       mode: 'proof',
       question: { shape: 'short' },
       sessionPresent: true,
     });
-    expect(event.output?.resolvedIds).toEqual(['A.1.1', 'route:project-alignment', 'A.15']);
+    expect(event.output?.servedIds).toEqual(['A.1.1', 'route:project-alignment']);
+    expect(event.output?.servedPatternIds).toEqual(['A.1.1']);
+    expect(event.output?.candidateIds).toEqual(['A.15']);
+    expect(event.output?.candidatePatternIds).toEqual(['A.15']);
+    expect(event.output?.citedIds).toEqual(['A.1.1']);
+    expect(event.output?.resolvedIds).toEqual(['A.1.1', 'route:project-alignment']);
     expect(event.output?.idsCount).toBe(2);
     expect(event.output?.candidateIdsCount).toBe(1);
     expect(event.output?.citationsCount).toBe(1);
@@ -103,6 +109,16 @@ describe('MCP usage telemetry', () => {
       resolvedAs: 'id',
       resolvedIds: ['A.1.1'],
       resolvedIdCount: 1,
+      resolvedPatternIds: ['A.1.1'],
+      resolvedPatternIdCount: 1,
+      servedIds: ['A.1.1'],
+      servedIdCount: 1,
+      servedPatternIds: ['A.1.1'],
+      servedPatternIdCount: 1,
+      docSurfaceIds: ['A.1.1'],
+      docSurfaceIdCount: 1,
+      docSurfacePatternIds: ['A.1.1'],
+      docSurfacePatternIdCount: 1,
       headingsCount: 2,
     });
 

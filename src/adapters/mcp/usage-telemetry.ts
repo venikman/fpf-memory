@@ -6,6 +6,7 @@ type TextShape = 'empty' | 'short' | 'medium' | 'long';
 type SelectorShape = 'exact_id' | 'route_id' | 'anchor_id' | 'phrase' | 'token' | 'unknown';
 
 export interface McpUsageTelemetryEvent {
+  schemaVersion: 2;
   event: 'mcp_tool_usage';
   toolName: string;
   outcome: UsageOutcome;
@@ -68,6 +69,7 @@ export function createMcpUsageTelemetryEvent(input: {
   error?: unknown;
 }): McpUsageTelemetryEvent {
   return {
+    schemaVersion: 2,
     event: 'mcp_tool_usage',
     toolName: input.toolName,
     outcome: input.outcome,
@@ -156,7 +158,15 @@ function summarizeOutput(toolName: string, output: unknown): Record<string, unkn
   copyNumberField(record, summary, 'total');
   copyNumberField(record, summary, 'markdownChars');
 
-  const ids = collectResolvedIds(toolName, record);
+  const usageIds = collectUsageIds(toolName, record);
+  copyIdSummary(summary, 'candidate', usageIds.candidateIds);
+  copyIdSummary(summary, 'resolved', usageIds.resolvedIds);
+  copyIdSummary(summary, 'served', usageIds.servedIds);
+  copyIdSummary(summary, 'cited', usageIds.citedIds);
+  copyIdSummary(summary, 'docSurface', usageIds.docSurfaceIds);
+  copyIdSummary(summary, 'servedRoute', usageIds.servedRouteIds);
+
+  const ids = usageIds.resolvedIds;
   if (ids.length > 0) {
     summary.resolvedIds = ids.slice(0, 16);
     summary.resolvedIdCount = ids.length;
@@ -221,40 +231,80 @@ function summarizeOutput(toolName: string, output: unknown): Record<string, unkn
   return summary;
 }
 
-function collectResolvedIds(toolName: string, record: Record<string, unknown>): string[] {
-  const ids: string[] = [];
+interface UsageIdSummary {
+  candidateIds: string[];
+  resolvedIds: string[];
+  servedIds: string[];
+  citedIds: string[];
+  docSurfaceIds: string[];
+  servedRouteIds: string[];
+}
 
-  pushStrings(ids, record.ids);
-  pushStrings(ids, record.candidateIds);
-  pushStrings(ids, record.selectedNodeIds);
-  pushString(ids, record.nodeId);
+function collectUsageIds(toolName: string, record: Record<string, unknown>): UsageIdSummary {
+  const candidateIds: string[] = [];
+  const resolvedIds: string[] = [];
+  const servedIds: string[] = [];
+  const citedIds: string[] = [];
+  const docSurfaceIds: string[] = [];
+
+  pushStrings(servedIds, record.ids);
+  pushStrings(resolvedIds, record.ids);
+  pushStrings(candidateIds, record.candidateIds);
+  pushStrings(candidateIds, nodeIdsFromRecords(record.candidateScores));
+  pushStrings(candidateIds, nodeIdsFromRecords(record.frontierCandidates));
+  pushStrings(resolvedIds, record.selectedNodeIds);
+  pushStrings(servedIds, record.selectedNodeIds);
+  pushString(resolvedIds, record.nodeId);
+  pushString(servedIds, record.nodeId);
+  pushCitationIds(citedIds, record.citations);
+  pushCitationIds(citedIds, record.selectedAnchorIds);
 
   const node = asRecord(record.node);
-  pushString(ids, node?.id);
+  pushString(resolvedIds, node?.id);
+  pushString(servedIds, node?.id);
 
   const ownerNode = asRecord(record.ownerNode);
-  pushString(ids, ownerNode?.id);
+  pushString(resolvedIds, ownerNode?.id);
+  pushString(servedIds, ownerNode?.id);
 
-  for (const key of ['entries', 'hits', 'candidateScores', 'frontierCandidates'] as const) {
+  for (const key of ['entries', 'hits'] as const) {
     for (const item of arrayOfRecords(record[key])) {
-      pushString(ids, item.id);
-      pushString(ids, item.nodeId);
-      pushString(ids, item.targetId);
+      pushString(resolvedIds, item.id);
+      pushString(resolvedIds, item.nodeId);
+      pushString(resolvedIds, item.targetId);
+      pushString(servedIds, item.id);
+      pushString(servedIds, item.nodeId);
+      pushString(servedIds, item.targetId);
     }
   }
 
   for (const item of arrayOfRecords(record.items)) {
     const itemOwnerNode = asRecord(item.ownerNode);
-    pushString(ids, itemOwnerNode?.id);
+    pushString(resolvedIds, itemOwnerNode?.id);
+    pushString(servedIds, itemOwnerNode?.id);
+  }
+
+  const docRef = asRecord(record.docRef);
+  pushString(docSurfaceIds, docRef?.markdownPath);
+  pushString(docSurfaceIds, docRef?.staticPath);
+  if (toolName === 'read_fpf_doc') {
+    pushString(docSurfaceIds, record.nodeId);
   }
 
   if (toolName === 'refresh_fpf_index') {
-    pushCountedIds(ids, record.addedIds);
-    pushCountedIds(ids, record.removedIds);
-    pushCountedIds(ids, record.changedIds);
+    pushCountedIds(resolvedIds, record.addedIds);
+    pushCountedIds(resolvedIds, record.removedIds);
+    pushCountedIds(resolvedIds, record.changedIds);
   }
 
-  return unique(ids);
+  return {
+    candidateIds: unique(candidateIds.map(normalizeUsageId).filter(isNonEmptyString)),
+    resolvedIds: unique(resolvedIds.map(normalizeUsageId).filter(isNonEmptyString)),
+    servedIds: unique(servedIds.map(normalizeUsageId).filter(isNonEmptyString)),
+    citedIds: unique(citedIds.map(normalizeUsageId).filter(isNonEmptyString)),
+    docSurfaceIds: unique(docSurfaceIds.map(normalizeDocSurfaceId).filter(isNonEmptyString)),
+    servedRouteIds: unique(servedIds.map(normalizeUsageId).filter(isRouteId)),
+  };
 }
 
 function collectResolvedKinds(record: Record<string, unknown>): string[] {
@@ -410,6 +460,68 @@ function pushStrings(target: string[], value: unknown): void {
   for (const item of value) {
     pushString(target, item);
   }
+}
+
+function pushCitationIds(target: string[], value: unknown): void {
+  if (!Array.isArray(value)) {
+    return;
+  }
+  for (const item of value) {
+    if (typeof item === 'string') {
+      target.push(normalizeCitationId(item));
+    }
+  }
+}
+
+function nodeIdsFromRecords(value: unknown): string[] {
+  return arrayOfRecords(value)
+    .flatMap((item) => [item.id, item.nodeId, item.targetId])
+    .filter((item): item is string => typeof item === 'string');
+}
+
+function copyIdSummary(
+  target: Record<string, unknown>,
+  prefix: 'candidate' | 'resolved' | 'served' | 'cited' | 'docSurface' | 'servedRoute',
+  ids: string[],
+): void {
+  if (ids.length === 0) {
+    return;
+  }
+  target[`${prefix}Ids`] = ids.slice(0, 16);
+  target[`${prefix}IdCount`] = ids.length;
+  const patternIds = ids.filter(isPatternId);
+  if (patternIds.length > 0) {
+    target[`${prefix}PatternIds`] = patternIds.slice(0, 16);
+    target[`${prefix}PatternIdCount`] = patternIds.length;
+  }
+}
+
+function normalizeUsageId(value: string): string {
+  return value.trim();
+}
+
+function normalizeCitationId(value: string): string {
+  const trimmed = value.trim();
+  if (isRouteId(trimmed)) {
+    return trimmed;
+  }
+  return trimmed.split(/[:/]/u)[0] ?? trimmed;
+}
+
+function normalizeDocSurfaceId(value: string): string {
+  return value.trim().replace(/^docs\//u, '').replace(/\.md$/u, '');
+}
+
+function isPatternId(value: string): boolean {
+  return /^[A-Z](?:\.[A-Z0-9]+)+(?:[-._][A-Z0-9]+)*$/iu.test(value);
+}
+
+function isRouteId(value: string): boolean {
+  return /^route:[a-z0-9][a-z0-9-]*$/iu.test(value);
+}
+
+function isNonEmptyString(value: string): boolean {
+  return value.length > 0;
 }
 
 function pushCountedIds(target: string[], value: unknown): void {

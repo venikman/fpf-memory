@@ -18,6 +18,7 @@
     "monitor:sync": "bun scripts/monitor-fpf-sync.ts",
     "monitor:content": "bun scripts/monitor-content-quality.ts",
     "monitor:vercel:spend": "bun scripts/monitor-vercel-spend.ts",
+    "usage:report": "bun scripts/usage-report.ts",
     "evaluate:work": "bun src/cli.ts evaluate-work --target current-pr --base origin/main --format markdown",
     "stage:from-published": "bun scripts/stage-from-published.ts",
     "smoke:mcp:http": "bun scripts/smoke-hosted-mcp.ts",
