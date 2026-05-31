@@ -92,6 +92,54 @@ A PR may be merged by the review/merge role only when:
 
 If any condition is missing, the role should report the exact blocker rather than waiting silently.
 
+## Executive Production Checklist
+
+Use this checklist before declaring FPF Reference production healthy, after a deploy, after an incident fix, and in any manager brief.
+
+Done means each claim has current evidence. Do not treat a green local build, a successful deploy, or a healthy API endpoint as enough by itself.
+
+1. **User-visible surfaces**
+   - `https://fpf.sh/` returns `200` and renders the FPF Reference site.
+   - `https://mcp.fpf.sh/` returns `200` and renders the FPF Reference MCP connection page.
+   - `https://mcp.fpf.sh/connect-mcp` returns `200` and shows the canonical `fpf_reference` endpoint.
+
+2. **MCP protocol surface**
+   - `https://mcp.fpf.sh/api/fpf/status` returns `200` with `status: ok`.
+   - `GET https://mcp.fpf.sh/api/mcp/fpf_reference/mcp` returns the expected method-level response, not a Vercel `404`.
+   - JSON-RPC initialize and one tool call succeed against `https://mcp.fpf.sh/api/mcp/fpf_reference/mcp`.
+   - The public tool list is limited to the intended public tools.
+
+3. **Publication freshness**
+   - Hosted status `publication.sourceHash`, `runtime.sourceHash`, and `runtime.currentSourceHash` match.
+   - Hosted status reports `fresh: true`.
+   - The upstream ref in hosted status matches the committed `published/current/manifest.json` for the release being claimed.
+
+4. **Deployment ownership**
+   - `vercel inspect fpf.sh` points to the `fpf-sh` production deployment.
+   - `vercel inspect mcp.fpf.sh` points to the `fpf-reference-mcp` production deployment.
+   - Canonical domains are explicitly aliased after deploy; project production promotion alone is not treated as proof.
+
+5. **Route shape**
+   - Website output remains static-only and has no MCP function routes.
+   - MCP output routes `/`, `/connect-mcp`, `/api/fpf/status`, and the canonical MCP JSON-RPC path through the MCP function.
+   - Legacy compatibility routes are either blocked intentionally or documented with a current mitigation reason.
+
+6. **Quality gates**
+   - The closest focused tests for the changed surface pass.
+   - `bun run check` passes for code changes.
+   - The closest deploy or build command for the changed surface passes.
+   - GitHub PR checks are green before the fix is treated as merged product state.
+
+7. **Cost and risk controls**
+   - MCP function bundle size remains within the configured threshold.
+   - Vercel spend monitor has no current function-duration, legacy-route, or error-code breach.
+   - The rollback target is known before production alias changes.
+
+8. **Evidence packet**
+   - Record exact commands, URLs, status codes, deployment URL, PR URL, and merge commit.
+   - Separate ability from performance: what the system can do, what was actually observed, and what remains unproven.
+   - State residual uncertainty explicitly, especially when relying on cached responses, local DNS, or pending external checks.
+
 ## fpf.sh Sync QA and Monitoring
 
 The production sync loop uses FPF as a quality model:
