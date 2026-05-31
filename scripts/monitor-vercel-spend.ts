@@ -30,7 +30,11 @@ const project = readString(
   process.env.FPF_VERCEL_PROJECT ?? DEFAULT_VERCEL_SPEND_PROJECT,
 );
 const scope = readOptionalString(flags, 'scope', process.env.FPF_VERCEL_SCOPE);
-const token = readOptionalString(flags, 'token', process.env.VERCEL_TOKEN);
+const token = readOptionalString(
+  flags,
+  'token',
+  process.env.VERCEL_SPEND_MONITOR_TOKEN ?? process.env.VERCEL_TOKEN,
+);
 const windowMinutes = readPositiveNumber(
   flags,
   'window-minutes',

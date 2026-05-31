@@ -6,6 +6,7 @@ import { describe, expect, it } from '@rstest/core';
 import { HOSTED_FPF_STATUS_ROUTE } from '../src/adapters/hosted/status-page.js';
 import {
   createVercelFunctionConfig,
+  createVercelLegacyMcpBlockedRoute,
   createVercelMcpOutputConfig,
   createVercelWebsiteOutputConfig,
 } from '../src/build/vercel-origin-build.js';
@@ -218,6 +219,9 @@ describe('Vercel deployment configs', () => {
     const srcRoutes = config.routes.flatMap((route) =>
       'src' in route ? [route.src] : [],
     );
+    const functionRoutes = config.routes.filter((route) =>
+      'dest' in route && route.dest === '/_mcp'
+    );
 
     expect(config.routes.some((route) => 'handle' in route)).toBe(false);
     for (const route of HOSTED_HOME_ROUTES) {
@@ -226,10 +230,31 @@ describe('Vercel deployment configs', () => {
     expect(srcRoutes).toContain(`^${HOSTED_FPF_STATUS_ROUTE}$`);
     expect(srcRoutes).toContain(`^${HOSTED_MCP_ROUTE}$`);
     expect(srcRoutes).toContain(`^${LEGACY_HOSTED_MCP_ROUTE}$`);
+    expect(functionRoutes).not.toContainEqual({
+      src: `^${LEGACY_HOSTED_MCP_ROUTE}$`,
+      dest: '/_mcp',
+    });
     expect(srcRoutes).not.toContain('^/(.*)$');
     expect(
       config.routes.every((route) => !('dest' in route) || route.dest === '/_mcp'),
     ).toBe(true);
+  });
+
+  it('blocks the legacy MCP route at Vercel routing before the function runs', () => {
+    const config = createVercelMcpOutputConfig();
+    const legacyBlock = createVercelLegacyMcpBlockedRoute();
+
+    expect(config.routes[0]).toEqual(legacyBlock);
+    expect(legacyBlock).toEqual({
+      src: `^${LEGACY_HOSTED_MCP_ROUTE}$`,
+      status: 403,
+      headers: {
+        'Cache-Control': 'no-store',
+        'X-Vercel-Mitigated': 'deny',
+        Link: '<https://mcp.fpf.sh/api/mcp/fpf_reference/mcp>; rel="successor-version"',
+      },
+    });
+    expect('dest' in legacyBlock).toBe(false);
   });
 
   it('runs the filesystem phase first in the website deployment', () => {

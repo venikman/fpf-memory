@@ -27,7 +27,7 @@ concurrency:
 env:
   BUN_VERSION: '1.3.5'
   FPF_VERCEL_PROJECT: fpf-reference-mcp
-  FPF_VERCEL_SCOPE: team_CnO1I5xd2OS0lzbbc4RkW7Ym
+  FPF_VERCEL_SCOPE: venikmans-projects
   FPF_VERCEL_SPEND_WINDOW_MINUTES: ${{ github.event.inputs.window_minutes || '30' }}
   FPF_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR: ${{ github.event.inputs.max_function_duration_gbhr || '0.25' }}
   FPF_VERCEL_SPEND_MAX_LEGACY_INVOCATIONS: '0'
@@ -53,15 +53,45 @@ jobs:
         id: spend
         continue-on-error: true
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_SPEND_MONITOR_TOKEN || secrets.VERCEL_TOKEN }}
         run: |
+          set -euo pipefail
+
+          write_output() {
+            key="$1"
+            value="$2"
+            sanitized="$(printf '%s' "$value" | tr '\r\n' '  ' | sed -E 's/[[:space:]]+/ /g' | cut -c1-900)"
+            printf '%s=%s\n' "$key" "$sanitized" >> "$GITHUB_OUTPUT"
+          }
+
           if [ -z "${VERCEL_TOKEN:-}" ]; then
-            echo "::error::VERCEL_TOKEN is required for scheduled Vercel metrics monitoring."
+            message="VERCEL_SPEND_MONITOR_TOKEN or VERCEL_TOKEN is required for scheduled Vercel metrics monitoring."
+            write_output state monitor_error
+            write_output summary "$message"
+            write_output monitor_error "$message"
+            echo "::error::$message"
             exit 1
           fi
-          bun run monitor:vercel:spend -- --format markdown --fail-on-breach
 
-      - name: Open or update spend breach issue
+          monitor_log="$(mktemp)"
+          set +e
+          bun run monitor:vercel:spend -- --format markdown --fail-on-breach > "$monitor_log" 2>&1
+          status="$?"
+          set -e
+          cat "$monitor_log"
+
+          if [ "$status" -ne 0 ] && ! grep -q '^state=' "$GITHUB_OUTPUT"; then
+            error_tail="$(tail -n 20 "$monitor_log" | tr '\r\n' '  ' | sed -E 's/[[:space:]]+/ /g' | cut -c1-900)"
+            message="Monitor failed before producing a metric summary: $error_tail"
+            write_output state monitor_error
+            write_output summary "$message"
+            write_output monitor_error "$error_tail"
+            echo "::error::$message"
+          fi
+
+          exit "$status"
+
+      - name: Open or update spend monitor issue
         if: steps.spend.outcome != 'success'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -73,6 +103,7 @@ jobs:
           MAX_FUNCTION_DURATION_GBHR: ${{ steps.spend.outputs.max_function_duration_gbhr || env.FPF_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR }}
           LEGACY_INVOCATIONS: ${{ steps.spend.outputs.legacy_function_invocations || 'unknown' }}
           ERROR_INVOCATIONS: ${{ steps.spend.outputs.function_error_invocations || 'unknown' }}
+          MONITOR_ERROR: ${{ steps.spend.outputs.monitor_error || '' }}
         run: |
           set -euo pipefail
 
@@ -84,7 +115,8 @@ jobs:
               --jq '.[0].number // ""'
           )"
 
-          body="$(
+          body_file="$(mktemp)"
+          {
             printf '%s\n' \
               'The scheduled Vercel spend monitor failed or breached.' \
               '' \
@@ -93,16 +125,62 @@ jobs:
               "- Function Duration: $FUNCTION_DURATION_GBHR GB-hours (threshold $MAX_FUNCTION_DURATION_GBHR)" \
               "- Legacy route function invocations: $LEGACY_INVOCATIONS" \
               "- Function error-code invocations: $ERROR_INVOCATIONS" \
-              "- Run: $RUN_URL" \
+              "- Run: $RUN_URL"
+            if [ -n "$MONITOR_ERROR" ]; then
+              printf '%s\n' "- Monitor error: $MONITOR_ERROR"
+            fi
+            printf '%s\n' \
               '' \
               'Check the workflow summary for the full metric table before changing billing or deploy settings.'
-          )"
+          } > "$body_file"
 
           if [ -n "$existing" ]; then
-            gh issue comment "$existing" --body "$body"
+            gh issue edit "$existing" --body-file "$body_file"
           else
-            gh issue create --title "$TITLE" --body "$body"
+            gh issue create --title "$TITLE" --body-file "$body_file"
           fi
+
+      - name: Close spend monitor issue after clean run
+        if: github.event_name == 'schedule' && steps.spend.outcome == 'success' && steps.spend.outputs.state == 'ok'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: Investigate Vercel spend monitor breach
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          STATE: ${{ steps.spend.outputs.state }}
+          SUMMARY: ${{ steps.spend.outputs.summary }}
+          FUNCTION_DURATION_GBHR: ${{ steps.spend.outputs.function_duration_gbhr }}
+          MAX_FUNCTION_DURATION_GBHR: ${{ steps.spend.outputs.max_function_duration_gbhr }}
+          LEGACY_INVOCATIONS: ${{ steps.spend.outputs.legacy_function_invocations }}
+          ERROR_INVOCATIONS: ${{ steps.spend.outputs.function_error_invocations }}
+        run: |
+          set -euo pipefail
+
+          existing="$(
+            gh issue list \
+              --state open \
+              --search "$TITLE in:title" \
+              --json number \
+              --jq '.[0].number // ""'
+          )"
+
+          if [ -z "$existing" ]; then
+            exit 0
+          fi
+
+          body="$(
+            printf '%s\n' \
+              'The scheduled Vercel spend monitor is clean and this breach issue can close.' \
+              '' \
+              "- State: $STATE" \
+              "- Summary: $SUMMARY" \
+              "- Function Duration: $FUNCTION_DURATION_GBHR GB-hours (threshold $MAX_FUNCTION_DURATION_GBHR)" \
+              "- Legacy route function invocations: $LEGACY_INVOCATIONS" \
+              "- Function error-code invocations: $ERROR_INVOCATIONS" \
+              "- Run: $RUN_URL"
+          )"
+
+          gh issue comment "$existing" --body "$body"
+          gh issue close "$existing" --reason completed
 
       - name: Fail workflow on spend breach
         if: steps.spend.outcome != 'success'

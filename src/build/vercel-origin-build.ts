@@ -13,6 +13,7 @@ import {
 import {
   HOSTED_FPF_STATUS_ROUTE,
   HOSTED_HOME_ROUTES,
+  LEGACY_HOSTED_MCP_ROUTE,
   HOSTED_MCP_ROUTES,
 } from '../composition/hosted.js';
 
@@ -26,6 +27,7 @@ const MCP_FUNCTION_NAME = '_mcp';
 export const VERCEL_MCP_FUNCTION_BUNDLE_PATH =
   `${OUTPUT_DIR}/functions/${MCP_FUNCTION_NAME}.func`;
 const MCP_FUNCTION_DEST = `/${MCP_FUNCTION_NAME}`;
+const LEGACY_HOSTED_MCP_SUCCESSOR_URL = 'https://mcp.fpf.sh/api/mcp/fpf_reference/mcp';
 export const VERCEL_FUNCTION_RUNTIME = 'nodejs24.x';
 export const VERCEL_FUNCTION_MEMORY_MB = 1024;
 export const VERCEL_FUNCTION_MAX_DURATION_SECONDS = 20;
@@ -145,13 +147,29 @@ export function createVercelWebsiteOutputConfig(): VercelDeploymentOutputConfig 
 
 export function createVercelMcpOutputConfig(): VercelDeploymentOutputConfig {
   const dest = MCP_FUNCTION_DEST;
+  const mcpFunctionRoutes = HOSTED_MCP_ROUTES.filter(
+    (route) => route !== LEGACY_HOSTED_MCP_ROUTE,
+  );
   return {
     version: 3,
     routes: [
+      createVercelLegacyMcpBlockedRoute(),
       ...HOSTED_HOME_ROUTES.map((route) => ({ src: `^${route}$`, dest })),
       { src: `^${HOSTED_FPF_STATUS_ROUTE}$`, dest },
-      ...HOSTED_MCP_ROUTES.map((route) => ({ src: `^${route}$`, dest })),
+      ...mcpFunctionRoutes.map((route) => ({ src: `^${route}$`, dest })),
     ],
+  };
+}
+
+export function createVercelLegacyMcpBlockedRoute(): VercelDeploymentRoute {
+  return {
+    src: `^${LEGACY_HOSTED_MCP_ROUTE}$`,
+    status: 403,
+    headers: {
+      'Cache-Control': 'no-store',
+      'X-Vercel-Mitigated': 'deny',
+      Link: `<${LEGACY_HOSTED_MCP_SUCCESSOR_URL}>; rel="successor-version"`,
+    },
   };
 }
 

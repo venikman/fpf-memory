@@ -13,17 +13,27 @@ describe('Vercel spend monitor workflow', () => {
     expect(workflow).toContain("- cron: '*/15 * * * *'");
     expect(workflow).toContain('issues: write');
     expect(workflow).toContain('FPF_VERCEL_PROJECT: fpf-reference-mcp');
-    expect(workflow).toContain('FPF_VERCEL_SCOPE: team_CnO1I5xd2OS0lzbbc4RkW7Ym');
+    expect(workflow).toContain('FPF_VERCEL_SCOPE: venikmans-projects');
     expect(workflow).toContain('FPF_VERCEL_SPEND_WINDOW_MINUTES');
     expect(workflow).toContain('FPF_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR');
     expect(workflow).toContain('FPF_VERCEL_SPEND_MAX_LEGACY_INVOCATIONS:');
     expect(workflow).toContain('FPF_VERCEL_SPEND_LEGACY_PATH: /api/mcp/fpf_memory');
-    expect(workflow).toContain('VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}');
+    expect(workflow).toContain(
+      'VERCEL_TOKEN: ${{ secrets.VERCEL_SPEND_MONITOR_TOKEN || secrets.VERCEL_TOKEN }}',
+    );
+    expect(workflow).toContain('write_output state monitor_error');
+    expect(workflow).toContain('monitor_error');
     expect(workflow).toContain(
       'bun run monitor:vercel:spend -- --format markdown --fail-on-breach',
     );
-    expect(workflow).toContain('Open or update spend breach issue');
+    expect(workflow).toContain('Open or update spend monitor issue');
     expect(workflow).toContain('Investigate Vercel spend monitor breach');
+    expect(workflow).toContain('gh issue edit "$existing" --body-file "$body_file"');
+    expect(workflow).toContain('Close spend monitor issue after clean run');
+    expect(workflow).toContain(
+      "if: github.event_name == 'schedule' && steps.spend.outcome == 'success' && steps.spend.outputs.state == 'ok'",
+    );
+    expect(workflow).toContain('gh issue close "$existing" --reason completed');
     expect(workflow).toContain('Fail workflow on spend breach');
   });
 
@@ -40,5 +50,6 @@ describe('Vercel spend monitor workflow', () => {
       'utf8',
     );
     expect(monitorScript).toContain('DEFAULT_VERCEL_SPEND_PROJECT');
+    expect(monitorScript).toContain('VERCEL_SPEND_MONITOR_TOKEN');
   });
 });

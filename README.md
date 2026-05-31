@@ -92,7 +92,7 @@ Out:
 - Work performed: download `FPF-Spec.md`, run `publish:current`, validate `published/current/**`, build the static website deployment, build the separate hosted MCP deployment, and open a publication PR only when files changed.
 - Hosted MCP handoff: before opening a new PR, the workflow closes superseded `chore/sync-fpf-*` PRs. After the review window and required checks pass, it squash-merges the current PR and deploys the website and MCP production bundles through the repo CLI scripts.
 - Monitor: `.github/workflows/fpf-sync-monitor.yml` runs hourly, checks `ailev/FPF` HEAD against `https://mcp.fpf.sh/api/fpf/status`, triggers `sync-fpf.yml` when upstream is ahead, and redispatches it when a current generated PR exists but no worker is queued or running. It fails only when drift exceeds the configured SLO or the hosted runtime is internally stale.
-- Spend guardrail: `.github/workflows/vercel-spend-monitor.yml` runs every 15 minutes with `VERCEL_TOKEN`, checks Vercel Function Duration GB-hours, platform error-code rows, and legacy `/api/mcp/fpf_memory` function invocations, then fails the run when a configured cost-risk threshold is breached.
+- Spend guardrail: `.github/workflows/vercel-spend-monitor.yml` runs every 15 minutes with `VERCEL_SPEND_MONITOR_TOKEN` or `VERCEL_TOKEN`, checks Vercel Function Duration GB-hours, platform error-code rows, and legacy `/api/mcp/fpf_memory` function invocations, updates one open issue on breach, and closes it after a clean monitor window.
 
 Minimal dispatch payload:
 
@@ -128,7 +128,7 @@ Copy `.env.example` to `.env`. The most common settings:
 | `FPF_CONTENT_QUALITY_STATUS_URL`          | `https://mcp.fpf.sh/api/fpf/status`  | Runtime status URL used for live content provenance checks.            |
 | `FPF_SYNC_MONITOR_MAX_DRIFT_HOURS`        | `10`                                 | Allowed upstream-to-production drift before monitor failure.           |
 | `FPF_VERCEL_PROJECT`                      | `fpf-reference-mcp`                  | Vercel MCP/API project checked by `monitor:vercel:spend`.              |
-| `FPF_VERCEL_SCOPE`                        | `team_CnO1I5xd2OS0lzbbc4RkW7Ym`      | Vercel team scope for metrics and deploy commands.                     |
+| `FPF_VERCEL_SCOPE`                        | `venikmans-projects`                 | Vercel team scope for metrics and deploy commands.                     |
 | `FPF_VERCEL_SPEND_WINDOW_MINUTES`         | `30`                                 | Metrics lookback window for spend guardrails.                          |
 | `FPF_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR` | `0.25`                            | Maximum Function Duration GB-hours allowed in the lookback window.     |
 | `FPF_VERCEL_SPEND_MAX_LEGACY_INVOCATIONS` | `0`                                  | Maximum function invocations allowed for the legacy MCP route.         |
@@ -256,7 +256,7 @@ The legacy `fpf_memory` client name and endpoint are blocked during the May 2026
 https://mcp.fpf.sh/api/mcp/fpf_memory/mcp
 ```
 
-Do not remove the legacy route before the scheduled compatibility review on 2026-06-30; keep it explicitly routed so stale clients fail cheaply with a migration signal. The rename is intentionally small so parallel deployment and publication-sync work can merge without replacing this branch's compatibility contract. The detailed compatibility note lives in [`docs/fpf-reference-mcp-rename.md`](docs/fpf-reference-mcp-rename.md).
+Do not remove the legacy route before the scheduled compatibility review on 2026-06-30; keep it explicitly routed so stale clients fail cheaply with a migration signal. Production blocks it at Vercel routing before the MCP function runs, with the in-process guard retained as a fallback. The detailed compatibility note lives in [`docs/fpf-reference-mcp-rename.md`](docs/fpf-reference-mcp-rename.md).
 
 **Recommended Codex tasks** (public surface):
 
