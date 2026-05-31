@@ -27,7 +27,7 @@ concurrency:
 env:
   BUN_VERSION: '1.3.5'
   FPF_VERCEL_PROJECT: fpf-reference-mcp
-  FPF_VERCEL_SCOPE: team_CnO1I5xd2OS0lzbbc4RkW7Ym
+  FPF_VERCEL_SCOPE: venikmans-projects
   FPF_VERCEL_SPEND_WINDOW_MINUTES: ${{ github.event.inputs.window_minutes || '30' }}
   FPF_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR: ${{ github.event.inputs.max_function_duration_gbhr || '0.25' }}
   FPF_VERCEL_SPEND_MAX_LEGACY_INVOCATIONS: '0'
