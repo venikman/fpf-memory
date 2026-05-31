@@ -202,11 +202,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.6.P"
     },
     {
-      "id": "A.6.Q",
-      "title": "U.QualityTermPrecisionRestoration — Quality Term Precision Restoration (Q-TERM)",
-      "staticPath": "/generated/patterns/A.6.Q"
-    },
-    {
       "id": "A.6.RSIG",
       "title": "Recognition Signatures for Descriptions",
       "staticPath": "/generated/patterns/A.6.RSIG"
@@ -687,6 +682,16 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.16"
     },
     {
+      "id": "C.16.P",
+      "title": "Characteristic and Scale Precision Restoration",
+      "staticPath": "/generated/patterns/C.16.P"
+    },
+    {
+      "id": "C.16.Q",
+      "title": "Quality-Term Precision Restoration",
+      "staticPath": "/generated/patterns/C.16.Q"
+    },
+    {
       "id": "C.17",
       "title": "Creativity‑CHR — Characterising Generative Novelty & Value",
       "staticPath": "/generated/patterns/C.17"
@@ -805,6 +810,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "C.30.LCA",
       "title": "Control Structure View Adequacy (LCA)",
       "staticPath": "/generated/patterns/C.30.LCA"
+    },
+    {
+      "id": "C.30.P",
+      "title": "Architecture and Structure Precision Restoration",
+      "staticPath": "/generated/patterns/C.30.P"
     },
     {
       "id": "D.1",
@@ -965,6 +975,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "E.10",
       "title": "LEX-BUNDLE: Unified Lexical Rules for FPF",
       "staticPath": "/generated/patterns/E.10"
+    },
+    {
+      "id": "E.10.ARCH",
+      "title": "Wording-Use Ontological Precision Restoration Architecture",
+      "staticPath": "/generated/patterns/E.10.ARCH"
     },
     {
       "id": "E.10.D1",
@@ -1414,9 +1429,9 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/routes/route_reusable-generator-sota-or-portfolio-kit"
     },
     {
-      "slug": "same-entity-rewrite-explanation-and-comparative-reading",
-      "title": "Same-entity rewrite, explanation, and comparative reading",
-      "staticPath": "/generated/routes/route_same-entity-rewrite-explanation-and-comparative-reading"
+      "slug": "same-entity-rewrite-explanation-and-comparative-interpretation",
+      "title": "Same-entity rewrite, explanation, and comparative interpretation",
+      "staticPath": "/generated/routes/route_same-entity-rewrite-explanation-and-comparative-interpretation"
     },
     {
       "slug": "same-entity-rewrite-explanation-representation-change-repair-or-bounded-comparative-reading",
@@ -1432,6 +1447,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "slug": "why",
       "title": "why",
       "staticPath": "/generated/routes/route_why"
+    },
+    {
+      "slug": "wording-use-precision-restoration",
+      "title": "Wording-use precision restoration",
+      "staticPath": "/generated/routes/route_wording-use-precision-restoration"
     },
     {
       "slug": "writing-or-reviewing-patterns",
