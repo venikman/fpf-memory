@@ -30,6 +30,55 @@
 - End-to-end verification command + output excerpt:
 - Caveats or blocker:
 
+## Production evidence packet
+
+Required when the PR changes production-facing behavior, deployment, automation, monitoring, public docs, MCP routes, or published artifacts. Do not paste raw user questions, prompts, answer text, selectors, markdown bodies, session IDs, IPs, or user identifiers.
+
+### Promise checked
+
+
+
+### URLs checked
+
+
+
+### Commands run
+
+
+
+### Expected semantic invariants
+
+- HTTP availability:
+- semantic correctness:
+- freshness/currentness:
+- route naming:
+- live behavior:
+- cost/risk guardrails:
+
+### Actual output excerpt
+
+
+
+### Upstream ref / source hash
+
+
+
+### Deployment URL / alias checked
+
+
+
+### Rollback target
+
+
+
+### Known caveats
+
+
+
+### What would falsify this success claim?
+
+
+
 ## Boundary check
 
 - Runtime remains a single spec file via `FPF_SPEC_SOURCE_PATH` — no additional corpora added
@@ -47,5 +96,5 @@
 | Field   | Value |
 | ------- | ----- |
 | Agent   |       |
-| Session |       |
-| Prompt  |       |
+| Task source |       |
+| Privacy check | No raw user questions, prompts, answer text, selectors, markdown bodies, session IDs, IPs, or user identifiers included. |

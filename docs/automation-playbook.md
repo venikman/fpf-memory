@@ -141,6 +141,43 @@ Done means each claim has current evidence. Do not treat a green local build, a 
    - Separate ability from performance: what the system can do, what was actually observed, and what remains unproven.
    - State residual uncertainty explicitly, especially when relying on cached responses, local DNS, or pending external checks.
 
+### Production evidence packet template
+
+Use this packet for production-affecting PRs, deploys, incident fixes, and manager briefs. It is intentionally stricter than "HTTP 200" or "status: ok" evidence: it separates availability, semantic correctness, freshness/currentness, route naming, live behavior, and cost/risk guardrails.
+
+Do not include raw user questions, prompts, answer text, selectors, markdown bodies, session IDs, IPs, or user identifiers.
+
+```md
+## Production evidence packet
+
+### Promise checked
+
+### URLs checked
+
+### Commands run
+
+### Expected semantic invariants
+
+- HTTP availability:
+- semantic correctness:
+- freshness/currentness:
+- route naming:
+- live behavior:
+- cost/risk guardrails:
+
+### Actual output excerpt
+
+### Upstream ref / source hash
+
+### Deployment URL / alias checked
+
+### Rollback target
+
+### Known caveats
+
+### What would falsify this success claim?
+```
+
 ## fpf.sh Sync QA and Monitoring
 
 The production sync loop uses FPF as a quality model:
