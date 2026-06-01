@@ -4,11 +4,6 @@ import {
   parseRuntimeCoreConfig,
 } from '../adapters/infra/config/env.js';
 import { getRuntimeLogger } from '../adapters/infra/logging/runtime-logger.js';
-import { DiscoveryAppService } from '../app/services/discovery-app-service.js';
-import { InspectAppService } from '../app/services/inspect-app-service.js';
-import { QueryAppService } from '../app/services/query-app-service.js';
-import { RefreshAppService } from '../app/services/refresh-app-service.js';
-import { TraceAppService } from '../app/services/trace-app-service.js';
 import { createMcpServerSet } from '../adapters/mcp/server.js';
 import { createMcpTools } from '../adapters/mcp/tools.js';
 import { createConfiguredRuntime } from './runtime.js';
@@ -40,18 +35,9 @@ export function createMcpComposition(env: NodeJS.ProcessEnv) {
   const mcpConfig = parseMcpConfig(env);
   const logger = getRuntimeLogger(parseLoggingConfig(env));
 
-  const queryAppService = new QueryAppService(runtimeComposition.runtime);
-  const traceAppService = new TraceAppService(runtimeComposition.runtime);
-  const inspectAppService = new InspectAppService(runtimeComposition.runtime);
-  const refreshAppService = new RefreshAppService(runtimeComposition.runtime);
-  const discoveryAppService = new DiscoveryAppService(runtimeComposition.runtime);
   const tools = createMcpTools({
     defaultQueryMode: mcpConfig.defaultQueryMode,
-    queryAppService,
-    traceAppService,
-    inspectAppService,
-    refreshAppService,
-    discoveryAppService,
+    runtime: runtimeComposition.runtime,
     logger,
   });
 

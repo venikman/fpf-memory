@@ -1,7 +1,7 @@
 /**
  * query-engine.ts — QueryEngine orchestrator.
  *
- * Delegates to six focused stage modules:
+ * Delegates to five focused stage modules:
  *   1. query-normalizer.ts   (QueryNormalizer)
  *   2. candidate-seeder.ts   (CandidateSeeder)
  *   3. candidate-ranker.ts   (CandidateRanker)

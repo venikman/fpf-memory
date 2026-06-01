@@ -7,13 +7,8 @@ import {
   type NodeKind,
   type QueryResult,
 } from '../../core/types.js';
-import type { DiscoveryAppService } from '../../app/services/discovery-app-service.js';
-import type { InspectAppService } from '../../app/services/inspect-app-service.js';
-import type { QueryAppService } from '../../app/services/query-app-service.js';
-import type { RefreshAppService } from '../../app/services/refresh-app-service.js';
-import type { TraceAppService } from '../../app/services/trace-app-service.js';
+import type { FpfRuntime } from '../../runtime/runtime.js';
 import type { RuntimeLogger } from '../infra/logging/runtime-logger.js';
-import { unwrapOutcome } from '../../app/commands/index.js';
 import {
   askFpfInputSchema,
   askFpfResultSchema,
@@ -42,11 +37,7 @@ import { withMcpUsageTelemetry } from './usage-telemetry.js';
 
 export interface McpToolDependencies {
   defaultQueryMode: AnswerMode;
-  queryAppService: QueryAppService;
-  traceAppService: TraceAppService;
-  inspectAppService: InspectAppService;
-  refreshAppService: RefreshAppService;
-  discoveryAppService: DiscoveryAppService;
+  runtime: FpfRuntime;
   logger?: RuntimeLogger;
 }
 
@@ -75,6 +66,7 @@ function createFpfMcpTool<
 }
 
 export function createMcpTools(dependencies: McpToolDependencies) {
+  const { runtime } = dependencies;
   const withTelemetry = <TTool extends FpfMcpTool>(tool: TTool): TTool =>
     withMcpUsageTelemetry(tool, dependencies.logger);
 
@@ -84,13 +76,11 @@ export function createMcpTools(dependencies: McpToolDependencies) {
     forceRefresh: boolean;
     sessionId: string | undefined;
   }) =>
-    unwrapOutcome(
-      await dependencies.queryAppService.execute({
-        question: input.question,
-        mode: input.mode ?? dependencies.defaultQueryMode,
-        forceRefresh: input.forceRefresh,
-        sessionId: input.sessionId ? asSessionId(input.sessionId) : undefined,
-      }),
+    runtime.query(
+      input.question.trim(),
+      input.mode ?? dependencies.defaultQueryMode,
+      input.forceRefresh,
+      input.sessionId ? asSessionId(input.sessionId) : undefined,
     );
 
   const refreshFpfIndexTool = withTelemetry(createFpfMcpTool({
@@ -99,8 +89,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
       'Build or rebuild the compiler-backed vectorless FPF index from the configured spec source and persist the artifact set.',
     inputSchema: refreshFpfIndexInputSchema,
     outputSchema: buildAuditSchema,
-    execute: async ({ force }) =>
-      unwrapOutcome(await dependencies.refreshAppService.refresh({ force: force ?? false })),
+    execute: async ({ force }) => runtime.refresh(force ?? false),
   }));
 
   const queryFpfSpecTool = withTelemetry(createFpfMcpTool({
@@ -141,7 +130,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
       'Inspect whether the current FPF runtime index exists, whether it is fresh against the current source hash, and which artifacts are present.',
     inputSchema: getFpfIndexStatusInputSchema,
     outputSchema: runtimeStatusSchema,
-    execute: async () => unwrapOutcome(await dependencies.refreshAppService.status()),
+    execute: async () => runtime.status(),
   }));
 
   const inspectFpfNodeTool = withTelemetry(createFpfMcpTool({
@@ -151,13 +140,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
     inputSchema: inspectFpfNodeInputSchema,
     outputSchema: inspectResultSchema,
     execute: async ({ selector, kind, forceRefresh }) =>
-      unwrapOutcome(
-        await dependencies.inspectAppService.inspect({
-          selector,
-          kind: kind ?? 'auto',
-          forceRefresh: forceRefresh ?? false,
-        }),
-      ),
+      runtime.inspect(selector.trim(), kind ?? 'auto', forceRefresh ?? false),
   }));
 
   const readFpfDocTool = withTelemetry(createFpfMcpTool({
@@ -167,15 +150,11 @@ export function createMcpTools(dependencies: McpToolDependencies) {
     inputSchema: readFpfDocInputSchema,
     outputSchema: readDocResultSchema,
     execute: async ({ selector, kind, mode, maxChars, forceRefresh }) =>
-      unwrapOutcome(
-        await dependencies.inspectAppService.readDoc({
-          selector,
-          kind: kind ?? 'auto',
-          mode,
-          maxChars,
-          forceRefresh: forceRefresh ?? false,
-        }),
-      ),
+      runtime.readDoc(selector.trim(), kind ?? 'auto', {
+        mode,
+        maxChars,
+        forceRefresh: forceRefresh ?? false,
+      }),
   }));
 
   const inspectFpfAnchorTool = withTelemetry(createFpfMcpTool({
@@ -185,12 +164,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
     inputSchema: inspectFpfAnchorInputSchema,
     outputSchema: inspectAnchorResultSchema,
     execute: async ({ anchorId, forceRefresh }) =>
-      unwrapOutcome(
-        await dependencies.inspectAppService.inspectAnchor({
-          anchorId,
-          forceRefresh: forceRefresh ?? false,
-        }),
-      ),
+      runtime.inspectAnchor(anchorId.trim(), forceRefresh ?? false),
   }));
 
   const expandFpfCitationsTool = withTelemetry(createFpfMcpTool({
@@ -200,12 +174,7 @@ export function createMcpTools(dependencies: McpToolDependencies) {
     inputSchema: expandFpfCitationsInputSchema,
     outputSchema: expandCitationsResultSchema,
     execute: async ({ citationIds, forceRefresh }) =>
-      unwrapOutcome(
-        await dependencies.inspectAppService.expandCitations({
-          citationIds,
-          forceRefresh: forceRefresh ?? false,
-        }),
-      ),
+      runtime.expandCitations(citationIds, forceRefresh ?? false),
   }));
 
   const traceFpfPathTool = withTelemetry(createFpfMcpTool({
@@ -215,13 +184,11 @@ export function createMcpTools(dependencies: McpToolDependencies) {
     inputSchema: traceFpfPathInputSchema,
     outputSchema: traceResultSchema,
     execute: async ({ question, mode, forceRefresh, sessionId }) =>
-      unwrapOutcome(
-        await dependencies.traceAppService.execute({
-          question,
-          mode: mode ?? 'compact',
-          forceRefresh: forceRefresh ?? false,
-          sessionId: sessionId ? asSessionId(sessionId) : undefined,
-        }),
+      runtime.trace(
+        question.trim(),
+        mode ?? 'compact',
+        forceRefresh ?? false,
+        sessionId ? asSessionId(sessionId) : undefined,
       ),
   }));
 
@@ -232,15 +199,13 @@ export function createMcpTools(dependencies: McpToolDependencies) {
     inputSchema: browseFpfCatalogInputSchema,
     outputSchema: browseFpfCatalogResultSchema,
     execute: async ({ part, status, kind, limit, forceRefresh }) =>
-      unwrapOutcome(
-        await dependencies.discoveryAppService.browse({
-          part,
-          status,
-          kind: kind as NodeKind | undefined,
-          limit,
-          forceRefresh: forceRefresh ?? false,
-        }),
-      ),
+      runtime.browse({
+        part,
+        status,
+        kind: kind as NodeKind | undefined,
+        limit,
+        forceRefresh: forceRefresh ?? false,
+      }),
   }));
 
   const searchFpfTool = withTelemetry(createFpfMcpTool({
@@ -250,14 +215,11 @@ export function createMcpTools(dependencies: McpToolDependencies) {
     inputSchema: searchFpfInputSchema,
     outputSchema: searchFpfResultSchema,
     execute: async ({ query, kind, limit, forceRefresh }) =>
-      unwrapOutcome(
-        await dependencies.discoveryAppService.search({
-          query,
-          kind: kind as NodeKind | undefined,
-          limit,
-          forceRefresh: forceRefresh ?? false,
-        }),
-      ),
+      runtime.search(query.trim(), {
+        kind: kind as NodeKind | undefined,
+        limit,
+        forceRefresh: forceRefresh ?? false,
+      }),
   }));
 
   const fpfPublicTools = {

@@ -5,7 +5,6 @@ import { ZodError } from 'zod';
 
 import { asSessionId } from '../core/types.js';
 import { parseCliCommand } from '../adapters/cli/command-contracts.js';
-import { unwrapOutcome } from '../app/commands/index.js';
 import {
   evaluateFpfWork,
   formatFpfWorkEvaluationReport,
@@ -47,13 +46,7 @@ export async function runCli(argv = process.argv.slice(2)): Promise<void> {
     return;
   }
 
-  const {
-    logger,
-    queryAppService,
-    traceAppService,
-    inspectAppService,
-    refreshAppService,
-  } = createCliComposition(process.env);
+  const { logger, runtime } = createCliComposition(process.env);
   const commandName = command.kind;
 
   try {
@@ -64,60 +57,44 @@ export async function runCli(argv = process.argv.slice(2)): Promise<void> {
 
     switch (command.kind) {
       case 'status':
-        await print(unwrapOutcome(await refreshAppService.status()));
+        await print(await runtime.status());
         break;
       case 'refresh':
-        await print(
-          unwrapOutcome(
-            await refreshAppService.refresh({
-              force: command.force,
-            }),
-          ),
-        );
+        await print(await runtime.refresh(command.force ?? false));
         break;
       case 'query':
         await print(
-          unwrapOutcome(
-            await queryAppService.execute({
-              question: command.question,
-              mode: command.mode,
-              forceRefresh: command.forceRefresh,
-              sessionId: command.sessionId ? asSessionId(command.sessionId) : undefined,
-            }),
+          await runtime.query(
+            command.question.trim(),
+            command.mode,
+            command.forceRefresh,
+            command.sessionId ? asSessionId(command.sessionId) : undefined,
           ),
         );
         break;
       case 'inspect':
         await print(
-          unwrapOutcome(
-            await inspectAppService.inspect({
-              selector: command.selector,
-              kind: command.selectorKind,
-              forceRefresh: command.forceRefresh,
-            }),
+          await runtime.inspect(
+            command.selector.trim(),
+            command.selectorKind ?? 'auto',
+            command.forceRefresh,
           ),
         );
         break;
       case 'read-doc':
         await print(
-          unwrapOutcome(
-            await inspectAppService.readDoc({
-              selector: command.selector,
-              kind: command.selectorKind,
-              forceRefresh: command.forceRefresh,
-            }),
-          ),
+          await runtime.readDoc(command.selector.trim(), command.selectorKind ?? 'auto', {
+            forceRefresh: command.forceRefresh,
+          }),
         );
         break;
       case 'trace':
         await print(
-          unwrapOutcome(
-            await traceAppService.execute({
-              question: command.question,
-              mode: command.mode,
-              forceRefresh: command.forceRefresh,
-              sessionId: command.sessionId ? asSessionId(command.sessionId) : undefined,
-            }),
+          await runtime.trace(
+            command.question.trim(),
+            command.mode,
+            command.forceRefresh,
+            command.sessionId ? asSessionId(command.sessionId) : undefined,
           ),
         );
         break;

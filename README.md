@@ -128,7 +128,7 @@ Copy `.env.example` to `.env`. The most common settings:
 | `FPF_CONTENT_QUALITY_STATUS_URL`          | `https://mcp.fpf.sh/api/fpf/status`  | Runtime status URL used for live content provenance checks.            |
 | `FPF_SYNC_MONITOR_MAX_DRIFT_HOURS`        | `10`                                 | Allowed upstream-to-production drift before monitor failure.           |
 | `FPF_VERCEL_PROJECT`                      | `fpf-reference-mcp`                  | Vercel MCP/API project checked by `monitor:vercel:spend`.              |
-| `FPF_VERCEL_SCOPE`                        | `venikmans-projects`                 | Vercel team scope for metrics and deploy commands.                     |
+| `FPF_VERCEL_SCOPE`                        | _none_ (example: `venikmans-projects`) | Vercel team scope for metrics and deploy commands. No built-in code default; seeded in `.env.example`. |
 | `FPF_VERCEL_SPEND_WINDOW_MINUTES`         | `30`                                 | Metrics lookback window for spend guardrails.                          |
 | `FPF_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR` | `0.25`                            | Maximum Function Duration GB-hours allowed in the lookback window.     |
 | `FPF_VERCEL_SPEND_MAX_LEGACY_INVOCATIONS` | `0`                                  | Maximum function invocations allowed for the legacy MCP route.         |
@@ -204,7 +204,6 @@ bun run cli -- trace    --question "How do U.RoleAssignment and U.BoundedContext
 bun run mcp                      # public surface
 FPF_MCP_SURFACE=full bun run mcp # full surface (expert tools)
 bun run start                    # hosted HTTP runtime on Hono
-bun run smoke:mcp:http           # smoke-test the streamable HTTP endpoint
 bun run bench:mcp:qa             # hosted Q&A correctness gate
 bun run bench:mcp                # hosted latency/correctness benchmark
 bun run vercel:mcp:build         # prebuild the MCP Vercel bundle
@@ -313,7 +312,6 @@ bun run vercel:website:deploy:prod
 bun run vercel:mcp:link
 bun run vercel:mcp:build
 bun run vercel:mcp:deploy:prod
-FPF_MCP_SMOKE_URL=https://mcp.fpf.sh/api/mcp/fpf_reference/mcp bun run smoke:mcp:http
 
 bun run bench:mcp:qa -- --name mcp-production --url https://mcp.fpf.sh/api/mcp/fpf_reference/mcp --format markdown
 ```

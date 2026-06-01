@@ -2,9 +2,11 @@ name: Vercel Spend Monitor
 
 on:
   schedule:
-    # Early warning for Function Duration burn. This complements the edge
-    # firewall rule and code-level MCP GET guard that stop the known spike path.
-    - cron: '*/15 * * * *'
+    # Hourly early warning for Function Duration burn. The known spike path is
+    # already blocked at two layers (edge firewall rule + code-level MCP GET
+    # guard), so this is insurance against a *new* regression, not the primary
+    # control — hourly cadence is sufficient and ~4x cheaper than every 15 min.
+    - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
       window_minutes:
