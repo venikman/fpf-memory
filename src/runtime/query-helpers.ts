@@ -190,7 +190,10 @@ function scoreRouteIntent(normalizedQuestion: string, def: RouteIntentDef): numb
       if (matched) {
         return tier.score;
       }
-    } else if (tier.anyOf.some((pattern) => pattern.test(normalizedQuestion))) {
+    } else if (
+      tier.kind === 'regex' &&
+      tier.anyOf.some((pattern) => pattern.test(normalizedQuestion))
+    ) {
       return tier.score;
     }
   }
