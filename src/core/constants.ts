@@ -56,9 +56,8 @@ export const PREFACE_MARKER = '# **Preface** (non-normative)';
 export const PREFACE_ROUTE_CITATION = 'Preface/Where to start';
 export const ROUTE_INDEX_CITATION = 'J.4';
 
-export const PROJECT_ALIGNMENT_ROUTE_NAME = 'project alignment';
-export const BOUNDARY_UNPACKING_CLAIM_ROUTING_ROUTE_NAME =
-  'boundary unpacking / claim routing';
+// FPF route names used for heuristic lookup live in
+// src/runtime/spec-heuristics.ts (the spec-keyed heuristic data file).
 
 export const MAX_HOPS = 6;
 export const MAX_SELECTED_ANCHORS = 12;

@@ -389,3 +389,72 @@ describe('Compiler / Snapshot determinism stage', () => {
     expect(secondSections).toBeGreaterThan(firstSections);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Stage 6: Spec-heuristic binding integrity
+//
+// The persisted heuristic seed rules + route constraints bind to literal FPF
+// IDs and route names declared in `src/runtime/spec-heuristics.ts`. The
+// compiler filters those against the compiled graph, so an upstream rename can
+// silently empty a rule's seeds or drop a route-bound rule — disabling
+// retrieval with no error. Unlike the deliberately loose contracts above,
+// these pins are intentionally strict: they make such drift LOUD so the
+// spec-keyed data file gets re-verified instead of quietly going stale.
+// ---------------------------------------------------------------------------
+describe('Compiler / Spec-heuristic binding', () => {
+  const EXPECTED_RULE_NAMES = [
+    'creative-search-heuristic',
+    'measurement-template-discipline',
+    'agent-workflow-adoption',
+    'vocabulary-alignment',
+    'role-assignment-connection',
+    'same-entity-comparative-reading',
+  ];
+
+  it('emits every expected seed rule with seeds that resolve to compiled nodes', async () => {
+    const { snapshot } = await getCompilerOutput();
+    const rules = snapshot.heuristicSeedRules ?? [];
+    const byName = new Map(rules.map((rule) => [rule.name, rule]));
+
+    for (const name of EXPECTED_RULE_NAMES) {
+      const rule = byName.get(name);
+      expect(
+        rule,
+        `seed rule "${name}" disappeared — re-verify spec-heuristics.ts IDs/route names against the synced spec`,
+      ).toBeDefined();
+      expect(rule!.seedNodeIds.length).toBeGreaterThan(0);
+      for (const nodeId of rule!.seedNodeIds) {
+        expect(
+          Boolean(snapshot.patternGraph.nodes[nodeId] || snapshot.routeGraph.nodes[nodeId]),
+          `seed node ${nodeId} for rule ${name} no longer resolves`,
+        ).toBe(true);
+      }
+    }
+
+    // Rule names are the seeder/ranker match key — duplicates would double-seed.
+    expect(rules.length).toBe(new Set(rules.map((rule) => rule.name)).size);
+  });
+
+  it('binds the project-alignment route to its expansion rules and constraints', async () => {
+    const { snapshot } = await getCompilerOutput();
+    const rules = snapshot.heuristicSeedRules ?? [];
+
+    const routeBound = rules.filter((rule) => rule.routeId === 'route:project-alignment');
+    expect(routeBound.map((rule) => rule.name)).toEqual([
+      'agent-workflow-adoption',
+      'vocabulary-alignment',
+    ]);
+    for (const rule of routeBound) {
+      expect(rule.seedOrigin).toBe('route_expansion');
+      expect(rule.routeScore ?? 0).toBeGreaterThan(0);
+    }
+
+    const alignment = snapshot.routeGraph.nodes['route:project-alignment'];
+    expect(alignment).toBeDefined();
+    expect(alignment!.constraints).toEqual([
+      'Add F.11 and F.9 only when method/work vocabulary is explicitly at stake in the question.',
+      'Land on F.17 early rather than escalating to F.11 unless the asker names a cross-team mismatch.',
+      'Do not paste the whole FPF; use the route packet first and open exact pattern pages only when wording or boundary detail is actually needed.',
+    ]);
+  });
+});

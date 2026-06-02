@@ -12,10 +12,6 @@
  */
 
 import {
-  BOUNDARY_UNPACKING_CLAIM_ROUTING_ROUTE_NAME,
-  PROJECT_ALIGNMENT_ROUTE_NAME,
-} from './constants.js';
-import {
   buildExplicitReferenceRelations,
   buildLexiconRelations,
   buildOutlineRelations,
@@ -31,11 +27,9 @@ import {
 } from './index-projector.js';
 import { parseSource } from './source-parser.js';
 import {
-  AGENT_WORKFLOW_BOUNDED_RETRIEVAL_SIGNALS,
-  AGENT_WORKFLOW_JOB_SIGNALS,
-  BOUNDARY_BURDEN_SIGNALS,
-  BOUNDARY_REVIEW_RULE_JOB_SIGNALS,
-} from './route-intent-signals.js';
+  ROUTE_CONSTRAINT_DEFS,
+  SEED_RULE_DEFS,
+} from './spec-heuristics.js';
 import { buildValidation } from './validation-runner.js';
 import type {
   AnchorRef,
@@ -180,141 +174,72 @@ export {
   selectFastRouteMatch,
 } from './query-helpers.js';
 
+/**
+ * Generic interpreter over the declarative `spec-heuristics.ts` data: it
+ * carries no literal FPF IDs or English of its own. It applies the
+ * hand-authored route constraints and emits `snapshot.heuristicSeedRules` in
+ * `SEED_RULE_DEFS` order, filtering each rule's IDs against the compiled graph
+ * (so a rule whose route or seeds are absent from this spec edition is skipped
+ * rather than emitting a dangling reference).
+ */
 function buildHeuristicSeedRules(
   patternNodes: Record<string, PatternRecord>,
   routeNodes: Record<string, RouteRecord>,
 ): HeuristicSeedRule[] {
+  const resolvesAsNode = (id: string): boolean => id in patternNodes || id in routeNodes;
+  const resolvesAsPattern = (id: string): boolean => id in patternNodes;
+  const findRouteByName = (name: string): RouteRecord | undefined =>
+    Object.values(routeNodes).find((route) => route.name.toLowerCase() === name);
+
+  // Apply hand-authored route constraints to the matching compiled route,
+  // overwriting any parsed constraints. A route absent from this edition of
+  // the spec (e.g. renamed upstream) is simply skipped.
+  for (const def of ROUTE_CONSTRAINT_DEFS) {
+    const route = findRouteByName(def.routeName);
+    if (route) {
+      route.constraints = [...def.constraints];
+    }
+  }
+
   const rules: HeuristicSeedRule[] = [];
+  for (const def of SEED_RULE_DEFS) {
+    const seedNodeIds = def.seedNodeIds.filter(resolvesAsNode);
+    const initialNodeIds = def.initialNodeIds.filter(resolvesAsPattern);
+    const allOf = def.allOf.map((group) => [...group]);
+    const anyOf = def.anyOf.map((group) => [...group]);
 
-  const creativityNodeIds = ['C.17', 'C.18', 'C.19', 'B.5.2.1', 'A.0'].filter(
-    (id) => id in patternNodes || id in routeNodes,
-  );
-  if (creativityNodeIds.length > 0) {
-    rules.push({
-      name: 'creative-search-heuristic',
-      allOf: [['creativity', 'creative']],
-      anyOf: [['open-ended', 'open ended'], ['search']],
-      seedNodeIds: creativityNodeIds,
-      seedScore: 64,
-      seedOrigin: 'lexical',
-      initialNodeIds: ['C.17', 'C.18', 'C.19'].filter((id) => id in patternNodes),
-    });
-  }
+    if (def.route) {
+      // Route-bound rule: emitted only when its route exists in this edition.
+      const route = findRouteByName(def.route.name);
+      if (!route) {
+        continue;
+      }
+      rules.push({
+        name: def.name,
+        allOf,
+        anyOf,
+        seedNodeIds,
+        seedScore: def.seedScore,
+        seedOrigin: def.seedOrigin,
+        initialNodeIds,
+        routeId: route.id,
+        routeScore: def.route.score,
+      });
+      continue;
+    }
 
-  const measurementTemplateNodeIds = ['C.16'].filter(
-    (id) => id in patternNodes || id in routeNodes,
-  );
-  if (measurementTemplateNodeIds.length > 0) {
+    // Lexical rule: emitted only when at least one seed ID resolves.
+    if (seedNodeIds.length === 0) {
+      continue;
+    }
     rules.push({
-      name: 'measurement-template-discipline',
-      allOf: [
-        ['measurement', 'measure', 'metric', 'metrics'],
-        ['template', 'dhcmethod', 'dhc method'],
-      ],
-      anyOf: [
-        ['characteristic'],
-        ['scale'],
-        ['evidence', 'evidencestub', 'evidence stub'],
-        ['unit'],
-        ['comparability'],
-        ['score', 'scoring'],
-      ],
-      seedNodeIds: measurementTemplateNodeIds,
-      seedScore: 84,
-      seedOrigin: 'lexical',
-      initialNodeIds: measurementTemplateNodeIds.filter((id) => id in patternNodes),
-    });
-  }
-
-  const alignmentRoute = Object.values(routeNodes).find(
-    (r) => r.name.toLowerCase() === PROJECT_ALIGNMENT_ROUTE_NAME,
-  );
-  const alignmentNodeIds = ['A.1.1', 'A.15', 'B.5.1', 'F.17'].filter(
-    (id) => id in patternNodes || id in routeNodes,
-  );
-  if (alignmentRoute) {
-    // Populate project-alignment constraints that were previously hard-coded in query-engine.ts
-    alignmentRoute.constraints = [
-      'Add F.11 and F.9 only when method/work vocabulary is explicitly at stake in the question.',
-      'Land on F.17 early rather than escalating to F.11 unless the asker names a cross-team mismatch.',
-      'Do not paste the whole FPF; use the route packet first and open exact pattern pages only when wording or boundary detail is actually needed.',
-    ];
-    rules.push({
-      name: 'agent-workflow-adoption',
-      allOf: [[...AGENT_WORKFLOW_JOB_SIGNALS]],
-      anyOf: [[...AGENT_WORKFLOW_BOUNDED_RETRIEVAL_SIGNALS]],
-      seedNodeIds: alignmentNodeIds,
-      seedScore: 18,
-      seedOrigin: 'route_expansion',
-      initialNodeIds: [],
-      routeId: alignmentRoute.id,
-      routeScore: 88,
-    });
-    rules.push({
-      name: 'vocabulary-alignment',
-      allOf: [['vocabulary']],
-      anyOf: [['overloaded'], ['across teams'], ['across contexts']],
-      seedNodeIds: alignmentNodeIds,
-      seedScore: 20,
-      seedOrigin: 'route_expansion',
-      initialNodeIds: [],
-      routeId: alignmentRoute.id,
-      routeScore: 80,
-    });
-  }
-
-  const boundaryRoute = Object.values(routeNodes).find(
-    (r) => r.name.toLowerCase() === BOUNDARY_UNPACKING_CLAIM_ROUTING_ROUTE_NAME,
-  );
-  const boundaryNodeIds = ['A.6', 'A.6.B', 'A.6.C', 'A.6.P', 'A.6.Q', 'A.6.A'].filter(
-    (id) => id in patternNodes || id in routeNodes,
-  );
-  if (boundaryRoute) {
-    boundaryRoute.constraints = [
-      'Start with A.6, A.6.B, and A.6.C for API, contract, protocol, CI/deploy gate, or acceptance-clause review.',
-      'Add A.6.P, A.6.Q, or A.6.A only when the review text hides overloaded relation, quality, or action-invitation language.',
-      'Do not open the whole FPF; read exact pattern pages only when a finding depends on wording.',
-    ];
-    rules.push({
-      name: 'boundary-review',
-      allOf: [[...BOUNDARY_REVIEW_RULE_JOB_SIGNALS]],
-      anyOf: [[...BOUNDARY_BURDEN_SIGNALS, 'continuous integration']],
-      seedNodeIds: boundaryNodeIds,
-      seedScore: 24,
-      seedOrigin: 'route_expansion',
-      initialNodeIds: [],
-      routeId: boundaryRoute.id,
-      routeScore: 96,
-    });
-  }
-
-  const roleNodeIds = ['A.1.1', 'A.2.1', 'A.2.5'].filter(
-    (id) => id in patternNodes || id in routeNodes,
-  );
-  if (roleNodeIds.length > 0) {
-    rules.push({
-      name: 'role-assignment-connection',
-      allOf: [['role assignment']],
-      anyOf: [['connect'], ['relation']],
-      seedNodeIds: roleNodeIds,
-      seedScore: 36,
-      seedOrigin: 'lexical',
-      initialNodeIds: [],
-    });
-  }
-
-  const entityNodeIds = ['A.6.3.CR', 'A.6.3.RT', 'E.17.ID.CR'].filter(
-    (id) => id in patternNodes || id in routeNodes,
-  );
-  if (entityNodeIds.length > 0) {
-    rules.push({
-      name: 'same-entity-comparative-reading',
-      allOf: [['same entity', 'same-entity']],
-      anyOf: [['rewrite'], ['comparative']],
-      seedNodeIds: entityNodeIds,
-      seedScore: 40,
-      seedOrigin: 'lexical',
-      initialNodeIds: entityNodeIds.filter((id) => id in patternNodes),
+      name: def.name,
+      allOf,
+      anyOf,
+      seedNodeIds,
+      seedScore: def.seedScore,
+      seedOrigin: def.seedOrigin,
+      initialNodeIds,
     });
   }
 

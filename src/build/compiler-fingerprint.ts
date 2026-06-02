@@ -15,7 +15,7 @@ export const SNAPSHOT_COMPILER_FINGERPRINT_INPUTS = [
   'src/runtime/graph-compiler.ts',
   'src/runtime/index-projector.ts',
   'src/runtime/validation-runner.ts',
-  'src/runtime/route-intent-signals.ts',
+  'src/runtime/spec-heuristics.ts',
   'src/core/text.ts',
   'src/runtime/text-scan.ts',
 ] as const;

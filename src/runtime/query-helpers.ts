@@ -1,5 +1,9 @@
 import { PART_C_CLUSTER_LABELS, PART_C_LABEL } from './constants.js';
 import {
+  ROUTE_INTENT_DEFS,
+  type RouteIntentDef,
+} from './spec-heuristics.js';
+import {
   extractBacktickedTerms,
   extractIds,
   extractQuotedPhrases,
@@ -10,14 +14,6 @@ import {
   unique,
 } from './text.js';
 import type { AnchorRef, LexiconEntry, PatternRecord, RouteRecord, SectionRole } from './types.js';
-import {
-  AGENT_WORKFLOW_BOUNDED_RETRIEVAL_SIGNALS,
-  AGENT_WORKFLOW_JOB_SIGNALS,
-  BOUNDARY_BURDEN_JOB_SIGNALS,
-  BOUNDARY_BURDEN_SIGNALS,
-  WRITING_OR_REVIEWING_PATTERN_SIGNALS,
-  hasBoundaryReviewNegation,
-} from './route-intent-signals.js';
 
 export interface FastRouteMatch {
   routeId: string;
@@ -25,11 +21,6 @@ export interface FastRouteMatch {
   reason: string;
 }
 
-const PATTERN_AUTHORING_ACTION_BEFORE_PATTERN =
-  /\b(?:add|adding|draft|drafting|write|writing|revise|revising|author|authoring|review|reviewing)\b(?:\s+(?:a|an|the|new|existing|fpf|spec))*\s+patterns?\b/;
-
-const PATTERN_AUTHORING_NOUN_AFTER_PATTERN =
-  /\bpatterns?\s+(?:writing|authoring|review|reviewing|revision|revisions|draft|drafting)\b/;
 const TITLE_TOKEN_WEIGHT = 5;
 
 export function isPartCDraftQuery(question: string): boolean {
@@ -175,109 +166,35 @@ function scoreExplicitRouteSelector(normalizedQuestion: string, route: RouteReco
   return 0;
 }
 
+/**
+ * Adoption-route intent scoring. The per-route keyword lists, tiers, and
+ * negations are declarative data in `spec-heuristics.ts` (`ROUTE_INTENT_DEFS`,
+ * keyed by route ID); this function is a content-agnostic interpreter, so a
+ * renamed route ID drops out of the data file rather than leaving a dead
+ * `case` here.
+ */
 function scoreAdoptionRouteIntent(normalizedQuestion: string, route: RouteRecord): number {
-  switch (route.id) {
-    case 'route:project-alignment':
-      return scoreProjectAlignmentIntent(normalizedQuestion);
-    case 'route:boundary-unpacking-claim-routing':
-      return scoreBoundaryUnpackingClaimRoutingIntent(normalizedQuestion);
-    case 'route:boundary-unpacking':
-      return scoreBoundaryUnpackingIntent(normalizedQuestion);
-    case 'route:writing-or-reviewing-patterns':
-      return scoreWritingOrReviewingPatternIntent(normalizedQuestion);
-    default:
-      return 0;
-  }
+  const def = ROUTE_INTENT_DEFS[route.id];
+  return def ? scoreRouteIntent(normalizedQuestion, def) : 0;
 }
 
-function scoreProjectAlignmentIntent(normalizedQuestion: string): number {
-  if (
-    AGENT_WORKFLOW_JOB_SIGNALS.some((signal) => normalizedQuestion.includes(signal)) &&
-    AGENT_WORKFLOW_BOUNDED_RETRIEVAL_SIGNALS.some((signal) =>
-      normalizedQuestion.includes(signal),
-    )
-  ) {
-    return 88;
-  }
-  const projectSignals = [
-    'project kickoff',
-    'project lead',
-    'new adopter',
-    'project information system',
-    'information system',
-    'model my project',
-    'align a project',
-    'align a new project',
-    'aligning a new project',
-    'project alignment',
-    'project review',
-    'starting a team project',
-    'start a team project',
-    'team project',
-    'first shared work surface',
-    'vocabulary is overloaded',
-    'overloaded across teams',
-  ];
-  if (projectSignals.some((signal) => normalizedQuestion.includes(signal))) {
-    return 76;
-  }
-  if (
-    normalizedQuestion.includes('project') &&
-    (normalizedQuestion.includes('kickoff') ||
-      normalizedQuestion.includes('model') ||
-      normalizedQuestion.includes('align') ||
-      normalizedQuestion.includes('smallest') ||
-      normalizedQuestion.includes('work packet'))
-  ) {
-    return 64;
-  }
-  return 0;
-}
-
-function scoreBoundaryUnpackingClaimRoutingIntent(normalizedQuestion: string): number {
-  if (hasBoundaryReviewNegation(normalizedQuestion)) {
+function scoreRouteIntent(normalizedQuestion: string, def: RouteIntentDef): number {
+  if (def.negations?.some((phrase) => normalizedQuestion.includes(phrase))) {
     return 0;
   }
-
-  if (
-    BOUNDARY_BURDEN_SIGNALS.some((signal) => normalizedQuestion.includes(signal)) &&
-    BOUNDARY_BURDEN_JOB_SIGNALS.some((signal) => normalizedQuestion.includes(signal))
-  ) {
-    return 92;
+  for (const tier of def.tiers) {
+    if (tier.kind === 'signals') {
+      const matched = tier.allGroups.every((group) =>
+        group.some((signal) => normalizedQuestion.includes(signal)),
+      );
+      if (matched) {
+        return tier.score;
+      }
+    } else if (tier.anyOf.some((pattern) => pattern.test(normalizedQuestion))) {
+      return tier.score;
+    }
   }
   return 0;
-}
-
-function scoreWritingOrReviewingPatternIntent(normalizedQuestion: string): number {
-  if (
-    WRITING_OR_REVIEWING_PATTERN_SIGNALS.some((signal) =>
-      normalizedQuestion.includes(signal),
-    )
-  ) {
-    return 88;
-  }
-  if (
-    PATTERN_AUTHORING_ACTION_BEFORE_PATTERN.test(normalizedQuestion) ||
-    PATTERN_AUTHORING_NOUN_AFTER_PATTERN.test(normalizedQuestion)
-  ) {
-    return 72;
-  }
-  return 0;
-}
-
-function scoreBoundaryUnpackingIntent(normalizedQuestion: string): number {
-  const unpackingSignals = [
-    'claim register',
-    'atomic claim',
-    'atomic claims',
-    'decompose',
-    'decomposed',
-    'unpack',
-    'unpacking',
-    'mixed sentence',
-    'mixed statements',
-  ];
-  return unpackingSignals.some((signal) => normalizedQuestion.includes(signal)) ? 96 : 0;
 }
 
 export function selectBestAnchors(

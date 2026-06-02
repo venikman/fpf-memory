@@ -9,7 +9,7 @@ import {
   scoreOverlap,
   tokenize,
 } from './text.js';
-import { hasBoundaryReviewNegation } from './route-intent-signals.js';
+import { BOUNDARY_REVIEW_NEGATIONS } from './spec-heuristics.js';
 import type {
   FrontierCandidate,
   FrontierOrigin,
@@ -194,6 +194,10 @@ function matchesSeedRule(normalizedQuestion: string, rule: HeuristicSeedRule): b
     rule.allOf.every(matchesGroup) &&
     rule.anyOf.some(matchesGroup)
   );
+}
+
+function hasBoundaryReviewNegation(normalizedQuestion: string): boolean {
+  return BOUNDARY_REVIEW_NEGATIONS.some((phrase) => normalizedQuestion.includes(phrase));
 }
 
 function addHeuristicSeeds(
