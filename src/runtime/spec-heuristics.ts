@@ -45,8 +45,7 @@ export const SPEC_HEURISTICS_PROVENANCE = {
 // ---------------------------------------------------------------------------
 
 export const PROJECT_ALIGNMENT_ROUTE_NAME = 'project alignment';
-export const BOUNDARY_UNPACKING_CLAIM_ROUTING_ROUTE_NAME =
-  'boundary unpacking / claim routing';
+export const BOUNDARY_UNPACKING_ROUTE_NAME = 'boundary unpacking';
 
 // ---------------------------------------------------------------------------
 // Keyword / intent signal lists
@@ -202,10 +201,9 @@ export interface SeedRuleDef {
 
 /**
  * Ordered — the array order is the persisted `heuristicSeedRules` order, which
- * the seeder/ranker iterate. `boundary-review` is retained even though its
- * route name does not resolve in the current edition (so it is skipped at
- * build time): keeping it makes the binding explicit and lets it re-activate
- * automatically if the upstream route name returns.
+ * the seeder/ranker iterate. `boundary-review` binds the API/contract/boundary
+ * burden path to `route:boundary-unpacking` (name "boundary unpacking"), seeding
+ * the A.6 claim-unpacking family for reviewer and CI/deploy-gate questions.
  */
 export const SEED_RULE_DEFS: readonly SeedRuleDef[] = [
   {
@@ -260,11 +258,11 @@ export const SEED_RULE_DEFS: readonly SeedRuleDef[] = [
     name: 'boundary-review',
     allOf: [BOUNDARY_REVIEW_RULE_JOB_SIGNALS],
     anyOf: [[...BOUNDARY_BURDEN_SIGNALS, 'continuous integration']],
-    seedNodeIds: ['A.6', 'A.6.B', 'A.6.C', 'A.6.P', 'A.6.Q', 'A.6.A'],
+    seedNodeIds: ['A.6', 'A.6.B', 'A.6.C', 'A.6.P', 'C.16.Q', 'A.6.A'],
     initialNodeIds: [],
     seedScore: 24,
     seedOrigin: 'route_expansion',
-    route: { name: BOUNDARY_UNPACKING_CLAIM_ROUTING_ROUTE_NAME, score: 96 },
+    route: { name: BOUNDARY_UNPACKING_ROUTE_NAME, score: 96 },
   },
   {
     name: 'role-assignment-connection',
@@ -308,10 +306,10 @@ export const ROUTE_CONSTRAINT_DEFS: readonly RouteConstraintDef[] = [
     ],
   },
   {
-    routeName: BOUNDARY_UNPACKING_CLAIM_ROUTING_ROUTE_NAME,
+    routeName: BOUNDARY_UNPACKING_ROUTE_NAME,
     constraints: [
       'Start with A.6, A.6.B, and A.6.C for API, contract, protocol, CI/deploy gate, or acceptance-clause review.',
-      'Add A.6.P, A.6.Q, or A.6.A only when the review text hides overloaded relation, quality, or action-invitation language.',
+      'Add A.6.P, C.16.Q, or A.6.A only when the review text hides overloaded relation, quality, or action-invitation language.',
       'Do not open the whole FPF; read exact pattern pages only when a finding depends on wording.',
     ],
   },
@@ -365,18 +363,19 @@ export const ROUTE_INTENT_DEFS: Readonly<Record<string, RouteIntentDef>> = {
       },
     ],
   },
-  'route:boundary-unpacking-claim-routing': {
+  'route:boundary-unpacking': {
+    // Adoption-intent phrasing (unpack/decompose/claim register) and the
+    // API/contract/boundary burden path both land on this route. Negations
+    // suppress it when the asker says it is explicitly not a contract review.
     negations: BOUNDARY_REVIEW_NEGATIONS,
     tiers: [
+      { kind: 'signals', allGroups: [BOUNDARY_UNPACKING_INTENT_SIGNALS], score: 96 },
       {
         kind: 'signals',
         allGroups: [BOUNDARY_BURDEN_SIGNALS, BOUNDARY_BURDEN_JOB_SIGNALS],
         score: 92,
       },
     ],
-  },
-  'route:boundary-unpacking': {
-    tiers: [{ kind: 'signals', allGroups: [BOUNDARY_UNPACKING_INTENT_SIGNALS], score: 96 }],
   },
   'route:writing-or-reviewing-patterns': {
     tiers: [

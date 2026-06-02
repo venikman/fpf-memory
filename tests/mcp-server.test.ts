@@ -373,16 +373,16 @@ describe('direct MCP server', () => {
     const readBoundaryRouteDoc = await harness.request('tools/call', {
       name: 'read_fpf_doc',
       arguments: {
-        selector: 'route:boundary-unpacking-claim-routing',
+        selector: 'route:boundary-unpacking',
         kind: 'route',
       },
     });
     const readBoundaryRouteDocPayload = asToolPayload(readBoundaryRouteDoc);
-    if (routeIds.has('route:boundary-unpacking-claim-routing')) {
+    if (routeIds.has('route:boundary-unpacking')) {
       expect(readBoundaryRouteDocPayload.resolvedAs).toBe('route');
-      expect(readBoundaryRouteDocPayload.nodeId).toBe('route:boundary-unpacking-claim-routing');
+      expect(readBoundaryRouteDocPayload.nodeId).toBe('route:boundary-unpacking');
       expect(readBoundaryRouteDocPayload.markdown).toContain(
-        '# Boundary unpacking / claim routing',
+        'route:boundary-unpacking',
       );
     } else {
       expect(readBoundaryRouteDocPayload.status).toBe('not_found');
@@ -405,15 +405,15 @@ describe('direct MCP server', () => {
     expect((reviewerQueryPayload.ids as string[]).length).toBeGreaterThan(0);
     if (
       reviewerQueryPayload.status === 'ok' &&
-      routeIds.has('route:boundary-unpacking-claim-routing')
+      routeIds.has('route:boundary-unpacking')
     ) {
       expect((reviewerQueryPayload.ids as string[]).slice(0, 4)).toEqual([
-        'route:boundary-unpacking-claim-routing',
+        'route:boundary-unpacking',
         'A.6',
         'A.6.B',
         'A.6.C',
       ]);
-      expect(reviewerQueryPayload.answer).toContain('route:boundary-unpacking-claim-routing');
+      expect(reviewerQueryPayload.answer).toContain('route:boundary-unpacking');
     } else if (reviewerQueryPayload.status === 'ambiguous') {
       expect(Array.isArray(reviewerQueryPayload.candidateIds)).toBe(true);
       expect((reviewerQueryPayload.candidateIds as string[]).length).toBeGreaterThan(0);
@@ -448,14 +448,14 @@ describe('direct MCP server', () => {
       },
     });
     const reviewerAskPayload = asToolPayload(reviewerAsk);
-    if (routeIds.has('route:boundary-unpacking-claim-routing')) {
+    if (routeIds.has('route:boundary-unpacking')) {
       expect((reviewerAskPayload.ids as string[]).slice(0, 4)).toEqual([
-        'route:boundary-unpacking-claim-routing',
+        'route:boundary-unpacking',
         'A.6',
         'A.6.B',
         'A.6.C',
       ]);
-      expect(reviewerAskPayload.markdown).toContain('route:boundary-unpacking-claim-routing');
+      expect(reviewerAskPayload.markdown).toContain('route:boundary-unpacking');
     } else {
       expect((reviewerAskPayload.ids as string[]).every((id) => !id.startsWith('route:'))).toBe(
         true,

@@ -275,58 +275,40 @@ describe('FpfRuntime', () => {
     expect(trace.sufficient).toBe(true);
   });
 
-  it('returns the boundary unpacking / claim routing route for PR reviewer API contract prompts', async () => {
+  it('returns the boundary unpacking route for PR reviewer API contract prompts', async () => {
     await runtime.refresh();
-    const routes = await runtime.browse({ kind: 'route' });
-    const routeIds = new Set(routes.entries.map((entry) => entry.id));
-    if (!routeIds.has('route:boundary-unpacking-claim-routing')) {
-      const route = await runtime.query(
-        'For a PR/code reviewer checking an API contract change, return exact route or pattern IDs and acceptance checks without pasting the full FPF.',
-        'compact',
-      );
-      expect(['ok', 'ambiguous']).toContain(route.status);
-      expect(route.ids.length).toBeGreaterThan(0);
-      expect(route.ids.every((id) => !id.startsWith('route:'))).toBe(true);
-      if (route.status === 'ambiguous') {
-        expect(Array.isArray(route.candidateIds)).toBe(true);
-        expect((route.candidateIds ?? []).length).toBeGreaterThan(0);
-      }
-      return;
-    }
     const question =
       'For a PR/code reviewer checking an API contract change, return exact route or pattern IDs and acceptance checks without pasting the full FPF.';
     const route = await runtime.query(question, 'compact');
 
     expect(route.status).toBe('ok');
     expect(route.ids.slice(0, 4)).toEqual([
-      'route:boundary-unpacking-claim-routing',
+      'route:boundary-unpacking',
       'A.6',
       'A.6.B',
       'A.6.C',
     ]);
-    // The route names A.6.P/A.6.Q/A.6.A as conditional additions in
-    // answer prose ("…before deciding whether A.6.P/A.6.Q/A.6.A is
-    // needed") rather than structured IDs, so they appear in `answer`
-    // but not in `ids`.
-    expect(route.answer).toContain('A.6.P/A.6.Q/A.6.A');
-    expect(route.answer).toContain('route:boundary-unpacking-claim-routing');
+    // The boundary route lands the full A.6 claim-unpacking family as
+    // structured IDs, including the conditional adds A.6.P / C.16.Q / A.6.A.
+    expect(route.ids).toContain('C.16.Q');
+    expect(route.answer).toContain('route:boundary-unpacking');
     expect(route.constraints).toContain(
       'Do not open the whole FPF; read exact pattern pages only when a finding depends on wording.',
     );
 
     const ask = renderAskFpfResult(route);
     expect(ask.ids.slice(0, 4)).toEqual([
-      'route:boundary-unpacking-claim-routing',
+      'route:boundary-unpacking',
       'A.6',
       'A.6.B',
       'A.6.C',
     ]);
-    expect(ask.markdown).toContain('route:boundary-unpacking-claim-routing');
+    expect(ask.markdown).toContain('route:boundary-unpacking');
 
     const trace = await runtime.trace(question, 'compact');
     expect(trace.status).toBe('ok');
     expect(trace.routeWins).toBe(true);
-    expect(trace.selectedNodeIds).toContain('route:boundary-unpacking-claim-routing');
+    expect(trace.selectedNodeIds).toContain('route:boundary-unpacking');
   });
 
   // This test chains `refresh()` (full snapshot build, ~16–18s on GitHub

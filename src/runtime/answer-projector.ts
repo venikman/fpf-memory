@@ -92,9 +92,9 @@ export function buildRouteAnswer(
 ): QueryResult {
   const route = snapshot.routeGraph.nodes[routeNodeId]!;
   // Include routeSurfaces alongside the ordered/optional/landing lists.
-  // Some routes (e.g. boundary-unpacking-claim-routing) only declare
-  // surfaces; without this fallback the structured `ids` response would
-  // be just the route ID, hiding the patterns the answer prose names.
+  // Some routes only declare surfaces; without this fallback the structured
+  // `ids` response would be just the route ID, hiding the patterns the
+  // answer prose names.
   const ids = unique([
     routeNodeId,
     ...route.orderedIds,
@@ -180,8 +180,6 @@ function routeAcceptanceCheck(
   switch (routeNodeId) {
     case 'route:project-alignment':
       return 'a shared kickoff packet names the bounded context, actor roles, role/method/work split, first work-plan item, evidence to collect, and UTS-ready terms';
-    case 'route:boundary-unpacking-claim-routing':
-      return 'the boundary text is decomposed into layer-correct claims with named API/contract/protocol obligations, acceptance evidence, and owner handoff';
     case 'route:boundary-unpacking':
       return 'mixed boundary statements have stable claim IDs in a claim register and each atomic claim routes to one owner layer';
     default:
@@ -198,8 +196,6 @@ function routeNextMove(
   switch (routeNodeId) {
     case 'route:project-alignment':
       return 'read A.1.1 and A.15 first, draft the kickoff worksheet, then add A.15.2/A.15.3 only when the plan/run split must be made explicit';
-    case 'route:boundary-unpacking-claim-routing':
-      return 'read A.6, A.6.B, and A.6.C against the concrete boundary sentence before deciding whether A.6.P/A.6.Q/A.6.A is needed';
     case 'route:boundary-unpacking':
       return 'create the claim register first, then open exact pattern pages only for claims whose owner layer remains unclear';
     default:
