@@ -279,10 +279,21 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "Opened sync PR #$PR_NUMBER; waiting two hours before merge eligibility check."
-          sleep 7200
+          # Review window without parking a runner for two hours: exit early when the
+          # PR is younger than the window. fpf-sync-monitor runs hourly and re-dispatches
+          # this worker while production is still behind upstream (its "worker retry can
+          # recheck merge eligibility" path), so eligibility is rechecked each hour until
+          # the window elapses — then this step proceeds to the same merge + deploy below.
+          REVIEW_WINDOW_SECONDS=7200
+          PR_INFO=$(gh pr view "$PR_NUMBER" --json state,createdAt)
+          PR_STATE=$(jq -r .state <<<"$PR_INFO")
+          PR_CREATED_AT=$(jq -r .createdAt <<<"$PR_INFO")
+          PR_AGE_SECONDS=$(( $(date -u +%s) - $(date -u -d "$PR_CREATED_AT" +%s) ))
+          if [ "$PR_AGE_SECONDS" -lt "$REVIEW_WINDOW_SECONDS" ]; then
+            echo "Sync PR #$PR_NUMBER is ${PR_AGE_SECONDS}s old (< ${REVIEW_WINDOW_SECONDS}s review window); leaving it open. The hourly fpf-sync-monitor will re-dispatch this worker to recheck merge eligibility."
+            exit 0
+          fi
 
-          PR_STATE=$(gh pr view "$PR_NUMBER" --json state --jq .state)
           if [ "$PR_STATE" != "OPEN" ]; then
             echo "Sync PR #$PR_NUMBER is $PR_STATE; nothing to merge."
             exit 0
