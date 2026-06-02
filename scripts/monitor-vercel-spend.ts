@@ -182,7 +182,7 @@ function createReport(): VercelSpendMonitorReport {
 }
 
 function runVercelMetrics(args: string[]): unknown {
-  const commandArgs = ['--yes', 'vercel@latest', 'metrics', ...args, '--non-interactive'];
+  const commandArgs = ['--yes', 'vercel@54.7.1', 'metrics', ...args, '--non-interactive'];
   const result = spawnSync('npx', commandArgs, {
     encoding: 'utf8',
     env: process.env,

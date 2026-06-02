@@ -124,7 +124,7 @@ exit 64
     `#!/bin/sh
 set -eu
 printf 'npx %s\\n' "$*" >> "$FPF_DEPLOY_COMMAND_LOG"
-if [ "$1" = "--yes" ] && [ "$2" = "vercel@latest" ]; then
+if [ "$1" = "--yes" ] && [ "$2" = "vercel@54.7.1" ]; then
   shift 2
 fi
 command="$1"

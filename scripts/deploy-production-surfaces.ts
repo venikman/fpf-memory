@@ -309,11 +309,11 @@ function requiredUrl(state: PreparedSurface): string {
 }
 
 function runVercel(args: string[]): void {
-  run('npx', ['--yes', 'vercel@latest', ...args]);
+  run('npx', ['--yes', 'vercel@54.7.1', ...args]);
 }
 
 function runVercelCapture(args: string[]): string {
-  return run('npx', ['--yes', 'vercel@latest', ...args], { capture: true });
+  return run('npx', ['--yes', 'vercel@54.7.1', ...args], { capture: true });
 }
 
 function vercelScopeArgs(): string[] {

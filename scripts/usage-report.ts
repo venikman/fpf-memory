@@ -135,7 +135,7 @@ function runVercelLogs(input: {
 }): string[] {
   const args = [
     '--yes',
-    'vercel@latest',
+    'vercel@54.7.1',
     'logs',
     '--project',
     input.project,

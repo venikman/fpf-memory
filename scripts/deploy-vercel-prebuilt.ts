@@ -49,7 +49,7 @@ try {
 }
 
 function runVercel(args: string[]): void {
-  run('npx', ['--yes', 'vercel@latest', ...args]);
+  run('npx', ['--yes', 'vercel@54.7.1', ...args]);
 }
 
 function parseArgs(rawArgs: string[], env: NodeJS.ProcessEnv): DeployArgs {
