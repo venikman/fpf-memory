@@ -1,12 +1,12 @@
 {
   "channel": "latest-published",
-  "sourceHash": "sha256:f86b7e00c39bb0e9b817917f807b5514048d763988c682b81a61b8190cba7158",
+  "sourceHash": "sha256:bcf53f655e7d483e937e5c65f1100393727eaa68cfe43118db35020df390d5ec",
   "compilerFingerprint": "sha256:9469e5a3d94c2ff05414e2948e7ca0dedf1efa2230cfa5c632cb19222e2bc83b",
-  "upstreamRef": "16cd31387cff04ab6b0feef22717f82ac54efa8f",
+  "upstreamRef": "a0c90e3bbfcc0285893cc5bb9d4a88fcd224f00e",
   "upstreamRepoUrl": "https://github.com/ailev/FPF",
-  "upstreamCommittedAt": "2026-05-31T07:57:58Z",
+  "upstreamCommittedAt": "2026-06-03T22:06:56Z",
   "specPath": "published/current/FPF-Spec.md",
   "snapshotPath": "published/current/fpf-index/snapshot.json",
-  "specBytes": 8105549,
-  "publishedAt": "2026-06-02T02:43:50.683Z"
+  "specBytes": 8445905,
+  "publishedAt": "2026-06-04T13:30:30.055Z"
 }
