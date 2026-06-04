@@ -4,6 +4,7 @@ import {
   askFpfInputSchema,
   browseFpfCatalogInputSchema,
   expandFpfCitationsInputSchema,
+  getFpfIndexStatusInputSchema,
   inspectFpfAnchorInputSchema,
   inspectFpfNodeInputSchema,
   queryFpfSpecInputSchema,
@@ -71,5 +72,16 @@ describe('public MCP tool input caps', () => {
     expect(
       expandFpfCitationsInputSchema.safeParse({ citationIds: [big(257)] }).success,
     ).toBe(false);
+  });
+
+  it('getFpfIndexStatus accepts only an ignored compatibility placeholder', () => {
+    expect(getFpfIndexStatusInputSchema.safeParse({}).success).toBe(true);
+    expect(
+      getFpfIndexStatusInputSchema.safeParse({ random_string: 'notion-placeholder' }).success,
+    ).toBe(true);
+    expect(getFpfIndexStatusInputSchema.safeParse({ random_string: big(65) }).success).toBe(
+      false,
+    );
+    expect(getFpfIndexStatusInputSchema.safeParse({ _probe: true }).success).toBe(false);
   });
 });

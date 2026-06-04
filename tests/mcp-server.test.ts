@@ -256,7 +256,11 @@ describe('direct MCP server', () => {
 
     const statusSchema = tools.find((tool) => tool.name === 'get_fpf_index_status')?.inputSchema;
     expect(statusSchema?.type).toBe('object');
-    expect(statusSchema?.properties).toEqual({});
+    expect(statusSchema?.properties).toMatchObject({
+      random_string: {
+        type: 'string',
+      },
+    });
     expect(statusSchema?.additionalProperties).toBe(false);
   });
 
@@ -275,6 +279,16 @@ describe('direct MCP server', () => {
     const statusPayload = asToolPayload(status);
     expect(typeof statusPayload.snapshotExists).toBe('boolean');
     expect(statusPayload.compilerMode).toBe('local_vectorless');
+
+    const notionStatus = await harness.request('tools/call', {
+      name: 'get_fpf_index_status',
+      arguments: {
+        random_string: 'notion-placeholder',
+      },
+    });
+    const notionStatusPayload = asToolPayload(notionStatus);
+    expect(typeof notionStatusPayload.snapshotExists).toBe('boolean');
+    expect(notionStatusPayload.compilerMode).toBe('local_vectorless');
 
     const query = await harness.request('tools/call', {
       name: 'query_fpf_spec',

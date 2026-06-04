@@ -458,7 +458,18 @@ export const askFpfInputSchema = z
   })
   .strict();
 
-export const getFpfIndexStatusInputSchema = z.object({}).strict();
+export const getFpfIndexStatusInputSchema = z
+  .object({
+    random_string: z
+      .string()
+      .min(1)
+      .max(MAX_FILTER_LENGTH)
+      .optional()
+      .describe(
+        'Ignored compatibility placeholder for MCP clients that cannot send an empty arguments object.',
+      ),
+  })
+  .strict();
 
 export const inspectFpfNodeInputSchema = z
   .object({
