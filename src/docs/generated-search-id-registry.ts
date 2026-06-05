@@ -1128,7 +1128,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.22",
-      "title": "Improvement-Oriented Quality-Read Question Framing",
+      "title": "Improvement-Oriented Quality Evaluation Question Framing",
       "staticPath": "/generated/patterns/E.22"
     },
     {
@@ -1449,9 +1449,9 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/routes/route_project-alignment"
     },
     {
-      "slug": "quality-read-question-framing-before-review-or-improvement",
-      "title": "Quality-read question framing before review or improvement",
-      "staticPath": "/generated/routes/route_quality-read-question-framing-before-review-or-improvement"
+      "slug": "quality-evaluation-question-framing-before-review-or-improvement",
+      "title": "Quality-evaluation question framing before review or improvement",
+      "staticPath": "/generated/routes/route_quality-evaluation-question-framing-before-review-or-improvement"
     },
     {
       "slug": "repeated-quality-improvement-loop",
