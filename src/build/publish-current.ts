@@ -191,6 +191,7 @@ export async function publishCurrent(
     config.publishedSpecPath ?? PUBLISHED_SPEC_PATH,
     publishedSnapshotPath,
     compilerFingerprint,
+    upstreamCommit.committedAt,
   );
 
   const manifestWithoutTimestamp = {
@@ -223,7 +224,17 @@ export async function publishCurrent(
 
   const manifest: PublishCurrentManifest = {
     ...manifestWithoutTimestamp,
-    publishedAt: new Date().toISOString(),
+    // Anchor publishedAt to the upstream commit date rather than wall-clock.
+    // The CI sync worker (sync-fpf.yml) republishes from a clean `main`
+    // checkout every hour, so the idempotency guard above never matches
+    // (the committed manifest on main is the previously-merged ref) and a
+    // wall-clock value rewrote this field — and thus the sync branch's
+    // commit SHA — on every run. That moving SHA permanently wedged the
+    // auto-merge gate, which only merges when a completed CI run matches the
+    // current PR head SHA. Pinning to the (immutable) upstream revision time
+    // makes republishes of the same ref byte-identical. publishedAt is
+    // provenance/display only — no SLO drift math reads it.
+    publishedAt: upstreamCommit.committedAt,
   };
 
   await writeFile(publishedManifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
@@ -279,6 +290,7 @@ async function normalizeSnapshotForPublication(
   publishedSpecPath: string,
   publishedSnapshotPath: string,
   compilerFingerprint: string,
+  deterministicBuiltAt: string,
 ): Promise<Buffer> {
   const currentSnapshot = parsePublicationSnapshot(snapshotBytes);
   if (!currentSnapshot) {
@@ -300,7 +312,13 @@ async function normalizeSnapshotForPublication(
       === comparableSnapshotShape(normalizedCurrent, publishedSpecPath);
   const normalizedSnapshot = {
     ...normalizedCurrent,
-    builtAt: canPreserveBuiltAt ? existingSnapshot.builtAt : currentSnapshot.builtAt,
+    // builtAt is non-semantic for the published surface — comparableSnapshotShape()
+    // strips it before comparison — but the compiler stamps it with wall-clock, so a
+    // fresh CI rebuild churns the snapshot (and the sync branch SHA) on every run, the
+    // same way wall-clock publishedAt did. Preserve a matching prior value when present;
+    // otherwise pin to the upstream revision time so republishes of the same ref stay
+    // byte-identical instead of wedging the sync auto-merge gate.
+    builtAt: canPreserveBuiltAt ? existingSnapshot.builtAt : deterministicBuiltAt,
   };
 
   return Buffer.from(`${JSON.stringify(normalizedSnapshot, null, 2)}\n`);

@@ -72,6 +72,47 @@ describe('publishCurrent', () => {
     expect(secondManifest).toBe(firstManifest);
   }, 30_000);
 
+  it('republishes the same ref byte-identically from a clean tree', async () => {
+    // Reproduces the CI sync worker: it republishes from a fresh `main`
+    // checkout every hour, so it never has this ref's prior published surface
+    // to fall back on. Before the determinism fix, wall-clock publishedAt
+    // (manifest) and builtAt (snapshot) made each run emit a new commit SHA,
+    // which permanently wedged the sync PR's auto-merge gate. Two clean-tree
+    // publishes of the same ref must now be byte-for-byte identical.
+    const config = {
+      publishSourcePath,
+      upstreamRef: 'test-ref',
+      resolveUpstreamCommit: STUB_UPSTREAM_RESOLVER,
+      channel: 'latest-published',
+      publishedSpecPath,
+      publishedArtifactDir,
+      publishedManifestPath,
+    };
+    const env = {
+      ...process.env,
+      FPF_RUNTIME_ARTIFACT_DIR: runtimeArtifactDir,
+    } as NodeJS.ProcessEnv;
+
+    await publishCurrent(config, env);
+    const firstManifest = await readFile(publishedManifestPath, 'utf8');
+    const firstSnapshot = await readFile(resolve(publishedArtifactDir, 'snapshot.json'), 'utf8');
+
+    // Wipe everything a fresh checkout would lack: the published surface (so
+    // the idempotency guard cannot short-circuit) and the runtime artifact dir
+    // (so the compiler genuinely rebuilds with a new wall-clock builtAt). The
+    // sleep guarantees a wall-clock value would differ on the unfixed path.
+    await rm(resolve(tempRoot, 'published'), { recursive: true, force: true });
+    await rm(runtimeArtifactDir, { recursive: true, force: true });
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 25));
+
+    await publishCurrent(config, env);
+
+    expect(await readFile(publishedManifestPath, 'utf8')).toBe(firstManifest);
+    expect(await readFile(resolve(publishedArtifactDir, 'snapshot.json'), 'utf8')).toBe(
+      firstSnapshot,
+    );
+  }, 30_000);
+
   it('resolves the default runtime artifact dir relative to the publish source root', async () => {
     await publishCurrent(
       {
