@@ -1128,7 +1128,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.22",
-      "title": "Improvement-Oriented Quality-Read Question Framing",
+      "title": "Improvement-Oriented Quality Evaluation Question Framing",
       "staticPath": "/generated/patterns/E.22"
     },
     {
@@ -1235,6 +1235,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "F.18",
       "title": "Local-First Unification Naming Protocol",
       "staticPath": "/generated/patterns/F.18"
+    },
+    {
+      "id": "F.19",
+      "title": "Ontology-First Plain Technical Rewriting",
+      "staticPath": "/generated/patterns/F.19"
     },
     {
       "id": "G.0",
@@ -1379,11 +1384,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
   ],
   "routes": [
     {
-      "slug": "admissible-comparison-candidate-pool-policy-selection-and-selected-set-publication",
-      "title": "Admissible comparison, candidate-pool policy, selection, and selected-set publication",
-      "staticPath": "/generated/routes/route_admissible-comparison-candidate-pool-policy-selection-and-selected-set-publication"
-    },
-    {
       "slug": "admissible-comparison-pool-selection-or-selected-set-publication",
       "title": "admissible comparison, pool, selection, or selected-set publication",
       "staticPath": "/generated/routes/route_admissible-comparison-pool-selection-or-selected-set-publication"
@@ -1409,14 +1409,19 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/routes/route_causal-use-and-counterfactual-claim-repair"
     },
     {
-      "slug": "drr-decision-adequacy-before-authoring",
-      "title": "DRR decision adequacy before authoring",
-      "staticPath": "/generated/routes/route_drr-decision-adequacy-before-authoring"
+      "slug": "comparison-pool-policy-selection-and-selected-set-publication",
+      "title": "Comparison, pool policy, selection, and selected-set publication",
+      "staticPath": "/generated/routes/route_comparison-pool-policy-selection-and-selected-set-publication"
     },
     {
-      "slug": "entityofconcern-under-improvement-evaluation-setup-before-improvement",
-      "title": "EntityOfConcern-under-improvement evaluation setup before improvement",
-      "staticPath": "/generated/routes/route_entityofconcern-under-improvement-evaluation-setup-before-improvement"
+      "slug": "drr-decision-adequacy-before-pattern-drafting",
+      "title": "DRR decision adequacy before pattern drafting",
+      "staticPath": "/generated/routes/route_drr-decision-adequacy-before-pattern-drafting"
+    },
+    {
+      "slug": "entityofconcern-under-improvement-evaluation-setup",
+      "title": "EntityOfConcern-under-improvement evaluation setup",
+      "staticPath": "/generated/routes/route_entityofconcern-under-improvement-evaluation-setup"
     },
     {
       "slug": "evaluation-characteristicspace-fpf-pattern-publication-form",
@@ -1434,6 +1439,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/routes/route_generator-sota-or-portfolio-scaffold"
     },
     {
+      "slug": "ontology-first-plain-technical-rewriting",
+      "title": "Ontology-first plain technical rewriting",
+      "staticPath": "/generated/routes/route_ontology-first-plain-technical-rewriting"
+    },
+    {
       "slug": "partly-said-cue-and-language-state-discovery",
       "title": "partly-said cue and language-state discovery",
       "staticPath": "/generated/routes/route_partly-said-cue-and-language-state-discovery"
@@ -1444,14 +1454,19 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/routes/route_pattern-quality-stop-repair-and-non-scalar-improvement"
     },
     {
+      "slug": "principles-to-work-carry-through",
+      "title": "Principles-to-work carry-through",
+      "staticPath": "/generated/routes/route_principles-to-work-carry-through"
+    },
+    {
       "slug": "project-alignment",
       "title": "project alignment",
       "staticPath": "/generated/routes/route_project-alignment"
     },
     {
-      "slug": "quality-read-question-framing-before-review-or-improvement",
-      "title": "Quality-read question framing before review or improvement",
-      "staticPath": "/generated/routes/route_quality-read-question-framing-before-review-or-improvement"
+      "slug": "quality-evaluation-question-framing",
+      "title": "Quality-evaluation question framing",
+      "staticPath": "/generated/routes/route_quality-evaluation-question-framing"
     },
     {
       "slug": "repeated-quality-improvement-loop",
@@ -1474,9 +1489,9 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/routes/route_same-entity-rewrite-explanation-representation-change-repair-or-bounded-comparative-reading"
     },
     {
-      "slug": "temporal-claim-adequacy-under-effort-window-and-resistance",
-      "title": "Temporal claim adequacy under effort, window, and resistance",
-      "staticPath": "/generated/routes/route_temporal-claim-adequacy-under-effort-window-and-resistance"
+      "slug": "temporal-claim-adequacy",
+      "title": "Temporal claim adequacy",
+      "staticPath": "/generated/routes/route_temporal-claim-adequacy"
     },
     {
       "slug": "why",
