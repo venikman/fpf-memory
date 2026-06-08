@@ -69,6 +69,39 @@ Public tools:
 - `read_fpf_doc`
 - `get_fpf_index_status`
 
+## Source and self-hosting
+
+Yes, you can run FPF Reference MCP locally or self-host it. The source repo is [`github.com/venikman/fpf-memory`](https://github.com/venikman/fpf-memory). The upstream FPF specification it indexes is authored by [Anatoly Levenchuk](https://github.com/ailev) in [`github.com/ailev/FPF`](https://github.com/ailev/FPF); this repo is the MCP/runtime and docs projection, not the FPF spec itself.
+
+For a local stdio MCP server:
+
+```sh
+git clone https://github.com/venikman/fpf-memory.git
+cd fpf-memory
+bun install
+bun run mcp
+```
+
+For the full local surface with expert inspection tools:
+
+```sh
+FPF_MCP_SURFACE=full bun run mcp
+```
+
+For a local streamable HTTP server:
+
+```sh
+bun run start
+```
+
+The default local HTTP endpoint is:
+
+```txt
+http://localhost:4111/api/mcp/fpf_reference/mcp
+```
+
+Set `PORT` to change the local HTTP port. If you self-host for remote clients, put that HTTP server behind your own HTTPS reverse proxy or deployment platform and use the same `/api/mcp/fpf_reference/mcp` route. The committed `published/current/**` surface works out of the box; run `bun run spec:download` and `bun run publish:current` only when you want to refresh your local copy from upstream FPF.
+
 ## Connector metadata
 
 Suggested connector name:
@@ -89,6 +122,7 @@ Retrieve bounded public First Principles Framework reference context by stable F
 | --- | --- | --- |
 | Browser shows `405 Method Not Allowed` | Expected. This is not a web page. | Use the URL inside an MCP client configuration. |
 | Client shows no tools | URL is wrong, the client did not initialize the server, or the connector is not enabled in the chat. | Recheck the canonical URL, refresh or restart the client, and verify the connection logs. |
+| Looking for source or self-hosting instructions | FPF Reference MCP is the runtime repo; upstream FPF is the spec repo. | Use [`github.com/venikman/fpf-memory`](https://github.com/venikman/fpf-memory) for this MCP runtime and [`github.com/ailev/FPF`](https://github.com/ailev/FPF) for the upstream FPF spec. |
 | Old `fpf_memory` endpoint fails | Expected during migration mitigation. | Use `https://mcp.fpf.sh/api/mcp/fpf_reference/mcp`. |
 | Client asks for auth or OAuth | Unexpected for the public reference tools unless the client requires connector auth metadata. | Check client settings. No bearer token should be needed for public tools. |
 | Test prompt does not return `route:project-alignment` | The tool connected, but routing or index behavior may be off. | Run `get_fpf_index_status`, then retry `query_fpf_spec` with `mode: compact`. |
