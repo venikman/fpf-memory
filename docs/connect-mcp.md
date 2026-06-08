@@ -88,7 +88,7 @@ Retrieve bounded public First Principles Framework reference context by stable F
 | Symptom | Meaning | Fix |
 | --- | --- | --- |
 | Browser shows `405 Method Not Allowed` | Expected. This is not a web page. | Use the URL inside an MCP client configuration. |
-| Client shows no tools | URL is wrong, the client did not initialize the server, or the connector is not enabled in the chat. | Recheck the canonical URL, refresh or restart the client, then call `get_fpf_index_status`. |
+| Client shows no tools | URL is wrong, the client did not initialize the server, or the connector is not enabled in the chat. | Recheck the canonical URL, refresh or restart the client, and verify the connection logs. |
 | Old `fpf_memory` endpoint fails | Expected during migration mitigation. | Use `https://mcp.fpf.sh/api/mcp/fpf_reference/mcp`. |
 | Client asks for auth or OAuth | Unexpected for the public reference tools unless the client requires connector auth metadata. | Check client settings. No bearer token should be needed for public tools. |
 | Test prompt does not return `route:project-alignment` | The tool connected, but routing or index behavior may be off. | Run `get_fpf_index_status`, then retry `query_fpf_spec` with `mode: compact`. |
