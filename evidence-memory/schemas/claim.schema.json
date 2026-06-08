@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fpf-evidence-memory/claim",
+  "title": "Claim",
+  "type": "object",
+  "required": ["id", "claimKey", "text", "claimType", "contextId", "anchors", "status"],
+  "additionalProperties": true,
+  "properties": {
+    "id": { "type": "string", "pattern": "^claim:" },
+    "claimKey": { "type": "string", "description": "content-addressed identity for dedup/merge" },
+    "text": { "type": "string" },
+    "claimType": { "enum": ["definition", "method", "architecture", "comparison", "decision", "risk", "result"] },
+    "contextId": { "type": "string" },
+    "anchors": { "type": "array", "items": { "type": "string", "pattern": "^anchor:" } },
+    "status": { "enum": ["candidate", "active", "deprecated", "contradicted", "stale", "superseded"] },
+    "createdAt": { "type": "string" },
+    "validAfter": { "type": "string" },
+    "validUntil": { "type": "string" },
+    "refreshAfter": { "type": "string" },
+    "decayPolicyId": { "type": "string" }
+  },
+  "allOf": [
+    {
+      "$comment": "An active claim must cite at least one evidence anchor.",
+      "if": { "properties": { "status": { "const": "active" } } },
+      "then": { "properties": { "anchors": { "minItems": 1 } } }
+    }
+  ]
+}

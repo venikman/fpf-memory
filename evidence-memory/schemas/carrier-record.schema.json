@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fpf-evidence-memory/carrier-record",
+  "title": "CarrierRecord",
+  "type": "object",
+  "required": ["id", "kind", "uri", "integrity"],
+  "additionalProperties": true,
+  "properties": {
+    "id": { "type": "string", "pattern": "^carrier:" },
+    "kind": { "enum": ["fpf_spec", "repo_file", "paper", "web_doc", "conversation", "benchmark_run", "decision_record"] },
+    "uri": { "type": "string", "format": "uri" },
+    "title": { "type": "string" },
+    "retrievedAt": { "type": "string" },
+    "integrity": {
+      "type": "object",
+      "required": ["method", "verifiedAt"],
+      "properties": {
+        "method": { "type": "string" },
+        "verifiedAt": { "type": "string" },
+        "sourceHash": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "boundedContextIds": { "type": "array", "items": { "type": "string" } }
+  }
+}

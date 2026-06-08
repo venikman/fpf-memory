@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fpf-evidence-memory/evidence-anchor",
+  "title": "EvidenceAnchor",
+  "type": "object",
+  "required": ["id", "carrierId", "selector"],
+  "additionalProperties": true,
+  "properties": {
+    "id": { "type": "string", "pattern": "^anchor:" },
+    "carrierId": { "type": "string", "pattern": "^carrier:" },
+    "selector": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["line_span", "section", "page", "timestamp", "byte_range"] },
+        "start": { "type": "number" },
+        "end": { "type": "number" },
+        "label": { "type": "string" }
+      }
+    },
+    "quote": { "type": "string" },
+    "quoteHash": { "type": "string" }
+  }
+}

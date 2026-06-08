@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fpf-evidence-memory/evidence-edge",
+  "title": "EvidenceEdge",
+  "type": "object",
+  "required": ["id", "from", "to", "relation", "contextId"],
+  "additionalProperties": true,
+  "properties": {
+    "id": { "type": "string", "pattern": "^edge:" },
+    "from": { "type": "string", "description": "claim:* or anchor:* id" },
+    "to": { "type": "string", "description": "claim:* or anchor:* id" },
+    "relation": {
+      "enum": ["derivedFrom", "verifiedBy", "validatedBy", "fromWorkSet", "happenedBefore",
+               "contradicts", "supersedes", "refines", "mentions", "usesPattern"]
+    },
+    "contextId": { "type": "string" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1, "description": "derived signal, not truth" },
+    "note": { "type": "string" }
+  }
+}

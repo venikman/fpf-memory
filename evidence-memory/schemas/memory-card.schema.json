@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fpf-evidence-memory/memory-card",
+  "title": "MemoryCard",
+  "type": "object",
+  "required": ["id", "title", "claimIds", "contextId", "status"],
+  "additionalProperties": true,
+  "properties": {
+    "id": { "type": "string", "pattern": "^card:" },
+    "title": { "type": "string" },
+    "summary": { "type": "string" },
+    "claimIds": { "type": "array", "items": { "type": "string", "pattern": "^claim:" } },
+    "fpfIds": { "type": "array", "items": { "type": "string" } },
+    "routeIds": { "type": "array", "items": { "type": "string" } },
+    "contextId": { "type": "string" },
+    "status": { "enum": ["candidate", "active", "deprecated", "contradicted", "stale", "superseded"] },
+    "evidenceAnchorIds": { "type": "array", "items": { "type": "string", "pattern": "^anchor:" } },
+    "fpfSnapshot": { "type": "string", "description": "FPF snapshot the card was validated against (cross-plane refresh hook)" },
+    "refreshAfter": { "type": "string" },
+    "invalidationTests": { "type": "array", "items": { "type": "string" } }
+  }
+}

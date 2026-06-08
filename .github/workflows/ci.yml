@@ -67,6 +67,13 @@ jobs:
         # holes against the same published snapshot the deploy will serve.
         run: bun run monitor:content -- --mode local --format markdown --fail-on-breach
 
+      - name: Verify FPF Evidence Memory ledgers
+        # Additive, zero-dep research-memory plane (evidence-memory/). Parses the
+        # append-only JSONL ledgers, checks referential integrity, and exercises
+        # trace_evidence. Prints "9 passed, 0 failed" and exits non-zero on any
+        # broken provenance. Does not touch the canonical spec runtime.
+        run: bun run verify:evidence
+
   lint:
     name: Lint + boundaries
     runs-on: ubuntu-latest

@@ -1,0 +1,7 @@
+{"id":"edge:e1","from":"claim:decay-mandatory","to":"anchor:memora-fama","relation":"verifiedBy","contextId":"agent-memory-sota","createdAt":"2026-06-08","confidence":1.0}
+{"id":"edge:e2","from":"claim:evidence-vs-inference","to":"anchor:hindsight-4nets","relation":"verifiedBy","contextId":"agent-memory-sota","createdAt":"2026-06-08","confidence":1.0}
+{"id":"edge:e3","from":"claim:vector-not-identity","to":"anchor:kag-vector-gap","relation":"verifiedBy","contextId":"agent-memory-sota","createdAt":"2026-06-08","confidence":1.0}
+{"id":"edge:e4","from":"claim:tool-namespace-collision","to":"anchor:repo-legacy-block","relation":"derivedFrom","contextId":"fpf-memory-repo","createdAt":"2026-06-08","confidence":1.0}
+{"id":"edge:e5","from":"claim:g6-evidence-graph","to":"anchor:g6-title","relation":"derivedFrom","contextId":"fpf","createdAt":"2026-06-08","confidence":1.0}
+{"id":"edge:e6","from":"claim:vector-not-identity","to":"claim:embeddings-as-center","relation":"contradicts","contextId":"agent-memory-sota","createdAt":"2026-06-08","note":"deterministic, edge-authored contradiction (not LLM-inferred)"}
+{"id":"edge:e7","from":"claim:b34-decay-firstclass","to":"claim:decay-mandatory","relation":"refines","contextId":"cross-context:fpf->agent-memory-sota","createdAt":"2026-06-08","note":"FPF pattern refines the empirical SoTA finding"}
