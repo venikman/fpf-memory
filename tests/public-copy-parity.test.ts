@@ -109,7 +109,6 @@ describe('public adoption copy parity', () => {
     for (const item of FPF_REFERENCE_INTERFACE_CONTRACT.outputExpectation) {
       expect(interfaceContract).toContain(`- ${item}`);
     }
-
     // The doc wraps code terms in backticks that the canonical strings omit,
     // so strip them before exact-wording comparison.
     const plainInterfaceContract = interfaceContract.replaceAll('`', '');
