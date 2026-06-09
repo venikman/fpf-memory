@@ -62,6 +62,12 @@ Before trust-sensitive use:
 
 When the hosted status page reports `freshness.upstreamCurrentness: "unknown"`, do not claim "latest upstream FPF" unless an external monitor has compared the hosted publication to the intended upstream/current artifact.
 
+## Output Expectations
+
+- Answers expose stable FPF IDs, citations or grounding, constraints or gaps, and snapshot metadata.
+- Catalog/search responses expose bounded result sets with source snapshot metadata.
+- Exact wording comes from read_fpf_doc rather than regenerated prose.
+
 ## Public Tool Contract
 
 | Tool | Purpose | Input contract | Output contract | Acceptance cue |

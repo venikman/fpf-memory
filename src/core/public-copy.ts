@@ -351,12 +351,6 @@ export function renderPublicMcpToolsMarkdown(): string {
   return PUBLIC_MCP_TOOLS.map((tool) => `- \`${tool}\``).join('\n');
 }
 
-export function renderInterfaceContractAcceptanceMarkdown(): string {
-  return FPF_REFERENCE_INTERFACE_CONTRACT.acceptanceTests
-    .map((item) => `- ${item}`)
-    .join('\n');
-}
-
 export function renderHomeMcpToolsMarkdown(): string {
   const descriptions: Record<(typeof PUBLIC_MCP_TOOLS)[number], string> = {
     browse_fpf_catalog: 'paginate patterns, lexemes, preface, and any published routes',

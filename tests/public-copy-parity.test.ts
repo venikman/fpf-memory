@@ -13,7 +13,6 @@ import {
   LEGACY_HOSTED_MCP_ENDPOINT,
   MCP_SERVER_NAME,
   PUBLIC_MCP_TOOLS,
-  renderInterfaceContractAcceptanceMarkdown,
   WIKI_CONNECT_MCP_URL,
   WIKI_INTERFACE_CONTRACT_URL,
 } from '../src/core/public-copy.js';
@@ -104,8 +103,14 @@ describe('public adoption copy parity', () => {
       expect(normalizedInterfaceContract).toContain(use.toLowerCase());
     }
 
-    for (const line of renderInterfaceContractAcceptanceMarkdown().split('\n')) {
-      expect(interfaceContract).toContain(line);
+    for (const item of FPF_REFERENCE_INTERFACE_CONTRACT.acceptanceTests) {
+      expect(interfaceContract).toContain(`- ${item}`);
+    }
+    for (const item of FPF_REFERENCE_INTERFACE_CONTRACT.outputExpectation) {
+      expect(interfaceContract).toContain(`- ${item}`);
+    }
+    for (const ref of FPF_REFERENCE_INTERFACE_CONTRACT.governingFpf) {
+      expect(interfaceContract).toContain(`\`${ref.id}\``);
     }
     for (const tool of FPF_REFERENCE_INTERFACE_CONTRACT.publicTools) {
       expect(interfaceContract).toContain(`| \`${tool.name}\` |`);
