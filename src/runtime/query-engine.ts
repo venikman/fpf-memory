@@ -225,10 +225,10 @@ export class QueryEngine {
       (!recognizedFpfTerm && meaningfulTokens.length < 6);
 
     const status =
-      selectedNodeIds.length === 0
-        ? 'not_found'
-        : thinQuery
-          ? 'unsupported'
+      thinQuery
+        ? 'unsupported'
+        : selectedNodeIds.length === 0
+          ? 'not_found'
           : ranking.routeWins
             ? 'ok'
             : isAmbiguous(question, ranking.candidates)

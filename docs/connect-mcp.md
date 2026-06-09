@@ -6,13 +6,13 @@ outline: deep
 
 # Connect FPF Reference MCP
 
-Use this page to connect ChatGPT, Claude, editors, or coding CLIs to the hosted FPF Reference MCP server so they can retrieve bounded public FPF context by stable IDs, routes, and generated docs.
+Use this page to connect ChatGPT, Claude, editors, or coding CLIs to the hosted FPF Reference MCP server so they can retrieve bounded public FPF context by stable IDs, patterns, and generated docs.
 
 MCP origin landing (shorter mirror): [mcp.fpf.sh](https://mcp.fpf.sh/).
 
 ## FPF vs MCP in one paragraph
 
-- **FPF** is the specification (patterns, routes, evidence rules).
+- **FPF** is the specification (patterns, evidence rules, and any published route surfaces).
 - **FPF Reference** projects that spec two ways: this wiki (read) and the MCP endpoint (query by ID).
 - **FPF Reference MCP** is not agent memory, not a workflow engine, and not a web page.
 
@@ -42,7 +42,7 @@ A working client should show:
 
 - tools named `browse_fpf_catalog`, `search_fpf`, `ask_fpf`, `query_fpf_spec`, `read_fpf_doc`, and `get_fpf_index_status`;
 - `get_fpf_index_status` returning index, build, and source freshness data;
-- the first route prompt returning `route:project-alignment` with compact bounded next steps.
+- the first compact project prompt returning stable FPF IDs with bounded next steps.
 
 ## First successful call
 
@@ -53,10 +53,10 @@ After adding the server, make the first success concrete:
 3. Run a compact route query:
 
 ```txt
-Use only fpf_reference. Call query_fpf_spec with question: "Project kickoff: align a project information system with roles and adoption next steps" and mode "compact". Return the route ID, ordered IDs, acceptance check, and next move.
+Use only fpf_reference. Call query_fpf_spec with question: "Project kickoff: align a project information system with roles and adoption next steps" and mode "compact". Return the most relevant FPF IDs, acceptance check, and next move.
 ```
 
-A good response should include `route:project-alignment` in `ids`, then bounded next steps rather than a full FPF paste.
+A good response should include stable FPF IDs in `ids`, then bounded next steps rather than a full FPF paste.
 
 The legacy endpoint is blocked during the May 2026 cost incident mitigation:
 
@@ -131,7 +131,7 @@ FPF Reference
 Suggested description:
 
 ```txt
-Retrieve bounded public First Principles Framework reference context by stable FPF IDs, routes, patterns, and generated docs. Use for FPF lookup, route selection, compact answers, and exact citation-backed reads.
+Retrieve bounded public First Principles Framework reference context by stable FPF IDs, patterns, and generated docs. Use for FPF lookup, compact answers, and exact citation-backed reads.
 ```
 
 ## Troubleshooting
@@ -143,7 +143,7 @@ Retrieve bounded public First Principles Framework reference context by stable F
 | Looking for source or self-hosting instructions | FPF Reference MCP is the runtime repo; upstream FPF is the spec repo. | Use [`github.com/venikman/fpf-memory`](https://github.com/venikman/fpf-memory) for this MCP runtime and [`github.com/ailev/FPF`](https://github.com/ailev/FPF) for the upstream FPF spec. |
 | Old `fpf_memory` endpoint fails | Expected during migration mitigation. | Use `https://mcp.fpf.sh/api/mcp/fpf_reference/mcp`. |
 | Client asks for auth or OAuth | Unexpected for the public reference tools unless the client requires connector auth metadata. | Check client settings. No bearer token should be needed for public tools. |
-| Test prompt does not return `route:project-alignment` | The tool connected, but routing or index behavior may be off. | Run `get_fpf_index_status`, then retry `query_fpf_spec` with `mode: compact`. |
+| Test prompt does not return expected FPF IDs | The tool connected, but retrieval or index behavior may be off. | Run `get_fpf_index_status`, then retry `query_fpf_spec` with `mode: compact`. |
 | Timeout | Hosted endpoint, index, or client transport issue. | Check `https://mcp.fpf.sh/api/fpf/status` first, then retry from the MCP client. |
 
 ## ChatGPT

@@ -519,6 +519,10 @@ function renderHomeMarkdown(
 ): string {
   const patternCount = Object.keys(snapshot.patternGraph.nodes).length;
   const routeCount = Object.keys(snapshot.routeGraph.nodes).length;
+  const referenceScope = routeCount > 0
+    ? `${patternCount} pattern pages, ${routeCount} working routes, and the preface`
+    : `${patternCount} pattern pages and the preface`;
+  const auditScope = routeCount > 0 ? 'patterns and routes' : 'patterns';
   const provenanceDetail = renderHomeProvenanceDetail(manifest);
 
   const lines: string[] = [
@@ -531,7 +535,7 @@ function renderHomeMarkdown(
     '',
     '# FPF Reference',
     '',
-    `Hosted **FPF Reference** MCP server + slim wiki projection of the **First Principles Framework (FPF)**. ${patternCount} pattern pages, ${routeCount} working routes, and the preface — addressable by stable FPF IDs, browsable here and queryable through MCP.`,
+    `Hosted **FPF Reference** MCP server + slim wiki projection of the **First Principles Framework (FPF)**. ${referenceScope} — addressable by stable FPF IDs, browsable here and queryable through MCP.`,
     '',
     '[Adoption guide](/start-here) · [Reference catalog](/patterns)',
     '',
@@ -542,13 +546,13 @@ function renderHomeMarkdown(
     '| New to FPF | [Start Here](/start-here) | Pick the work shape before opening the full catalog. |',
     '| Connecting an agent or editor | [Connect MCP](/connect-mcp) | Add `fpf_reference`, then run `get_fpf_index_status`. |',
     '| Reviewing a project, PR, or design change | [Work Packets](/work-packets) | Use the PR/code review packet or product-role feedback packet. |',
-    '| Looking up an exact ID | [Pattern Catalog](/patterns) or [Routes](/routes) | Search an ID like `A.2.3` or a route like `route:project-alignment`. |',
+    '| Looking up an exact ID | [Pattern Catalog](/patterns) | Search an ID like `A.2.3`. |',
     '',
     '## Reference shortcuts',
     '',
     renderHomeNavigateLine(snapshot),
     '',
-    'The full generated pattern catalog lives at [Pattern Catalog](/patterns); this home page stays focused on adoption routes and task entry points.',
+    'The full generated pattern catalog lives at [Pattern Catalog](/patterns); this home page stays focused on adoption paths and task entry points.',
     '',
     '## Published from',
     '',
@@ -561,7 +565,7 @@ function renderHomeMarkdown(
     '<details>',
     '<summary>FPF Reference MCP — what this server does</summary>',
     '',
-    'A hosted MCP endpoint that exposes the compiled FPF index to any MCP-aware client (ChatGPT, Claude, VS Code, Zed, Codex). Reads are deterministic graph traversals over named IDs, not embedding similarity — so answers cite exact patterns and routes you can audit.',
+    `A hosted MCP endpoint that exposes the compiled FPF index to any MCP-aware client (ChatGPT, Claude, VS Code, Zed, Codex). Reads are deterministic graph traversals over named IDs, not embedding similarity — so answers cite exact ${auditScope} you can audit.`,
     '',
     'Six public tools:',
     '',
@@ -596,8 +600,10 @@ function renderHomeNavigateLine(snapshot: Snapshot): string {
     { text: 'Quick connect', link: '/connect-local' },
     { text: 'Connect MCP', link: '/connect-mcp' },
     { text: 'Pattern Catalog', link: '/patterns' },
-    { text: 'Routes', link: '/routes' },
   ];
+  if (Object.keys(snapshot.routeGraph.nodes).length > 0) {
+    links.push({ text: 'Routes', link: '/routes' });
+  }
 
   const orderedPatterns = sortedPatterns(snapshot);
   for (const candidate of OPTIONAL_TERM_LINKS) {

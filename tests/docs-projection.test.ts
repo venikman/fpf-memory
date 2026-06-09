@@ -124,16 +124,14 @@ describe('docs projection', () => {
     } else {
       expect(resolveDocTarget(snapshot, 'route:project-alignment')).toBeUndefined();
     }
-    const whatSpecPage = projection.pages.find(
+    const prefacePage = projection.pages.find(
       (page) => page.kind === 'preface'
-        && page.title === 'What this specification is (and how to use it)',
+        && page.markdownPath.startsWith('docs/generated/preface/heading_'),
     );
-    expect(whatSpecPage?.markdownPath).toMatch(
-      /^docs\/generated\/preface\/heading_what-this-specification-is-and-how-to-use-it_\d+\.md$/,
+    expect(prefacePage?.markdownPath).toMatch(
+      /^docs\/generated\/preface\/heading_[a-z0-9-]+_\d+\.md$/,
     );
-    expect(whatSpecPage?.markdown).toContain(
-      '# What this specification is (and how to use it)',
-    );
+    expect(prefacePage?.markdown).toContain(`# ${prefacePage?.title}`);
   });
 
   it('renders readable section headings in generated markdown', () => {
@@ -308,29 +306,21 @@ describe('docs projection', () => {
   });
 
   it('auto-links code-spanned pattern IDs inside markdown table cells', () => {
-    // The J.4 entry-point table renders one inline-code pattern ID per
-    // cell. The general autolinker skips `<code>` spans in prose, so
-    // those IDs were unclickable before this fix. The table-cell
-    // autolinker rewrites them to `[\`A.1.1\`](/generated/patterns/A.1.1)`.
+    // Some preface tables render inline-code pattern IDs inside cells.
+    // The general autolinker skips `<code>` spans in prose, so those IDs
+    // were unclickable before this fix. The table-cell autolinker rewrites
+    // them to `[\`A.N\`](/generated/patterns/A.N)`.
     const projection = buildDocsProjection(snapshot);
-    const j4 = Object.entries(projection.pagesByMarkdownPath).find(
-      ([path]) => path.includes('part-j-indexes-navigation-aids'),
+    const linkedTable = Object.values(projection.pagesByMarkdownPath).find(
+      (page) => /\|[^\n]*\[`[A-Z]\.\d+(?:\.[A-Za-z0-9]+)*`\]\(\/generated\/patterns\/[A-Z]\.\d+(?:\.[A-Za-z0-9]+)*\)/u
+        .test(page.markdown),
     );
-    expect(j4, 'expected the J.4 preface page to be projected').toBeDefined();
-    if (!j4) return;
-    const markdown = j4[1].markdown;
+    expect(linkedTable, 'expected a preface table with linked pattern ID chips').toBeDefined();
+    if (!linkedTable) return;
+    const markdown = linkedTable.markdown;
 
-    // The J.4 row "Project alignment" lists `A.1.1`, `A.15`, etc. in
-    // its candidate-patterns cell; after this fix, those should be
-    // wrapped in a markdown link to /generated/patterns/<id>.
     expect(markdown).toMatch(
-      /\[`A\.1\.1`\]\(\/generated\/patterns\/A\.1\.1\)/,
-    );
-    expect(markdown).toMatch(/\[`A\.15`\]\(\/generated\/patterns\/A\.15\)/);
-    // Section IDs inside the table (e.g. `A.19:0`) must link to the
-    // parent pattern page plus the heading anchor, not to a 404.
-    expect(markdown).toMatch(
-      /\[`A\.19:0`\]\(\/generated\/patterns\/A\.19#[a-z0-9-]+\)/,
+      /\[`[A-Z]\.\d+(?:\.[A-Za-z0-9]+)*`\]\(\/generated\/patterns\/[A-Z]\.\d+(?:\.[A-Za-z0-9]+)*\)/,
     );
   });
 
@@ -345,14 +335,14 @@ describe('docs projection', () => {
     let foundDeepLink = false;
     for (const page of projection.pages) {
       if (page.kind !== 'preface') continue;
-      if (/\]\(\/generated\/patterns\/I\.2#[a-z0-9-]+\)/.test(page.markdown)) {
+      if (/\]\(\/generated\/patterns\/[A-Z]\.\d+#[a-z0-9-]+\)/.test(page.markdown)) {
         foundDeepLink = true;
         break;
       }
     }
     expect(
       foundDeepLink,
-      'expected at least one preface page to link an I.2.* section ID to /generated/patterns/I.2#<anchor>',
+      'expected at least one preface page to link a section ID to /generated/patterns/<parent>#<anchor>',
     ).toBe(true);
   });
 
@@ -460,17 +450,17 @@ describe('docs projection', () => {
         ).toContain(`# ${firstRoute.name}`);
       }
       const generatedProjection = buildDocsProjection(snapshot);
-      const whatSpecPage = generatedProjection.pages.find(
+      const prefacePage = generatedProjection.pages.find(
         (page) => page.kind === 'preface'
-          && page.title === 'What this specification is (and how to use it)',
+          && page.markdownPath.startsWith('docs/generated/preface/heading_'),
       );
-      expect(whatSpecPage).toBeDefined();
+      expect(prefacePage).toBeDefined();
       expect(
         await readFile(
-          resolve(docsRoot, whatSpecPage!.markdownPath.replace(/^docs\//, '')),
+          resolve(docsRoot, prefacePage!.markdownPath.replace(/^docs\//, '')),
           'utf8',
         ),
-      ).toContain('# What this specification is (and how to use it)');
+      ).toContain(`# ${prefacePage!.title}`);
       expect(
         await readFile(resolve(docsRoot, 'generated/patterns/index.md'), 'utf8'),
       ).toContain('# Pattern Catalog');
@@ -504,7 +494,11 @@ describe('docs projection', () => {
       expect(rootIndex).toContain('[Connect MCP](/connect-mcp)');
       expect(rootIndex).toContain('[Pattern Catalog](/patterns)');
       expect(rootIndex).toContain('[Adoption guide](/start-here) · [Reference catalog](/patterns)');
-      expect(rootIndex).toContain('[Routes](/routes)');
+      if (Object.keys(snapshot.routeGraph.nodes).length > 0) {
+        expect(rootIndex).toContain('[Routes](/routes)');
+      } else {
+        expect(rootIndex).not.toContain('[Routes](/routes)');
+      }
       const glossaryTarget = resolveDocTarget(
         snapshot,
         findPatternByTitleFragment(snapshot, 'alphabetic glossary').id,

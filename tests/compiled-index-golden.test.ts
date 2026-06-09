@@ -111,9 +111,9 @@ describe('compiled index golden snapshot', () => {
         titlePrefix: 'U.RoleStateGraph',
         part: 'Part A - Kernel Architecture Cluster',
       },
-      'J.4': {
+      'J.1': {
         kind: 'pattern',
-        titlePrefix: 'First Practical Entry Neighborhood Index',
+        titlePrefix: 'Concept',
         part: 'Part J - Indexes & Navigation Aids',
       },
     };

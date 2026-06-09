@@ -293,7 +293,7 @@ export async function buildUsageReportFromLines(
     topCitedPatterns: enrichRanks(topCitedPatternIds, materialCatalog),
     topResolvedPatterns: enrichRanks(topResolvedPatternIds, materialCatalog),
     topCandidatePatterns: enrichRanks(topCandidatePatternIds, materialCatalog),
-    topRoutes: enrichRanks(topRouteIds, materialCatalog),
+    topRoutes: enrichRanks(topRouteIds, materialCatalog, { kind: 'route' }),
     unknownUnresolvedRate,
     operatorActionRequired: triageFindings.length > 0,
     triageFindings,
@@ -668,11 +668,28 @@ async function readUsageMaterialCatalog(cwd = process.cwd()): Promise<Map<string
 function enrichRanks(
   rows: UsageRank[],
   catalog: Map<string, UsageMaterialInfo>,
+  fallback: UsageMaterialInfo = {},
 ): UsageMaterialRank[] {
-  return rows.map((row) => ({
-    ...row,
-    ...catalog.get(row.id),
-  }));
+  return rows.map((row) => {
+    const rank: UsageMaterialRank = { ...row };
+    applyMaterialInfo(rank, fallback);
+    applyMaterialInfo(rank, catalog.get(row.id));
+    return rank;
+  });
+}
+
+function applyMaterialInfo(
+  rank: UsageMaterialRank,
+  info: UsageMaterialInfo | undefined,
+): void {
+  if (!info) {
+    return;
+  }
+  if (info.title) rank.title = info.title;
+  if (info.kind) rank.kind = info.kind;
+  if (info.status) rank.status = info.status;
+  if (info.part) rank.part = info.part;
+  if (info.cluster) rank.cluster = info.cluster;
 }
 
 function parseWindowMs(value: string): number {

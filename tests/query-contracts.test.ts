@@ -13,6 +13,7 @@ import { seedCandidates } from '../src/runtime/candidate-seeder.js';
 import { isAmbiguous, rankCandidates } from '../src/runtime/candidate-ranker.js';
 import { expandGrounding } from '../src/runtime/frontier-expander.js';
 import { QueryEngine } from '../src/runtime/query-engine.js';
+import { SEED_RULE_DEFS } from '../src/runtime/spec-heuristics.js';
 import {
   buildPatternAnswer,
   buildRouteAnswer,
@@ -145,6 +146,42 @@ function addRouteFixtures(baseSnapshot: Snapshot): Snapshot {
     [],
     ['E.8'],
   );
+  addRoute(
+    'route:boundary-unpacking',
+    'boundary unpacking',
+    'First route for API, contract, workflow, protocol, CI gate, or deploy promise boundary review.',
+    ['A.6', 'A.6.B', 'A.6.C'],
+    ['A.6.P', 'C.16.Q', 'A.6.A'],
+    ['A.6'],
+  );
+
+  const resolvesAsNode = (nodeId: string): boolean =>
+    Boolean(snapshot.patternGraph.nodes[nodeId] || snapshot.routeGraph.nodes[nodeId]);
+  const resolvesAsPattern = (nodeId: string): boolean =>
+    Boolean(snapshot.patternGraph.nodes[nodeId]);
+  const existingRuleNames = new Set(snapshot.heuristicSeedRules?.map((rule) => rule.name) ?? []);
+  snapshot.heuristicSeedRules ??= [];
+  for (const def of SEED_RULE_DEFS) {
+    if (!def.route || existingRuleNames.has(def.name)) {
+      continue;
+    }
+    const route = Object.values(snapshot.routeGraph.nodes)
+      .find((candidate) => candidate.name.toLowerCase() === def.route?.name);
+    if (!route) {
+      continue;
+    }
+    snapshot.heuristicSeedRules.push({
+      name: def.name,
+      allOf: def.allOf.map((group) => [...group]),
+      anyOf: def.anyOf.map((group) => [...group]),
+      seedNodeIds: def.seedNodeIds.filter(resolvesAsNode),
+      seedScore: def.seedScore,
+      seedOrigin: def.seedOrigin,
+      initialNodeIds: def.initialNodeIds.filter(resolvesAsPattern),
+      routeId: route.id,
+      routeScore: def.route.score,
+    });
+  }
 
   snapshot.validation.parsedRoutes = Object.keys(snapshot.routeGraph.nodes).length;
   return snapshot;

@@ -352,12 +352,12 @@ export function renderHostedHomePage(): string {
           <p>Call <code>get_fpf_index_status</code> and confirm the compiled index is fresh.</p>
         </div>
         <div>
-          <strong>2. Query a route</strong>
-          <p>Ask for a compact project kickoff answer and expect <code>route:project-alignment</code> in <code>ids</code>.</p>
+          <strong>2. Query context</strong>
+          <p>Ask for a compact project kickoff answer and expect stable FPF IDs in <code>ids</code>.</p>
         </div>
         <div>
           <strong>3. Read exact docs</strong>
-          <p>Use <code>read_fpf_doc</code> only when exact route or pattern wording matters.</p>
+          <p>Use <code>read_fpf_doc</code> only when exact pattern or generated-doc wording matters.</p>
         </div>
       </section>
 
@@ -376,7 +376,7 @@ export function renderHostedHomePage(): string {
       <h2 class="section-title">First Successful Call</h2>
       <section class="prompt" aria-label="First successful call">
         <pre><code>${escapeHtml(FIRST_SUCCESSFUL_CALL_PROMPT)}</code></pre>
-        <p>Expect <code>route:project-alignment</code> in <code>ids</code>. Check freshness at <a href="${HOSTED_MCP_STATUS_URL}">${HOSTED_MCP_STATUS_URL}</a>.</p>
+        <p>Expect compact FPF IDs in <code>ids</code>. Check freshness at <a href="${HOSTED_MCP_STATUS_URL}">${HOSTED_MCP_STATUS_URL}</a>.</p>
       </section>
 
       <h2 class="section-title">Good First Prompt</h2>

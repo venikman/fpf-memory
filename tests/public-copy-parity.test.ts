@@ -26,7 +26,7 @@ describe('public adoption copy parity', () => {
     expect(connectMcp).toContain(MCP_SERVER_NAME);
     expect(connectMcp).toContain('FPF vs MCP in one paragraph');
     expect(connectMcp).toContain('not agent memory');
-    expect(connectMcp).toContain('route:project-alignment');
+    expect(connectMcp).toContain('stable FPF IDs');
     for (const tool of PUBLIC_MCP_TOOLS) {
       expect(connectMcp).toContain(tool);
     }
@@ -40,7 +40,7 @@ describe('public adoption copy parity', () => {
     expect(html).toContain(WIKI_CONNECT_MCP_URL);
     expect(html).toContain(MCP_SERVER_NAME);
     expect(html).toContain(HOSTED_MCP_STATUS_URL);
-    expect(html).toContain('route:project-alignment');
+    expect(html).toContain('stable FPF IDs');
     expect(html).toContain('<html lang="en">');
     expect(html).toContain('<main>');
     for (const tool of PUBLIC_MCP_TOOLS) {

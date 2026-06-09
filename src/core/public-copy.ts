@@ -37,7 +37,7 @@ export const PUBLIC_MCP_TOOLS = [
 
 export const FPF_VS_MCP_EXPLAINER_MARKDOWN = `## FPF vs MCP in one paragraph
 
-- **FPF** is the specification (patterns, routes, evidence rules).
+- **FPF** is the specification (patterns, evidence rules, and any published route surfaces).
 - **FPF Reference** projects that spec two ways: this wiki (read) and the MCP endpoint (query by ID).
 - **FPF Reference MCP** is not agent memory, not a workflow engine, and not a web page.
 
@@ -51,17 +51,17 @@ export const HOSTED_THREE_STEP_MARKDOWN = `## Connect in three steps
 2. Register the server as **\`fpf_reference\`** (not \`fpf_memory\`).
 3. Run **${FIRST_SUCCESSFUL_CALL_HEADING}** below: \`get_fpf_index_status\`, then one compact \`query_fpf_spec\`.`;
 
-export const FIRST_SUCCESSFUL_CALL_PROMPT = `Use only fpf_reference. Call query_fpf_spec with question: "Project kickoff: align a project information system with roles and adoption next steps" and mode "compact". Return the route ID, ordered IDs, acceptance check, and next move.`;
+export const FIRST_SUCCESSFUL_CALL_PROMPT = `Use only fpf_reference. Call query_fpf_spec with question: "Project kickoff: align a project information system with roles and adoption next steps" and mode "compact". Return the most relevant FPF IDs, acceptance check, and next move.`;
 
 export const SUCCESS_CHECKLIST_MARKDOWN = `**Success checklist**
 
 - \`get_fpf_index_status\` reports a loadable index.
-- The compact query returns \`route:project-alignment\` in \`ids\` with bounded next steps, not a full FPF paste.`;
+- The compact query returns stable FPF IDs in \`ids\` with bounded next steps, not a full FPF paste.`;
 
-export const GOOD_FIRST_PROMPT = `Use only fpf_reference. First call get_fpf_index_status. If the index is available, find the smallest FPF route for this work: <describe work>. Return Context | Route ID | Ordered IDs | Friction avoided | Acceptance check | Next move.`;
+export const GOOD_FIRST_PROMPT = `Use only fpf_reference. First call get_fpf_index_status. If the index is available, find the smallest useful FPF context for this work: <describe work>. Return Context | FPF IDs | Friction avoided | Acceptance check | Next move.`;
 
 export const GOOD_FIRST_PROMPT_FOOTER =
-  'Keep route answers compact. Read exact generated docs only when wording matters, and do not paste the full FPF into the chat.';
+  'Keep answers compact. Read exact generated docs only when wording matters, and do not paste the full FPF into the chat.';
 
 export interface ClientSetupSection {
   id: string;
@@ -189,7 +189,7 @@ export function renderPublicMcpToolsMarkdown(): string {
 
 export function renderHomeMcpToolsMarkdown(): string {
   const descriptions: Record<(typeof PUBLIC_MCP_TOOLS)[number], string> = {
-    browse_fpf_catalog: 'paginate patterns, routes, lexemes, preface',
+    browse_fpf_catalog: 'paginate patterns, lexemes, preface, and any published routes',
     search_fpf: 'ranked text search across the compiled index',
     query_fpf_spec: 'bounded answer with IDs, citations, constraints',
     ask_fpf: 'same plus rendered markdown for chat surfaces',

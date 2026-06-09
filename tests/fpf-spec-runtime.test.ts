@@ -81,7 +81,6 @@ describe('FpfRuntime', () => {
       }>(ARTIFACT_FILENAMES.indexMap);
       expect(indexMap.nodes['A.1.1']?.description.length).toBeGreaterThan(0);
       expect(indexMap.nodes['A.1.1']?.metadata.patternId).toBe('A.1.1');
-      expect(indexMap.nodes['J.4']?.metadata.routeBearing).toBe(true);
 
       const snapshot = await readArtifact<{
         relationGraph: Array<{ from: string; relation: string; to: string }>;
@@ -277,9 +276,22 @@ describe('FpfRuntime', () => {
 
   it('returns the boundary unpacking route for PR reviewer API contract prompts', async () => {
     await runtime.refresh();
+    const routes = await runtime.browse({ kind: 'route' });
+    const routeIds = new Set(routes.entries.map((entry) => entry.id));
     const question =
       'For a PR/code reviewer checking an API contract change, return exact route or pattern IDs and acceptance checks without pasting the full FPF.';
     const route = await runtime.query(question, 'compact');
+
+    if (!routeIds.has('route:boundary-unpacking')) {
+      expect(['ok', 'ambiguous']).toContain(route.status);
+      expect(route.ids.every((id) => !id.startsWith('route:'))).toBe(true);
+      expect(route.ids).toContain('A.6');
+      expect(route.answer.length).toBeGreaterThan(0);
+      const trace = await runtime.trace(question, 'compact');
+      expect(trace.routeWins).toBe(false);
+      expect(trace.selectedNodeIds.every((id) => !id.startsWith('route:'))).toBe(true);
+      return;
+    }
 
     expect(route.status).toBe('ok');
     expect(route.ids.slice(0, 4)).toEqual([

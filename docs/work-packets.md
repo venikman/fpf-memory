@@ -14,7 +14,7 @@ This is the task-sized operating surface for using FPF in real work. It turns th
 
 ## Methodology
 
-Each packet keeps five things separate: the goal, the relevant route or pattern IDs, the operating questions, the constraints, and the acceptance checks. Start with the packet, retrieve exact source only when needed, and stop when the done condition is satisfied.
+Each packet keeps five things separate: the goal, the relevant pattern IDs or packet inputs, the operating questions, the constraints, and the acceptance checks. Start with the packet, retrieve exact source only when needed, and stop when the done condition is satisfied.
 
 ## Project review packet
 
@@ -22,7 +22,6 @@ Goal: make a project legible enough to decide the next work move.
 
 Use:
 
-- `route:project-alignment` via [Routes](/routes)
 - [A.1.1 U.BoundedContext](/generated/patterns/A.1.1)
 - [A.15 — Role-Method-Work Alignment](/generated/patterns/A.15) — use as the role / method / work stratification packet
 - [F.11 Method Quartet Harmonisation](/generated/patterns/F.11)
@@ -46,8 +45,8 @@ Use:
 
 - [E.8 Authoring conventions](/generated/patterns/E.8) for FPF pattern or specification wording changes
 - [E.19 — Pattern Quality Gates: Review & Refresh Profiles](/generated/patterns/E.19) as the pattern change-record gate
-- `route:writing-or-reviewing-patterns` via [Routes](/routes) only when the PR changes FPF pattern or specification text
-- `route:boundary-unpacking-and-claim-decomposition` via [Routes](/routes) for APIs, contracts, protocols, or CI/deploy gates
+- [A.10 Evidence Graph Referring](/generated/patterns/A.10) when the review depends on deploy, CI, or provenance evidence
+- [B.3 Trust & Assurance Calculus](/generated/patterns/B.3) when the change claims source/build/runtime coherence
 - Otherwise use this packet as the review checklist and retrieve exact IDs only when a finding depends on FPF wording
 
 Packet:
@@ -78,7 +77,6 @@ Goal: act as one concrete user role and turn product friction into evidence-back
 Use:
 
 - [E.12 — Didactic Primacy & Cognitive Ergonomics](/generated/patterns/E.12) — use as the human feedback-loop packet
-- `route:project-alignment` via [Routes](/routes)
 - [A.1.1 U.BoundedContext](/generated/patterns/A.1.1)
 - [A.15 — Role-Method-Work Alignment](/generated/patterns/A.15) — use as the role / method / work stratification packet
 - [A.2.2 U.Capability](/generated/patterns/A.2.2)
@@ -147,7 +145,6 @@ Use:
 
 - [MCP recipes](/mcp-recipes)
 - [Automation Playbook](/automation-playbook) when the work needs role boundaries, access rules, merge authority, or draft-only publishing packets
-- `route:project-alignment` via [Routes](/routes)
 - [E.8 Authoring conventions](/generated/patterns/E.8)
 - [E.19 — Pattern Quality Gates: Review & Refresh Profiles](/generated/patterns/E.19) — use as the pattern change-record gate
 
@@ -155,7 +152,7 @@ Packet:
 
 - Ask the agent to name the work type first.
 - Assign the work to a role before giving it write, merge, or publishing authority.
-- Retrieve the route or 3-8 exact IDs through MCP.
+- Retrieve 3-8 exact IDs through MCP.
 - Ask for assumptions, model, options, pick, tests, risks, and next move.
 - Require citations to FPF IDs when the framework changes a decision.
 - Keep full-text pattern reads on demand.

@@ -94,8 +94,8 @@ Use only the fpf_reference MCP server plus the PR diff, local files, and CI evid
 Good retrieval shape:
 
 - For ordinary code review, start from the local diff, CI evidence, and the PR/code review packet rather than forcing a route.
-- Use `route:writing-or-reviewing-patterns` only when the PR changes FPF pattern or specification text.
-- Add `route:boundary-unpacking-and-claim-decomposition` only when the change touches an API, contract, workflow, protocol, CI gate, or deploy promise.
+- Use [E.8](/generated/patterns/E.8) and [E.19](/generated/patterns/E.19) when the PR changes FPF pattern or specification text.
+- Add [A.10](/generated/patterns/A.10), [B.3](/generated/patterns/B.3), or [E.21](/generated/patterns/E.21) when the change touches an API, contract, workflow, protocol, CI gate, or deploy promise.
 - Read exact pattern pages only when a finding depends on the wording.
 - Keep the verdict tied to evidence: merge, fix first, or split scope.
 
@@ -111,7 +111,7 @@ Use only the fpf_reference MCP server plus local repo evidence. Review this chan
 
 Rules:
 
-- Retrieve routes before individual patterns when the work type is unclear.
+- Ask for a compact `query_fpf_spec` answer before individual exact pages when the work type is unclear.
 - Read exact pattern pages only when a decision depends on their wording.
 - Prefer compact answers for active work and proof mode for audit.
 - Do not paste the full FPF into a prompt; use MCP calls as the context boundary.
