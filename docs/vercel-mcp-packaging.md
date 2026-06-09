@@ -79,8 +79,8 @@ bun run deploy:prod
 
 Config files:
 
-- [`vercel.mcp.json`](../vercel.mcp.json) — MCP/API project (`buildCommand`: `bun run vercel:mcp:build`)
-- [`vercel.json`](../vercel.json) — static wiki project
+- [`vercel.mcp.json`](https://github.com/venikman/fpf-memory/blob/main/vercel.mcp.json) — MCP/API project (`buildCommand`: `bun run vercel:mcp:build`)
+- [`vercel.json`](https://github.com/venikman/fpf-memory/blob/main/vercel.json) — static wiki project
 
 ## Safety switches
 
