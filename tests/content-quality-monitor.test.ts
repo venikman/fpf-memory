@@ -355,6 +355,12 @@ function makeCuratedDocs(overrides: Record<string, string> = {}): ContentQuality
       text: 'Keep publication evidence bounded.',
     },
     {
+      label: 'vercel-mcp-packaging',
+      path: '/vercel-mcp-packaging',
+      sourcePath: 'docs/vercel-mcp-packaging.md',
+      text: 'Use Vercel MCP for read-only deployment evidence.',
+    },
+    {
       label: 'fpf-reference-mcp-rename',
       path: '/fpf-reference-mcp-rename',
       sourcePath: 'docs/fpf-reference-mcp-rename.md',

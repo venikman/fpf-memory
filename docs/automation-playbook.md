@@ -35,6 +35,7 @@ The main safety rule is simple: discovery roles stay read-only, implementation r
 | Implementation PR agent | Turn one ready item into a bounded PR. | Edit code/docs, validate, open or update one PR. | Self-merge or perform broad product scouting. | PR with source links, validation output, and residual risk. |
 | PR review and merge captain | Keep PRs moving with independent judgment. | Review PRs, check CI/reviews/mergeability, comment on blockers, merge when policy is met. | Implement fixes or silently wait on blocked PRs. | Merge/no-merge decision with evidence. |
 | FPF sync monitor | Keep fpf.sh self-sustaining against upstream FPF. | Compare upstream HEAD, hosted status, manifest provenance, runtime freshness, and drift SLO; trigger or retry guarded sync when upstream is ahead and no sync worker is active. | Bypass CI, merge a failed sync PR, or publish unproven source/ref pairs. | Monitor run summary and sync workflow trigger. |
+| Vercel MCP operator | Gather Vercel control-plane evidence for the split website and MCP deployments. | Use Vercel MCP to inspect projects, deployments, build logs, runtime logs, protected preview fetches, and Vercel docs. | Deploy, promote, alias, rollback, buy domains, change billing, or create durable access without explicit approval. | Deployment/log evidence packet with project, URL, status, and caveats. |
 | Vercel spend monitor | Detect hosted cost spikes before they repeat. | Poll Vercel metrics for Function Duration GB-hours, legacy MCP route function invocations, and function error-code rows; distinguish breach, config error, unavailable metrics, and expected blocked traffic; update one issue when operator action is required and close it after a clean run. | Change billing settings, buy services, or remove compatibility routes without explicit approval. | Monitor run summary and GitHub issue state. |
 | Manager brief | Compress automation state for the user. | Read automation memory, repo state, PRs, discussions, docs, and hosted MCP health. | Replace the specialist roles or make external commitments. | Product readiness, changed, validated, Top 3 next actions, decisions needed. |
 | Technical architect | Make periodic system-level judgment. | Review MCP server, index/runtime, docs/adoption UX, CLI, evaluator, packaging/deploy, CI, and automation health. | Create implementation work unless explicitly asked. | Architecture state, risks, recommendations, handoffs, and stop/replan triggers. |
@@ -73,10 +74,29 @@ Manager brief
 | Local repo and public product read access | All roles | Allowed for evidence gathering. |
 | GitHub read access | All roles that inspect discussions, issues, PRs, and CI | Allowed for evidence gathering. |
 | GitHub write access | Implementation PR agent and PR review/merge captain | Allowed only within their role boundaries. |
+| Vercel MCP access | Vercel MCP operator, PR review/merge captain, FPF sync monitor, Vercel spend monitor | Read-first evidence gathering; mutating tools require human confirmation and role-specific approval. |
 | External publishing accounts | Growth and publishing scout | Draft-only unless the user explicitly approves a specific publish/send action. |
 | Secrets, billing, deploy settings, destructive actions | User or explicitly delegated operator | Prepare instructions; do not perform final actions by default. |
 
 For purchases, subscriptions, billing changes, account changes, or external publishing, the automation may prepare the flow and draft the copy. The user performs or explicitly approves the final action.
+
+## Vercel MCP Evidence Loop
+
+Vercel MCP is the Vercel control-plane server at `https://mcp.vercel.com`; FPF Reference MCP is this product's public lookup server at `https://mcp.fpf.sh/api/mcp/fpf_reference/mcp`. Keep those roles separate in prompts and evidence packets.
+
+Use Vercel MCP when a run needs current Vercel project/deployment facts that are awkward to prove from local files alone:
+
+- `fpf-reference-mcp` deployment status, build logs, runtime logs, and protected preview access;
+- `fpf-sh` deployment status and preview rendering access;
+- Vercel documentation lookup for changed platform behavior.
+
+Default prompt boundary:
+
+```text
+Use the Vercel MCP server named vercel for read-only deployment evidence. Inspect the relevant project, deployment, build logs, runtime logs, and protected preview URL if needed. Do not deploy, promote, alias, rollback, buy domains, or change settings unless the user explicitly approves that action.
+```
+
+For project-scoped operations, prefer the project-specific URLs documented in [Vercel MCP Packaging](/vercel-mcp-packaging) so the team/project context is explicit.
 
 ## Merge policy
 

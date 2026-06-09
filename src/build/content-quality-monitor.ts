@@ -37,6 +37,11 @@ export const CONTENT_QUALITY_CURATED_DOCS = [
     sourcePath: 'docs/automation-playbook.md',
   },
   {
+    label: 'vercel-mcp-packaging',
+    path: '/vercel-mcp-packaging',
+    sourcePath: 'docs/vercel-mcp-packaging.md',
+  },
+  {
     label: 'fpf-reference-mcp-rename',
     path: '/fpf-reference-mcp-rename',
     sourcePath: 'docs/fpf-reference-mcp-rename.md',

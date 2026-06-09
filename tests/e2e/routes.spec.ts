@@ -9,6 +9,7 @@ const STATIC_PATHS = [
   '/connect-mcp',
   '/patterns',
   '/automation-playbook',
+  '/vercel-mcp-packaging',
   '/mcp-recipes',
   '/work-packets',
   '/routes',

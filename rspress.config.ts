@@ -321,6 +321,7 @@ document.addEventListener('keydown',function(e){
           { text: 'Recipes', link: '/mcp-recipes' },
           { text: 'Connect to clients', link: '/connect-mcp' },
           { text: 'Automation Playbook', link: '/automation-playbook' },
+          { text: 'Vercel MCP Packaging', link: '/vercel-mcp-packaging' },
           { text: 'Rename compatibility plan', link: '/fpf-reference-mcp-rename' },
         ],
       },
