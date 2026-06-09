@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 
 import { describe, expect, it } from '@rstest/core';
@@ -183,6 +184,54 @@ describe('usage report aggregation', () => {
       'Missing Vercel logs token. Set FPF_USAGE_REPORT_VERCEL_TOKEN or VERCEL_TOKEN.',
     ]);
     expect(report.caveats).toContain('No usage counts were produced.');
+  });
+
+  it('marks Vercel reports as capped when the query limit is reached', async () => {
+    const contents = await readFile(FIXTURE_PATH, 'utf8');
+    const report = await buildUsageReportFromLines({
+      lines: contents.split(/\r?\n/u).filter(Boolean),
+      windowLabel: '24h',
+      now: NOW,
+      source: {
+        kind: 'vercel',
+        description: 'Vercel production logs for project fpf-reference-mcp',
+        vercelQuery: 'vercel logs --project fpf-reference-mcp --no-branch --query mcp_tool_usage --json --limit 10',
+      },
+    });
+
+    expect(report.caveats).toContain(
+      'Vercel returned the configured 10-line limit; reported counts are lower bounds for this window.',
+    );
+  });
+
+  it('does not let Vercel CLI branch auto-detection hide production logs', () => {
+    const env = { ...process.env };
+    delete env.FPF_USAGE_REPORT_VERCEL_TOKEN;
+    delete env.VERCEL_USAGE_REPORT_TOKEN;
+    delete env.VERCEL_TOKEN;
+
+    const result = spawnSync(
+      'bun',
+      [
+        'scripts/usage-report.ts',
+        '--source',
+        'vercel',
+        '--window',
+        '7d',
+        '--format',
+        'json',
+        '--no-write',
+      ],
+      {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+        env,
+      },
+    );
+
+    expect(result.status).toBe(0);
+    const report = JSON.parse(result.stdout) as { source?: { vercelQuery?: string } };
+    expect(report.source?.vercelQuery).toContain('--no-branch');
   });
 });
 

@@ -929,8 +929,21 @@ function buildCaveats(totals: UsageReportTotals, source: UsageReportSource): str
   }
   if (source.kind === 'vercel') {
     caveats.push('Vercel log export availability and retention can limit historical windows.');
+    const queryLimit = readVercelQueryLimit(source);
+    if (queryLimit !== undefined && totals.rawLineCount >= queryLimit) {
+      caveats.push(`Vercel returned the configured ${queryLimit}-line limit; reported counts are lower bounds for this window.`);
+    }
   }
   return caveats;
+}
+
+function readVercelQueryLimit(source: UsageReportSource): number | undefined {
+  const match = /(?:^|\s)--limit\s+(\d+)(?:\s|$)/u.exec(source.vercelQuery ?? '');
+  if (!match?.[1]) {
+    return undefined;
+  }
+  const limit = Number.parseInt(match[1], 10);
+  return Number.isFinite(limit) && limit > 0 ? limit : undefined;
 }
 
 function rankTable(rows: UsageRank[]): string {

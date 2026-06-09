@@ -24,6 +24,8 @@ import {
 const DEFAULT_USAGE_REPORT_WINDOW = '24h';
 const DEFAULT_USAGE_REPORT_PROJECT = 'fpf-reference-mcp';
 const DEFAULT_USAGE_REPORT_VERCEL_LIMIT = 1000;
+const DEFAULT_USAGE_REPORT_VERCEL_TIMEOUT_MS = 300_000;
+const VERCEL_LOGS_MAX_BUFFER_BYTES = 64 * 1024 * 1024;
 
 const flags = parseFlagMap(process.argv.slice(2));
 const windowLabel = readString(
@@ -151,6 +153,7 @@ function runVercelLogs(input: {
     input.project,
     '--environment',
     'production',
+    '--no-branch',
     '--source',
     'serverless',
     '--since',
@@ -168,22 +171,35 @@ function runVercelLogs(input: {
   const result = spawnSync('npx', args, {
     encoding: 'utf8',
     env: process.env,
-    timeout: 120_000,
+    maxBuffer: VERCEL_LOGS_MAX_BUFFER_BYTES,
+    timeout: readVercelLogsTimeoutMs(),
   });
 
   if (result.error) {
-    throw result.error;
+    throw new Error(formatVercelSpawnError(result.error));
   }
   if (result.status !== 0) {
     throw new Error(
       [
         `vercel logs failed with exit code ${result.status ?? 'unknown'}.`,
-        result.stdout.trim(),
-        result.stderr.trim(),
+        sanitizeVercelFailureOutput(result.stderr, input.token),
       ].filter(Boolean).join('\n'),
     );
   }
   return result.stdout.split(/\r?\n/u).filter((line) => line.trim().length > 0);
+}
+
+function formatVercelSpawnError(error: Error): string {
+  const maybeCode = (error as Error & { code?: unknown }).code;
+  const code = typeof maybeCode === 'string' ? ` (${maybeCode})` : '';
+  return `vercel logs failed to run${code}.`;
+}
+
+function sanitizeVercelFailureOutput(value: string, token: string): string {
+  const redacted = token
+    ? value.replaceAll(token, '[redacted-vercel-token]')
+    : value;
+  return redacted.trim().slice(0, 4000);
 }
 
 function vercelSource(
@@ -197,6 +213,7 @@ function vercelSource(
     '--project',
     project,
     '--environment production',
+    '--no-branch',
     '--source serverless',
     `--since ${window}`,
     '--query mcp_tool_usage',
@@ -223,6 +240,15 @@ function readReportLimit(): number {
     'limit',
     process.env.FPF_USAGE_REPORT_LIMIT,
     20,
+  );
+}
+
+function readVercelLogsTimeoutMs(): number {
+  return readPositiveInteger(
+    flags,
+    'vercel-timeout-ms',
+    process.env.FPF_USAGE_REPORT_VERCEL_TIMEOUT_MS,
+    DEFAULT_USAGE_REPORT_VERCEL_TIMEOUT_MS,
   );
 }
 
