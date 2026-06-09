@@ -14,8 +14,8 @@ import {
   MCP_SERVER_NAME,
   PUBLIC_MCP_TOOLS,
   renderInterfaceContractAcceptanceMarkdown,
-  renderInterfaceContractToolsMarkdown,
   WIKI_CONNECT_MCP_URL,
+  WIKI_INTERFACE_CONTRACT_URL,
 } from '../src/core/public-copy.js';
 import * as toolContracts from '../src/mcp/tool-contracts.js';
 
@@ -44,11 +44,18 @@ describe('public adoption copy parity', () => {
     expect(html).toContain(WIKI_CONNECT_MCP_URL);
     expect(html).toContain(MCP_SERVER_NAME);
     expect(html).toContain(HOSTED_MCP_STATUS_URL);
+    expect(html).toContain(WIKI_INTERFACE_CONTRACT_URL);
     expect(html).toContain('stable FPF IDs');
     expect(html).toContain('<html lang="en">');
     expect(html).toContain('<main>');
     for (const tool of PUBLIC_MCP_TOOLS) {
       expect(html).toContain(`<code>${tool}</code>`);
+    }
+    for (const item of FPF_REFERENCE_INTERFACE_CONTRACT.relianceGate) {
+      expect(html).toContain(item);
+    }
+    for (const item of FPF_REFERENCE_INTERFACE_CONTRACT.freshnessSemantics) {
+      expect(html).toContain(item);
     }
   });
 
@@ -89,6 +96,14 @@ describe('public adoption copy parity', () => {
     expect(interfaceContract).toContain('not agent memory');
     expect(interfaceContract).toContain('not global upstream currentness');
 
+    const normalizedInterfaceContract = interfaceContract.toLowerCase();
+    for (const use of FPF_REFERENCE_INTERFACE_CONTRACT.admissibleUse) {
+      expect(normalizedInterfaceContract).toContain(use.toLowerCase());
+    }
+    for (const use of FPF_REFERENCE_INTERFACE_CONTRACT.nonAdmissibleUse) {
+      expect(normalizedInterfaceContract).toContain(use.toLowerCase());
+    }
+
     for (const line of renderInterfaceContractAcceptanceMarkdown().split('\n')) {
       expect(interfaceContract).toContain(line);
     }
@@ -97,9 +112,5 @@ describe('public adoption copy parity', () => {
       expect(interfaceContract).toContain(tool.inputSchema);
       expect(interfaceContract).toContain(tool.outputSchema);
     }
-
-    const renderedToolDoc = renderInterfaceContractToolsMarkdown();
-    expect(renderedToolDoc).toContain('### `query_fpf_spec`');
-    expect(renderedToolDoc).toContain('queryFpfSpecInputSchema');
   });
 });

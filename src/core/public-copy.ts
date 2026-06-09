@@ -18,6 +18,8 @@ export const WIKI_BASE_URL = 'https://fpf.sh';
 
 export const WIKI_CONNECT_MCP_URL = `${WIKI_BASE_URL}/connect-mcp`;
 
+export const WIKI_INTERFACE_CONTRACT_URL = `${WIKI_BASE_URL}/interface-contract`;
+
 export const MCP_ORIGIN_HOME_URL = 'https://mcp.fpf.sh/';
 
 export const MCP_SERVER_NAME = 'fpf_reference';
@@ -347,19 +349,6 @@ export const CLIENT_SETUP_SECTIONS = buildClientSetupSections();
 
 export function renderPublicMcpToolsMarkdown(): string {
   return PUBLIC_MCP_TOOLS.map((tool) => `- \`${tool}\``).join('\n');
-}
-
-export function renderInterfaceContractToolsMarkdown(): string {
-  return FPF_REFERENCE_INTERFACE_CONTRACT.publicTools
-    .map((tool) => [
-      `### \`${tool.name}\``,
-      '',
-      `- Purpose: ${tool.purpose}`,
-      `- Input contract: \`${tool.inputSchema}\` (${tool.inputSummary})`,
-      `- Output contract: \`${tool.outputSchema}\` (${tool.outputSummary})`,
-      `- Acceptance cue: ${tool.acceptanceCue}`,
-    ].join('\n'))
-    .join('\n\n');
 }
 
 export function renderInterfaceContractAcceptanceMarkdown(): string {

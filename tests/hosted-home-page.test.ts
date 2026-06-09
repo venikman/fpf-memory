@@ -9,7 +9,10 @@ import {
   HOSTED_MCP_ENDPOINT,
   LEGACY_HOSTED_MCP_ENDPOINT,
 } from '../src/adapters/hosted/endpoints.js';
-import { WIKI_CONNECT_MCP_URL } from '../src/core/public-copy.js';
+import {
+  WIKI_CONNECT_MCP_URL,
+  WIKI_INTERFACE_CONTRACT_URL,
+} from '../src/core/public-copy.js';
 
 describe('hosted home page', () => {
   it('renders connection instructions for the hosted MCP endpoint', () => {
@@ -35,7 +38,8 @@ describe('hosted home page', () => {
     expect(html).toContain('read_fpf_doc');
     expect(html).toContain('405 Method Not Allowed');
     expect(html).toContain('Interface Contract');
-    expect(html).toContain('https://fpf.sh/interface-contract');
+    expect(html).toContain(WIKI_INTERFACE_CONTRACT_URL);
+    expect(html).toContain('Proceed only when snapshotExists is true');
     expect(html).toContain('Internal consistency is not global upstream currentness');
     expect(html).not.toContain('406');
   });

@@ -11,6 +11,7 @@ import {
   MCP_SERVER_NAME,
   PUBLIC_MCP_TOOLS,
   WIKI_CONNECT_MCP_URL,
+  WIKI_INTERFACE_CONTRACT_URL,
 } from '../../core/public-copy.js';
 
 export function renderHostedHomePage(): string {
@@ -278,6 +279,15 @@ export function renderHostedHomePage(): string {
         color: var(--muted);
       }
 
+      .contract ul {
+        margin: 0;
+        padding-left: 1.1rem;
+      }
+
+      .contract li + li {
+        margin-top: 4px;
+      }
+
       .tools ul {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -408,11 +418,11 @@ export function renderHostedHomePage(): string {
           <dt>Purpose</dt>
           <dd>${escapeHtml(FPF_REFERENCE_INTERFACE_CONTRACT.purpose)}</dd>
           <dt>Reliance gate</dt>
-          <dd>${escapeHtml(FPF_REFERENCE_INTERFACE_CONTRACT.relianceGate[0] ?? '')}</dd>
+          <dd>${renderContractList(FPF_REFERENCE_INTERFACE_CONTRACT.relianceGate)}</dd>
           <dt>Freshness</dt>
-          <dd>${escapeHtml(FPF_REFERENCE_INTERFACE_CONTRACT.freshnessSemantics[1] ?? '')}</dd>
+          <dd>${renderContractList(FPF_REFERENCE_INTERFACE_CONTRACT.freshnessSemantics)}</dd>
         </dl>
-        <p>Full card: <a href="https://fpf.sh/interface-contract">https://fpf.sh/interface-contract</a>.</p>
+        <p>Full card: <a href="${WIKI_INTERFACE_CONTRACT_URL}">${WIKI_INTERFACE_CONTRACT_URL}</a>.</p>
       </section>
 
       <h2 class="section-title">First Successful Call</h2>
@@ -434,6 +444,10 @@ export function renderHostedHomePage(): string {
     </main>
   </body>
 </html>`;
+}
+
+function renderContractList(items: readonly string[]): string {
+  return `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
 }
 
 function renderClientSection(section: (typeof CLIENT_SETUP_SECTIONS)[number]): string {
