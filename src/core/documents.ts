@@ -571,6 +571,8 @@ function renderHomeMarkdown(
     '',
     renderHomeMcpToolsMarkdown(),
     '',
+    'Full public contract: [Interface Contract](/interface-contract).',
+    '',
     renderHomeMcpEndpointLine(),
     '',
     '</details>',
@@ -599,6 +601,7 @@ function renderHomeNavigateLine(snapshot: Snapshot): string {
     { text: 'Start here', link: '/start-here' },
     { text: 'Quick connect', link: '/connect-local' },
     { text: 'Connect MCP', link: '/connect-mcp' },
+    { text: 'Interface Contract', link: '/interface-contract' },
     { text: 'Pattern Catalog', link: '/patterns' },
   ];
   if (Object.keys(snapshot.routeGraph.nodes).length > 0) {

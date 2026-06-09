@@ -10,6 +10,8 @@ Use this page to connect ChatGPT, Claude, editors, or coding CLIs to the hosted 
 
 MCP origin landing (shorter mirror): [mcp.fpf.sh](https://mcp.fpf.sh/).
 
+Contract card for engineers integrating against the public surface: [Interface Contract](/interface-contract).
+
 ## FPF vs MCP in one paragraph
 
 - **FPF** is the specification (patterns, evidence rules, and any published route surfaces).
@@ -43,6 +45,8 @@ A working client should show:
 - tools named `browse_fpf_catalog`, `search_fpf`, `ask_fpf`, `query_fpf_spec`, `read_fpf_doc`, and `get_fpf_index_status`;
 - `get_fpf_index_status` returning index, build, and source freshness data;
 - the first compact project prompt returning stable FPF IDs with bounded next steps.
+
+`status=ok` or `fresh=true` means the deployed runtime artifacts are internally consistent with the configured source. It does not prove latest upstream FPF unless separate upstream-currentness evidence exists. See [Interface Contract](/interface-contract) for the full reliance gate and public tool schema map.
 
 ## First successful call
 

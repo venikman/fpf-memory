@@ -35,6 +35,168 @@ export const PUBLIC_MCP_TOOLS = [
   'get_fpf_index_status',
 ] as const;
 
+export type PublicMcpToolName = (typeof PUBLIC_MCP_TOOLS)[number];
+
+export interface GoverningFpfReference {
+  id: string;
+  purpose: string;
+}
+
+export interface PublicMcpToolContract {
+  name: PublicMcpToolName;
+  purpose: string;
+  inputSchema: string;
+  inputSummary: string;
+  outputSchema: string;
+  outputSummary: string;
+  acceptanceCue: string;
+}
+
+export interface FpfReferenceInterfaceContract {
+  entityOfConcern: string;
+  canonicalEndpoint: string;
+  legacyEndpoint: string;
+  purpose: string;
+  governingFpf: readonly GoverningFpfReference[];
+  admissibleUse: readonly string[];
+  nonAdmissibleUse: readonly string[];
+  relianceGate: readonly string[];
+  freshnessSemantics: readonly string[];
+  outputExpectation: readonly string[];
+  acceptanceTests: readonly string[];
+  publicTools: readonly PublicMcpToolContract[];
+}
+
+export const FPF_REFERENCE_INTERFACE_CONTRACT: FpfReferenceInterfaceContract = {
+  entityOfConcern: 'Hosted MCP interface named fpf_reference.',
+  canonicalEndpoint: HOSTED_MCP_ENDPOINT,
+  legacyEndpoint: LEGACY_HOSTED_MCP_ENDPOINT,
+  purpose:
+    'Deterministic lookup, routing, citation, and exact-doc access over a compiled FPF snapshot.',
+  governingFpf: [
+    {
+      id: 'A.1.1',
+      purpose: 'Bound the local meaning of FPF Reference, MCP, runtime, and upstream FPF.',
+    },
+    {
+      id: 'A.2.3',
+      purpose: 'Treat public setup text as promise/access/acceptance content, not performed work.',
+    },
+    {
+      id: 'A.6.B',
+      purpose: 'Separate laws, admissibility gates, commitments, and evidence claims.',
+    },
+    {
+      id: 'A.6.C',
+      purpose: 'Unpack contract wording so the interface does not become agent memory or policy.',
+    },
+    {
+      id: 'A.10',
+      purpose: 'Tie reliance-bearing claims to source, snapshot, status, and citation evidence.',
+    },
+    {
+      id: 'B.3',
+      purpose: 'Keep assurance scoped to the typed claim actually evidenced by the runtime.',
+    },
+    {
+      id: 'A.15.1',
+      purpose: 'Keep docs/status/test evidence separate from actual performed work.',
+    },
+  ] as const,
+  admissibleUse: [
+    'discover relevant FPF IDs, routes, and catalog entries',
+    'ask compact grounded FPF questions',
+    'retrieve exact generated docs when wording matters',
+    'check runtime/source/snapshot status before reliance-bearing use',
+  ],
+  nonAdmissibleUse: [
+    'agent memory or job-local state',
+    'workflow engine or project-policy authority',
+    'upstream FPF authoring or semantic editing surface',
+    'availability, support, SLA, compliance, or readiness proof',
+    'proof that upstream FPF is latest beyond the reported source/snapshot evidence',
+  ],
+  relianceGate: [
+    'Call get_fpf_index_status before trust-sensitive use.',
+    'Proceed only when snapshotExists is true, fresh is true, and currentSourceHash matches sourceHash.',
+    'Use read_fpf_doc for exact FPF wording; use ask_fpf or query_fpf_spec for bounded context.',
+  ],
+  freshnessSemantics: [
+    'status ok or fresh means the deployed runtime artifacts are internally consistent with the configured source.',
+    'Internal consistency is not global upstream currentness.',
+    'upstreamCurrentness = unknown means do not claim latest upstream FPF unless an external monitor proves it.',
+  ],
+  outputExpectation: [
+    'Answers expose stable FPF IDs, citations or grounding, constraints or gaps, and snapshot metadata.',
+    'Catalog/search responses expose bounded result sets with source snapshot metadata.',
+    'Exact wording comes from read_fpf_doc rather than regenerated prose.',
+  ],
+  acceptanceTests: [
+    'Public tool list equals the six-tool public surface.',
+    'Legacy fpf_memory endpoint remains migration-only or blocked for new clients.',
+    'Standalone browser GET remains non-MCP and returns 405 Method Not Allowed.',
+    'Status endpoint reports source, snapshot, freshness, and upstream-currentness fields.',
+    'Compact query returns stable FPF IDs and bounded next steps.',
+    'Exact wording use goes through read_fpf_doc.',
+  ],
+  publicTools: [
+    {
+      name: 'browse_fpf_catalog',
+      purpose: 'Browse compiled patterns, routes, lexemes, and preface entries by part, status, kind, and limit.',
+      inputSchema: 'browseFpfCatalogInputSchema',
+      inputSummary: 'part?, status?, kind?, limit?, forceRefresh?',
+      outputSchema: 'browseFpfCatalogResultSchema',
+      outputSummary: 'entries, total, filters, didYouMean?, snapshot',
+      acceptanceCue: 'Use for discovery before reading or querying exact nodes.',
+    },
+    {
+      name: 'search_fpf',
+      purpose: 'Run ranked full-text search across compiled FPF nodes.',
+      inputSchema: 'searchFpfInputSchema',
+      inputSummary: 'query, kind?, limit?, forceRefresh?',
+      outputSchema: 'searchFpfResultSchema',
+      outputSummary: 'query, hits, total, snapshot',
+      acceptanceCue: 'Use when the caller has words or concepts but not an exact ID.',
+    },
+    {
+      name: 'ask_fpf',
+      purpose: 'Return markdown-first FPF answers with grounding metadata.',
+      inputSchema: 'askFpfInputSchema',
+      inputSummary: 'question, mode?, forceRefresh?, sessionId?',
+      outputSchema: 'askFpfResultSchema',
+      outputSummary: 'markdown, ids, citations, constraints, gaps, confidence, status, snapshot',
+      acceptanceCue: 'Use for chat answers; keep them compact and citation-backed.',
+    },
+    {
+      name: 'query_fpf_spec',
+      purpose: 'Return structured answer envelopes for FPF lookup and route selection.',
+      inputSchema: 'queryFpfSpecInputSchema',
+      inputSummary: 'question, mode?, forceRefresh?, sessionId?',
+      outputSchema: 'queryResultSchema',
+      outputSummary: 'answer, ids, relations, constraints, citations, gaps, confidence, status, snapshot',
+      acceptanceCue: 'Use for deterministic planning context or machine-readable routing.',
+    },
+    {
+      name: 'read_fpf_doc',
+      purpose: 'Resolve one selector to canonical generated markdown and page metadata.',
+      inputSchema: 'readFpfDocInputSchema',
+      inputSummary: 'selector, kind?, mode?, maxChars?, forceRefresh?',
+      outputSchema: 'readDocResultSchema',
+      outputSummary: 'selector, resolvedAs, status, nodeId?, title?, docRef?, markdown?, headings?, preview?, snapshot',
+      acceptanceCue: 'Use for exact FPF wording and cite the generated page path.',
+    },
+    {
+      name: 'get_fpf_index_status',
+      purpose: 'Inspect whether the runtime index exists and is fresh against the configured source.',
+      inputSchema: 'getFpfIndexStatusInputSchema',
+      inputSummary: 'random_string? compatibility placeholder',
+      outputSchema: 'runtimeStatusSchema',
+      outputSummary: 'sourcePath, sourceHash?, builtAt?, snapshotExists, currentSourceHash, fresh, compilerMode, artifacts, sessionCache',
+      acceptanceCue: 'Use as the first reliance gate before trust-sensitive FPF lookup.',
+    },
+  ] as const,
+} as const;
+
 export const FPF_VS_MCP_EXPLAINER_MARKDOWN = `## FPF vs MCP in one paragraph
 
 - **FPF** is the specification (patterns, evidence rules, and any published route surfaces).
@@ -185,6 +347,25 @@ export const CLIENT_SETUP_SECTIONS = buildClientSetupSections();
 
 export function renderPublicMcpToolsMarkdown(): string {
   return PUBLIC_MCP_TOOLS.map((tool) => `- \`${tool}\``).join('\n');
+}
+
+export function renderInterfaceContractToolsMarkdown(): string {
+  return FPF_REFERENCE_INTERFACE_CONTRACT.publicTools
+    .map((tool) => [
+      `### \`${tool.name}\``,
+      '',
+      `- Purpose: ${tool.purpose}`,
+      `- Input contract: \`${tool.inputSchema}\` (${tool.inputSummary})`,
+      `- Output contract: \`${tool.outputSchema}\` (${tool.outputSummary})`,
+      `- Acceptance cue: ${tool.acceptanceCue}`,
+    ].join('\n'))
+    .join('\n\n');
+}
+
+export function renderInterfaceContractAcceptanceMarkdown(): string {
+  return FPF_REFERENCE_INTERFACE_CONTRACT.acceptanceTests
+    .map((item) => `- ${item}`)
+    .join('\n');
 }
 
 export function renderHomeMcpToolsMarkdown(): string {

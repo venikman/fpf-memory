@@ -34,6 +34,9 @@ describe('hosted home page', () => {
     expect(html).toContain('query_fpf_spec');
     expect(html).toContain('read_fpf_doc');
     expect(html).toContain('405 Method Not Allowed');
+    expect(html).toContain('Interface Contract');
+    expect(html).toContain('https://fpf.sh/interface-contract');
+    expect(html).toContain('Internal consistency is not global upstream currentness');
     expect(html).not.toContain('406');
   });
 

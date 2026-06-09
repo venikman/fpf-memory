@@ -1,6 +1,7 @@
 import {
   CLIENT_SETUP_SECTIONS,
   FIRST_SUCCESSFUL_CALL_PROMPT,
+  FPF_REFERENCE_INTERFACE_CONTRACT,
   GOOD_FIRST_PROMPT,
   GOOD_FIRST_PROMPT_FOOTER,
   HOSTED_MCP_ENDPOINT,
@@ -254,9 +255,27 @@ export function renderHostedHomePage(): string {
       }
 
       .tools,
+      .contract,
       .prompt {
         border: 1px solid var(--line-strong);
         padding: 18px;
+      }
+
+      .contract dl {
+        display: grid;
+        grid-template-columns: minmax(120px, 0.28fr) minmax(0, 1fr);
+        gap: 10px 16px;
+        margin: 0;
+      }
+
+      .contract dt {
+        color: var(--green);
+        font-weight: 700;
+      }
+
+      .contract dd {
+        margin: 0;
+        color: var(--muted);
       }
 
       .tools ul {
@@ -324,6 +343,14 @@ export function renderHostedHomePage(): string {
         .client {
           border-right: 0;
         }
+
+        .contract dl {
+          display: block;
+        }
+
+        .contract dd {
+          margin: 0 0 12px;
+        }
       }
     </style>
   </head>
@@ -371,6 +398,21 @@ export function renderHostedHomePage(): string {
         <ul>
           ${PUBLIC_MCP_TOOLS.map((tool) => `<li><code>${tool}</code></li>`).join('\n          ')}
         </ul>
+      </section>
+
+      <h2 class="section-title">Interface Contract</h2>
+      <section class="contract" aria-label="Interface contract">
+        <dl>
+          <dt>Entity</dt>
+          <dd>${escapeHtml(FPF_REFERENCE_INTERFACE_CONTRACT.entityOfConcern)}</dd>
+          <dt>Purpose</dt>
+          <dd>${escapeHtml(FPF_REFERENCE_INTERFACE_CONTRACT.purpose)}</dd>
+          <dt>Reliance gate</dt>
+          <dd>${escapeHtml(FPF_REFERENCE_INTERFACE_CONTRACT.relianceGate[0] ?? '')}</dd>
+          <dt>Freshness</dt>
+          <dd>${escapeHtml(FPF_REFERENCE_INTERFACE_CONTRACT.freshnessSemantics[1] ?? '')}</dd>
+        </dl>
+        <p>Full card: <a href="https://fpf.sh/interface-contract">https://fpf.sh/interface-contract</a>.</p>
       </section>
 
       <h2 class="section-title">First Successful Call</h2>
