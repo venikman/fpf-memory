@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 import {
@@ -51,12 +51,22 @@ if (!noWrite) {
   await writeFile(outputPath, rendered, 'utf8');
 }
 
+if (process.env.GITHUB_OUTPUT) {
+  await appendFile(process.env.GITHUB_OUTPUT, renderGithubOutput(report), 'utf8');
+}
+if (process.env.GITHUB_STEP_SUMMARY && format === 'markdown') {
+  await appendFile(process.env.GITHUB_STEP_SUMMARY, rendered, 'utf8');
+}
+
 process.stdout.write(rendered);
 if (!rendered.endsWith('\n')) {
   process.stdout.write('\n');
 }
 
 if (flags.has('fail-on-config-error') && report.state === 'config_error') {
+  process.exitCode = 1;
+}
+if (flags.has('fail-on-quality-breach') && report.operatorActionRequired) {
   process.exitCode = 1;
 }
 
@@ -226,4 +236,25 @@ function readUsageSourceKind(value: string): UsageReportSourceKind {
 function defaultOutputPath(window: string, format: UsageReportFormat): string {
   const filename = `top-fpf-patterns-${window.replace(/[^a-z0-9.-]/giu, '-')}.${format === 'json' ? 'json' : 'md'}`;
   return resolve('reports/usage', filename);
+}
+
+function renderGithubOutput(report: UsageReport): string {
+  return [
+    ['state', report.state],
+    ['ok', String(report.ok)],
+    ['operator_action_required', String(report.operatorActionRequired)],
+    ['summary', report.summary],
+    ['valid_event_count', String(report.totals.validEventCount)],
+    ['invalid_event_count', String(report.totals.invalidEventCount)],
+    ['unknown_unresolved_event_count', String(report.totals.unknownUnresolvedEventCount)],
+    ['unknown_unresolved_rate', String(report.unknownUnresolvedRate)],
+    ['top_tool', report.topTools[0]?.id ?? ''],
+    ['top_intent_category', report.topIntentCategories[0]?.id ?? ''],
+    ['top_served_pattern', report.topServedPatterns[0]?.id ?? ''],
+    ['triage_findings', report.triageFindings.join(' | ')],
+  ].map(([key, value]) => `${key}=${sanitizeOutputValue(value)}\n`).join('');
+}
+
+function sanitizeOutputValue(value: string): string {
+  return value.replace(/\r?\n/gu, ' ').replace(/\s+/gu, ' ').trim();
 }

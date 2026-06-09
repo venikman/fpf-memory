@@ -30,7 +30,7 @@ describe('usage report aggregation', () => {
       invalidEventCount: 2,
       outOfWindowEventCount: 0,
       legacyEventCount: 1,
-      unknownUnresolvedEventCount: 2,
+      unknownUnresolvedEventCount: 1,
     });
 
     expect(report.topServedPatternIds).toEqual([
@@ -57,9 +57,23 @@ describe('usage report aggregation', () => {
     expect(report.topDocSurfaceIds).toEqual([{ id: 'generated/patterns/A.2', count: 1 }]);
     expect(report.topRouteIds).toEqual([{ id: 'route:project-alignment', count: 1 }]);
     expect(report.schemaVersions).toEqual([
-      { id: '2', count: 7 },
+      { id: '3', count: 4 },
+      { id: '2', count: 3 },
       { id: '1', count: 1 },
     ]);
+    expect(report.topServedPatterns[0]).toMatchObject({
+      id: 'A.1',
+      count: 2,
+      kind: 'pattern',
+      status: 'Stable',
+      part: 'Part A - Kernel Architecture Cluster',
+    });
+    expect(report.topServedPatterns[0]?.title).toContain('Holonic Foundation');
+    expect(report.topRoutes[0]).toMatchObject({
+      id: 'route:project-alignment',
+      count: 1,
+      kind: 'route',
+    });
   });
 
   it('reports tool counts and quality rates deterministically', async () => {
@@ -84,6 +98,57 @@ describe('usage report aggregation', () => {
       count: 1,
       rate: 0.5,
     });
+    expect(report.ambiguousRateByTool).toContainEqual({
+      toolName: 'query_fpf_spec',
+      calls: 2,
+      count: 1,
+      rate: 0.5,
+    });
+    expect(report.statusCounts).toEqual([
+      { id: 'ok', count: 5 },
+      { id: 'ambiguous', count: 1 },
+      { id: 'error', count: 1 },
+      { id: 'not_found', count: 1 },
+    ]);
+    expect(report.durationByTool).toContainEqual({
+      toolName: 'query_fpf_spec',
+      calls: 2,
+      averageMs: 10,
+      p95Ms: 16,
+      maxMs: 16,
+    });
+    expect(report.unknownUnresolvedRate).toBe(0.125);
+    expect(report.operatorActionRequired).toBe(true);
+    expect(report.triageFindings).toEqual([
+      'query_fpf_spec error rate is 50% (1/2).',
+      'search_fpf empty-result rate is 50% (1/2).',
+    ]);
+  });
+
+  it('reports safe ask categories and input shapes without raw question text', async () => {
+    const report = await buildFixtureReport();
+    const markdown = formatUsageReportMarkdown(report);
+
+    expect(report.topIntentCategories).toEqual([
+      { id: 'pattern_lookup', count: 5 },
+      { id: 'catalog_browse', count: 1 },
+      { id: 'concept_definition', count: 1 },
+      { id: 'route_selection', count: 1 },
+    ]);
+    expect(report.topInputShapes).toEqual([
+      { id: 'question:short', count: 3 },
+      { id: 'query:short', count: 2 },
+      { id: 'selector:exact_id', count: 2 },
+      { id: 'kind:route', count: 1 },
+    ]);
+    expect(report.topModes).toEqual([
+      { id: 'full', count: 1 },
+      { id: 'proof', count: 1 },
+    ]);
+    expect(markdown).toContain('## Asked');
+    expect(markdown).toContain('## Returned');
+    expect(markdown).toContain('## Popular FPF Material');
+    expect(markdown).not.toContain('__TEST_RAW_QUESTION_SHOULD_NOT_LEAK__');
   });
 
   it('rejects privacy-sensitive fixture events and does not leak sentinel values', async () => {
@@ -111,8 +176,12 @@ describe('usage report aggregation', () => {
 
     expect(report.state).toBe('config_error');
     expect(report.ok).toBe(false);
+    expect(report.operatorActionRequired).toBe(true);
     expect(report.totals.validEventCount).toBe(0);
     expect(report.topServedPatternIds).toEqual([]);
+    expect(report.triageFindings).toEqual([
+      'Missing Vercel logs token. Set FPF_USAGE_REPORT_VERCEL_TOKEN or VERCEL_TOKEN.',
+    ]);
     expect(report.caveats).toContain('No usage counts were produced.');
   });
 });

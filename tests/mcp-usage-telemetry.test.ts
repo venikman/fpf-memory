@@ -36,8 +36,9 @@ describe('MCP usage telemetry', () => {
     });
 
     expect(event.toolName).toBe('query_fpf_spec');
-    expect(event.schemaVersion).toBe(2);
+    expect(event.schemaVersion).toBe(3);
     expect(event.input).toEqual({
+      intentCategory: 'pattern_lookup',
       mode: 'proof',
       question: { shape: 'short' },
       sessionPresent: true,
@@ -100,6 +101,7 @@ describe('MCP usage telemetry', () => {
     expect(records.length).toBe(1);
     expect(records[0]?.message).toBe('MCP tool usage');
     expect(records[0]?.data?.input).toEqual({
+      intentCategory: 'pattern_lookup',
       mode: 'full',
       maxChars: 500,
       selector: { shape: 'phrase' },
@@ -153,11 +155,36 @@ describe('MCP usage telemetry', () => {
     expect(records.length).toBe(1);
     expect(records[0]?.data?.outcome).toBe('error');
     expect(records[0]?.data?.input).toEqual({
+      intentCategory: 'troubleshooting',
       query: { shape: 'short' },
     });
     expect(records[0]?.data?.error).toEqual({ name: 'Error' });
 
     const serialized = JSON.stringify(records);
     expect(serialized).not.toContain(rawQuery);
+  });
+
+  it('categorizes setup questions without logging the raw question', () => {
+    const rawQuestion = 'How do I connect fpf_reference MCP in Claude?';
+
+    const event = createMcpUsageTelemetryEvent({
+      toolName: 'ask_fpf',
+      outcome: 'ok',
+      durationMs: 15,
+      input: {
+        question: rawQuestion,
+      },
+      output: {
+        status: 'ok',
+        servedPatternIds: ['A.1'],
+      },
+    });
+
+    expect(event.schemaVersion).toBe(3);
+    expect(event.input).toEqual({
+      intentCategory: 'adoption_setup',
+      question: { shape: 'short' },
+    });
+    expect(JSON.stringify(event)).not.toContain(rawQuestion);
   });
 });

@@ -1,0 +1,168 @@
+name: FPF Usage Report
+
+on:
+  schedule:
+    # Internal weekly review of privacy-preserving MCP usage telemetry.
+    - cron: '22 13 * * 1'
+  workflow_dispatch:
+    inputs:
+      window:
+        description: 'Usage lookback window'
+        required: false
+        default: '7d'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: fpf-usage-report
+  cancel-in-progress: false
+
+env:
+  BUN_VERSION: '1.3.5'
+  FPF_USAGE_REPORT_VERCEL_PROJECT: fpf-reference-mcp
+  FPF_VERCEL_SCOPE: venikmans-projects
+  FPF_USAGE_REPORT_WINDOW: ${{ github.event.inputs.window || '7d' }}
+  FPF_USAGE_REPORT_FORMAT: markdown
+  FPF_USAGE_REPORT_LIMIT: '20'
+
+jobs:
+  report:
+    name: Review FPF Reference usage telemetry
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - run: bun install --frozen-lockfile
+
+      - name: Build weekly usage report
+        id: usage
+        continue-on-error: true
+        env:
+          FPF_USAGE_REPORT_VERCEL_TOKEN: ${{ secrets.FPF_USAGE_REPORT_VERCEL_TOKEN || secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p reports/usage
+          report_file="reports/usage/fpf-usage-report-${{ github.run_id }}.md"
+
+          set +e
+          bun run usage:report -- \
+            --source vercel \
+            --window "$FPF_USAGE_REPORT_WINDOW" \
+            --format markdown \
+            --limit "$FPF_USAGE_REPORT_LIMIT" \
+            --output "$report_file" \
+            --fail-on-config-error \
+            --fail-on-quality-breach
+          status="$?"
+          set -e
+
+          if [ "$status" -ne 0 ] && ! grep -q '^state=' "$GITHUB_OUTPUT"; then
+            write_output() {
+              key="$1"
+              value="$2"
+              sanitized="$(printf '%s' "$value" | tr '\r\n' '  ' | sed -E 's/[[:space:]]+/ /g' | cut -c1-900)"
+              printf '%s=%s\n' "$key" "$sanitized" >> "$GITHUB_OUTPUT"
+            }
+
+            write_output state report_failed
+            write_output ok false
+            write_output operator_action_required true
+            write_output summary "Usage report failed before producing a telemetry summary."
+            write_output triage_findings "Usage report failed before producing a telemetry summary."
+          fi
+
+          exit "$status"
+
+      - name: Upload usage report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fpf-usage-report-${{ github.run_id }}
+          path: reports/usage/*.md
+          if-no-files-found: warn
+
+      - name: Open or update usage telemetry issue
+        if: steps.usage.outcome != 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: Investigate FPF Reference usage telemetry review
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          STATE: ${{ steps.usage.outputs.state || 'unknown' }}
+          SUMMARY: ${{ steps.usage.outputs.summary || 'Usage report failed before producing a summary.' }}
+          TRIAGE_FINDINGS: ${{ steps.usage.outputs.triage_findings || 'No triage findings were emitted.' }}
+          VALID_EVENTS: ${{ steps.usage.outputs.valid_event_count || 'unknown' }}
+          UNKNOWN_RATE: ${{ steps.usage.outputs.unknown_unresolved_rate || 'unknown' }}
+          TOP_TOOL: ${{ steps.usage.outputs.top_tool || 'unknown' }}
+          TOP_INTENT: ${{ steps.usage.outputs.top_intent_category || 'unknown' }}
+          TOP_PATTERN: ${{ steps.usage.outputs.top_served_pattern || 'unknown' }}
+        run: |
+          set -euo pipefail
+
+          existing="$(
+            gh issue list \
+              --state open \
+              --search "$TITLE in:title" \
+              --json number \
+              --jq '.[0].number // ""'
+          )"
+
+          body_file="$(mktemp)"
+          {
+            printf '%s\n' \
+              'The scheduled internal FPF Reference usage review needs attention.' \
+              '' \
+              "- State: $STATE" \
+              "- Summary: $SUMMARY" \
+              "- Triage findings: $TRIAGE_FINDINGS" \
+              "- Valid events: $VALID_EVENTS" \
+              "- Unknown/unresolved rate: $UNKNOWN_RATE" \
+              "- Top tool: $TOP_TOOL" \
+              "- Top intent category: $TOP_INTENT" \
+              "- Top served pattern: $TOP_PATTERN" \
+              "- Run: $RUN_URL" \
+              '' \
+              'Check the workflow summary and uploaded report artifact before changing telemetry collection or Vercel credentials.'
+          } > "$body_file"
+
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file "$body_file"
+          else
+            gh issue create --title "$TITLE" --body-file "$body_file"
+          fi
+
+      - name: Close usage telemetry issue after clean scheduled run
+        if: github.event_name == 'schedule' && steps.usage.outcome == 'success' && steps.usage.outputs.operator_action_required == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: Investigate FPF Reference usage telemetry review
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SUMMARY: ${{ steps.usage.outputs.summary }}
+        run: |
+          set -euo pipefail
+
+          existing="$(
+            gh issue list \
+              --state open \
+              --search "$TITLE in:title" \
+              --json number \
+              --jq '.[0].number // ""'
+          )"
+
+          if [ -z "$existing" ]; then
+            exit 0
+          fi
+
+          gh issue comment "$existing" --body "The scheduled FPF Reference usage report is clean. Summary: $SUMMARY. Run: $RUN_URL"
+          gh issue close "$existing" --reason completed
+
+      - name: Fail workflow on telemetry review breach
+        if: steps.usage.outcome != 'success'
+        run: exit 1

@@ -78,7 +78,7 @@ test('connect-mcp page mentions the canonical MCP endpoint', async ({
     .toBeVisible();
 });
 
-test('connect-local page stays focused on hosted server values', async ({
+test('connect-local page leads with hosted values and includes local fallback', async ({
   page,
 }) => {
   await page.goto('/connect-local');
@@ -90,5 +90,8 @@ test('connect-local page stays focused on hosted server values', async ({
   await expect(
     page.getByText('https://mcp.fpf.sh/api/mcp/fpf_reference/mcp').first(),
   ).toBeVisible();
-  await expect(page.getByText('bun run start')).toHaveCount(0);
+  await expect(page.getByRole('heading', {
+    name: 'If your policy forbids external MCP servers',
+  })).toBeVisible();
+  await expect(page.getByText('bun run start')).toBeVisible();
 });

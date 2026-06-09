@@ -4,9 +4,19 @@ import type { FpfMcpTool } from './tools.js';
 type UsageOutcome = 'ok' | 'error';
 type TextShape = 'empty' | 'short' | 'medium' | 'long';
 type SelectorShape = 'exact_id' | 'route_id' | 'anchor_id' | 'phrase' | 'token' | 'unknown';
+export type UsageIntentCategory =
+  | 'adoption_setup'
+  | 'concept_definition'
+  | 'route_selection'
+  | 'work_evaluation'
+  | 'troubleshooting'
+  | 'pattern_lookup'
+  | 'catalog_browse'
+  | 'index_health'
+  | 'unknown';
 
 export interface McpUsageTelemetryEvent {
-  schemaVersion: 2;
+  schemaVersion: 3;
   event: 'mcp_tool_usage';
   toolName: string;
   outcome: UsageOutcome;
@@ -69,12 +79,12 @@ export function createMcpUsageTelemetryEvent(input: {
   error?: unknown;
 }): McpUsageTelemetryEvent {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     event: 'mcp_tool_usage',
     toolName: input.toolName,
     outcome: input.outcome,
     durationMs: input.durationMs,
-    input: summarizeInput(input.input),
+    input: summarizeInput(input.input, input.toolName),
     ...(input.output === undefined ? {} : { output: summarizeOutput(input.toolName, input.output) }),
     ...(input.error === undefined ? {} : { error: summarizeError(input.error) }),
     privacy: {
@@ -86,13 +96,17 @@ export function createMcpUsageTelemetryEvent(input: {
   };
 }
 
-function summarizeInput(input: unknown): Record<string, unknown> {
+function summarizeInput(input: unknown, toolName: string): Record<string, unknown> {
   const record = asRecord(input);
   if (!record) {
-    return {};
+    return {
+      intentCategory: classifyIntentCategory(toolName, undefined),
+    };
   }
 
-  const summary: Record<string, unknown> = {};
+  const summary: Record<string, unknown> = {
+    intentCategory: classifyIntentCategory(toolName, record),
+  };
   copyStringField(record, summary, 'mode');
   copyStringField(record, summary, 'kind');
   copyNumberField(record, summary, 'limit');
@@ -133,6 +147,72 @@ function summarizeInput(input: unknown): Record<string, unknown> {
   }
 
   return summary;
+}
+
+function classifyIntentCategory(
+  toolName: string,
+  input: Record<string, unknown> | undefined,
+): UsageIntentCategory {
+  if (toolName === 'get_fpf_index_status' || toolName === 'refresh_fpf_index') {
+    return 'index_health';
+  }
+  if (toolName === 'browse_fpf_catalog') {
+    return 'catalog_browse';
+  }
+
+  const text = collectClassifiableInputText(input);
+  const textCategory = text ? classifyIntentText(text) : 'unknown';
+  if (textCategory !== 'unknown') {
+    return textCategory;
+  }
+
+  if (
+    toolName === 'read_fpf_doc' ||
+    toolName === 'inspect_fpf_node' ||
+    toolName === 'inspect_fpf_anchor' ||
+    toolName === 'expand_fpf_citations' ||
+    toolName === 'search_fpf' ||
+    toolName === 'query_fpf_spec' ||
+    toolName === 'ask_fpf' ||
+    toolName === 'trace_fpf_path'
+  ) {
+    return 'pattern_lookup';
+  }
+
+  return 'unknown';
+}
+
+function collectClassifiableInputText(input: Record<string, unknown> | undefined): string {
+  if (!input) {
+    return '';
+  }
+  return ['question', 'query', 'selector', 'anchorId', 'part', 'status']
+    .map((key) => input[key])
+    .filter((value): value is string => typeof value === 'string')
+    .join(' ')
+    .toLowerCase();
+}
+
+function classifyIntentText(value: string): UsageIntentCategory {
+  if (/\b(connect|setup|set up|install|configure|configuration|client|endpoint|mcp|claude|codex|chatgpt|http|streamable|start here)\b/u.test(value)) {
+    return 'adoption_setup';
+  }
+  if (/\b(error|broken|fail|fails|failed|failure|not working|stale|debug|diagnose|fix|troubleshoot|404|405|timeout)\b/u.test(value)) {
+    return 'troubleshooting';
+  }
+  if (/\b(evaluate|evaluation|review|rubric|score|assess|assessment|conformance|compliance|pr|pull request|branch|working tree|work)\b/u.test(value)) {
+    return 'work_evaluation';
+  }
+  if (/\b(route|path|which route|where should|where do i start|first honest burden|reroute)\b/u.test(value)) {
+    return 'route_selection';
+  }
+  if (/\b(define|definition|meaning|what is|what are|explain|glossary|concept)\b/u.test(value)) {
+    return 'concept_definition';
+  }
+  if (/\b(pattern|catalog|id|citation|doc|document|read|lookup|search|find|anchor)\b/u.test(value)) {
+    return 'pattern_lookup';
+  }
+  return 'unknown';
 }
 
 function summarizeOutput(toolName: string, output: unknown): Record<string, unknown> {

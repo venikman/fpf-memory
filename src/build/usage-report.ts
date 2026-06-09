@@ -1,17 +1,32 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-import { PUBLISHED_MANIFEST_PATH } from '../core/constants.js';
+import {
+  ARTIFACT_FILENAMES,
+  PUBLISHED_ARTIFACT_DIR,
+  PUBLISHED_MANIFEST_PATH,
+} from '../core/constants.js';
 import { publishCurrentManifestSchema } from './published-surface.js';
 
 export const DEFAULT_USAGE_REPORT_LOG_PATH = '.runtime/logs/fpf-runtime.log';
 export const DEFAULT_USAGE_REPORT_LIMIT = 20;
 export const USAGE_PRIVACY_STATEMENT =
   'Usage reports aggregate sanitized MCP telemetry only. They do not include raw questions, prompts, answer text, selectors, markdown bodies, session IDs, IP addresses, or user identifiers.';
+export const UNKNOWN_INTENT_CATEGORY = 'unknown';
 
 export type UsageReportState = 'ok' | 'config_error';
 export type UsageReportFormat = 'json' | 'markdown';
 export type UsageReportSourceKind = 'file' | 'vercel';
+export type UsageIntentCategory =
+  | 'adoption_setup'
+  | 'concept_definition'
+  | 'route_selection'
+  | 'work_evaluation'
+  | 'troubleshooting'
+  | 'pattern_lookup'
+  | 'catalog_browse'
+  | 'index_health'
+  | 'unknown';
 
 export interface UsageWindow {
   label: string;
@@ -39,11 +54,27 @@ export interface UsageRank {
   count: number;
 }
 
+export interface UsageMaterialRank extends UsageRank {
+  title?: string;
+  kind?: string;
+  status?: string;
+  part?: string;
+  cluster?: string;
+}
+
 export interface UsageRate {
   toolName: string;
   calls: number;
   count: number;
   rate: number;
+}
+
+export interface UsageDurationByTool {
+  toolName: string;
+  calls: number;
+  averageMs: number;
+  p95Ms: number;
+  maxMs: number;
 }
 
 export interface UsageReportTotals {
@@ -70,9 +101,24 @@ export interface UsageReport {
   topDocSurfaceIds: UsageRank[];
   topRouteIds: UsageRank[];
   topTools: UsageRank[];
+  topIntentCategories: UsageRank[];
+  topInputShapes: UsageRank[];
+  topModes: UsageRank[];
+  statusCounts: UsageRank[];
   schemaVersions: UsageRank[];
   emptyResultRateByTool: UsageRate[];
   errorRateByTool: UsageRate[];
+  ambiguousRateByTool: UsageRate[];
+  durationByTool: UsageDurationByTool[];
+  topServedPatterns: UsageMaterialRank[];
+  topCitedPatterns: UsageMaterialRank[];
+  topResolvedPatterns: UsageMaterialRank[];
+  topCandidatePatterns: UsageMaterialRank[];
+  topRoutes: UsageMaterialRank[];
+  unknownUnresolvedRate: number;
+  operatorActionRequired: boolean;
+  triageFindings: string[];
+  summary: string;
   privacyStatement: string;
   caveats: string[];
 }
@@ -82,7 +128,17 @@ interface UsageEvent {
   schemaVersion: number;
   toolName: string;
   outcome: 'ok' | 'error';
+  durationMs: number;
+  input: Record<string, unknown>;
   output: Record<string, unknown>;
+}
+
+interface UsageMaterialInfo {
+  title?: string;
+  kind?: string;
+  status?: string;
+  part?: string;
+  cluster?: string;
 }
 
 export interface BuildUsageReportInput {
@@ -100,11 +156,18 @@ export async function buildUsageReportFromLines(
   const now = input.now ?? new Date();
   const window = resolveUsageWindow(input.windowLabel, now);
   const publication = await readUsageReportPublication(input.cwd);
+  const materialCatalog = await readUsageMaterialCatalog(input.cwd);
   const counts = createCounts();
   const toolCalls = new Map<string, number>();
   const schemaVersions = new Map<string, number>();
+  const intentCategories = new Map<string, number>();
+  const inputShapes = new Map<string, number>();
+  const modes = new Map<string, number>();
+  const statuses = new Map<string, number>();
   const emptyResults = new Map<string, number>();
   const errors = new Map<string, number>();
+  const ambiguousResults = new Map<string, number>();
+  const durations = new Map<string, number[]>();
   const totals: UsageReportTotals = {
     rawLineCount: input.lines.length,
     validEventCount: 0,
@@ -135,8 +198,20 @@ export async function buildUsageReportFromLines(
     }
     increment(schemaVersions, String(event.schemaVersion));
     increment(toolCalls, event.toolName);
+    increment(intentCategories, getEventIntentCategory(event));
+    addInputShapeCounts(inputShapes, event.input);
+    const mode = optionalString(event.input.mode);
+    if (mode) {
+      increment(modes, mode);
+    }
+    const status = getEventStatus(event);
+    increment(statuses, status);
+    addDuration(durations, event.toolName, event.durationMs);
     if (event.outcome === 'error') {
       increment(errors, event.toolName);
+    }
+    if (status === 'ambiguous') {
+      increment(ambiguousResults, event.toolName);
     }
     if (isEmptyResult(event)) {
       increment(emptyResults, event.toolName);
@@ -156,6 +231,8 @@ export async function buildUsageReportFromLines(
     addAll(counts.routeIds, routes);
 
     if (
+      event.outcome === 'ok'
+      &&
       servedPatterns.length === 0
       && citedPatterns.length === 0
       && resolvedPatterns.length === 0
@@ -168,7 +245,27 @@ export async function buildUsageReportFromLines(
   }
 
   const limit = input.limit ?? DEFAULT_USAGE_REPORT_LIMIT;
-  return {
+  const topServedPatternIds = topCounts(counts.servedPatternIds, limit);
+  const topCitedPatternIds = topCounts(counts.citedPatternIds, limit);
+  const topResolvedPatternIds = topCounts(counts.resolvedPatternIds, limit);
+  const topCandidatePatternIds = topCounts(counts.candidatePatternIds, limit);
+  const topRouteIds = topCounts(counts.routeIds, limit);
+  const topTools = topCounts(toolCalls, limit);
+  const emptyResultRateByTool = rates(toolCalls, emptyResults);
+  const errorRateByTool = rates(toolCalls, errors);
+  const ambiguousRateByTool = rates(toolCalls, ambiguousResults);
+  const unknownUnresolvedRate = calculateRate(
+    totals.unknownUnresolvedEventCount,
+    totals.validEventCount,
+  );
+  const triageFindings = buildTriageFindings({
+    state: 'ok',
+    totals,
+    emptyResultRateByTool,
+    errorRateByTool,
+    unknownUnresolvedRate,
+  });
+  const report: UsageReport = {
     state: 'ok',
     ok: true,
     generatedAt: now.toISOString(),
@@ -176,19 +273,36 @@ export async function buildUsageReportFromLines(
     source: input.source,
     publication,
     totals,
-    topServedPatternIds: topCounts(counts.servedPatternIds, limit),
-    topCitedPatternIds: topCounts(counts.citedPatternIds, limit),
-    topResolvedPatternIds: topCounts(counts.resolvedPatternIds, limit),
-    topCandidatePatternIds: topCounts(counts.candidatePatternIds, limit),
+    topServedPatternIds,
+    topCitedPatternIds,
+    topResolvedPatternIds,
+    topCandidatePatternIds,
     topDocSurfaceIds: topCounts(counts.docSurfaceIds, limit),
-    topRouteIds: topCounts(counts.routeIds, limit),
-    topTools: topCounts(toolCalls, limit),
+    topRouteIds,
+    topTools,
+    topIntentCategories: topCounts(intentCategories, limit),
+    topInputShapes: topCounts(inputShapes, limit),
+    topModes: topCounts(modes, limit),
+    statusCounts: topCounts(statuses, limit),
     schemaVersions: topCounts(schemaVersions, limit),
-    emptyResultRateByTool: rates(toolCalls, emptyResults),
-    errorRateByTool: rates(toolCalls, errors),
+    emptyResultRateByTool,
+    errorRateByTool,
+    ambiguousRateByTool,
+    durationByTool: durationStats(durations),
+    topServedPatterns: enrichRanks(topServedPatternIds, materialCatalog),
+    topCitedPatterns: enrichRanks(topCitedPatternIds, materialCatalog),
+    topResolvedPatterns: enrichRanks(topResolvedPatternIds, materialCatalog),
+    topCandidatePatterns: enrichRanks(topCandidatePatternIds, materialCatalog),
+    topRoutes: enrichRanks(topRouteIds, materialCatalog),
+    unknownUnresolvedRate,
+    operatorActionRequired: triageFindings.length > 0,
+    triageFindings,
+    summary: '',
     privacyStatement: USAGE_PRIVACY_STATEMENT,
     caveats: buildCaveats(totals, input.source),
   };
+  report.summary = buildUsageSummary(report);
+  return report;
 }
 
 export function configErrorUsageReport(input: {
@@ -199,34 +313,68 @@ export function configErrorUsageReport(input: {
   cwd?: string;
 }): Promise<UsageReport> {
   const now = input.now ?? new Date();
-  return readUsageReportPublication(input.cwd).then((publication) => ({
-    state: 'config_error' as const,
-    ok: false,
-    generatedAt: now.toISOString(),
-    window: resolveUsageWindow(input.windowLabel, now),
-    source: input.source,
-    publication,
-    totals: {
-      rawLineCount: 0,
-      validEventCount: 0,
-      invalidEventCount: 0,
-      outOfWindowEventCount: 0,
-      legacyEventCount: 0,
-      unknownUnresolvedEventCount: 0,
-    },
-    topServedPatternIds: [],
-    topCitedPatternIds: [],
-    topResolvedPatternIds: [],
-    topCandidatePatternIds: [],
-    topDocSurfaceIds: [],
-    topRouteIds: [],
-    topTools: [],
-    schemaVersions: [],
-    emptyResultRateByTool: [],
-    errorRateByTool: [],
-    privacyStatement: USAGE_PRIVACY_STATEMENT,
-    caveats: [input.message, 'No usage counts were produced.'],
-  }));
+  return readUsageReportPublication(input.cwd).then((publication) => {
+    const triageFindings = buildTriageFindings({
+      state: 'config_error',
+      totals: {
+        rawLineCount: 0,
+        validEventCount: 0,
+        invalidEventCount: 0,
+        outOfWindowEventCount: 0,
+        legacyEventCount: 0,
+        unknownUnresolvedEventCount: 0,
+      },
+      emptyResultRateByTool: [],
+      errorRateByTool: [],
+      unknownUnresolvedRate: 0,
+      configMessage: input.message,
+    });
+    const report: UsageReport = {
+      state: 'config_error' as const,
+      ok: false,
+      generatedAt: now.toISOString(),
+      window: resolveUsageWindow(input.windowLabel, now),
+      source: input.source,
+      publication,
+      totals: {
+        rawLineCount: 0,
+        validEventCount: 0,
+        invalidEventCount: 0,
+        outOfWindowEventCount: 0,
+        legacyEventCount: 0,
+        unknownUnresolvedEventCount: 0,
+      },
+      topServedPatternIds: [],
+      topCitedPatternIds: [],
+      topResolvedPatternIds: [],
+      topCandidatePatternIds: [],
+      topDocSurfaceIds: [],
+      topRouteIds: [],
+      topTools: [],
+      topIntentCategories: [],
+      topInputShapes: [],
+      topModes: [],
+      statusCounts: [],
+      schemaVersions: [],
+      emptyResultRateByTool: [],
+      errorRateByTool: [],
+      ambiguousRateByTool: [],
+      durationByTool: [],
+      topServedPatterns: [],
+      topCitedPatterns: [],
+      topResolvedPatterns: [],
+      topCandidatePatterns: [],
+      topRoutes: [],
+      unknownUnresolvedRate: 0,
+      operatorActionRequired: true,
+      triageFindings,
+      summary: '',
+      privacyStatement: USAGE_PRIVACY_STATEMENT,
+      caveats: [input.message, 'No usage counts were produced.'],
+    };
+    report.summary = buildUsageSummary(report);
+    return report;
+  });
 }
 
 export async function readUsageReportLinesFromFile(logPath: string): Promise<string[]> {
@@ -245,7 +393,7 @@ export function resolveUsageWindow(label: string, now: Date): UsageWindow {
 }
 
 export function formatUsageReportMarkdown(report: UsageReport): string {
-  return `# FPF Usage Report
+  return `# FPF Weekly Usage Report
 
 State: **${report.state}**
 
@@ -255,61 +403,107 @@ Source: ${report.source.description}
 
 Publication: upstream \`${shortRef(report.publication.upstreamRef)}\`, source \`${report.publication.sourceHash}\`, compiler \`${report.publication.compilerFingerprint}\`
 
-## Top Served FPF IDs
+Summary: ${report.summary}
 
-${rankTable(report.topServedPatternIds)}
+## Usage
 
-## Top Cited FPF IDs
+- Adoption: ${report.totals.validEventCount > 0 ? 'observed production MCP usage' : 'no observed production MCP use'}
+- Valid events: ${report.totals.validEventCount}
+- Operator action required: ${report.operatorActionRequired ? 'yes' : 'no'}
 
-${rankTable(report.topCitedPatternIds)}
-
-## Top Resolved FPF IDs
-
-${rankTable(report.topResolvedPatternIds)}
-
-## Top Candidate FPF IDs
-
-${rankTable(report.topCandidatePatternIds)}
-
-## Top Doc Surfaces
-
-${rankTable(report.topDocSurfaceIds)}
-
-## Top Route IDs
-
-${rankTable(report.topRouteIds)}
-
-## Top Tools
+### Top Tools
 
 ${rankTable(report.topTools)}
 
-## Schema Versions
+## Asked
 
-${rankTable(report.schemaVersions)}
+Telemetry reports safe intent categories and coarse input shapes only; it does not infer exact raw questions.
 
-## Empty Result Rate By Tool
+### Intent Categories
+
+${rankTable(report.topIntentCategories)}
+
+### Input Shapes
+
+${rankTable(report.topInputShapes)}
+
+### Modes
+
+${rankTable(report.topModes)}
+
+## Returned
+
+### Status Counts
+
+${rankTable(report.statusCounts)}
+
+### Empty Result Rate By Tool
 
 ${rateTable(report.emptyResultRateByTool)}
 
-## Error Rate By Tool
+### Error Rate By Tool
 
 ${rateTable(report.errorRateByTool)}
 
-## Event Quality
+### Ambiguous Rate By Tool
+
+${rateTable(report.ambiguousRateByTool)}
+
+### Duration By Tool
+
+${durationTable(report.durationByTool)}
+
+## Popular FPF Material
+
+Served IDs are confirmed returned material. Cited/resolved IDs are grounding or resolution evidence. Candidate-only IDs represent demand or ambiguity, not confirmed served content.
+
+### Top Served Patterns
+
+${materialRankTable(report.topServedPatterns)}
+
+### Top Cited Patterns
+
+${materialRankTable(report.topCitedPatterns)}
+
+### Top Resolved Patterns
+
+${materialRankTable(report.topResolvedPatterns)}
+
+### Top Candidate Patterns
+
+${materialRankTable(report.topCandidatePatterns)}
+
+### Top Routes
+
+${materialRankTable(report.topRoutes)}
+
+### Top Doc Surfaces
+
+${rankTable(report.topDocSurfaceIds)}
+
+## Data Quality
 
 - Valid events: ${report.totals.validEventCount}
 - Invalid events: ${report.totals.invalidEventCount}
 - Out-of-window events: ${report.totals.outOfWindowEventCount}
 - Legacy events: ${report.totals.legacyEventCount}
-- Unknown/unresolved events: ${report.totals.unknownUnresolvedEventCount}
+- Unknown/unresolved events: ${report.totals.unknownUnresolvedEventCount} (${formatPercent(report.unknownUnresolvedRate)})
+
+### Schema Versions
+
+${rankTable(report.schemaVersions)}
+
+### Triage Findings
+
+${findingList(report.triageFindings)}
+
+### Caveats
+
+${report.caveats.map((item) => `- ${item}`).join('\n')}
 
 ## Privacy
 
 ${report.privacyStatement}
-
-## Caveats
-
-${report.caveats.map((item) => `- ${item}`).join('\n')}
 `;
 }
 
@@ -388,6 +582,8 @@ function normalizeUsageEvent(
     schemaVersion: typeof payload.schemaVersion === 'number' ? payload.schemaVersion : 1,
     toolName,
     outcome,
+    durationMs: numeric(payload.durationMs) ?? 0,
+    input: asRecord(payload.input) ?? {},
     output: asRecord(payload.output) ?? {},
   };
 }
@@ -439,6 +635,46 @@ async function readUsageReportPublication(cwd = process.cwd()): Promise<UsageRep
   };
 }
 
+async function readUsageMaterialCatalog(cwd = process.cwd()): Promise<Map<string, UsageMaterialInfo>> {
+  const catalog = new Map<string, UsageMaterialInfo>();
+  const snapshotPath = resolve(cwd, PUBLISHED_ARTIFACT_DIR, ARTIFACT_FILENAMES.snapshot);
+  let snapshot: Record<string, unknown> | undefined;
+  try {
+    snapshot = asRecord(JSON.parse(await readFile(snapshotPath, 'utf8')) as unknown);
+  } catch {
+    return catalog;
+  }
+  const compiledNodes = asRecord(snapshot?.compiledNodes);
+  if (!compiledNodes) {
+    return catalog;
+  }
+
+  for (const [id, value] of Object.entries(compiledNodes)) {
+    const node = asRecord(value);
+    if (!node) {
+      continue;
+    }
+    catalog.set(id, {
+      title: optionalString(node.title),
+      kind: optionalString(node.kind),
+      status: optionalString(node.status),
+      part: optionalString(node.part),
+      cluster: optionalString(node.cluster),
+    });
+  }
+  return catalog;
+}
+
+function enrichRanks(
+  rows: UsageRank[],
+  catalog: Map<string, UsageMaterialInfo>,
+): UsageMaterialRank[] {
+  return rows.map((row) => ({
+    ...row,
+    ...catalog.get(row.id),
+  }));
+}
+
 function parseWindowMs(value: string): number {
   const match = /^(\d+)(m|h|d)$/iu.exec(value.trim());
   if (!match) {
@@ -471,6 +707,36 @@ function addAll(counts: Map<string, number>, ids: string[]): void {
   }
 }
 
+function addInputShapeCounts(counts: Map<string, number>, input: Record<string, unknown>): void {
+  for (const [key, value] of Object.entries(input)) {
+    if (key === 'intentCategory' || key === 'mode' || key === 'sessionPresent') {
+      continue;
+    }
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      increment(counts, `${key}:${String(value)}`);
+      continue;
+    }
+    const record = asRecord(value);
+    const shape = optionalString(record?.shape);
+    if (shape) {
+      increment(counts, `${key}:${shape}`);
+      continue;
+    }
+    if (typeof record?.count === 'number') {
+      increment(counts, `${key}:counted`);
+    }
+  }
+}
+
+function addDuration(durations: Map<string, number[]>, toolName: string, durationMs: number): void {
+  if (!Number.isFinite(durationMs) || durationMs < 0) {
+    return;
+  }
+  const values = durations.get(toolName) ?? [];
+  values.push(durationMs);
+  durations.set(toolName, values);
+}
+
 function increment(counts: Map<string, number>, key: string): void {
   counts.set(key, (counts.get(key) ?? 0) + 1);
 }
@@ -496,6 +762,121 @@ function rates(toolCalls: Map<string, number>, counts: Map<string, number>): Usa
         rate: calls === 0 ? 0 : Math.round((count / calls) * 10_000) / 10_000,
       };
     });
+}
+
+function durationStats(durations: Map<string, number[]>): UsageDurationByTool[] {
+  return [...durations.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([toolName, values]) => {
+      const sorted = [...values].sort((left, right) => left - right);
+      const calls = sorted.length;
+      return {
+        toolName,
+        calls,
+        averageMs: roundNumber(sum(sorted) / calls),
+        p95Ms: sorted[Math.max(0, Math.ceil(calls * 0.95) - 1)] ?? 0,
+        maxMs: sorted[calls - 1] ?? 0,
+      };
+    });
+}
+
+function getEventIntentCategory(event: UsageEvent): UsageIntentCategory {
+  const category = optionalString(event.input.intentCategory);
+  if (isUsageIntentCategory(category)) {
+    return category;
+  }
+  return inferIntentCategoryFromTool(event.toolName);
+}
+
+function inferIntentCategoryFromTool(toolName: string): UsageIntentCategory {
+  if (toolName === 'get_fpf_index_status' || toolName === 'refresh_fpf_index') {
+    return 'index_health';
+  }
+  if (toolName === 'browse_fpf_catalog') {
+    return 'catalog_browse';
+  }
+  if (
+    toolName === 'query_fpf_spec' ||
+    toolName === 'ask_fpf' ||
+    toolName === 'search_fpf' ||
+    toolName === 'read_fpf_doc' ||
+    toolName === 'inspect_fpf_node' ||
+    toolName === 'inspect_fpf_anchor' ||
+    toolName === 'expand_fpf_citations' ||
+    toolName === 'trace_fpf_path'
+  ) {
+    return 'pattern_lookup';
+  }
+  return UNKNOWN_INTENT_CATEGORY;
+}
+
+function isUsageIntentCategory(value: string | undefined): value is UsageIntentCategory {
+  return value === 'adoption_setup'
+    || value === 'concept_definition'
+    || value === 'route_selection'
+    || value === 'work_evaluation'
+    || value === 'troubleshooting'
+    || value === 'pattern_lookup'
+    || value === 'catalog_browse'
+    || value === 'index_health'
+    || value === 'unknown';
+}
+
+function getEventStatus(event: UsageEvent): string {
+  if (event.outcome === 'error') {
+    return 'error';
+  }
+  return optionalString(event.output.status) ?? 'ok_no_status';
+}
+
+function calculateRate(count: number, calls: number): number {
+  return calls === 0 ? 0 : Math.round((count / calls) * 10_000) / 10_000;
+}
+
+function buildTriageFindings(input: {
+  state: UsageReportState;
+  totals: UsageReportTotals;
+  emptyResultRateByTool: UsageRate[];
+  errorRateByTool: UsageRate[];
+  unknownUnresolvedRate: number;
+  configMessage?: string;
+}): string[] {
+  const findings: string[] = [];
+  if (input.state === 'config_error') {
+    findings.push(input.configMessage ?? 'Usage report configuration failed.');
+    return findings;
+  }
+
+  for (const rate of input.errorRateByTool) {
+    if (rate.count > 0) {
+      findings.push(`${rate.toolName} error rate is ${formatPercent(rate.rate)} (${rate.count}/${rate.calls}).`);
+    }
+  }
+  for (const rate of input.emptyResultRateByTool) {
+    if (rate.calls > 0 && rate.rate > 0.2) {
+      findings.push(`${rate.toolName} empty-result rate is ${formatPercent(rate.rate)} (${rate.count}/${rate.calls}).`);
+    }
+  }
+  if (input.totals.validEventCount > 0 && input.unknownUnresolvedRate > 0.15) {
+    findings.push(`Unknown/unresolved event rate is ${formatPercent(input.unknownUnresolvedRate)} (${input.totals.unknownUnresolvedEventCount}/${input.totals.validEventCount}).`);
+  }
+  return findings;
+}
+
+function buildUsageSummary(report: UsageReport): string {
+  if (report.state === 'config_error') {
+    return `Telemetry review did not run: ${report.triageFindings[0] ?? 'configuration error'}`;
+  }
+  const topTool = report.topTools[0];
+  const topIntent = report.topIntentCategories[0];
+  const topPattern = report.topServedPatterns[0];
+  return [
+    `${report.totals.validEventCount} valid MCP usage event${report.totals.validEventCount === 1 ? '' : 's'} observed`,
+    topTool ? `top tool ${topTool.id} (${topTool.count})` : 'no top tool',
+    topIntent ? `top intent ${topIntent.id} (${topIntent.count})` : 'no intent category',
+    topPattern ? `top served pattern ${topPattern.id} (${topPattern.count})` : 'no served pattern',
+    report.operatorActionRequired ? 'operator action required' : 'no operator action required',
+  ].join('; ');
 }
 
 function isEmptyResult(event: UsageEvent): boolean {
@@ -546,6 +927,25 @@ function rankTable(rows: UsageRank[]): string {
   ].join('\n');
 }
 
+function materialRankTable(rows: UsageMaterialRank[]): string {
+  if (rows.length === 0) {
+    return '_No events in this window._';
+  }
+  return [
+    '| ID | Count | Title | Kind | Status | Part | Cluster |',
+    '| --- | ---: | --- | --- | --- | --- | --- |',
+    ...rows.map((row) => [
+      `\`${escapeTable(row.id)}\``,
+      String(row.count),
+      escapeTable(row.title ?? ''),
+      escapeTable(row.kind ?? ''),
+      escapeTable(row.status ?? ''),
+      escapeTable(row.part ?? ''),
+      escapeTable(row.cluster ?? ''),
+    ].join(' | ')).map((row) => `| ${row} |`),
+  ].join('\n');
+}
+
 function rateTable(rows: UsageRate[]): string {
   if (rows.length === 0) {
     return '_No tool calls in this window._';
@@ -559,6 +959,26 @@ function rateTable(rows: UsageRate[]): string {
   ].join('\n');
 }
 
+function durationTable(rows: UsageDurationByTool[]): string {
+  if (rows.length === 0) {
+    return '_No tool calls in this window._';
+  }
+  return [
+    '| Tool | Calls | Average ms | P95 ms | Max ms |',
+    '| --- | ---: | ---: | ---: | ---: |',
+    ...rows.map((row) =>
+      `| \`${escapeTable(row.toolName)}\` | ${row.calls} | ${row.averageMs} | ${row.p95Ms} | ${row.maxMs} |`,
+    ),
+  ].join('\n');
+}
+
+function findingList(findings: string[]): string {
+  if (findings.length === 0) {
+    return '- None.';
+  }
+  return findings.map((finding) => `- ${finding}`).join('\n');
+}
+
 function escapeTable(value: string): string {
   return value.replace(/\|/gu, '\\|');
 }
@@ -569,6 +989,14 @@ function formatPercent(value: number): string {
 
 function shortRef(value: string): string {
   return value.slice(0, 8);
+}
+
+function sum(values: number[]): number {
+  return values.reduce((total, value) => total + value, 0);
+}
+
+function roundNumber(value: number): number {
+  return Math.round(value * 100) / 100;
 }
 
 function stringArray(value: unknown): string[] {
