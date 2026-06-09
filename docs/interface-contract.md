@@ -24,12 +24,12 @@ It is not the upstream FPF specification, not agent memory, not workflow state, 
 
 | ID | Use in this contract |
 | --- | --- |
-| `A.1.1` | Bound local meanings for FPF Reference, MCP, runtime, and upstream FPF. |
-| `A.2.3` | Treat setup text as promise/access/acceptance content, not performed work. |
-| `A.6.B` | Keep laws, admissibility gates, commitments, and evidence claims separate. |
-| `A.6.C` | Unpack contract wording so the interface does not become memory, workflow, or policy. |
+| `A.1.1` | Bound the local meaning of FPF Reference, MCP, runtime, and upstream FPF. |
+| `A.2.3` | Treat public setup text as promise/access/acceptance content, not performed work. |
+| `A.6.B` | Separate laws, admissibility gates, commitments, and evidence claims. |
+| `A.6.C` | Unpack contract wording so the interface does not become agent memory or policy. |
 | `A.10` | Tie reliance-bearing claims to source, snapshot, status, and citation evidence. |
-| `B.3` | Scope assurance to the typed claim actually evidenced by the runtime. |
+| `B.3` | Keep assurance scoped to the typed claim actually evidenced by the runtime. |
 | `A.15.1` | Keep docs/status/test evidence separate from actual performed work. |
 
 ## Admissible Use
@@ -49,18 +49,15 @@ It is not the upstream FPF specification, not agent memory, not workflow state, 
 
 ## Reliance Gate
 
-Before trust-sensitive use:
-
-1. Call `get_fpf_index_status`.
+1. Call `get_fpf_index_status` before trust-sensitive use.
 2. Proceed only when `snapshotExists` is true, `fresh` is true, and `currentSourceHash` matches `sourceHash`.
-3. Use `read_fpf_doc` for exact FPF wording.
-4. Use `ask_fpf` or `query_fpf_spec` for bounded context and route selection.
+3. Use `read_fpf_doc` for exact FPF wording; use `ask_fpf` or `query_fpf_spec` for bounded context.
 
 ## Freshness Semantics
 
-`status=ok` or `fresh=true` means the deployed runtime artifacts are internally consistent with the configured source. Internal consistency is not global upstream currentness.
-
-When the hosted status page reports `freshness.upstreamCurrentness: "unknown"`, do not claim "latest upstream FPF" unless an external monitor has compared the hosted publication to the intended upstream/current artifact.
+- status ok or fresh means the deployed runtime artifacts are internally consistent with the configured source.
+- Internal consistency is not global upstream currentness.
+- upstreamCurrentness = unknown means do not claim latest upstream FPF unless an external monitor proves it.
 
 ## Output Expectations
 

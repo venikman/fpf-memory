@@ -109,8 +109,18 @@ describe('public adoption copy parity', () => {
     for (const item of FPF_REFERENCE_INTERFACE_CONTRACT.outputExpectation) {
       expect(interfaceContract).toContain(`- ${item}`);
     }
+    // The doc wraps code terms in backticks that the canonical strings omit,
+    // so strip them before exact-wording comparison.
+    const plainInterfaceContract = interfaceContract.replaceAll('`', '');
     for (const ref of FPF_REFERENCE_INTERFACE_CONTRACT.governingFpf) {
       expect(interfaceContract).toContain(`\`${ref.id}\``);
+      expect(plainInterfaceContract).toContain(ref.purpose);
+    }
+    for (const item of FPF_REFERENCE_INTERFACE_CONTRACT.relianceGate) {
+      expect(plainInterfaceContract).toContain(item);
+    }
+    for (const item of FPF_REFERENCE_INTERFACE_CONTRACT.freshnessSemantics) {
+      expect(plainInterfaceContract).toContain(item);
     }
     for (const tool of FPF_REFERENCE_INTERFACE_CONTRACT.publicTools) {
       expect(interfaceContract).toContain(`| \`${tool.name}\` |`);
