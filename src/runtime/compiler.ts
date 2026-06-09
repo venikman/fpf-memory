@@ -76,7 +76,7 @@ export function compileFpfSource(params: {
 
   // Stage 2: GraphCompiler — SourceIR → pattern/route/relation graphs
   const patternGraph = buildPatternGraph(ir);
-  const routeGraph = buildRouteGraph(ir);
+  const routeGraph = buildRouteGraph(ir, patternGraph.nodes);
   const outlineRelations = buildOutlineRelations(patternGraph.nodes);
   const explicitReferenceRelations = buildExplicitReferenceRelations(
     ir.sections,

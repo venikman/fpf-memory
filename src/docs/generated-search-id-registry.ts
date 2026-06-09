@@ -1382,5 +1382,21 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/K.3"
     }
   ],
-  "routes": []
+  "routes": [
+    {
+      "slug": "boundary-unpacking",
+      "title": "boundary unpacking",
+      "staticPath": "/generated/routes/route_boundary-unpacking"
+    },
+    {
+      "slug": "project-alignment",
+      "title": "project alignment",
+      "staticPath": "/generated/routes/route_project-alignment"
+    },
+    {
+      "slug": "writing-or-reviewing-patterns",
+      "title": "writing or reviewing patterns",
+      "staticPath": "/generated/routes/route_writing-or-reviewing-patterns"
+    }
+  ]
 };

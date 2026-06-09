@@ -22,6 +22,7 @@ import {
   splitMarkdownRow,
   unique,
 } from './text.js';
+import { REFERENCE_ROUTE_DEFS } from './spec-heuristics.js';
 import type {
   AnchorRef,
   LexiconEntry,
@@ -122,6 +123,7 @@ export function buildPatternGraph(
 
 export function buildRouteGraph(
   ir: SourceIR,
+  patternNodes: Record<string, PatternRecord>,
 ): Snapshot['routeGraph'] {
   const { lines, anchorMap } = ir;
   const routes = new Map<string, RouteRecord>();
@@ -148,6 +150,12 @@ export function buildRouteGraph(
       searchableText: unique([existing.searchableText, route.searchableText]).join(' '),
       constraints: unique([...existing.constraints, ...route.constraints]),
     });
+  }
+
+  for (const route of buildReferenceOverlayRoutes(patternNodes, anchorMap)) {
+    if (!routes.has(route.id)) {
+      routes.set(route.id, route);
+    }
   }
 
   return {
@@ -458,6 +466,75 @@ function parseJ4Routes(
     });
   }
   return routes;
+}
+
+function buildReferenceOverlayRoutes(
+  patternNodes: Record<string, PatternRecord>,
+  anchorMap: Record<string, AnchorRef>,
+): RouteRecord[] {
+  const filterPatternIds = (ids: readonly string[]): string[] =>
+    ids.filter((id) => Boolean(patternNodes[id]));
+
+  return REFERENCE_ROUTE_DEFS
+    .map((def): RouteRecord | undefined => {
+      const id = routeKey(def.name);
+      const orderedIds = filterPatternIds(def.orderedIds);
+      const optionalIds = filterPatternIds(def.optionalIds);
+      const landingIds = filterPatternIds(def.landingIds);
+      const routeSurfaces = filterPatternIds(def.routeSurfaces);
+      const nextOwners = filterPatternIds(def.nextOwners);
+      const reroutes = filterPatternIds(def.reroutes);
+
+      if (
+        orderedIds.length === 0 &&
+        optionalIds.length === 0 &&
+        landingIds.length === 0 &&
+        routeSurfaces.length === 0
+      ) {
+        return undefined;
+      }
+
+      const citation = `fpf-reference-adoption-overlay:${id.replace(/^route:/, '')}`;
+      anchorMap[citation] = {
+        id: citation,
+        nodeId: id,
+        heading: def.name,
+        lineStart: 0,
+        lineEnd: 1,
+        path: ['FPF Reference adoption overlay', def.name],
+        text: def.description,
+        plainText: `${def.description} ${def.firstHonestBurden}`,
+        role: 'route_surface',
+      };
+      return {
+        id,
+        name: def.name,
+        description: def.description,
+        firstHonestBurden: def.firstHonestBurden,
+        orderedIds,
+        optionalIds,
+        landingIds,
+        routeSurfaces,
+        nextOwners,
+        reroutes,
+        citations: [citation],
+        anchorIds: [citation],
+        searchableText: cleanMarkdown(unique([
+          id,
+          def.name,
+          def.description,
+          def.firstHonestBurden,
+          ...orderedIds,
+          ...optionalIds,
+          ...landingIds,
+          ...routeSurfaces,
+          ...nextOwners,
+          ...reroutes,
+        ]).join(' ')),
+        constraints: [],
+      };
+    })
+    .filter((route): route is RouteRecord => Boolean(route));
 }
 
 function buildRouteRelations(routeNodes: Record<string, RouteRecord>): RelationEdge[] {

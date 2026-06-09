@@ -232,7 +232,7 @@ describe('FpfRuntime', () => {
     expect(boundedContextTrace.selectedNodeIds[0]).toBe('A.1.1');
   }, 40_000);
 
-  it('returns the project-alignment route from the preface and J.4 route surfaces', async () => {
+  it('returns the project-alignment route from the public adoption overlay', async () => {
     await runtime.refresh();
     const routes = await runtime.browse({ kind: 'route' });
     const routeIds = new Set(routes.entries.map((entry) => entry.id));
@@ -258,9 +258,7 @@ describe('FpfRuntime', () => {
     expect(route.ids).toContain('F.17');
     expect(route.answer).toContain('Acceptance check:');
     expect(route.answer).toContain('Next move:');
-    expect(route.citations).toEqual(
-      expect.arrayContaining(['Preface/Where to start', 'J.4']),
-    );
+    expect(route.citations).toContain('fpf-reference-adoption-overlay:project-alignment');
 
     const trace = await runtime.trace(
       'What is the recommended first route when vocabulary is overloaded across teams?',
@@ -417,7 +415,9 @@ describe('FpfRuntime', () => {
     expect(inspectAnchor.neighbors).toEqual(inspectById.neighbors);
 
     if (routeIds.has('route:project-alignment')) {
-      const inspectSyntheticAnchor = await runtime.inspectAnchor('Preface/Where to start');
+      const inspectSyntheticAnchor = await runtime.inspectAnchor(
+        'fpf-reference-adoption-overlay:project-alignment',
+      );
       expect(inspectSyntheticAnchor.status).toBe('ok');
       expect(inspectSyntheticAnchor.ownerNode?.kind).toBe('route');
     }
@@ -449,7 +449,7 @@ describe('FpfRuntime', () => {
 
     const inspectById = await runtime.inspect('A.1.1', 'id');
     const citationId = inspectById.anchors[0]!.id;
-    const syntheticCitationId = 'Preface/Where to start';
+    const syntheticCitationId = 'fpf-reference-adoption-overlay:project-alignment';
     const routes = await runtime.browse({ kind: 'route' });
     const routeIds = new Set(routes.entries.map((entry) => entry.id));
     const citationIds =

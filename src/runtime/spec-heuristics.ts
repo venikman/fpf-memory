@@ -199,6 +199,69 @@ export interface SeedRuleDef {
   route?: { name: string; score: number };
 }
 
+export interface ReferenceRouteDef {
+  name: string;
+  description: string;
+  firstHonestBurden: string;
+  orderedIds: readonly string[];
+  optionalIds: readonly string[];
+  landingIds: readonly string[];
+  routeSurfaces: readonly string[];
+  nextOwners: readonly string[];
+  reroutes: readonly string[];
+}
+
+/**
+ * FPF Reference adoption overlay routes.
+ *
+ * Upstream FPF editions may omit the machine-readable route table while the
+ * public MCP surface still promises a task-first route layer. These records
+ * preserve that bounded adoption surface without pretending the route came
+ * from a source line in `FPF-Spec.md`; the compiler filters every referenced
+ * pattern ID against the actual compiled snapshot.
+ */
+export const REFERENCE_ROUTE_DEFS: readonly ReferenceRouteDef[] = [
+  {
+    name: PROJECT_ALIGNMENT_ROUTE_NAME,
+    description:
+      'First route for project kickoff, project information-system alignment, or agent work packets when roles, method, work, and adoption next steps must stay separate.',
+    firstHonestBurden:
+      'A shared project kickoff packet needs the bounded context, role/method/work split, first work item, and adoption evidence without loading the whole FPF',
+    orderedIds: ['A.1.1', 'A.15', 'B.5.1'],
+    optionalIds: ['A.15.2', 'A.15.3'],
+    landingIds: ['F.17'],
+    routeSurfaces: ['A.1.1'],
+    nextOwners: ['B.5.1'],
+    reroutes: [],
+  },
+  {
+    name: BOUNDARY_UNPACKING_ROUTE_NAME,
+    description:
+      'First route for API, contract, workflow, protocol, CI gate, deploy promise, or acceptance-clause boundary review.',
+    firstHonestBurden:
+      'Mixed boundary prose needs atomic claim IDs and a declared owner layer before implementation or review can proceed safely',
+    orderedIds: ['A.6', 'A.6.B', 'A.6.C'],
+    optionalIds: ['A.6.P', 'C.16.Q', 'A.6.A'],
+    landingIds: ['A.6'],
+    routeSurfaces: ['A.6'],
+    nextOwners: ['A.6.C'],
+    reroutes: [],
+  },
+  {
+    name: 'writing or reviewing patterns',
+    description:
+      'First route for spec writers adding, drafting, revising, or reviewing FPF patterns.',
+    firstHonestBurden:
+      'A pattern author or reviewer needs the minimum writing/review path before opening neighboring patterns',
+    orderedIds: ['E.8', 'E.19'],
+    optionalIds: [],
+    landingIds: ['E.8'],
+    routeSurfaces: ['E.8'],
+    nextOwners: ['E.19'],
+    reroutes: [],
+  },
+];
+
 /**
  * Ordered — the array order is the persisted `heuristicSeedRules` order, which
  * the seeder/ranker iterate. `boundary-review` binds the API/contract/boundary

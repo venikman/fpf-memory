@@ -405,9 +405,44 @@ describe('Compiler / Spec-heuristic binding', () => {
   const EXPECTED_RULE_NAMES = [
     'creative-search-heuristic',
     'measurement-template-discipline',
+    'agent-workflow-adoption',
+    'vocabulary-alignment',
+    'boundary-review',
     'role-assignment-connection',
     'same-entity-comparative-reading',
   ];
+
+  const EXPECTED_REFERENCE_ROUTE_IDS = [
+    'route:boundary-unpacking',
+    'route:project-alignment',
+    'route:writing-or-reviewing-patterns',
+  ];
+
+  it('keeps the public FPF Reference adoption routes in the compiled graph', async () => {
+    const { snapshot } = await getCompilerOutput();
+    const routeIds = Object.keys(snapshot.routeGraph.nodes).sort();
+
+    expect(routeIds).toEqual(expect.arrayContaining(EXPECTED_REFERENCE_ROUTE_IDS));
+    for (const routeId of EXPECTED_REFERENCE_ROUTE_IDS) {
+      const route = snapshot.routeGraph.nodes[routeId];
+      expect(route, `expected ${routeId} to be available to MCP clients`).toBeDefined();
+      expect(route!.citations[0]).toMatch(/^fpf-reference-adoption-overlay:/);
+      expect(route!.orderedIds.length).toBeGreaterThan(0);
+      for (const nodeId of [
+        ...route!.orderedIds,
+        ...route!.optionalIds,
+        ...route!.landingIds,
+        ...route!.routeSurfaces,
+        ...route!.nextOwners,
+        ...route!.reroutes,
+      ]) {
+        expect(
+          snapshot.patternGraph.nodes[nodeId],
+          `${routeId} points at missing pattern ${nodeId}`,
+        ).toBeDefined();
+      }
+    }
+  });
 
   it('emits every expected seed rule with seeds that resolve to compiled nodes', async () => {
     const { snapshot } = await getCompilerOutput();
@@ -438,10 +473,10 @@ describe('Compiler / Spec-heuristic binding', () => {
     const rules = snapshot.heuristicSeedRules ?? [];
     const alignment = snapshot.routeGraph.nodes['route:project-alignment'];
 
-    if (!alignment) {
-      expect(rules.filter((rule) => rule.routeId === 'route:project-alignment')).toEqual([]);
-      return;
-    }
+    expect(
+      alignment,
+      'route:project-alignment disappeared from the public MCP route surface',
+    ).toBeDefined();
 
     const routeBound = rules.filter((rule) => rule.routeId === 'route:project-alignment');
     expect(routeBound.map((rule) => rule.name)).toEqual([
