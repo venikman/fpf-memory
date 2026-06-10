@@ -6,6 +6,7 @@ import { describe, expect, it } from '@rstest/core';
 import { renderHostedHomePage } from '../src/adapters/hosted/home-page.js';
 import {
   FIRST_SUCCESSFUL_CALL_HEADING,
+  FIRST_SUCCESSFUL_CALL_PROMPT,
   FPF_VS_MCP_EXPLAINER_MARKDOWN,
   FPF_REFERENCE_INTERFACE_CONTRACT,
   HOSTED_MCP_ENDPOINT,
@@ -23,6 +24,7 @@ describe('public adoption copy parity', () => {
     const connectMcp = await readFile(resolve(process.cwd(), 'docs/connect-mcp.md'), 'utf8');
 
     expect(connectMcp).toContain(`## ${FIRST_SUCCESSFUL_CALL_HEADING}`);
+    expect(connectMcp).toContain(FIRST_SUCCESSFUL_CALL_PROMPT);
     expect(connectMcp).toContain(HOSTED_MCP_ENDPOINT);
     expect(connectMcp).toContain(LEGACY_HOSTED_MCP_ENDPOINT);
     expect(connectMcp).toContain(HOSTED_MCP_STATUS_URL);
@@ -56,6 +58,15 @@ describe('public adoption copy parity', () => {
     for (const item of FPF_REFERENCE_INTERFACE_CONTRACT.freshnessSemantics) {
       expect(html).toContain(item);
     }
+  });
+
+  it('keeps start-here.md aligned with the canonical first-call copy', async () => {
+    const startHere = await readFile(resolve(process.cwd(), 'docs/start-here.md'), 'utf8');
+
+    expect(startHere).toContain('First Principles Framework (FPF)');
+    expect(startHere).toContain(FIRST_SUCCESSFUL_CALL_PROMPT);
+    expect(startHere).toContain(MCP_SERVER_NAME);
+    expect(startHere).toContain('query_fpf_spec');
   });
 
   it('documents the FPF vs MCP explainer contract for wiki surfaces', () => {

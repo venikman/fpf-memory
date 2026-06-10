@@ -29,4 +29,17 @@ describe('newcomer adoption surface', () => {
     expect(glossary).toContain('(/generated/patterns/E.17)');
     expect(glossary).toContain('(/generated/patterns/H.1)');
   });
+
+  it('start-here expands the FPF acronym and walks a worked example before the catalog', async () => {
+    const startHere = await readFile(resolve(process.cwd(), 'docs/start-here.md'), 'utf8');
+
+    const intro = startHere.slice(0, startHere.indexOf('## Pick a doorway'));
+    expect(intro).toContain('First Principles Framework (FPF)');
+    expect(intro).toContain('## A worked example');
+    expect(startHere).toContain('route:project-alignment');
+    expect(startHere).toContain('(/generated/routes/route_project-alignment)');
+    expect(startHere).toContain('[Glossary](/glossary)');
+    // Doorway CTAs carry human labels, not bare machine IDs (audit finding 4).
+    expect(startHere).not.toMatch(/\|\s*\[E\.\d+\]\(/);
+  });
 });
