@@ -13,8 +13,7 @@ import {
   type PublicationManifestSummary,
 } from '../core/documents.js';
 import {
-  FIRST_SUCCESSFUL_CALL_HEADING,
-  HOSTED_MCP_ENDPOINT,
+  MCP_ORIGIN_HOME_URL,
   MCP_SERVER_NAME,
 } from '../core/public-copy.js';
 import {
@@ -310,25 +309,24 @@ function scoreWorkingModel(
     ...baseEvidenceIds,
     evidence.file('readme', facts, 'README describes the working model'),
     evidence.file('docsIndex', facts, 'Wiki landing page'),
-    evidence.file('connectMcp', facts, 'Connect MCP adoption guide'),
+    evidence.file('connectMcp', facts, 'Connect MCP bridge page'),
     evidence.file('publishedManifest', facts, 'Published manifest metadata'),
   ].filter(isDefined);
   const hasHumanLanding =
     contains(facts, 'docsIndex', '# FPF Reference') &&
     contains(facts, 'docsIndex', '## Choose your entry point') &&
     contains(facts, 'docsIndex', '## Published from');
-  const hasAdoptionGuide =
-    contains(facts, 'connectMcp', `## ${FIRST_SUCCESSFUL_CALL_HEADING}`) &&
-    contains(facts, 'connectMcp', 'FPF vs MCP in one paragraph') &&
-    contains(facts, 'connectMcp', HOSTED_MCP_ENDPOINT) &&
+  const hasMcpBridge =
+    contains(facts, 'connectMcp', MCP_ORIGIN_HOME_URL) &&
     contains(facts, 'connectMcp', MCP_SERVER_NAME) &&
+    contains(facts, 'connectMcp', 'compatibility bridge') &&
     contains(facts, 'connectMcp', 'not agent memory');
   const hasRuntimeDefault = contains(facts, 'readme', PUBLISHED_SPEC_PATH);
   const hasManifestMetadata =
     contains(facts, 'publishedManifest', 'sourceHash') &&
     contains(facts, 'publishedManifest', 'publishedAt');
 
-  if (hasHumanLanding && hasAdoptionGuide && hasRuntimeDefault && hasManifestMetadata) {
+  if (hasHumanLanding && hasMcpBridge && hasRuntimeDefault && hasManifestMetadata) {
     return rubricPass(
       'working-model',
       anchor,
@@ -341,14 +339,14 @@ function scoreWorkingModel(
   return rubricIssue(
     'working-model',
     anchor,
-    hasHumanLanding && hasAdoptionGuide ? 'partial' : 'missing',
+    hasHumanLanding && hasMcpBridge ? 'partial' : 'missing',
     'medium',
-    hasAdoptionGuide
+    hasMcpBridge
       ? 'The human-facing working model is not complete enough to be the primary review surface.'
-      : 'The Connect MCP adoption guide is missing the FPF-vs-MCP explainer or first-call contract.',
-    hasAdoptionGuide
+      : 'The Connect MCP bridge is missing the MCP-origin handoff or FPF-vs-MCP boundary.',
+    hasMcpBridge
       ? 'Make the wiki/README show the published channel, source hash, upstream ref, and validation stance before relying on runtime evidence.'
-      : 'Keep docs/connect-mcp.md aligned with src/core/public-copy.ts for endpoint, server name, and first successful call.',
+      : 'Keep docs/connect-mcp.md as a short compatibility bridge to mcp.fpf.sh, not a duplicated client setup guide.',
     evidenceIds,
   );
 }

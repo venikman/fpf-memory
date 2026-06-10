@@ -68,10 +68,10 @@ describe('a11y shim regression checks', () => {
     expect(configSource).not.toMatch(/setInterval\s*\(/);
   });
 
-  it('patches top-nav dropdown triggers (`MCP`, `Reference`) for keyboard activation', () => {
+  it('patches top-nav dropdown triggers for keyboard activation', () => {
     // R5-P1-003: rspress ships dropdown triggers as `<div>` elements
     // that only respond to mouse hover. Without this shim, keyboard
-    // users skip the MCP and Reference menus entirely.
+    // users skip menu items such as Reference entirely.
     expect(configSource).toContain('rp-nav-menu__item__container');
     expect(configSource).toContain("aria-haspopup");
     expect(configSource).toContain('rp-hover-group--hidden');

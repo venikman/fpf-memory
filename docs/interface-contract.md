@@ -96,4 +96,4 @@ For current operational evidence, use:
 - `https://mcp.fpf.sh/api/fpf/status` for browser-readable status.
 - Repository checks such as `bun run check`, `bun run docs:build`, `bun run test:ci`, and `bun run smoke:production`.
 
-For setup instructions, return to [Connect MCP](/connect-mcp).
+For setup instructions, use [mcp.fpf.sh](https://mcp.fpf.sh/).

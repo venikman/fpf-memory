@@ -177,7 +177,7 @@ export default defineConfig({
     //      tabindex, or accessible name (R3-P2-001). Add role=link,
     //      tabindex=0, aria-label from the card title, and Enter/Space
     //      activation so they behave as first-class keyboard navigation.
-    //   6. Top-nav dropdown triggers (`MCP`, `Reference`) ship as plain
+    //   6. Top-nav dropdown triggers (`Reference`) ship as plain
     //      `<div>` elements that only respond to mouse hover; keyboard
     //      users skip them entirely (R5-P1-003). Add role=button,
     //      tabindex=0, aria-haspopup, aria-expanded, and Enter/Space/
@@ -349,20 +349,8 @@ document.addEventListener('keydown',function(e){
         ],
       },
       {
-        text: 'MCP',
-        items: [
-          { text: 'Quick connect', link: '/connect-local' },
-          { text: 'Recipes', link: '/mcp-recipes' },
-          { text: 'Connect to clients', link: '/connect-mcp' },
-          { text: 'Interface Contract', link: '/interface-contract' },
-          { text: 'Automation Playbook', link: '/automation-playbook' },
-          { text: 'Vercel MCP Packaging', link: '/vercel-mcp-packaging' },
-          { text: 'Dual Runtime Model', link: '/dual-runtime-model' },
-          { text: 'Rename compatibility plan', link: '/fpf-reference-mcp-rename' },
-          // Cross-link to the MCP origin's own landing page so the two
-          // public surfaces (fpf.sh and mcp.fpf.sh) reference each other.
-          { text: 'mcp.fpf.sh ↗', link: 'https://mcp.fpf.sh/' },
-        ],
+        text: 'MCP ↗',
+        link: 'https://mcp.fpf.sh/',
       },
     ],
     sidebar: {

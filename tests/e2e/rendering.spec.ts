@@ -64,18 +64,15 @@ test('a generated pattern page renders body and an auto-linked ID', async ({
   await expect(linkToF9).toBeVisible();
 });
 
-test('connect-mcp page mentions the canonical MCP endpoint', async ({
+test('connect-mcp page bridges to the MCP setup origin', async ({
   page,
 }) => {
   await page.goto('/connect-mcp');
   await expect(page).toHaveTitle(/Connect MCP|FPF Reference/);
-  // The canonical endpoint URL appears in multiple copy-paste blocks. If
-  // the constant drifts away from mcp.fpf.sh the docs would silently lie.
-  await expect(
-    page.getByText('https://mcp.fpf.sh/api/mcp/fpf_reference/mcp').first(),
-  ).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'First successful call' }))
+  await expect(page.getByRole('link', { name: 'https://mcp.fpf.sh/' }).first())
     .toBeVisible();
+  await expect(page.getByText('compatibility bridge')).toBeVisible();
+  await expect(page.getByText('not agent memory')).toBeVisible();
 });
 
 test('connect-local page leads with hosted values and includes local fallback', async ({

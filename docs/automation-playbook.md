@@ -267,7 +267,7 @@ FPF Reference compiles the published FPF spec into deterministic lookup surfaces
 Useful for PR review, project alignment, spec writing, and adoption UX checks.
 
 Docs: https://fpf.sh/
-Connect MCP: https://fpf.sh/connect-mcp
+MCP setup: https://mcp.fpf.sh/
 
 Caveat: deterministic retrieval is the source of truth; request counts are not unique users.
 ```
@@ -290,7 +290,7 @@ FPF Reference is a compiler-backed runtime for the published First Principles Fr
 
 The current material:
 - Website: https://fpf.sh/
-- Connect MCP: https://fpf.sh/connect-mcp
+- MCP setup: https://mcp.fpf.sh/
 - Hosted endpoint: https://mcp.fpf.sh/api/mcp/fpf_reference/mcp
 - Legacy endpoint during transition: https://mcp.fpf.sh/api/mcp/fpf_memory/mcp (blocked at Vercel routing during May 2026 cost incident mitigation)
 

@@ -8,9 +8,10 @@ import {
   HOSTED_MCP_STATUS_URL,
   LEGACY_HOSTED_MCP_ENDPOINT,
   LEGACY_MCP_SERVER_NAME,
+  MCP_ORIGIN_HOME_URL,
   MCP_SERVER_NAME,
   PUBLIC_MCP_TOOLS,
-  WIKI_CONNECT_MCP_URL,
+  WIKI_BASE_URL,
   WIKI_INTERFACE_CONTRACT_URL,
 } from '../../core/public-copy.js';
 
@@ -385,7 +386,7 @@ export function renderHostedHomePage(): string {
           Connect chat clients, editors, and coding CLIs to bounded FPF lookup by stable ID — not agent memory, not a web page. Register the server as <code>${MCP_SERVER_NAME}</code> (not <code>${LEGACY_MCP_SERVER_NAME}</code>).
         </p>
         <p class="lead">
-          Full wiki setup guide: <a href="${WIKI_CONNECT_MCP_URL}">${WIKI_CONNECT_MCP_URL}</a>.
+          This is the MCP setup home. The human-readable FPF specification reference stays on <a href="${WIKI_BASE_URL}">${WIKI_BASE_URL}</a>.
         </p>
         <div class="endpoint">
           <span>Streamable HTTP endpoint</span>
@@ -450,7 +451,8 @@ export function renderHostedHomePage(): string {
       </section>
 
       <footer>
-        Wiki connect guide: <a href="${WIKI_CONNECT_MCP_URL}">${WIKI_CONNECT_MCP_URL}</a>.
+        MCP setup home: <a href="${MCP_ORIGIN_HOME_URL}">${MCP_ORIGIN_HOME_URL}</a>.
+        FPF reference: <a href="${WIKI_BASE_URL}">${WIKI_BASE_URL}</a>.
         Projection repo: <a href="https://github.com/venikman/fpf-memory">github.com/venikman/fpf-memory</a> · upstream FPF: <a href="https://github.com/ailev/FPF">github.com/ailev/FPF</a>.
       </footer>
     </main>

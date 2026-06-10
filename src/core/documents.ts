@@ -11,11 +11,7 @@ import {
   OPTIONAL_TERM_LINKS,
   resolveOptionalTermPatternId,
 } from './optional-term-links.js';
-import {
-  renderHomeMcpEndpointLine,
-  renderHomeMcpToolsMarkdown,
-  WIKI_CONNECT_MCP_URL,
-} from './public-copy.js';
+import { MCP_ORIGIN_HOME_URL } from './public-copy.js';
 import { normalizeForLookup, unique } from './text.js';
 
 export interface GeneratedDocPage {
@@ -522,14 +518,13 @@ function renderHomeMarkdown(
   const referenceScope = routeCount > 0
     ? `${patternCount} pattern pages, ${routeCount} working routes, and the preface`
     : `${patternCount} pattern pages and the preface`;
-  const auditScope = routeCount > 0 ? 'patterns and routes' : 'patterns';
   const provenanceDetail = renderHomeProvenanceDetail(manifest);
 
   const lines: string[] = [
     renderFrontMatter({
       title: 'FPF Reference',
       description:
-        'Reference wiki and hosted MCP lookup server for the First Principles Framework (FPF), a pattern language for rigorous engineering and research reasoning by Anatoly Levenchuk.',
+        'Reference wiki for the First Principles Framework (FPF), a pattern language for rigorous engineering and research reasoning by Anatoly Levenchuk.',
       outline: false,
     }),
     '',
@@ -537,20 +532,20 @@ function renderHomeMarkdown(
     '',
     'The **First Principles Framework (FPF)** is a pattern language for rigorous reasoning in engineering, research, and management, written by [Anatoly Levenchuk](https://github.com/ailev). Its named, interlinked patterns help teams and AI agents keep meanings, claims, evidence, and decisions stable as work moves between people, tools, and time.',
     '',
-    `This site is the FPF reference: a browsable wiki projection of the published spec (${referenceScope}, addressable by stable FPF IDs) plus a hosted **FPF Reference** MCP server so agents and editors can query the same patterns programmatically.`,
+    `This site is the FPF reference: a browsable wiki projection of the published spec (${referenceScope}, addressable by stable FPF IDs). Programmatic MCP lookup is documented separately on [mcp.fpf.sh](${MCP_ORIGIN_HOME_URL}).`,
     '',
     // Wording deliberately avoids the exact phrase "Connecting an agent or
     // editor" from the entry-point table below — the preview Playwright
     // check targets that text with a strict locator, so it must stay
     // unique on the page.
-    'First time here? Walk the worked example on [Start Here](/start-here). Need to connect an agent or editor? [Connect MCP](/connect-mcp). Stuck on a term like "holon" or "episteme"? Open the [Glossary](/glossary).',
+    'First time here? Walk the worked example on [Start Here](/start-here). Stuck on a term like "holon" or "episteme"? Open the [Glossary](/glossary).',
     '',
     '## Choose your entry point',
     '',
     '| If you are... | Start with | Good first action |',
     '| --- | --- | --- |',
     '| New to FPF | [Start Here](/start-here) | Pick the work shape before opening the full catalog. |',
-    '| Connecting an agent or editor | [Connect MCP](/connect-mcp) | Add `fpf_reference`, then run `get_fpf_index_status`. |',
+    `| Connecting an agent or editor | [mcp.fpf.sh](${MCP_ORIGIN_HOME_URL}) | Add \`fpf_reference\`, then run \`get_fpf_index_status\`. |`,
     '| Reviewing a project, PR, or design change | [Work Packets](/work-packets) | Use the PR/code review packet or product-role feedback packet. |',
     '| Looking up an exact ID | [Pattern Catalog](/patterns) | Search an ID like `A.2.3`. |',
     '',
@@ -560,7 +555,7 @@ function renderHomeMarkdown(
     '',
     'FPF reads like a technical specification rather than a management book — named patterns, definitions, and review rules — with the goal of helping teams model complex work, make reasoning inspectable, and keep decisions stable across engineering, research, and management.',
     '',
-    'The upstream publication source this site tracks is [`github.com/ailev/FPF`](https://github.com/ailev/FPF), specifically `FPF-Spec.md` on `main` by default. This wiki is a read projection of that source; the MCP server is a programmatic projection of the same compiled snapshot.',
+    'The upstream publication source this site tracks is [`github.com/ailev/FPF`](https://github.com/ailev/FPF), specifically `FPF-Spec.md` on `main` by default. This wiki is the read projection of that source; the MCP server is the programmatic projection on its own origin.',
     '',
     '> **Cite this spec.** If you use FPF, please cite: Levenchuk, Anatoly. *First Principles Framework (FPF).* GitHub repository: <https://github.com/ailev/FPF>',
     '',
@@ -570,22 +565,9 @@ function renderHomeMarkdown(
     '',
     'The full generated pattern catalog lives at [Pattern Catalog](/patterns); this home page stays focused on adoption paths and task entry points.',
     '',
-    '<details>',
-    '<summary>FPF Reference MCP — what this server does</summary>',
+    `Agent/editor MCP setup lives on [mcp.fpf.sh](${MCP_ORIGIN_HOME_URL}). The reference wiki stays focused on the specification, generated IDs, routes, and glossary.`,
     '',
-    `A hosted MCP endpoint that exposes the compiled FPF index to any MCP-aware client (ChatGPT, Claude, VS Code, Zed, Codex). Reads are deterministic graph traversals over named IDs, not embedding similarity — so answers cite exact ${auditScope} you can audit.`,
-    '',
-    'Six public tools:',
-    '',
-    renderHomeMcpToolsMarkdown(),
-    '',
-    'Full public contract: [Interface Contract](/interface-contract).',
-    '',
-    renderHomeMcpEndpointLine(),
-    '',
-    '</details>',
-    '',
-    'For MCP setup, see [Connect MCP](/connect-mcp). For framework orientation, see [Start Here](/start-here).',
+    'For framework orientation, see [Start Here](/start-here).',
     '',
     '---',
     '',
@@ -593,9 +575,7 @@ function renderHomeMarkdown(
     '',
     provenanceDetail,
     '',
-    'Production readiness is checked with hosted status, MCP smoke, Q&A benchmark, and Vercel bundle-size gates.',
-    '',
-    `Full connect walkthrough: [${WIKI_CONNECT_MCP_URL}](${WIKI_CONNECT_MCP_URL}).`,
+    'Production readiness is checked separately for the static reference and MCP runtime surfaces.',
   ];
 
   return `${lines.join('\n')}\n`;
@@ -604,9 +584,6 @@ function renderHomeMarkdown(
 function renderHomeNavigateLine(snapshot: Snapshot): string {
   const links: DocsNavLink[] = [
     { text: 'Start here', link: '/start-here' },
-    { text: 'Quick connect', link: '/connect-local' },
-    { text: 'Connect MCP', link: '/connect-mcp' },
-    { text: 'Interface Contract', link: '/interface-contract' },
     { text: 'Glossary', link: '/glossary' },
     { text: 'Pattern Catalog', link: '/patterns' },
   ];
@@ -1291,10 +1268,7 @@ function autolinkPatternIdsInTableCells(
  */
 const CANONICAL_PHRASE_LINKS: ReadonlyArray<{ phrase: string; url: string }> = [
   { phrase: 'Start Here', url: '/start-here' },
-  { phrase: 'Connect MCP', url: '/connect-mcp' },
   { phrase: 'Pattern Catalog', url: '/patterns' },
-  { phrase: 'MCP Recipes', url: '/mcp-recipes' },
-  { phrase: 'Automation Playbook', url: '/automation-playbook' },
   { phrase: 'Work Packets', url: '/work-packets' },
 ];
 

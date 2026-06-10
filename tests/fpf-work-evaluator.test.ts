@@ -300,12 +300,11 @@ function defaultFileTexts(): FpfWorkFacts['fileTexts'] {
       '## Published from',
     ].join('\n'),
     connectMcp: [
-      '# Connect FPF Reference MCP',
-      '## FPF vs MCP in one paragraph',
+      '# Connect MCP',
+      'https://mcp.fpf.sh/',
+      'compatibility bridge',
       'not agent memory',
       'fpf_reference',
-      '## First successful call',
-      'https://mcp.fpf.sh/api/mcp/fpf_reference/mcp',
     ].join('\n'),
     ciWorkflow: [
       'run: bun run validate:published',

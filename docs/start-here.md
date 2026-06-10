@@ -18,7 +18,7 @@ This is the adoption entry surface for the FPF Reference wiki. It helps a person
 
 **The situation.** You are kicking off a project. Responsibilities, working method, plans, and what actually happened keep blurring into one document.
 
-**Step 1 — ask.** Connect your agent or editor to the FPF Reference MCP server ([Connect MCP](/connect-mcp) takes about two minutes), then run:
+**Step 1 — ask.** Connect your agent or editor from the FPF Reference MCP setup home ([mcp.fpf.sh](https://mcp.fpf.sh/) takes about two minutes), then run:
 
 ```txt
 Use only fpf_reference. Call query_fpf_spec with question: "Project kickoff: align a project information system with roles and adoption next steps" and mode "compact". Return the most relevant FPF IDs, acceptance check, and next move.
@@ -59,8 +59,8 @@ The example above generalizes. Name your work shape, start from the matching doo
 | Dogfood a product as a user role | [Product-role feedback packet](/work-packets#product-role-feedback-packet) | Replayable job, friction evidence, proposed improvement, discussion-ready feedback |
 | Write a specification | [Specification writing packet](/work-packets#specification-writing-packet) | Clear pattern order, semantic change record, acceptance harness |
 | Unpack an API, contract, or promise | [Role, promise, and capability analysis packet](/work-packets#role-promise-and-capability-analysis-packet) | Atomic claims, boundary duties, evidence needs |
-| Compare options | [Pattern Catalog](/patterns) + [MCP recipes](/mcp-recipes) | Governed shortlist or set result |
-| Use FPF inside an agent conversation | [MCP recipes](/mcp-recipes) | Compact cited context instead of a full-spec paste |
+| Compare options | [Pattern Catalog](/patterns) + [mcp.fpf.sh](https://mcp.fpf.sh/) | Governed shortlist or set result |
+| Use FPF inside an agent conversation | [mcp.fpf.sh](https://mcp.fpf.sh/) | Compact cited context instead of a full-spec paste |
 
 ## Operating rule
 

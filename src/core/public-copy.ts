@@ -16,6 +16,8 @@ export const HOSTED_MCP_STATUS_URL = 'https://mcp.fpf.sh/api/fpf/status';
 
 export const WIKI_BASE_URL = 'https://fpf.sh';
 
+// Compatibility bridge on the static reference site. New setup docs should
+// point at MCP_ORIGIN_HOME_URL so MCP instructions live on the MCP surface.
 export const WIKI_CONNECT_MCP_URL = `${WIKI_BASE_URL}/connect-mcp`;
 
 export const WIKI_INTERFACE_CONTRACT_URL = `${WIKI_BASE_URL}/interface-contract`;
@@ -206,7 +208,7 @@ export const FPF_VS_MCP_EXPLAINER_MARKDOWN = `## FPF vs MCP in one paragraph
 - **FPF Reference** projects that spec two ways: this wiki (read) and the MCP endpoint (query by ID).
 - **FPF Reference MCP** is not agent memory, not a workflow engine, and not a web page.
 
-You do not install FPF. Add one MCP URL to your client as **fpf_reference**.`;
+You do not install FPF. Add one MCP URL to your client as **fpf_reference** from the MCP setup home: [${MCP_ORIGIN_HOME_URL}](${MCP_ORIGIN_HOME_URL}).`;
 
 export const LEGACY_MIGRATION_CALLOUT_MARKDOWN = `> **Still using \`fpf_memory\`?** Swap the server name to **\`fpf_reference\`** and replace the URL with the canonical endpoint above. The legacy route is blocked during the May 2026 mitigation.`;
 
@@ -367,5 +369,5 @@ export function renderHomeMcpToolsMarkdown(): string {
 }
 
 export function renderHomeMcpEndpointLine(): string {
-  return `Endpoint: \`${HOSTED_MCP_ENDPOINT}\` · Legacy blocked during May 2026 mitigation: \`${LEGACY_HOSTED_MCP_ENDPOINT}\` · Status: [${HOSTED_MCP_STATUS_URL}](${HOSTED_MCP_STATUS_URL}) · [Quick connect →](/connect-local) · [Full setup →](/connect-mcp)`;
+  return `Endpoint: \`${HOSTED_MCP_ENDPOINT}\` · Legacy blocked during May 2026 mitigation: \`${LEGACY_HOSTED_MCP_ENDPOINT}\` · Status: [${HOSTED_MCP_STATUS_URL}](${HOSTED_MCP_STATUS_URL}) · Setup home: [${MCP_ORIGIN_HOME_URL}](${MCP_ORIGIN_HOME_URL})`;
 }

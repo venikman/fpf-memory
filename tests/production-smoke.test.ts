@@ -6,8 +6,8 @@ import {
   type ExpectedPublication,
 } from '../src/build/production-smoke.js';
 import {
-  FIRST_SUCCESSFUL_CALL_HEADING,
-  WIKI_CONNECT_MCP_URL,
+  MCP_ORIGIN_HOME_URL,
+  WIKI_BASE_URL,
 } from '../src/core/public-copy.js';
 
 const EXPECTED: ExpectedPublication = {
@@ -273,10 +273,14 @@ function websiteOrientationText(extra = ''): string {
 
 function wikiConnectText(extra = ''): string {
   return [
-    mcpLandingText(extra),
-    'FPF vs MCP',
+    '<title>Connect MCP</title>',
+    'FPF Reference',
+    'FPF is the specification',
+    MCP_ORIGIN_HOME_URL,
+    'fpf_reference',
+    'compatibility bridge',
     'not agent memory',
-    FIRST_SUCCESSFUL_CALL_HEADING,
+    extra,
   ].join(' ');
 }
 
@@ -286,7 +290,7 @@ function mcpLandingText(extra = ''): string {
     'FPF Reference',
     'https://mcp.fpf.sh/api/mcp/fpf_reference/mcp',
     'fpf_reference',
-    WIKI_CONNECT_MCP_URL,
+    WIKI_BASE_URL,
     'Legacy https://mcp.fpf.sh/api/mcp/fpf_memory/mcp is blocked during mitigation.',
     extra,
   ].join(' ');

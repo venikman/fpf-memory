@@ -6,7 +6,7 @@ outline: deep
 
 # Dual Runtime Model
 
-This page is for **operators and contributors** who deploy the hosted public MCP surface to Vercel while also running a local full-surface stdio runtime for expert work. First-time adopters should stay on [Connect MCP](/connect-mcp) with the hosted endpoint only.
+This page is for **operators and contributors** who deploy the hosted public MCP surface to Vercel while also running a local full-surface stdio runtime for expert work. First-time adopters should stay on [mcp.fpf.sh](https://mcp.fpf.sh/) with the hosted endpoint only.
 
 ## Two runtimes, one codebase
 
@@ -95,6 +95,6 @@ Public tools are listed in [`PUBLIC_MCP_TOOLS`](https://github.com/venikman/fpf-
 
 ## Related pages
 
-- [Connect MCP](/connect-mcp) — first-time hosted setup
+- [mcp.fpf.sh](https://mcp.fpf.sh/) — first-time hosted setup
 - [Vercel MCP Packaging](/vercel-mcp-packaging) — build, deploy, and operator evidence
 - [Interface Contract](/interface-contract) — public tool contract and reliance gate

@@ -1,8 +1,5 @@
 import { validatePublishedSurface } from './published-surface.js';
-import {
-  FIRST_SUCCESSFUL_CALL_HEADING,
-  WIKI_CONNECT_MCP_URL,
-} from '../core/public-copy.js';
+import { MCP_ORIGIN_HOME_URL, WIKI_BASE_URL } from '../core/public-copy.js';
 import {
   HOSTED_FPF_STATUS_ROUTE,
   HOSTED_MCP_ROUTE,
@@ -261,20 +258,20 @@ function checkWikiConnectPage(
   page: PageEvidence,
 ): ProductionSmokeCheck[] {
   return [
-    ...checkCanonicalMcpOnboardingCopy(label, page),
+    ...checkPublicProductPage(label, page),
     {
       characteristic: `${label} adoption explainer`,
       status:
-        /FPF vs MCP|not agent memory|not a workflow engine/iu.test(page.text)
+        /FPF.*specification|not agent memory|not a workflow engine/isu.test(page.text)
           ? 'pass'
           : 'fail',
-      evidence: 'FPF-vs-MCP framing is present on the wiki connect guide',
+      evidence: 'FPF-vs-MCP framing is present on the wiki bridge page',
       url: page.url,
     },
     {
-      characteristic: `${label} first successful call`,
-      status: page.text.includes(FIRST_SUCCESSFUL_CALL_HEADING) ? 'pass' : 'fail',
-      evidence: `documents ${FIRST_SUCCESSFUL_CALL_HEADING}`,
+      characteristic: `${label} MCP setup handoff`,
+      status: page.text.includes(MCP_ORIGIN_HOME_URL) ? 'pass' : 'fail',
+      evidence: 'points setup traffic to the MCP origin',
       url: page.url,
     },
   ];
@@ -287,9 +284,9 @@ function checkMcpOriginLandingPage(
   return [
     ...checkCanonicalMcpOnboardingCopy(label, page),
     {
-      characteristic: `${label} wiki connect cross-link`,
-      status: page.text.includes(WIKI_CONNECT_MCP_URL) ? 'pass' : 'fail',
-      evidence: 'links to the canonical wiki connect guide',
+      characteristic: `${label} wiki reference cross-link`,
+      status: page.text.includes(WIKI_BASE_URL) ? 'pass' : 'fail',
+      evidence: 'links back to the canonical FPF reference site',
       url: page.url,
     },
     {

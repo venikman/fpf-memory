@@ -2,9 +2,9 @@
 
 > FPF helps when raw insight is not enough: meanings, claims, alternatives, evidence, boundaries, and outputs must remain stable across contexts, time, people, tools, or AI agents.
 
-> **Quick links:** [Website](https://fpf.sh/) · [Connect MCP](https://fpf.sh/connect-mcp) · [Hosted MCP endpoint](https://mcp.fpf.sh/api/mcp/fpf_reference/mcp)
+> **Quick links:** [Website](https://fpf.sh/) · [MCP setup](https://mcp.fpf.sh/) · [Hosted MCP endpoint](https://mcp.fpf.sh/api/mcp/fpf_reference/mcp)
 >
-> **FPF vs MCP:** FPF is the upstream specification; **FPF Reference MCP** (`fpf_reference`) is the hosted tool endpoint agents call to query it — not agent memory. Add the hosted URL to your client; see [Connect MCP](https://fpf.sh/connect-mcp).
+> **FPF vs MCP:** FPF is the upstream specification; **FPF Reference MCP** (`fpf_reference`) is the hosted tool endpoint agents call to query it — not agent memory. Add the hosted URL to your client from [mcp.fpf.sh](https://mcp.fpf.sh/).
 >
 > **📖 Live reference:** [fpf.sh](https://fpf.sh/) — searchable pattern catalog, routes, and preface. Type an ID like `A.2` or `route:project-alignment` in the search box to jump in.
 >

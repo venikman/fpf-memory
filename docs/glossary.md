@@ -32,7 +32,7 @@ A task-sized checklist on this site that bundles the right route and patterns fo
 
 ### fpf_reference (the MCP server)
 
-The hosted MCP server name this site exposes so agents and editors can query the spec by stable ID. Six public read-only tools; deterministic graph lookups, not embeddings; not agent memory. See [Connect MCP](/connect-mcp) and the [Interface Contract](/interface-contract).
+The hosted MCP server name agents and editors use to query the spec by stable ID. Six public read-only tools; deterministic graph lookups, not embeddings; not agent memory. Setup lives on [mcp.fpf.sh](https://mcp.fpf.sh/); the public contract lives on the [Interface Contract](/interface-contract).
 
 ### Snapshot and provenance
 

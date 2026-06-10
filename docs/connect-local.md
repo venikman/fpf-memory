@@ -73,6 +73,6 @@ Use only fpf_reference. First call get_fpf_index_status. If the index is availab
 
 Opening the endpoint in a browser returns `405 Method Not Allowed`. That is expected; the URL is for MCP clients.
 
-For product-specific setup screens, use [Connect MCP](/connect-mcp).
+For product-specific setup screens, use [mcp.fpf.sh](https://mcp.fpf.sh/).
 
 For the public promise, non-use boundaries, freshness semantics, and schema map, use [Interface Contract](/interface-contract).

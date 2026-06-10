@@ -483,15 +483,17 @@ describe('docs projection', () => {
       expect(rootIndex).toContain('Cite this spec');
       expect(rootIndex).toContain('## Choose your entry point');
       expect(rootIndex).toContain('| New to FPF | [Start Here](/start-here)');
-      expect(rootIndex).toContain('| Connecting an agent or editor | [Connect MCP](/connect-mcp)');
+      expect(rootIndex).toContain(
+        '| Connecting an agent or editor | [mcp.fpf.sh](https://mcp.fpf.sh/)',
+      );
       expect(rootIndex).toContain(
         '| Reviewing a project, PR, or design change | [Work Packets](/work-packets)',
       );
       expect(rootIndex).toContain('| Looking up an exact ID | [Pattern Catalog](/patterns)');
       expect(rootIndex).toContain('## Reference shortcuts');
       expect(rootIndex).toContain('[Start here](/start-here)');
-      expect(rootIndex).toContain('[Quick connect](/connect-local)');
-      expect(rootIndex).toContain('[Connect MCP](/connect-mcp)');
+      expect(rootIndex).not.toContain('[Quick connect](/connect-local)');
+      expect(rootIndex).not.toContain('[Connect MCP](/connect-mcp)');
       expect(rootIndex).toContain('[Pattern Catalog](/patterns)');
       // Hero: plain-language answer (what FPF is / what this site adds /
       // what to do first) leads the page; the deep dive and provenance
@@ -506,7 +508,7 @@ describe('docs projection', () => {
       // Provenance is footer material — after every adoption-facing section.
       expect(provenanceIndex).toBeGreaterThan(rootIndex.indexOf('## What is FPF?'));
       expect(provenanceIndex).toBeGreaterThan(rootIndex.indexOf('## Reference shortcuts'));
-      expect(provenanceIndex).toBeGreaterThan(rootIndex.indexOf('<details>'));
+      expect(provenanceIndex).toBeGreaterThan(rootIndex.indexOf('For framework orientation'));
       if (Object.keys(snapshot.routeGraph.nodes).length > 0) {
         expect(rootIndex).toContain('[Routes](/routes)');
       } else {
@@ -526,9 +528,11 @@ describe('docs projection', () => {
       expect(rootIndex).toContain('source hash `sha256:');
       expect(rootIndex).toContain('<summary>Full provenance</summary>');
       expect(rootIndex).toContain('- Source hash: `sha256:');
-      expect(rootIndex).toContain('Production readiness is checked with hosted status');
-      expect(rootIndex).toContain('<details>');
-      expect(rootIndex).toContain('For MCP setup, see [Connect MCP](/connect-mcp)');
+      expect(rootIndex).toContain(
+        'Production readiness is checked separately for the static reference and MCP runtime surfaces.',
+      );
+      expect(rootIndex).not.toContain('<summary>FPF Reference MCP');
+      expect(rootIndex).not.toContain('For MCP setup, see [Connect MCP](/connect-mcp)');
       expect(rootIndex).not.toContain('## FPF Reference MCP — what this server does');
       // The generated catalog belongs at `/patterns`, not on the orientation
       // page. Exact IDs remain reachable through the explicit catalog link.
@@ -581,7 +585,7 @@ describe('docs projection', () => {
 
     expect(rootIndex).toContain('[Start here](/start-here)');
     expect(rootIndex).toContain('[Pattern Catalog](/patterns)');
-    expect(rootIndex).toContain('[Quick connect](/connect-local)');
+    expect(rootIndex).not.toContain('[Quick connect](/connect-local)');
     expect(rootIndex).not.toContain('[Glossary](/generated/patterns/');
     expect(rootIndex).not.toContain('[Change log](/generated/patterns/');
     // The authored newcomer glossary link is static — present even when the
@@ -633,7 +637,7 @@ describe('docs projection', () => {
       const indexHtml = await readFile(resolve(outDir, 'index.html'), 'utf8');
       expect(indexHtml).toContain('FPF Reference');
       expect(indexHtml).toContain('Start here');
-      expect(indexHtml).toContain('Connect MCP');
+      expect(indexHtml).toContain('mcp.fpf.sh');
       expect(indexHtml).toContain('Connecting an agent or editor');
       expect(indexHtml).toContain('Reviewing a project, PR, or design change');
       expect(indexHtml).toContain('Pattern Catalog');
@@ -700,34 +704,19 @@ describe('docs projection', () => {
         'Review a PR without full-spec paste',
       );
       expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
-        'Connect FPF Reference MCP',
+        'Connect MCP',
       );
       expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
-        'https://mcp.fpf.sh/api/mcp/fpf_reference/mcp',
-      );
-      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
-        'First successful call',
-      );
-      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
-        'FPF vs MCP in one paragraph',
+        'https://mcp.fpf.sh/',
       );
       expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
         'not agent memory',
       );
       expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
-        'get_fpf_index_status',
+        'compatibility bridge',
       );
-      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
-        'https://mcp.fpf.sh/api/mcp/fpf_memory/mcp',
-      );
-      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
-        'Codex CLI',
-      );
-      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
-        'Claude Code',
-      );
-      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
-        'Pi MCP extension',
+      expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).not.toContain(
+        'codex mcp add',
       );
       const connectLocal = await readFile(resolve(outDir, 'connect-local.html'), 'utf8');
       expect(connectLocal).toContain('What do I need to run?');

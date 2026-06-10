@@ -6,7 +6,7 @@ outline: deep
 
 # Vercel MCP Packaging
 
-This page is for **operators and contributors** who package or deploy the hosted MCP runtime. It is not part of the first-time adopter path — end users should start at [Connect MCP](/connect-mcp).
+This page is for **operators and contributors** who package or deploy the hosted MCP runtime. It is not part of the first-time adopter path — end users should start at [mcp.fpf.sh](https://mcp.fpf.sh/).
 
 ## What gets deployed
 

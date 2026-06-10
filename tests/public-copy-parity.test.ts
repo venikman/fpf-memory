@@ -5,36 +5,30 @@ import { describe, expect, it } from '@rstest/core';
 
 import { renderHostedHomePage } from '../src/adapters/hosted/home-page.js';
 import {
-  FIRST_SUCCESSFUL_CALL_HEADING,
   FIRST_SUCCESSFUL_CALL_PROMPT,
   FPF_VS_MCP_EXPLAINER_MARKDOWN,
   FPF_REFERENCE_INTERFACE_CONTRACT,
   HOSTED_MCP_ENDPOINT,
   HOSTED_MCP_STATUS_URL,
   LEGACY_HOSTED_MCP_ENDPOINT,
+  MCP_ORIGIN_HOME_URL,
   MCP_SERVER_NAME,
   PUBLIC_MCP_TOOLS,
-  WIKI_CONNECT_MCP_URL,
   WIKI_INTERFACE_CONTRACT_URL,
 } from '../src/core/public-copy.js';
 import * as toolContracts from '../src/mcp/tool-contracts.js';
 
 describe('public adoption copy parity', () => {
-  it('keeps connect-mcp.md aligned with the canonical SSOT strings', async () => {
+  it('keeps connect-mcp.md as a bridge to the MCP-owned setup surface', async () => {
     const connectMcp = await readFile(resolve(process.cwd(), 'docs/connect-mcp.md'), 'utf8');
 
-    expect(connectMcp).toContain(`## ${FIRST_SUCCESSFUL_CALL_HEADING}`);
-    expect(connectMcp).toContain(FIRST_SUCCESSFUL_CALL_PROMPT);
-    expect(connectMcp).toContain(HOSTED_MCP_ENDPOINT);
-    expect(connectMcp).toContain(LEGACY_HOSTED_MCP_ENDPOINT);
-    expect(connectMcp).toContain(HOSTED_MCP_STATUS_URL);
+    expect(connectMcp).toContain(MCP_ORIGIN_HOME_URL);
     expect(connectMcp).toContain(MCP_SERVER_NAME);
-    expect(connectMcp).toContain('FPF vs MCP in one paragraph');
+    expect(connectMcp).toContain('compatibility bridge');
+    expect(connectMcp).toContain('FPF** is the specification');
     expect(connectMcp).toContain('not agent memory');
-    expect(connectMcp).toContain('stable FPF IDs');
-    for (const tool of PUBLIC_MCP_TOOLS) {
-      expect(connectMcp).toContain(tool);
-    }
+    expect(connectMcp).not.toContain('## ChatGPT');
+    expect(connectMcp).not.toContain('codex mcp add');
   });
 
   it('keeps hosted HTML aligned with the canonical SSOT strings', () => {
@@ -42,7 +36,7 @@ describe('public adoption copy parity', () => {
 
     expect(html).toContain(HOSTED_MCP_ENDPOINT);
     expect(html).toContain(LEGACY_HOSTED_MCP_ENDPOINT);
-    expect(html).toContain(WIKI_CONNECT_MCP_URL);
+    expect(html).toContain(MCP_ORIGIN_HOME_URL);
     expect(html).toContain(MCP_SERVER_NAME);
     expect(html).toContain(HOSTED_MCP_STATUS_URL);
     expect(html).toContain(WIKI_INTERFACE_CONTRACT_URL);

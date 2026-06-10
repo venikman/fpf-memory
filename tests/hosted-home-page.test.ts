@@ -10,6 +10,8 @@ import {
   LEGACY_HOSTED_MCP_ENDPOINT,
 } from '../src/adapters/hosted/endpoints.js';
 import {
+  MCP_ORIGIN_HOME_URL,
+  WIKI_BASE_URL,
   WIKI_CONNECT_MCP_URL,
   WIKI_INTERFACE_CONTRACT_URL,
 } from '../src/core/public-copy.js';
@@ -104,10 +106,12 @@ describe('hosted home page', () => {
     expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
   });
 
-  it('points the footer at the wiki connect guide', () => {
+  it('points the footer at the MCP setup home and FPF reference site', () => {
     const html = renderHostedHomePage();
     expect(html).not.toContain('venikman.github.io/fpf-memory/connect-mcp');
-    expect(html).toContain(WIKI_CONNECT_MCP_URL);
+    expect(html).toContain(MCP_ORIGIN_HOME_URL);
+    expect(html).toContain(WIKI_BASE_URL);
+    expect(html).not.toContain(WIKI_CONNECT_MCP_URL);
     expect(html).not.toContain('href="/connect-mcp"');
   });
 });
