@@ -82,17 +82,24 @@ describe('public MCP tool input caps', () => {
     expect(browseFpfCatalogInputSchema.safeParse({ offset: 100_001 }).success).toBe(false);
   });
 
-  it('getFpfIndexStatus advertises no parameters but tolerates stray compatibility args', () => {
+  it('getFpfIndexStatus tolerates only the bounded legacy placeholder arg', () => {
     expect(getFpfIndexStatusInputSchema.safeParse({}).success).toBe(true);
     // Legacy clients that cannot send an empty arguments object invent a
-    // placeholder argument (e.g. `random_string`); stray keys are ignored
-    // rather than rejected so those clients keep working.
+    // placeholder argument (e.g. `random_string`); the known placeholder
+    // is accepted within the selector cap and discarded.
     expect(
       getFpfIndexStatusInputSchema.safeParse({ random_string: 'notion-placeholder' }).success,
     ).toBe(true);
-    expect(getFpfIndexStatusInputSchema.safeParse({ _probe: true }).success).toBe(true);
-    // The advertised schema itself exposes no properties — the vestigial
-    // `random_string` parameter is gone.
-    expect(Object.keys(getFpfIndexStatusInputSchema.shape)).toEqual([]);
+    expect(getFpfIndexStatusInputSchema.parse({ random_string: 'notion-placeholder' })).toEqual(
+      {},
+    );
+    // The input-cap policy still holds at the public schema boundary:
+    // oversized placeholders, non-string placeholders, and unknown keys
+    // are rejected rather than silently stripped.
+    expect(
+      getFpfIndexStatusInputSchema.safeParse({ random_string: 'x'.repeat(257) }).success,
+    ).toBe(false);
+    expect(getFpfIndexStatusInputSchema.safeParse({ random_string: 42 }).success).toBe(false);
+    expect(getFpfIndexStatusInputSchema.safeParse({ _probe: true }).success).toBe(false);
   });
 });

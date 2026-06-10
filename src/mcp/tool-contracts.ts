@@ -459,11 +459,27 @@ export const askFpfInputSchema = z
   })
   .strict();
 
-// No parameters. Deliberately non-strict (zod strip mode): legacy MCP
-// clients that cannot send an empty arguments object invent a placeholder
-// argument (historically `random_string`) — stray keys are ignored rather
-// than advertised or rejected.
-export const getFpfIndexStatusInputSchema = z.object({});
+// No parameters. Legacy MCP clients that cannot send an empty arguments
+// object invent a placeholder argument (historically `random_string`), so
+// that one known key is accepted — bounded by the selector cap — and
+// discarded before the strict empty object validates. Everything else
+// (unknown keys, non-string or oversized placeholders) is rejected at the
+// schema boundary, keeping the public input-cap policy intact while the
+// advertised schema stays parameterless.
+const STATUS_PLACEHOLDER_KEYS = ['random_string'] as const;
+export const getFpfIndexStatusInputSchema = z.preprocess((value) => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return value;
+  }
+  const entries = { ...(value as Record<string, unknown>) };
+  for (const key of STATUS_PLACEHOLDER_KEYS) {
+    const placeholder = entries[key];
+    if (typeof placeholder === 'string' && placeholder.length <= MAX_SELECTOR_LENGTH) {
+      delete entries[key];
+    }
+  }
+  return entries;
+}, z.object({}).strict());
 
 export const inspectFpfNodeInputSchema = z
   .object({
