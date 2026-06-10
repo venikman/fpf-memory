@@ -29,23 +29,11 @@ export const CONTENT_QUALITY_CURATED_DOCS = [
   { label: 'start-here', path: '/start-here', sourcePath: 'docs/start-here.md' },
   { label: 'glossary', path: '/glossary', sourcePath: 'docs/glossary.md' },
   { label: 'work-packets', path: '/work-packets', sourcePath: 'docs/work-packets.md' },
-  { label: 'connect-local', path: '/connect-local', sourcePath: 'docs/connect-local.md' },
   { label: 'connect-mcp', path: '/connect-mcp', sourcePath: 'docs/connect-mcp.md' },
-  { label: 'mcp-recipes', path: '/mcp-recipes', sourcePath: 'docs/mcp-recipes.md' },
   {
     label: 'automation-playbook',
     path: '/automation-playbook',
     sourcePath: 'docs/automation-playbook.md',
-  },
-  {
-    label: 'vercel-mcp-packaging',
-    path: '/vercel-mcp-packaging',
-    sourcePath: 'docs/vercel-mcp-packaging.md',
-  },
-  {
-    label: 'fpf-reference-mcp-rename',
-    path: '/fpf-reference-mcp-rename',
-    sourcePath: 'docs/fpf-reference-mcp-rename.md',
   },
 ] as const;
 
@@ -320,15 +308,8 @@ export function evaluateContentQuality(
       && live.publishedRefMatchesManifest
       && live.websitePublishedRefMatchesManifest
     : true;
-  const monitoredMcpDocs = new Set(curatedDocs.map((doc) => doc.label));
-  const mcpPagesPresent = [
-    'connect-local',
-    'connect-mcp',
-    'mcp-recipes',
-    'automation-playbook',
-    'fpf-reference-mcp-rename',
-  ]
-    .every((label) => monitoredMcpDocs.has(label));
+  const monitoredCuratedDocs = new Set(curatedDocs.map((doc) => doc.label));
+  const mcpBridgePresent = monitoredCuratedDocs.has('connect-mcp');
 
   const quality: ContentQualityCheck[] = [
     {
@@ -355,11 +336,11 @@ export function evaluateContentQuality(
       fpf: ['B.3', 'G.6'],
     },
     {
-      characteristic: 'MCP context boundary',
-      status: mcpPagesPresent ? 'pass' : 'fail',
-      evidence: mcpPagesPresent
-        ? 'MCP pages are monitored as curated docs; agents only need failing snippets/provenance, not whole MCP pages as default context'
-        : 'one or more MCP curated docs are absent from the monitor input',
+      characteristic: 'MCP handoff boundary',
+      status: mcpBridgePresent ? 'pass' : 'fail',
+      evidence: mcpBridgePresent
+        ? 'fpf.sh keeps one monitored MCP compatibility bridge; setup, recipes, package, and operator guidance live on mcp.fpf.sh'
+        : 'the connect-mcp compatibility bridge is absent from the monitor input',
       fpf: ['B.3', 'E.21'],
     },
   ];

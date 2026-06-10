@@ -11,10 +11,10 @@ import {
   HOSTED_MCP_ENDPOINT,
   HOSTED_MCP_STATUS_URL,
   LEGACY_HOSTED_MCP_ENDPOINT,
+  MCP_INTERFACE_CONTRACT_URL,
   MCP_ORIGIN_HOME_URL,
   MCP_SERVER_NAME,
   PUBLIC_MCP_TOOLS,
-  WIKI_INTERFACE_CONTRACT_URL,
 } from '../src/core/public-copy.js';
 import * as toolContracts from '../src/mcp/tool-contracts.js';
 
@@ -39,9 +39,12 @@ describe('public adoption copy parity', () => {
     expect(html).toContain(MCP_ORIGIN_HOME_URL);
     expect(html).toContain(MCP_SERVER_NAME);
     expect(html).toContain(HOSTED_MCP_STATUS_URL);
-    expect(html).toContain(WIKI_INTERFACE_CONTRACT_URL);
+    expect(html).toContain(MCP_INTERFACE_CONTRACT_URL);
     expect(html).toContain('stable FPF IDs');
     expect(html).toContain('Package And Self-Hosting');
+    expect(html).toContain('Recipes');
+    expect(html).toContain('Operator Packaging');
+    expect(html).toContain('Legacy Compatibility');
     expect(html).toContain('bun run mcp');
     expect(html).toContain('http://localhost:4111/api/mcp/fpf_reference/mcp');
     expect(html).toContain('<html lang="en">');
@@ -91,16 +94,12 @@ describe('public adoption copy parity', () => {
     }
   });
 
-  it('keeps interface-contract.md aligned with canonical interface contract copy', async () => {
-    const interfaceContract = await readFile(
-      resolve(process.cwd(), 'docs/interface-contract.md'),
-      'utf8',
-    );
+  it('keeps the hosted interface contract section aligned with canonical interface contract copy', () => {
+    const interfaceContract = renderHostedHomePage();
 
     expect(interfaceContract).toContain(HOSTED_MCP_ENDPOINT);
     expect(interfaceContract).toContain(LEGACY_HOSTED_MCP_ENDPOINT);
     expect(interfaceContract).toContain(MCP_SERVER_NAME);
-    expect(interfaceContract).toContain('source repo name `fpf-memory` is historical');
     expect(interfaceContract).toContain('not agent memory');
     expect(interfaceContract).toContain('not global upstream currentness');
 
@@ -113,16 +112,18 @@ describe('public adoption copy parity', () => {
     }
 
     for (const item of FPF_REFERENCE_INTERFACE_CONTRACT.acceptanceTests) {
-      expect(interfaceContract).toContain(`- ${item}`);
+      expect(interfaceContract).toContain(item);
     }
     for (const item of FPF_REFERENCE_INTERFACE_CONTRACT.outputExpectation) {
-      expect(interfaceContract).toContain(`- ${item}`);
+      expect(interfaceContract).toContain(item);
     }
     // The doc wraps code terms in backticks that the canonical strings omit,
     // so strip them before exact-wording comparison.
-    const plainInterfaceContract = interfaceContract.replaceAll('`', '');
+    const plainInterfaceContract = interfaceContract
+      .replaceAll('<code>', '')
+      .replaceAll('</code>', '');
     for (const ref of FPF_REFERENCE_INTERFACE_CONTRACT.governingFpf) {
-      expect(interfaceContract).toContain(`\`${ref.id}\``);
+      expect(interfaceContract).toContain(`<code>${ref.id}</code>`);
       expect(plainInterfaceContract).toContain(ref.purpose);
     }
     for (const item of FPF_REFERENCE_INTERFACE_CONTRACT.relianceGate) {
@@ -132,7 +133,7 @@ describe('public adoption copy parity', () => {
       expect(plainInterfaceContract).toContain(item);
     }
     for (const tool of FPF_REFERENCE_INTERFACE_CONTRACT.publicTools) {
-      expect(interfaceContract).toContain(`| \`${tool.name}\` |`);
+      expect(interfaceContract).toContain(`<code>${tool.name}</code>`);
       expect(interfaceContract).toContain(tool.inputSchema);
       expect(interfaceContract).toContain(tool.outputSchema);
     }

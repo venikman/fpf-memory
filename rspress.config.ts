@@ -359,7 +359,7 @@ document.addEventListener('keydown',function(e){
       //     full pattern tree.
       //   - `/routes` and `/generated/routes/...` get the routes tree.
       //   - The root `/` and authored pages (start-here, work-packets,
-      //     mcp-recipes, connect-mcp, automation-playbook) get NO sidebar
+      //     connect-mcp, automation-playbook) get NO sidebar
       //     so the orientation surface stays focused on its own
       //     task-first cards.
       '/patterns': [

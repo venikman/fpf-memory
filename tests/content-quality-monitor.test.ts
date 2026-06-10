@@ -184,7 +184,7 @@ describe('FPF content quality monitor', () => {
     expect(markdown).toContain('100%');
     expect(markdown).toContain('A.10');
     expect(markdown).toContain('E.19');
-    expect(markdown).toContain('MCP pages are monitored as curated docs');
+    expect(markdown).toContain('fpf.sh keeps one monitored MCP compatibility bridge');
   });
 });
 
@@ -331,40 +331,16 @@ function makeCuratedDocs(overrides: Record<string, string> = {}): ContentQuality
       text: 'Use route:writing-or-reviewing-patterns and /generated/patterns/A.3.',
     },
     {
-      label: 'connect-local',
-      path: '/connect-local',
-      sourcePath: 'docs/connect-local.md',
-      text: 'Call get_fpf_index_status.',
-    },
-    {
       label: 'connect-mcp',
       path: '/connect-mcp',
       sourcePath: 'docs/connect-mcp.md',
       text: 'Ask for route:project-alignment.',
     },
     {
-      label: 'mcp-recipes',
-      path: '/mcp-recipes',
-      sourcePath: 'docs/mcp-recipes.md',
-      text: 'Review with route:writing-or-reviewing-patterns.',
-    },
-    {
       label: 'automation-playbook',
       path: '/automation-playbook',
       sourcePath: 'docs/automation-playbook.md',
       text: 'Keep publication evidence bounded.',
-    },
-    {
-      label: 'vercel-mcp-packaging',
-      path: '/vercel-mcp-packaging',
-      sourcePath: 'docs/vercel-mcp-packaging.md',
-      text: 'Use Vercel MCP for read-only deployment evidence.',
-    },
-    {
-      label: 'fpf-reference-mcp-rename',
-      path: '/fpf-reference-mcp-rename',
-      sourcePath: 'docs/fpf-reference-mcp-rename.md',
-      text: 'Keep the fpf_memory compatibility alias until the review gate.',
     },
   ];
 

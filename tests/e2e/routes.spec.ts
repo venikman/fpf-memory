@@ -5,12 +5,9 @@ import { expect, test } from '@playwright/test';
 const STATIC_PATHS = [
   '/',
   '/start-here',
-  '/connect-local',
   '/connect-mcp',
   '/patterns',
   '/automation-playbook',
-  '/vercel-mcp-packaging',
-  '/mcp-recipes',
   '/work-packets',
   '/routes',
   '/generated/routes/index',

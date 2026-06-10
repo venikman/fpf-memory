@@ -8,11 +8,11 @@ import {
   HOSTED_MCP_STATUS_URL,
   LEGACY_HOSTED_MCP_ENDPOINT,
   LEGACY_MCP_SERVER_NAME,
+  MCP_INTERFACE_CONTRACT_URL,
   MCP_ORIGIN_HOME_URL,
   MCP_SERVER_NAME,
   PUBLIC_MCP_TOOLS,
   WIKI_BASE_URL,
-  WIKI_INTERFACE_CONTRACT_URL,
 } from '../../core/public-copy.js';
 
 export function renderHostedHomePage(): string {
@@ -301,6 +301,24 @@ export function renderHostedHomePage(): string {
         margin-top: 4px;
       }
 
+      .contract table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+
+      .contract th,
+      .contract td {
+        padding: 8px;
+        border: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .contract th {
+        color: var(--green);
+      }
+
       .tools ul {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -411,12 +429,12 @@ export function renderHostedHomePage(): string {
         </div>
       </section>
 
-      <h2 class="section-title">Client Setup</h2>
+      <h2 id="client-setup" class="section-title">Client Setup</h2>
       <section class="clients" aria-label="Client setup instructions">
         ${CLIENT_SETUP_SECTIONS.map(renderClientSection).join('\n')}
       </section>
 
-      <h2 class="section-title">Package And Self-Hosting</h2>
+      <h2 id="package-self-hosting" class="section-title">Package And Self-Hosting</h2>
       <section class="prompt" aria-label="Package and self-hosting options">
         <p>Use the hosted endpoint above when your client allows remote HTTP MCP servers. If your policy requires local or self-hosted tooling, run the same FPF Reference MCP runtime from source.</p>
         <pre><code>git clone https://github.com/venikman/fpf-memory.git
@@ -431,35 +449,95 @@ bun run mcp</code></pre>
 http://localhost:4111/api/mcp/fpf_reference/mcp</code></pre>
       </section>
 
-      <h2 class="section-title">Public Tools</h2>
+      <h2 id="recipes" class="section-title">Recipes</h2>
+      <section class="clients" aria-label="MCP usage recipes">
+        <article class="client">
+          <h3>Find the right doorway</h3>
+          <p>Use search or structured query before opening exact generated docs.</p>
+          <pre><code>${escapeHtml('Use only the fpf_reference MCP server. Search or query FPF for the best route for this work: <describe work>. Return 3-8 exact IDs, why they matter, and what not to load yet.')}</code></pre>
+        </article>
+        <article class="client">
+          <h3>Build a compact work packet</h3>
+          <p>Ask for enough grounded context to start work without pasting the full FPF specification.</p>
+          <pre><code>${escapeHtml('Use only the fpf_reference MCP server. Build an FPF work packet for <task>. Include goal, relevant route or IDs, operating questions, constraints, acceptance checks, risks, and one next move. Do not paste the whole FPF.')}</code></pre>
+        </article>
+        <article class="client">
+          <h3>Review a PR</h3>
+          <p>Combine bounded FPF retrieval with the actual diff, files, and CI evidence.</p>
+          <pre><code>${escapeHtml('Use only the fpf_reference MCP server plus the PR diff, local files, and CI evidence. Review this PR through the PR or code review packet. Return Findings | FPF IDs | Evidence | Tests | Residual risk | Verdict. Lead with behavioral issues and cite exact files; do not paste the full FPF.')}</code></pre>
+        </article>
+        <article class="client">
+          <h3>Dogfood a product role</h3>
+          <p>Rotate adopter, reviewer, integrator, maintainer, and project-lead perspectives.</p>
+          <pre><code>${escapeHtml('Use only bounded FPF retrieval plus direct product evidence. Act as <persona> trying to complete <job> with FPF Reference. Return Context | Persona/job | Surface | FPF IDs used | Evidence | Friction | Proposed improvement | Severity | Validation path.')}</code></pre>
+        </article>
+      </section>
+
+      <h2 id="public-tools" class="section-title">Public Tools</h2>
       <section class="tools" aria-label="Public MCP tools">
         <ul>
           ${PUBLIC_MCP_TOOLS.map((tool) => `<li><code>${tool}</code></li>`).join('\n          ')}
         </ul>
       </section>
 
-      <h2 class="section-title">Interface Contract</h2>
+      <h2 id="operator-packaging" class="section-title">Operator Packaging</h2>
+      <section class="prompt" aria-label="Operator packaging notes">
+        <p>The hosted MCP runtime and the reference wiki are separate Vercel projects. The MCP project serves the Streamable HTTP endpoint, this setup page, and the freshness status JSON. The wiki project serves the static FPF reference.</p>
+        <pre><code>bun run vercel:mcp:build
+bun run vercel:mcp:deploy:prod
+
+bun run vercel:website:build
+bun run vercel:website:deploy:prod
+
+bun run deploy:prod</code></pre>
+        <p>Vercel MCP at <a href="https://mcp.vercel.com">https://mcp.vercel.com</a> is Vercel's operator-side control-plane MCP server. It is useful for deployment evidence and logs, but it is not the public <code>${MCP_SERVER_NAME}</code> FPF lookup endpoint.</p>
+        <pre><code>codex mcp add vercel --url https://mcp.vercel.com
+
+https://mcp.vercel.com/venikmans-projects/fpf-reference-mcp
+https://mcp.vercel.com/venikmans-projects/fpf-sh</code></pre>
+      </section>
+
+      <h2 id="legacy-compatibility" class="section-title">Legacy Compatibility</h2>
+      <section class="prompt" aria-label="Legacy compatibility">
+        <p>The canonical server name is <code>${MCP_SERVER_NAME}</code>. The legacy name <code>${LEGACY_MCP_SERVER_NAME}</code> is compatibility-only and should not appear in new client setup.</p>
+        <p>The old endpoint remains explicitly routed so stale clients fail cheaply with a migration signal instead of falling through to the hosted runtime.</p>
+        <pre><code>${LEGACY_HOSTED_MCP_ENDPOINT}</code></pre>
+      </section>
+
+      <h2 id="interface-contract" class="section-title">Interface Contract</h2>
       <section class="contract" aria-label="Interface contract">
         <dl>
           <dt>Entity</dt>
           <dd>${escapeHtml(FPF_REFERENCE_INTERFACE_CONTRACT.entityOfConcern)}</dd>
           <dt>Purpose</dt>
           <dd>${escapeHtml(FPF_REFERENCE_INTERFACE_CONTRACT.purpose)}</dd>
+          <dt>Governing FPF</dt>
+          <dd>${renderContractRefs(FPF_REFERENCE_INTERFACE_CONTRACT.governingFpf)}</dd>
+          <dt>Admissible use</dt>
+          <dd>${renderContractList(FPF_REFERENCE_INTERFACE_CONTRACT.admissibleUse)}</dd>
+          <dt>Non-admissible use</dt>
+          <dd>${renderContractList(FPF_REFERENCE_INTERFACE_CONTRACT.nonAdmissibleUse)}</dd>
           <dt>Reliance gate</dt>
           <dd>${renderContractList(FPF_REFERENCE_INTERFACE_CONTRACT.relianceGate)}</dd>
           <dt>Freshness</dt>
           <dd>${renderContractList(FPF_REFERENCE_INTERFACE_CONTRACT.freshnessSemantics)}</dd>
+          <dt>Output expectation</dt>
+          <dd>${renderContractList(FPF_REFERENCE_INTERFACE_CONTRACT.outputExpectation)}</dd>
+          <dt>Acceptance tests</dt>
+          <dd>${renderContractList(FPF_REFERENCE_INTERFACE_CONTRACT.acceptanceTests)}</dd>
+          <dt>Public tool schemas</dt>
+          <dd>${renderToolContractTable()}</dd>
         </dl>
-        <p>Full card: <a href="${WIKI_INTERFACE_CONTRACT_URL}">${WIKI_INTERFACE_CONTRACT_URL}</a>.</p>
+        <p>Section link: <a href="${MCP_INTERFACE_CONTRACT_URL}">${MCP_INTERFACE_CONTRACT_URL}</a>.</p>
       </section>
 
-      <h2 class="section-title">First Successful Call</h2>
+      <h2 id="first-successful-call" class="section-title">First Successful Call</h2>
       <section class="prompt" aria-label="First successful call">
         <pre><code>${escapeHtml(FIRST_SUCCESSFUL_CALL_PROMPT)}</code></pre>
         <p>Expect compact FPF IDs in <code>ids</code>. Check freshness at <a href="${HOSTED_MCP_STATUS_URL}">${HOSTED_MCP_STATUS_URL}</a>.</p>
       </section>
 
-      <h2 class="section-title">Good First Prompt</h2>
+      <h2 id="good-first-prompt" class="section-title">Good First Prompt</h2>
       <section class="prompt" aria-label="Good first prompt">
         <pre><code>${escapeHtml(GOOD_FIRST_PROMPT)}</code></pre>
         <p>${GOOD_FIRST_PROMPT_FOOTER}</p>
@@ -477,6 +555,30 @@ http://localhost:4111/api/mcp/fpf_reference/mcp</code></pre>
 
 function renderContractList(items: readonly string[]): string {
   return `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+}
+
+function renderContractRefs(items: readonly { id: string; purpose: string }[]): string {
+  return `<ul>${items.map((item) =>
+    `<li><code>${escapeHtml(item.id)}</code> ${escapeHtml(item.purpose)}</li>`
+  ).join('')}</ul>`;
+}
+
+function renderToolContractTable(): string {
+  const rows = FPF_REFERENCE_INTERFACE_CONTRACT.publicTools
+    .map((tool) => `<tr>
+      <td><code>${escapeHtml(tool.name)}</code></td>
+      <td>${escapeHtml(tool.purpose)}</td>
+      <td><code>${escapeHtml(tool.inputSchema)}</code><br />${escapeHtml(tool.inputSummary)}</td>
+      <td><code>${escapeHtml(tool.outputSchema)}</code><br />${escapeHtml(tool.outputSummary)}</td>
+      <td>${escapeHtml(tool.acceptanceCue)}</td>
+    </tr>`)
+    .join('');
+  return `<table>
+    <thead>
+      <tr><th>Tool</th><th>Purpose</th><th>Input</th><th>Output</th><th>Acceptance cue</th></tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
 }
 
 function renderClientSection(section: (typeof CLIENT_SETUP_SECTIONS)[number]): string {

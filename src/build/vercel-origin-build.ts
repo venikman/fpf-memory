@@ -10,6 +10,7 @@ import {
   PUBLISHED_MANIFEST_PATH,
   WEBSITE_PUBLICATION_MANIFEST_PATH,
 } from '../core/constants.js';
+import { RETIRED_WIKI_MCP_REDIRECTS } from '../core/public-copy.js';
 import {
   createLegacyHostedMcpGoneBody,
   HOSTED_FPF_STATUS_ROUTE,
@@ -170,6 +171,7 @@ export function createVercelWebsiteOutputConfig(): VercelDeploymentOutputConfig 
   return {
     version: 3,
     routes: [
+      ...createVercelWebsiteMcpRedirectRoutes(),
       { handle: 'filesystem' },
       { handle: 'miss' },
       { src: '^/(.*)$', dest: '/$1.html', check: true },
@@ -184,6 +186,17 @@ export function createVercelWebsiteOutputConfig(): VercelDeploymentOutputConfig 
       { src: '^/.*$', dest: WEBSITE_404_FILE, status: 404 },
     ],
   };
+}
+
+export function createVercelWebsiteMcpRedirectRoutes(): VercelDeploymentRoute[] {
+  return RETIRED_WIKI_MCP_REDIRECTS.map(({ sourcePath, targetUrl }) => ({
+    src: `^${sourcePath}/?$`,
+    status: 308,
+    headers: {
+      Location: targetUrl,
+      'Cache-Control': 'public, max-age=3600',
+    },
+  }));
 }
 
 // rspress v2 has no built-in sitemap support, so the website bundle

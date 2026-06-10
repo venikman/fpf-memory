@@ -691,18 +691,6 @@ describe('docs projection', () => {
       expect(await readFile(resolve(outDir, 'work-packets.html'), 'utf8')).toContain(
         'evaluate:work',
       );
-      expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
-        'Use MCP instead of pasted context',
-      );
-      expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
-        'This is the agent and tool-use guide for the FPF Reference MCP surface',
-      );
-      expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
-        'Dogfood a product role',
-      );
-      expect(await readFile(resolve(outDir, 'mcp-recipes.html'), 'utf8')).toContain(
-        'Review a PR without full-spec paste',
-      );
       expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).toContain(
         'Connect MCP',
       );
@@ -718,12 +706,13 @@ describe('docs projection', () => {
       expect(await readFile(resolve(outDir, 'connect-mcp.html'), 'utf8')).not.toContain(
         'codex mcp add',
       );
-      const connectLocal = await readFile(resolve(outDir, 'connect-local.html'), 'utf8');
-      expect(connectLocal).toContain('What do I need to run?');
-      expect(connectLocal).toContain('You do not need to run an FPF server.');
-      expect(connectLocal).toContain('https://mcp.fpf.sh/api/mcp/fpf_reference/mcp');
-      expect(connectLocal).not.toContain('bun run start');
-      expect(connectLocal).not.toContain('git clone');
+      const topLevelFiles = new Set(await readdir(outDir));
+      expect(topLevelFiles).not.toContain('connect-local.html');
+      expect(topLevelFiles).not.toContain('mcp-recipes.html');
+      expect(topLevelFiles).not.toContain('vercel-mcp-packaging.html');
+      expect(topLevelFiles).not.toContain('dual-runtime-model.html');
+      expect(topLevelFiles).not.toContain('fpf-reference-mcp-rename.html');
+      expect(topLevelFiles).not.toContain('interface-contract.html');
     } finally {
       await rm(tempRoot, { recursive: true, force: true });
     }

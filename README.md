@@ -219,7 +219,7 @@ Public hosted status endpoint:
 
 This returns the published `upstreamRef`, `sourceHash`, `publishedAt`, `specBytes`, and split runtime evidence for the same bundled FPF source and snapshot used by the hosted MCP endpoint. `runtime.snapshotConsistent` means the deployed source, manifest, and snapshot agree internally. `freshness.upstreamCurrentness` is `unknown` on this endpoint by design; production currentness is proven only by monitors that compare `publication.upstreamRef` and `publication.sourceHash` against the intended upstream/current artifact.
 
-The public interface contract card lives at [`docs/interface-contract.md`](docs/interface-contract.md). It keeps the `fpf_reference` entity, admissible/non-admissible uses, reliance gate, status/freshness semantics, public tool schema map, and acceptance tests in one place.
+The public interface contract card lives on [mcp.fpf.sh](https://mcp.fpf.sh/#interface-contract). It keeps the `fpf_reference` entity, admissible/non-admissible uses, reliance gate, status/freshness semantics, public tool schema map, and acceptance tests in one place.
 
 ## FPF work evaluation
 
@@ -259,7 +259,7 @@ The legacy `fpf_memory` client name and endpoint are blocked during the May 2026
 https://mcp.fpf.sh/api/mcp/fpf_memory/mcp
 ```
 
-Do not remove the legacy route before the scheduled compatibility review on 2026-06-30; keep it explicitly routed so stale clients fail cheaply with a migration signal. Production blocks it at Vercel routing before the MCP function runs, with the in-process guard retained as a fallback. The detailed compatibility note lives in [`docs/fpf-reference-mcp-rename.md`](docs/fpf-reference-mcp-rename.md).
+Do not remove the legacy route before the scheduled compatibility review on 2026-06-30; keep it explicitly routed so stale clients fail cheaply with a migration signal. Production blocks it at Vercel routing before the MCP function runs, with the in-process guard retained as a fallback. The compatibility summary lives on [mcp.fpf.sh](https://mcp.fpf.sh/#legacy-compatibility).
 
 **Recommended Codex tasks** (public surface):
 
@@ -363,7 +363,7 @@ All MCP tools are deterministic. Set `FPF_MCP_SURFACE=public` on the deployed se
 **Docs**
 
 - `docs/` — Rspress content root populated by generated pages plus any optional hand-authored pages
-- `docs/interface-contract.md` — public `fpf_reference` contract card for endpoint, non-use boundaries, freshness semantics, and schema expectations
+- [Interface Contract](https://mcp.fpf.sh/#interface-contract) — public `fpf_reference` contract card for endpoint, non-use boundaries, freshness semantics, and schema expectations
 - `docs/generated/**` — produced locally by `docs:generate` (gitignored; CI and docs deploy read the committed publication surface and generate from it)
 - `scripts/generate-docs.ts` — compiler-backed docs generation (fed from `published/current/**` by default)
 - `rspress.config.ts` — docs site config

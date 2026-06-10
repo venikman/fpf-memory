@@ -74,21 +74,3 @@ test('connect-mcp page bridges to the MCP setup origin', async ({
   await expect(page.getByText('compatibility bridge')).toBeVisible();
   await expect(page.getByText('not agent memory')).toBeVisible();
 });
-
-test('connect-local page leads with hosted values and includes local fallback', async ({
-  page,
-}) => {
-  await page.goto('/connect-local');
-  await expect(page).toHaveTitle(/What Do I Need To Run\?|FPF Reference/);
-  await expect(
-    page.getByRole('heading', { name: 'What do I need to run?', level: 1 }),
-  ).toBeVisible();
-  await expect(page.getByText('You do not need to run an FPF server.')).toBeVisible();
-  await expect(
-    page.getByText('https://mcp.fpf.sh/api/mcp/fpf_reference/mcp').first(),
-  ).toBeVisible();
-  await expect(page.getByRole('heading', {
-    name: 'If your policy forbids external MCP servers',
-  })).toBeVisible();
-  await expect(page.getByText('bun run start')).toBeVisible();
-});

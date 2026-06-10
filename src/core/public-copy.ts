@@ -20,9 +20,24 @@ export const WIKI_BASE_URL = 'https://fpf.sh';
 // point at MCP_ORIGIN_HOME_URL so MCP instructions live on the MCP surface.
 export const WIKI_CONNECT_MCP_URL = `${WIKI_BASE_URL}/connect-mcp`;
 
-export const WIKI_INTERFACE_CONTRACT_URL = `${WIKI_BASE_URL}/interface-contract`;
-
 export const MCP_ORIGIN_HOME_URL = 'https://mcp.fpf.sh/';
+
+export const MCP_PACKAGE_SELF_HOSTING_URL = `${MCP_ORIGIN_HOME_URL}#package-self-hosting`;
+export const MCP_RECIPES_URL = `${MCP_ORIGIN_HOME_URL}#recipes`;
+export const MCP_OPERATOR_PACKAGING_URL = `${MCP_ORIGIN_HOME_URL}#operator-packaging`;
+export const MCP_LEGACY_COMPATIBILITY_URL = `${MCP_ORIGIN_HOME_URL}#legacy-compatibility`;
+export const MCP_INTERFACE_CONTRACT_URL = `${MCP_ORIGIN_HOME_URL}#interface-contract`;
+
+// Compatibility-only retired wiki URLs. The website deployment redirects these
+// to the MCP-owned setup surface so fpf.sh stays specification/reference first.
+export const RETIRED_WIKI_MCP_REDIRECTS = [
+  { sourcePath: '/connect-local', targetUrl: MCP_PACKAGE_SELF_HOSTING_URL },
+  { sourcePath: '/mcp-recipes', targetUrl: MCP_RECIPES_URL },
+  { sourcePath: '/vercel-mcp-packaging', targetUrl: MCP_OPERATOR_PACKAGING_URL },
+  { sourcePath: '/dual-runtime-model', targetUrl: MCP_OPERATOR_PACKAGING_URL },
+  { sourcePath: '/fpf-reference-mcp-rename', targetUrl: MCP_LEGACY_COMPATIBILITY_URL },
+  { sourcePath: '/interface-contract', targetUrl: MCP_INTERFACE_CONTRACT_URL },
+] as const;
 
 export const MCP_SERVER_NAME = 'fpf_reference';
 

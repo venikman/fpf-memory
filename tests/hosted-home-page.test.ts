@@ -10,10 +10,10 @@ import {
   LEGACY_HOSTED_MCP_ENDPOINT,
 } from '../src/adapters/hosted/endpoints.js';
 import {
+  MCP_INTERFACE_CONTRACT_URL,
   MCP_ORIGIN_HOME_URL,
   WIKI_BASE_URL,
   WIKI_CONNECT_MCP_URL,
-  WIKI_INTERFACE_CONTRACT_URL,
 } from '../src/core/public-copy.js';
 
 describe('hosted home page', () => {
@@ -36,6 +36,10 @@ describe('hosted home page', () => {
     expect(html).toContain('claude mcp add --transport http fpf_reference');
     expect(html).toContain('pi install npm:pi-mcp-extension');
     expect(html).toContain('Package And Self-Hosting');
+    expect(html).toContain('Recipes');
+    expect(html).toContain('Operator Packaging');
+    expect(html).toContain('Legacy Compatibility');
+    expect(html).toContain('https://mcp.vercel.com/venikmans-projects/fpf-reference-mcp');
     expect(html).toContain('git clone https://github.com/venikman/fpf-memory.git');
     expect(html).toContain('bun run mcp');
     expect(html).toContain('FPF_MCP_SURFACE=full bun run mcp');
@@ -45,7 +49,7 @@ describe('hosted home page', () => {
     expect(html).toContain('read_fpf_doc');
     expect(html).toContain('405 Method Not Allowed');
     expect(html).toContain('Interface Contract');
-    expect(html).toContain(WIKI_INTERFACE_CONTRACT_URL);
+    expect(html).toContain(MCP_INTERFACE_CONTRACT_URL);
     expect(html).toContain('Proceed only when snapshotExists is true');
     expect(html).toContain('Internal consistency is not global upstream currentness');
     expect(html).not.toContain('406');

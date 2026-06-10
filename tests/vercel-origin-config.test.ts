@@ -11,6 +11,7 @@ import {
   createVercelLegacyMcpBlockedRoute,
   createVercelMcpOutputConfig,
   createVercelWebsiteOutputConfig,
+  createVercelWebsiteMcpRedirectRoutes,
   createWebsiteRobotsTxt,
   createWebsiteSitemapXml,
   WEBSITE_CANONICAL_ORIGIN,
@@ -20,6 +21,7 @@ import {
   HOSTED_MCP_ROUTE,
   LEGACY_HOSTED_MCP_ROUTE,
 } from '../src/composition/hosted.js';
+import { RETIRED_WIKI_MCP_REDIRECTS } from '../src/core/public-copy.js';
 
 interface VercelConfig {
   buildCommand?: string | null;
@@ -206,6 +208,41 @@ describe('Vercel deployment configs', () => {
     expect(srcRoutes).not.toContain(`^${LEGACY_HOSTED_MCP_ROUTE}$`);
   });
 
+  it('redirects retired MCP wiki pages to the MCP-owned origin', () => {
+    const redirectRoutes = createVercelWebsiteMcpRedirectRoutes();
+
+    expect(redirectRoutes).toHaveLength(RETIRED_WIKI_MCP_REDIRECTS.length);
+    for (const redirect of RETIRED_WIKI_MCP_REDIRECTS) {
+      expect(redirectRoutes).toContainEqual({
+        src: `^${redirect.sourcePath}/?$`,
+        status: 308,
+        headers: {
+          Location: redirect.targetUrl,
+          'Cache-Control': 'public, max-age=3600',
+        },
+      });
+    }
+
+    const config = createVercelWebsiteOutputConfig();
+    const filesystemIndex = config.routes.findIndex(
+      (route) => 'handle' in route && route.handle === 'filesystem',
+    );
+    const fallbackIndex = config.routes.findIndex(
+      (route) => 'src' in route && route.src === '^/(.*)$',
+    );
+
+    expect(filesystemIndex).toBeGreaterThan(-1);
+    expect(fallbackIndex).toBeGreaterThan(filesystemIndex);
+    for (const route of redirectRoutes) {
+      const routeIndex = config.routes.findIndex(
+        (configRoute) =>
+          'src' in configRoute && 'src' in route && configRoute.src === route.src,
+      );
+      expect(routeIndex).toBeGreaterThanOrEqual(0);
+      expect(routeIndex).toBeLessThan(filesystemIndex);
+    }
+  });
+
   it('publishes a website-side publication manifest for live freshness checks', async () => {
     const constants = await readFile(resolve(process.cwd(), 'src/core/constants.ts'), 'utf8');
     const build = await readFile(resolve(process.cwd(), 'src/build/vercel-origin-build.ts'), 'utf8');
@@ -273,7 +310,7 @@ describe('Vercel deployment configs', () => {
       (route) => 'handle' in route && route.handle === 'filesystem',
     );
 
-    expect(filesystemIndex).toBe(0);
+    expect(filesystemIndex).toBe(RETIRED_WIKI_MCP_REDIRECTS.length);
   });
 
   it('serves the branded rspress 404 page with a real 404 status on website misses', () => {

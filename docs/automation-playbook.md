@@ -96,7 +96,7 @@ Default prompt boundary:
 Use the Vercel MCP server named vercel for read-only deployment evidence. Inspect the relevant project, deployment, build logs, runtime logs, and protected preview URL if needed. Do not deploy, promote, alias, rollback, buy domains, or change settings unless the user explicitly approves that action.
 ```
 
-For project-scoped operations, prefer the project-specific URLs documented in [Vercel MCP Packaging](/vercel-mcp-packaging) so the team/project context is explicit.
+For project-scoped operations, use the project-specific URLs documented in the [operator packaging section on mcp.fpf.sh](https://mcp.fpf.sh/#operator-packaging) so the team/project context is explicit.
 
 ## Merge policy
 

@@ -6,7 +6,7 @@ Use the `fpf_reference` MCP server whenever the task requires grounded answers, 
 
 The legacy `fpf_memory` server name is compatibility-only. Do not use it in new setup snippets, final summaries, memory notes, or public-facing guidance unless the text is explicitly about the legacy alias.
 
-Operators packaging the hosted MCP surface: see [docs/vercel-mcp-packaging.md](docs/vercel-mcp-packaging.md).
+Operators packaging the hosted MCP surface: see the operator packaging section on [mcp.fpf.sh](https://mcp.fpf.sh/#operator-packaging) and the repo scripts in `package.json`.
 
 Public tools (deployed MCP surface):
 
@@ -28,7 +28,7 @@ Admin tools (index management):
 
 ## Dual runtime (hosted deploy + local full)
 
-Contributors deploy the **public** hosted surface to Vercel (`bun run vercel:mcp:deploy:prod`) while using a **local full** stdio runtime for expert tools. See [docs/dual-runtime-model.md](docs/dual-runtime-model.md).
+Contributors deploy the **public** hosted surface to Vercel (`bun run vercel:mcp:deploy:prod`) while using a **local full** stdio runtime for expert tools. The public setup and packaging guidance lives on [mcp.fpf.sh](https://mcp.fpf.sh/).
 
 | Client key | Runtime | Use when |
 | --- | --- | --- |
