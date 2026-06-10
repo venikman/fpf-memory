@@ -51,18 +51,18 @@ Call `get_fpf_index_status` on whichever runtime you are about to rely on. The [
 
 | Client registry key | Config | When to use |
 | --- | --- | --- |
-| `fpf_reference` | Hosted URL from [`.mcp.json`](../.mcp.json) | Default FPF lookup, adoption parity checks, production smoke |
-| `fpf_reference_local` | [`server.json`](../server.json) stdio with `FPF_MCP_SURFACE=full` | Expert tools, index refresh, pre-deploy debugging |
+| `fpf_reference` | Hosted URL from [`.mcp.json`](https://github.com/venikman/fpf-memory/blob/main/.mcp.json) | Default FPF lookup, adoption parity checks, production smoke |
+| `fpf_reference_local` | [`server.json`](https://github.com/venikman/fpf-memory/blob/main/server.json) stdio with `FPF_MCP_SURFACE=full` | Expert tools, index refresh, pre-deploy debugging |
 
 If your client cannot register two servers, swap configs: hosted for merge/deploy validation, local for implementation/debug.
 
 ### Hosted-only (default)
 
-Use [`.mcp.json`](../.mcp.json) for the hosted public surface.
+Use [`.mcp.json`](https://github.com/venikman/fpf-memory/blob/main/.mcp.json) for the hosted public surface.
 
 ### Local full (contributors)
 
-See [`.mcp.local-full.example.json`](../.mcp.local-full.example.json) and [`server.json`](../server.json). Register the stdio server as **`fpf_reference_local`** in the client; the MCP protocol still reports `fpf_reference` as `serverInfo.name`.
+See [`.mcp.local-full.example.json`](https://github.com/venikman/fpf-memory/blob/main/.mcp.local-full.example.json) and [`server.json`](https://github.com/venikman/fpf-memory/blob/main/server.json). Register the stdio server as **`fpf_reference_local`** in the client; the MCP protocol still reports `fpf_reference` as `serverInfo.name`.
 
 ```sh
 FPF_MCP_SURFACE=full bun run mcp
@@ -72,7 +72,7 @@ Or point the client at `server.json` if your MCP host supports it.
 
 ### Prompt routing for agents
 
-See [AGENTS.md](../AGENTS.md) **Dual runtime → Agent routing** for the canonical prompt block.
+See [AGENTS.md](https://github.com/venikman/fpf-memory/blob/main/AGENTS.md) **Dual runtime → Agent routing** for the canonical prompt block.
 
 ## Snapshot alignment checklist
 
@@ -85,7 +85,7 @@ Before comparing hosted vs local answers:
 
 ## Tool surface split
 
-Public tools are listed in [`PUBLIC_MCP_TOOLS`](../src/core/public-copy.ts) and [AGENTS.md](../AGENTS.md). Expert and admin tools (`inspect_*`, `trace_fpf_path`, `refresh_fpf_index`, etc.) are local full-surface only.
+Public tools are listed in [`PUBLIC_MCP_TOOLS`](https://github.com/venikman/fpf-memory/blob/main/src/core/public-copy.ts) and [AGENTS.md](https://github.com/venikman/fpf-memory/blob/main/AGENTS.md). Expert and admin tools (`inspect_*`, `trace_fpf_path`, `refresh_fpf_index`, etc.) are local full-surface only.
 
 ## Non-goals
 

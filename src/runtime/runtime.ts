@@ -56,9 +56,18 @@ export interface FpfRuntimeOptions {
   compilerFingerprint?: string;
 }
 
+/**
+ * Cheap identity for "has this file changed?" checks. (mtime, size) alone
+ * can collide when a file is replaced by `cp -p` (preserves mtime) with
+ * different bytes of the same length; ctime cannot be forged from userland
+ * and the inode changes on rename-replace, so including both closes those
+ * holes without reading file bytes.
+ */
 interface SourceFingerprint {
   mtimeMs: number;
+  ctimeMs: number;
   size: number;
+  inode: number;
 }
 
 export class FpfRuntime {
@@ -658,12 +667,19 @@ async function fingerprintFile(path: string): Promise<SourceFingerprint> {
   const fileStat = await stat(path);
   return {
     mtimeMs: fileStat.mtimeMs,
+    ctimeMs: fileStat.ctimeMs,
     size: fileStat.size,
+    inode: fileStat.ino,
   };
 }
 
 function sourceFingerprintEquals(left: SourceFingerprint, right: SourceFingerprint): boolean {
-  return left.mtimeMs === right.mtimeMs && left.size === right.size;
+  return (
+    left.mtimeMs === right.mtimeMs &&
+    left.ctimeMs === right.ctimeMs &&
+    left.size === right.size &&
+    left.inode === right.inode
+  );
 }
 
 function buildCompilerSummary(snapshot: Snapshot): BuildAudit['compiler'] {

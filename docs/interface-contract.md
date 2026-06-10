@@ -56,6 +56,7 @@ It is not the upstream FPF specification, not agent memory, not workflow state, 
 ## Freshness Semantics
 
 - status ok or fresh means the deployed runtime artifacts are internally consistent with the configured source.
+- `fresh` describes the snapshot the runtime is serving, which stays in memory once loaded; the `artifacts` map separately reports on-disk artifact presence for packaging checks.
 - Internal consistency is not global upstream currentness.
 - upstreamCurrentness = unknown means do not claim latest upstream FPF unless an external monitor proves it.
 
