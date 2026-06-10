@@ -191,7 +191,7 @@ export const FPF_REFERENCE_INTERFACE_CONTRACT: FpfReferenceInterfaceContract = {
       name: 'get_fpf_index_status',
       purpose: 'Inspect whether the runtime index exists and is fresh against the configured source.',
       inputSchema: 'getFpfIndexStatusInputSchema',
-      inputSummary: 'no parameters (stray compatibility args ignored)',
+      inputSummary: 'no parameters (bounded legacy placeholder ignored; other keys rejected)',
       outputSchema: 'runtimeStatusSchema',
       outputSummary: 'sourcePath, sourceHash?, builtAt?, snapshotExists, currentSourceHash, fresh, compilerMode, artifacts, sessionCache',
       acceptanceCue: 'Use as the first reliance gate before trust-sensitive FPF lookup.',
