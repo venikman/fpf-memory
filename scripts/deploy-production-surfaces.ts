@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { cp, mkdir, mkdtemp, rm, stat } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readdir, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
@@ -278,7 +278,17 @@ async function assertMcpOutput(path: string): Promise<void> {
     resolve(path, 'functions/_mcp.func/hosted/manifest.json'),
     'MCP hosted manifest',
   );
-  await assertAbsent(resolve(path, 'static'), 'MCP static directory');
+  // The only static asset is the legacy-route 410 migration body; anything
+  // else means the docs tree leaked into the MCP deployment.
+  await assertFile(
+    resolve(path, 'static/legacy-mcp-gone.json'),
+    'legacy MCP migration body',
+  );
+  const staticEntries = await readdir(resolve(path, 'static'));
+  const unexpected = staticEntries.filter((entry) => entry !== 'legacy-mcp-gone.json');
+  if (unexpected.length > 0) {
+    throw new Error(`Unexpected MCP static entries: ${unexpected.join(', ')}`);
+  }
 }
 
 async function assertFile(path: string, label: string): Promise<void> {

@@ -256,12 +256,9 @@ describe('direct MCP server', () => {
 
     const statusSchema = tools.find((tool) => tool.name === 'get_fpf_index_status')?.inputSchema;
     expect(statusSchema?.type).toBe('object');
-    expect(statusSchema?.properties).toMatchObject({
-      random_string: {
-        type: 'string',
-      },
-    });
-    expect(statusSchema?.additionalProperties).toBe(false);
+    // The vestigial `random_string` compatibility parameter is gone — the
+    // status tool advertises no parameters at all.
+    expect(Object.keys((statusSchema?.properties ?? {}) as Record<string, unknown>)).toEqual([]);
   });
 
   // This chains multiple full-surface MCP calls through the stdio transport.
@@ -279,6 +276,17 @@ describe('direct MCP server', () => {
     const statusPayload = asToolPayload(status);
     expect(typeof statusPayload.snapshotExists).toBe('boolean');
     expect(statusPayload.compilerMode).toBe('local_vectorless');
+
+    // Text-only MCP clients render just the `content` blocks — the status
+    // result must carry a readable summary, not a structured-content
+    // placeholder sentence.
+    const statusText = ((status.result?.content ?? []) as Array<{
+      type?: string;
+      text?: string;
+    }>).find((item) => item.type === 'text')?.text;
+    expect(typeof statusText).toBe('string');
+    expect(statusText).not.toContain('returned structured content');
+    expect(statusText).toContain('fresh');
 
     const notionStatus = await harness.request('tools/call', {
       name: 'get_fpf_index_status',
@@ -567,8 +575,8 @@ describe('direct MCP server', () => {
         });
 
         if (route === LEGACY_HOSTED_MCP_ROUTE) {
-          expect(response.status).toBe(403);
-          expect(response.headers.get('x-vercel-mitigated')).toBe('deny');
+          expect(response.status).toBe(410);
+          expect(response.headers.get('link')).toContain('rel="successor-version"');
           const payload = await response.json() as JsonRpcResponse;
           expect(payload.error?.message).toContain('Legacy FPF MCP endpoint is disabled');
           continue;
@@ -625,8 +633,8 @@ describe('direct MCP server', () => {
         await response.body?.cancel().catch(() => undefined);
 
         if (route === LEGACY_HOSTED_MCP_ROUTE) {
-          expect(response.status).toBe(403);
-          expect(response.headers.get('x-vercel-mitigated')).toBe('deny');
+          expect(response.status).toBe(410);
+          expect(response.headers.get('link')).toContain('rel="successor-version"');
           continue;
         }
 

@@ -20,6 +20,7 @@ export function renderHostedHomePage(): string {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="canonical" href="https://mcp.fpf.sh/" />
     <title>FPF Reference MCP</title>
     <style>
       :root {
@@ -146,7 +147,7 @@ export function renderHostedHomePage(): string {
         font-family: var(--font-mono);
       }
 
-      .endpoint code {
+      .endpoint > code {
         overflow-wrap: anywhere;
         padding: 18px;
         border: 1px solid rgb(246 239 229 / 18%);
@@ -154,6 +155,17 @@ export function renderHostedHomePage(): string {
         color: var(--gold);
         font-size: 0.82rem;
         line-height: 1.55;
+      }
+
+      .endpoint small {
+        color: rgb(246 239 229 / 72%);
+      }
+
+      .endpoint small code {
+        overflow-wrap: anywhere;
+        padding: 1px 4px;
+        background: #0c100a;
+        color: var(--gold);
       }
 
       .quick {

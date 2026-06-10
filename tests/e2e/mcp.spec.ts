@@ -76,6 +76,12 @@ test('legacy MCP alias initializes unless edge-blocked during incident mitigatio
       },
     },
   });
+  // 410 is the current blocked shape (static JSON-RPC migration body);
+  // 403 covers deployments that predate the 410 migration signal.
+  if (response.status() === 410) {
+    expect(response.headers().link).toContain('rel="successor-version"');
+    return;
+  }
   if (response.status() === 403) {
     expect(response.headers()['x-vercel-mitigated']).toBe('deny');
     return;

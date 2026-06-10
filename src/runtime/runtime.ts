@@ -72,6 +72,8 @@ export class FpfRuntime {
   private cachedSnapshot?: Snapshot;
   private cachedAudit?: BuildAudit;
   private cachedSourceFingerprint?: SourceFingerprint;
+  private cachedSourceHash?: { fingerprint: SourceFingerprint; hash: string };
+  private compilerFingerprintPromise?: Promise<string | undefined>;
   private sessionCacheLoadedForHash?: string;
 
   constructor(options: FpfRuntimeOptions = {}) {
@@ -277,8 +279,14 @@ export class FpfRuntime {
   }
 
   async status(): Promise<RuntimeStatus> {
-    let existingSnapshot = await this.loadSnapshot();
     const currentCompilerFingerprint = await this.readCurrentCompilerFingerprint();
+    // status() is the documented preflight call, so warm calls must not pay
+    // for re-reading the multi-MB artifact set: serve from the in-memory
+    // snapshot whenever one is loaded and still serviceable.
+    let existingSnapshot =
+      this.cachedSnapshot && !snapshotNeedsRebuild(this.cachedSnapshot, currentCompilerFingerprint)
+        ? this.cachedSnapshot
+        : await this.loadSnapshot();
     if (!existingSnapshot || snapshotNeedsRebuild(existingSnapshot, currentCompilerFingerprint)) {
       await this.refresh(false, { compilerFingerprint: currentCompilerFingerprint }).catch(
         (error) => {
@@ -286,10 +294,18 @@ export class FpfRuntime {
           console.warn(`[FpfRuntime.status] refresh(false) failed: ${message}`);
         },
       );
-      existingSnapshot = await this.loadSnapshot();
+      existingSnapshot = this.cachedSnapshot ?? (await this.loadSnapshot());
     }
 
-    const currentSourceHash = await hashFile(this.sourcePath);
+    if (
+      !this.cachedSnapshot &&
+      existingSnapshot &&
+      !snapshotNeedsRebuild(existingSnapshot, currentCompilerFingerprint)
+    ) {
+      this.cachedSnapshot = existingSnapshot;
+    }
+
+    const currentSourceHash = await this.hashSourceFile();
     return {
       sourcePath: this.sourcePath,
       sourceHash: existingSnapshot?.sourceHash,
@@ -307,7 +323,14 @@ export class FpfRuntime {
   }
 
   async browse(
-    options: { part?: string; status?: string; kind?: NodeKind; limit?: number; forceRefresh?: boolean } = {},
+    options: {
+      part?: string;
+      status?: string;
+      kind?: NodeKind;
+      limit?: number;
+      offset?: number;
+      forceRefresh?: boolean;
+    } = {},
   ): Promise<BrowseCatalogResult> {
     await this.refresh(options.forceRefresh ?? false);
     const snapshot = await this.requireSnapshot();
@@ -315,7 +338,8 @@ export class FpfRuntime {
     const partFilter = resolvePartFilter(options.part, snapshot);
     const partLower = partFilter.value?.toLowerCase();
     const statusLower = options.status?.toLowerCase();
-    const limit = Math.min(options.limit ?? 200, 500);
+    const limit = Math.min(options.limit ?? DEFAULT_BROWSE_LIMIT, 500);
+    const offset = Math.max(options.offset ?? 0, 0);
 
     const entries = Object.values(snapshot.compiledNodes)
       .filter((node) => {
@@ -328,12 +352,18 @@ export class FpfRuntime {
 
     entries.sort((a, b) => a.id.localeCompare(b.id));
 
-    // When no kind filter is active, interleave kinds so the default page
-    // shows a representative mix of patterns, routes, and lexemes instead
-    // of burying routes/lexemes past the limit cutoff.
-    const trimmed = options.kind
-      ? entries.slice(0, limit)
-      : interleaveBrowseEntries(entries, limit);
+    // Canonical paging order. When no kind filter is active, interleave
+    // kinds so every page shows a representative mix of patterns, routes,
+    // and lexemes instead of burying routes/lexemes thousands of entries
+    // deep. The ordering is independent of limit/offset, so consecutive
+    // pages tile the catalog without duplicates or gaps.
+    const ordered = options.kind ? entries : interleaveBrowseEntries(entries);
+    const page = ordered.slice(offset, offset + limit);
+    // Present each page sorted by ID; paging position is carried by offset.
+    page.sort((a, b) => a.id.localeCompare(b.id));
+    const nextOffset = offset + page.length < entries.length
+      ? offset + page.length
+      : undefined;
 
     const didYouMean =
       entries.length === 0 && partFilter.suggestion
@@ -341,8 +371,10 @@ export class FpfRuntime {
         : undefined;
 
     return {
-      entries: trimmed,
+      entries: page,
       total: entries.length,
+      offset,
+      ...(nextOffset !== undefined ? { nextOffset } : {}),
       filters: {
         part: partFilter.value ?? options.part,
         status: options.status,
@@ -468,7 +500,27 @@ export class FpfRuntime {
     if (this.configuredCompilerFingerprint) {
       return this.configuredCompilerFingerprint;
     }
-    return readSourceCompilerFingerprint();
+    // The fingerprint describes the compiler code this process is running,
+    // which cannot change mid-process — compute it once per runtime instance.
+    this.compilerFingerprintPromise ??= readSourceCompilerFingerprint();
+    return this.compilerFingerprintPromise;
+  }
+
+  /**
+   * SHA-256 of the spec source, memoized by (mtime, size) so repeated
+   * status() calls do not re-hash an unchanged multi-MB source file.
+   */
+  private async hashSourceFile(): Promise<string> {
+    const fingerprint = await fingerprintFile(this.sourcePath);
+    if (
+      this.cachedSourceHash &&
+      sourceFingerprintEquals(this.cachedSourceHash.fingerprint, fingerprint)
+    ) {
+      return this.cachedSourceHash.hash;
+    }
+    const hash = await hashFile(this.sourcePath);
+    this.cachedSourceHash = { fingerprint, hash };
+    return hash;
   }
 
   private async requireSnapshot(): Promise<Snapshot> {
@@ -580,7 +632,9 @@ export class FpfRuntime {
 
   private async pathExists(path: string): Promise<boolean> {
     try {
-      await readFile(path, 'utf8');
+      // stat, not readFile: presence checks run against multi-MB artifacts
+      // on every status() call and must not read the file bodies.
+      await stat(path);
       return true;
     } catch {
       return false;
@@ -686,12 +740,13 @@ function snapshotCompilerFingerprintChanged(
 }
 
 /**
- * Interleave entries by kind so the default browse page shows a
- * representative mix of patterns, routes, and lexemes.  Each kind
- * gets a fair share of the limit, and leftover slots are filled by
- * whichever kinds have entries remaining.
+ * Round-robin the full entry set across kinds (each bucket already sorted
+ * by ID) so every browse page carries a representative mix of patterns,
+ * routes, and lexemes. The ordering depends only on the filtered entry
+ * set — never on the requested page size — so offset paging tiles the
+ * catalog without duplicates or gaps.
  */
-function interleaveBrowseEntries(entries: CatalogEntry[], limit: number): CatalogEntry[] {
+function interleaveBrowseEntries(entries: CatalogEntry[]): CatalogEntry[] {
   const byKind = new Map<string, CatalogEntry[]>();
   for (const entry of entries) {
     const bucket = byKind.get(entry.kind) ?? [];
@@ -699,38 +754,16 @@ function interleaveBrowseEntries(entries: CatalogEntry[], limit: number): Catalo
     byKind.set(entry.kind, bucket);
   }
 
-  const kinds = [...byKind.keys()].sort();
-  const perKind = Math.max(1, Math.floor(limit / kinds.length));
+  const buckets = [...byKind.keys()].sort().map((kind) => byKind.get(kind)!);
   const result: CatalogEntry[] = [];
-
-  // First pass: take up to perKind from each bucket.
-  for (const kind of kinds) {
-    const bucket = byKind.get(kind)!;
-    result.push(...bucket.splice(0, perKind));
-  }
-
-  // Second pass: fill remaining slots round-robin.
-  let remaining = limit - result.length;
-  while (remaining > 0) {
-    let added = false;
-    for (const kind of kinds) {
-      if (remaining <= 0) break;
-      const bucket = byKind.get(kind)!;
-      if (bucket.length > 0) {
-        result.push(bucket.shift()!);
-        remaining -= 1;
-        added = true;
+  for (let round = 0; result.length < entries.length; round += 1) {
+    for (const bucket of buckets) {
+      if (round < bucket.length) {
+        result.push(bucket[round]!);
       }
     }
-    if (!added) break;
   }
-
-  // Enforce the limit — the first pass may overshoot when limit < kindCount.
-  const capped = result.slice(0, limit);
-
-  // Sort the interleaved result by ID for stable output.
-  capped.sort((a, b) => a.id.localeCompare(b.id));
-  return capped;
+  return result;
 }
 
 interface PartFilterResolution {
@@ -855,6 +888,10 @@ function nodeToCatalogEntry(
     description,
   };
 }
+
+// The catalog holds thousands of entries; an unpaged browse response is
+// tens of KB. Default to one small page and let callers walk `offset`.
+const DEFAULT_BROWSE_LIMIT = 50;
 
 const SEARCH_TITLE_TOKEN_WEIGHT = 5;
 // Lexemes are vocabulary entries; in default search they kept crowding

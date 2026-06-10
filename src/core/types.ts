@@ -591,6 +591,13 @@ export interface CatalogEntry {
 export interface BrowseCatalogResult {
   entries: CatalogEntry[];
   total: number;
+  /** Zero-based index of the first returned entry in the full ordering. */
+  offset: number;
+  /**
+   * Offset of the next page. Omitted when this page reaches the end of the
+   * filtered catalog.
+   */
+  nextOffset?: number;
   filters: {
     part?: string;
     status?: string;

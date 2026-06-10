@@ -85,17 +85,50 @@ try {
 export default defineConfig({
   root: docsRoot,
   outDir,
+  // Slim the client route manifest. rspress's `virtual-page-data` module
+  // embeds a `pages` array (title, routePath, toc, frontmatter, description
+  // per page) into the main JS bundle — ~1000 generated pages made that
+  // bundle ~2.3MB raw / ~400KB gzip, and it grows with every pattern added.
+  // Nothing client-side needs the per-page `toc`/`frontmatter` from this
+  // array: the rendered page's outline/title/frontmatter come from the page
+  // chunk's own `__RSPRESS_PAGE_META` (see initPageData in @rspress/core
+  // runtime, where page-module values overwrite the array's), search uses
+  // the separate search-index JSON (serialized BEFORE extendPageData runs,
+  // so it keeps full TOCs), and llms.txt only reads title/description.
+  // `title`/`description` stay for SSG meta tags and llms.txt. The default
+  // theme's Overview component is the one consumer of other pages' TOCs —
+  // no page here uses `pageType: overview`, so it's safe to strip.
+  plugins: [
+    {
+      name: 'fpf-slim-client-page-data',
+      extendPageData(pageData) {
+        pageData.toc = [];
+        pageData.frontmatter = {};
+      },
+    },
+  ],
   // Apex custom domain (fpf.sh) means the static website is served at root.
   base: '/',
   title: 'FPF Reference',
   description: 'Compiler-backed FPF reference docs generated from the configured spec source.',
   globalStyles: resolve(process.cwd(), 'src/docs/theme.css'),
   // Theme fonts — Inter Tight (display), Source Serif 4 (reading floor),
-  // JetBrains Mono (code). Loaded via `@import` in src/docs/theme.css so the
-  // CSS bundle owns the dependency; preconnect tags here keep the FOUT short.
+  // JetBrains Mono (code). Loaded via a <link rel="stylesheet"> here instead
+  // of `@import` inside src/docs/theme.css: an @import only starts after the
+  // CSS bundle downloads and parses, serializing the font request chain
+  // behind the (cache-busted) stylesheet. A head <link> lets the browser
+  // kick off the Google Fonts CSS fetch in parallel with the bundle, and the
+  // preconnects keep the FOUT short.
   head: [
     ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
     ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    [
+      'link',
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=JetBrains+Mono:wght@400;500;600&display=swap',
+      },
+    ],
     // Favicon: inline SVG (cream paper + accent serif F). No binary asset
     // to commit; the data-URI is ~250 bytes. Fixes DS-P3-009 favicon 404.
     [
@@ -307,10 +340,11 @@ document.addEventListener('keydown',function(e){
       },
       {
         text: 'Reference',
-        activeMatch: '/patterns/|/routes/|/generated/preface/',
+        activeMatch: '/patterns/|/routes/|/generated/preface/|/glossary',
         items: [
           { text: 'Pattern Catalog', link: '/patterns' },
           { text: 'Route Catalog', link: '/routes' },
+          { text: 'Glossary', link: '/glossary' },
           { text: 'Preface', link: '/generated/preface/index' },
         ],
       },
@@ -323,7 +357,11 @@ document.addEventListener('keydown',function(e){
           { text: 'Interface Contract', link: '/interface-contract' },
           { text: 'Automation Playbook', link: '/automation-playbook' },
           { text: 'Vercel MCP Packaging', link: '/vercel-mcp-packaging' },
+          { text: 'Dual Runtime Model', link: '/dual-runtime-model' },
           { text: 'Rename compatibility plan', link: '/fpf-reference-mcp-rename' },
+          // Cross-link to the MCP origin's own landing page so the two
+          // public surfaces (fpf.sh and mcp.fpf.sh) reference each other.
+          { text: 'mcp.fpf.sh ↗', link: 'https://mcp.fpf.sh/' },
         ],
       },
     ],
@@ -400,6 +438,13 @@ document.addEventListener('keydown',function(e){
       ],
     },
     search: true,
+    socialLinks: [
+      {
+        icon: 'github',
+        mode: 'link',
+        content: 'https://github.com/venikman/fpf-memory',
+      },
+    ],
     // Disable rspress's git-based lastUpdated. Generated docs aren't
     // tracked in git (PR #1f8c744d), so the plugin would either show
     // nothing or — worse — show the timestamp of the commit that
@@ -410,7 +455,10 @@ document.addEventListener('keydown',function(e){
     lastUpdated: false,
     enableScrollToTop: true,
     footer: {
-      message: 'Projection of the latest published FPF.',
+      // Rendered as HTML by the theme (renderHtmlOrText), so the
+      // upstream-credit links work here.
+      message:
+        'Projection of the latest published <a href="https://github.com/ailev/FPF">First Principles Framework</a> by <a href="https://github.com/ailev">Anatoly Levenchuk</a>.',
     },
   },
 });

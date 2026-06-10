@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "fpf_reference": {
+      "type": "http",
+      "url": "https://mcp.fpf.sh/api/mcp/fpf_reference/mcp"
+    },
+    "fpf_reference_local": {
+      "command": "bun",
+      "args": ["src/entrypoints/mcp-stdio.ts"],
+      "env": {
+        "FPF_SPEC_SOURCE_PATH": "published/current/FPF-Spec.md",
+        "FPF_RUNTIME_ARTIFACT_DIR": ".runtime/fpf-index",
+        "FPF_MCP_SURFACE": "full"
+      }
+    }
+  }
+}

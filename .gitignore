@@ -30,3 +30,4 @@ package-lock.json
 # Playwright
 test-results/
 playwright-report/
+.playwright-mcp

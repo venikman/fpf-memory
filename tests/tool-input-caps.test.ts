@@ -74,14 +74,25 @@ describe('public MCP tool input caps', () => {
     ).toBe(false);
   });
 
-  it('getFpfIndexStatus accepts only an ignored compatibility placeholder', () => {
+  it('browseFpfCatalog accepts offset paging within bounds', () => {
+    expect(browseFpfCatalogInputSchema.safeParse({ offset: 0 }).success).toBe(true);
+    expect(browseFpfCatalogInputSchema.safeParse({ offset: 9_999 }).success).toBe(true);
+    expect(browseFpfCatalogInputSchema.safeParse({ offset: -1 }).success).toBe(false);
+    expect(browseFpfCatalogInputSchema.safeParse({ offset: 1.5 }).success).toBe(false);
+    expect(browseFpfCatalogInputSchema.safeParse({ offset: 100_001 }).success).toBe(false);
+  });
+
+  it('getFpfIndexStatus advertises no parameters but tolerates stray compatibility args', () => {
     expect(getFpfIndexStatusInputSchema.safeParse({}).success).toBe(true);
+    // Legacy clients that cannot send an empty arguments object invent a
+    // placeholder argument (e.g. `random_string`); stray keys are ignored
+    // rather than rejected so those clients keep working.
     expect(
       getFpfIndexStatusInputSchema.safeParse({ random_string: 'notion-placeholder' }).success,
     ).toBe(true);
-    expect(getFpfIndexStatusInputSchema.safeParse({ random_string: big(65) }).success).toBe(
-      false,
-    );
-    expect(getFpfIndexStatusInputSchema.safeParse({ _probe: true }).success).toBe(false);
+    expect(getFpfIndexStatusInputSchema.safeParse({ _probe: true }).success).toBe(true);
+    // The advertised schema itself exposes no properties — the vestigial
+    // `random_string` parameter is gone.
+    expect(Object.keys(getFpfIndexStatusInputSchema.shape)).toEqual([]);
   });
 });

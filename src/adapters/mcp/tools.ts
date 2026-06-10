@@ -195,15 +195,16 @@ export function createMcpTools(dependencies: McpToolDependencies) {
   const browseFpfCatalogTool = withTelemetry(createFpfMcpTool({
     id: 'browse_fpf_catalog',
     description:
-      'Browse the FPF catalog of compiled patterns, routes, and lexicon entries. Filter by part, status, or kind to discover relevant material before drilling into individual nodes.',
+      'Browse the FPF catalog of compiled patterns, routes, and lexicon entries. Filter by part, status, or kind to discover relevant material before drilling into individual nodes. Results are paged: pass the previous response\'s `nextOffset` as `offset` to fetch the next page.',
     inputSchema: browseFpfCatalogInputSchema,
     outputSchema: browseFpfCatalogResultSchema,
-    execute: async ({ part, status, kind, limit, forceRefresh }) =>
+    execute: async ({ part, status, kind, limit, offset, forceRefresh }) =>
       runtime.browse({
         part,
         status,
         kind: kind as NodeKind | undefined,
         limit,
+        offset,
         forceRefresh: forceRefresh ?? false,
       }),
   }));

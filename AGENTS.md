@@ -26,6 +26,26 @@ Admin tools (index management):
 
 - `refresh_fpf_index` to rebuild the local artifact set
 
+## Dual runtime (hosted deploy + local full)
+
+Contributors deploy the **public** hosted surface to Vercel (`bun run vercel:mcp:deploy:prod`) while using a **local full** stdio runtime for expert tools. See [docs/dual-runtime-model.md](docs/dual-runtime-model.md).
+
+| Client key | Runtime | Use when |
+| --- | --- | --- |
+| `fpf_reference` | Hosted `https://mcp.fpf.sh/api/mcp/fpf_reference/mcp` | Default FPF lookup, adoption parity, post-deploy smoke |
+| `fpf_reference_local` | `FPF_MCP_SURFACE=full bun run mcp` ([`server.json`](server.json)) | `inspect_*`, `trace_fpf_path`, `refresh_fpf_index` |
+
+**Collision rule:** do not register hosted HTTP and local stdio under the same server key in one client session. Prefer one active server per session, or use distinct keys (`fpf_reference` vs `fpf_reference_local`).
+
+**Agent routing:**
+
+```text
+Use hosted fpf_reference for public-tool FPF lookup and production parity.
+Use fpf_reference_local (FPF_MCP_SURFACE=full) only for inspect_*, trace_fpf_path, or refresh_fpf_index.
+Never assume expert tools exist on the hosted endpoint.
+Call get_fpf_index_status on the runtime you are about to rely on.
+```
+
 FPF work-evaluation surface:
 
 - `bun run evaluate:work` reviews the current PR branch against the local FPF rubric for the three-surface split

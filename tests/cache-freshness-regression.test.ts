@@ -119,6 +119,38 @@ describe('FpfRuntime cache-freshness regressions', () => {
     expect(status.sourceHash).toBe(status.currentSourceHash);
   });
 
+  it('serves status() from the in-memory snapshot without re-reading artifact bytes', async () => {
+    await runtime.refresh();
+
+    // Remove the multi-MB snapshot artifact. A status() implementation that
+    // re-reads the artifact set from disk would either fail or trigger a
+    // full rebuild (rewriting the file); the in-memory fast path must answer
+    // from the snapshot cached by refresh() instead.
+    await rm(resolve(artifactDir, ARTIFACT_FILENAMES.snapshot), { force: true });
+
+    const status = await runtime.status();
+    expect(status.snapshotExists).toBe(true);
+    expect(status.fresh).toBe(true);
+    // The presence map still reports the truth about the on-disk artifact
+    // set — and proves status() did not rebuild the snapshot to answer.
+    expect(status.artifacts.snapshot).toBe(false);
+  });
+
+  it('warms the in-memory snapshot cache on the first status() call', async () => {
+    // Cold call: no artifacts yet, so status() builds and persists them.
+    const first = await runtime.status();
+    expect(first.snapshotExists).toBe(true);
+
+    await rm(resolve(artifactDir, ARTIFACT_FILENAMES.snapshot), { force: true });
+
+    // The warm call must be served from the snapshot the first call loaded,
+    // not from another disk read or rebuild.
+    const second = await runtime.status();
+    expect(second.snapshotExists).toBe(true);
+    expect(second.fresh).toBe(true);
+    expect(second.artifacts.snapshot).toBe(false);
+  });
+
   it('reports source_hash_changed and emits a refreshClassification on spec edits', async () => {
     await runtime.refresh();
     await writeFile(sourcePath, `${await readFile(sourcePath, 'utf8')}\n<!-- drift -->\n`);

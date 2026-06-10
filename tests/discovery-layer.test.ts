@@ -116,6 +116,45 @@ describe('Discovery layer', () => {
       }
     });
 
+    it('defaults to a 50-entry page with paging metadata', async () => {
+      const result = await runtime.browse();
+      // The catalog has thousands of entries; an unpaged default response
+      // is tens of KB. The default page is capped at 50 with an offset
+      // cursor for the rest.
+      expect(result.entries.length).toBe(50);
+      expect(result.total).toBeGreaterThan(50);
+      expect(result.offset).toBe(0);
+      expect(result.nextOffset).toBe(50);
+    });
+
+    it('pages through the catalog with offset without duplicates or gaps', async () => {
+      const pageSize = 30;
+      const first = await runtime.browse({ limit: pageSize });
+      expect(first.offset).toBe(0);
+      expect(first.nextOffset).toBe(pageSize);
+
+      const second = await runtime.browse({ limit: pageSize, offset: first.nextOffset });
+      expect(second.offset).toBe(pageSize);
+      expect(second.entries.length).toBe(pageSize);
+
+      // Pages are disjoint…
+      const firstIds = new Set(first.entries.map((e) => e.id));
+      expect(second.entries.some((e) => firstIds.has(e.id))).toBe(false);
+
+      // …and tile the same canonical ordering: one double-size page covers
+      // exactly the union of the two consecutive pages.
+      const combined = await runtime.browse({ limit: pageSize * 2 });
+      const union = new Set(
+        [...first.entries, ...second.entries].map((e) => e.id),
+      );
+      expect(new Set(combined.entries.map((e) => e.id))).toEqual(union);
+
+      // Walking past the end yields an empty page and no nextOffset.
+      const beyond = await runtime.browse({ offset: combined.total, limit: pageSize });
+      expect(beyond.entries).toEqual([]);
+      expect(beyond.nextOffset).toBeUndefined();
+    });
+
     it('includes description for each entry', async () => {
       const result = await runtime.browse({ limit: 10 });
       for (const entry of result.entries) {

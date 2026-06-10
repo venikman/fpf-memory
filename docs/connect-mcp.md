@@ -8,6 +8,8 @@ outline: deep
 
 Use this page to connect ChatGPT, Claude, editors, or coding CLIs to the hosted FPF Reference MCP server so they can retrieve bounded public FPF context by stable IDs, patterns, and generated docs.
 
+New to MCP? The [Model Context Protocol](https://modelcontextprotocol.io) is the open standard this server speaks — its site explains what MCP servers are and how clients use them.
+
 MCP origin landing (shorter mirror): [mcp.fpf.sh](https://mcp.fpf.sh/).
 
 Contract card for engineers integrating against the public surface: [Interface Contract](/interface-contract).
@@ -124,6 +126,8 @@ http://localhost:4111/api/mcp/fpf_reference/mcp
 
 Set `PORT` to change the local HTTP port. If you self-host for remote clients, put that HTTP server behind your own HTTPS reverse proxy or deployment platform and use the same `/api/mcp/fpf_reference/mcp` route. The committed `published/current/**` surface works out of the box; run `bun run spec:download` and `bun run publish:current` only when you want to refresh your local copy from upstream FPF.
 
+Contributors who deploy hosted MCP to Vercel while running a local full-surface stdio runtime in parallel should read [Dual Runtime Model](/dual-runtime-model) for routing rules, config examples, and snapshot alignment.
+
 ## Connector metadata
 
 Suggested connector name:
@@ -194,7 +198,7 @@ Use the MCP: Add Server command, or add a workspace config at `.vscode/mcp.json`
 
 Restart or start the server from the MCP code lens, then confirm trust when VS Code asks.
 
-Reference: [VS Code - add and manage MCP servers](https://code.visualstudio.com/docs/copilot/customization/mcp-servers).
+Reference: [VS Code - add and manage MCP servers](https://code.visualstudio.com/docs/agent-customization/mcp-servers).
 
 ## Zed
 
@@ -241,7 +245,7 @@ claude mcp add --transport http fpf_reference https://mcp.fpf.sh/api/mcp/fpf_ref
 
 Check it inside Claude Code with `/mcp`.
 
-Reference: [Claude Code - connect to tools via MCP](https://docs.claude.com/en/docs/claude-code/mcp).
+Reference: [Claude Code - connect to tools via MCP](https://code.claude.com/docs/en/mcp).
 
 ## Pi
 

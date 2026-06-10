@@ -1,5 +1,5 @@
-import { copyFile, cp, mkdir, rm, stat, writeFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { copyFile, cp, mkdir, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { dirname, resolve, sep } from 'node:path';
 
 import { parseBuildConfig } from '../adapters/infra/config/env.js';
 import {
@@ -11,8 +11,10 @@ import {
   WEBSITE_PUBLICATION_MANIFEST_PATH,
 } from '../core/constants.js';
 import {
+  createLegacyHostedMcpGoneBody,
   HOSTED_FPF_STATUS_ROUTE,
   HOSTED_HOME_ROUTES,
+  LEGACY_HOSTED_MCP_GONE_STATUS,
   LEGACY_HOSTED_MCP_ROUTE,
   HOSTED_MCP_ROUTES,
 } from '../composition/hosted.js';
@@ -28,10 +30,15 @@ export const VERCEL_MCP_FUNCTION_BUNDLE_PATH =
   `${OUTPUT_DIR}/functions/${MCP_FUNCTION_NAME}.func`;
 const MCP_FUNCTION_DEST = `/${MCP_FUNCTION_NAME}`;
 const LEGACY_HOSTED_MCP_SUCCESSOR_URL = 'https://mcp.fpf.sh/api/mcp/fpf_reference/mcp';
+const VERCEL_LEGACY_MCP_GONE_STATIC_FILE = 'legacy-mcp-gone.json';
 export const VERCEL_FUNCTION_RUNTIME = 'nodejs24.x';
 export const VERCEL_FUNCTION_MEMORY_MB = 1024;
 export const VERCEL_FUNCTION_MAX_DURATION_SECONDS = 20;
 const STATIC_DIR = `${OUTPUT_DIR}/static`;
+export const WEBSITE_CANONICAL_ORIGIN = 'https://fpf.sh';
+const WEBSITE_SITEMAP_FILENAME = 'sitemap.xml';
+const WEBSITE_ROBOTS_FILENAME = 'robots.txt';
+const WEBSITE_404_FILE = '/404.html';
 
 export type VercelDeploymentRoute =
   | {
@@ -50,6 +57,10 @@ export type VercelDeploymentRoute =
       continue?: boolean;
       check?: boolean;
       caseSensitive?: boolean;
+      // Marks the header as authoritative so the platform's default
+      // static-file cache policy (max-age=0, must-revalidate) can't
+      // override it. Same flag Vercel's own framework builders emit.
+      important?: boolean;
     };
 
 export interface VercelDeploymentOutputConfig {
@@ -75,6 +86,7 @@ export async function buildVercelWebsite(
     resolve(rootDir, PUBLISHED_MANIFEST_PATH),
     resolve(staticDir, WEBSITE_PUBLICATION_MANIFEST_PATH),
   );
+  await writeWebsiteSeoFiles(staticDir);
 }
 
 export async function buildVercelMcp(
@@ -91,8 +103,17 @@ export async function buildVercelMcp(
 
   await bundleFunction(rootDir, functionDir);
   await writeVercelConfig(outputDir, createVercelMcpOutputConfig());
+  await writeLegacyMcpGoneStatic(resolve(rootDir, STATIC_DIR));
   await writeFunctionConfig(functionDir);
   await copyHostedStage(rootDir, buildConfig.hostedPublicDir, functionDir);
+}
+
+async function writeLegacyMcpGoneStatic(staticDir: string): Promise<void> {
+  await mkdir(staticDir, { recursive: true });
+  await writeFile(
+    resolve(staticDir, VERCEL_LEGACY_MCP_GONE_STATIC_FILE),
+    createLegacyHostedMcpGoneBody(),
+  );
 }
 
 async function bundleFunction(rootDir: string, functionDir: string): Promise<void> {
@@ -132,6 +153,17 @@ export function createVercelWebsiteOutputConfig(): VercelDeploymentOutputConfig 
   //      `/foo` → `/foo.html` with `check: true` so Vercel re-runs from
   //      the top of the routes table; the second filesystem pass picks
   //      up the rewritten `.html` file.
+  //   3. `handle: "hit"` — runs when a filesystem match is found. Every
+  //      file under /static/ is content-hashed by rspress (js, css, async
+  //      chunks, the search index json), so serve them with a one-year
+  //      immutable cache-control instead of Vercel's static default
+  //      (max-age=0, must-revalidate), which forced a revalidation
+  //      round-trip per asset on every visit. HTML files live outside
+  //      /static/ and keep the revalidate default — they must pick up new
+  //      hashed asset references on deploy.
+  //   4. `handle: "error"` — when both filesystem passes miss, serve the
+  //      rspress-built branded `/404.html` with a real 404 status instead
+  //      of Vercel's unbranded platform default page.
   //
   // The website deployment deliberately has no function routes; MCP and
   // status APIs are packaged by the separate MCP deployment.
@@ -141,8 +173,79 @@ export function createVercelWebsiteOutputConfig(): VercelDeploymentOutputConfig 
       { handle: 'filesystem' },
       { handle: 'miss' },
       { src: '^/(.*)$', dest: '/$1.html', check: true },
+      { handle: 'hit' },
+      {
+        src: '^/static/(.*)$',
+        headers: { 'cache-control': 'public, max-age=31536000, immutable' },
+        continue: true,
+        important: true,
+      },
+      { handle: 'error' },
+      { src: '^/.*$', dest: WEBSITE_404_FILE, status: 404 },
     ],
   };
+}
+
+// rspress v2 has no built-in sitemap support, so the website bundle
+// derives sitemap.xml from the built static tree — the URL set always
+// mirrors exactly what the deploy serves. robots.txt points crawlers at
+// it. Paths drop the `.html` suffix to match the site's clean URLs;
+// the root `index.html` maps to `/` and the 404 page is excluded.
+export async function collectWebsiteSitemapPaths(staticDir: string): Promise<string[]> {
+  const entries = await readdir(staticDir, { recursive: true });
+  const paths: string[] = [];
+  for (const entry of entries) {
+    const relativePath = entry.split(sep).join('/');
+    if (!relativePath.endsWith('.html') || relativePath === '404.html') {
+      continue;
+    }
+    paths.push(
+      relativePath === 'index.html'
+        ? '/'
+        : `/${relativePath.slice(0, -'.html'.length)}`,
+    );
+  }
+  return paths.sort();
+}
+
+export function createWebsiteSitemapXml(paths: readonly string[]): string {
+  const urls = paths
+    .map((path) => `  <url><loc>${escapeXml(`${WEBSITE_CANONICAL_ORIGIN}${path}`)}</loc></url>`)
+    .join('\n');
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    urls,
+    '</urlset>',
+    '',
+  ].join('\n');
+}
+
+export function createWebsiteRobotsTxt(): string {
+  return `User-agent: *\nAllow: /\n\nSitemap: ${WEBSITE_CANONICAL_ORIGIN}/${WEBSITE_SITEMAP_FILENAME}\n`;
+}
+
+async function writeWebsiteSeoFiles(staticDir: string): Promise<void> {
+  const paths = await collectWebsiteSitemapPaths(staticDir);
+  await writeFile(
+    resolve(staticDir, WEBSITE_SITEMAP_FILENAME),
+    createWebsiteSitemapXml(paths),
+    'utf8',
+  );
+  await writeFile(
+    resolve(staticDir, WEBSITE_ROBOTS_FILENAME),
+    createWebsiteRobotsTxt(),
+    'utf8',
+  );
+}
+
+function escapeXml(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll("'", '&apos;')
+    .replaceAll('"', '&quot;');
 }
 
 export function createVercelMcpOutputConfig(): VercelDeploymentOutputConfig {
@@ -162,12 +265,13 @@ export function createVercelMcpOutputConfig(): VercelDeploymentOutputConfig {
 }
 
 export function createVercelLegacyMcpBlockedRoute(): VercelDeploymentRoute {
+  // Static 410 body; see LEGACY_HOSTED_MCP_GONE_STATUS in hosted.ts.
   return {
     src: `^${LEGACY_HOSTED_MCP_ROUTE}$`,
-    status: 403,
+    dest: `/${VERCEL_LEGACY_MCP_GONE_STATIC_FILE}`,
+    status: LEGACY_HOSTED_MCP_GONE_STATUS,
     headers: {
       'Cache-Control': 'no-store',
-      'X-Vercel-Mitigated': 'deny',
       Link: `<${LEGACY_HOSTED_MCP_SUCCESSOR_URL}>; rel="successor-version"`,
     },
   };

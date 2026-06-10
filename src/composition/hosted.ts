@@ -169,12 +169,25 @@ function isHostedMcpRoute(
   return url.pathname === route;
 }
 
+const LEGACY_HOSTED_MCP_DISABLED_MESSAGE =
+  'Legacy FPF MCP endpoint is disabled; use https://mcp.fpf.sh/api/mcp/fpf_reference/mcp.';
+
+// 410 (not 401/403) keeps the block out of the HTTP auth family: MCP clients
+// such as claude.ai treat auth-shaped statuses as an OAuth challenge and fail
+// with a confusing registration error instead of surfacing the migration text.
+export const LEGACY_HOSTED_MCP_GONE_STATUS = 410;
+
+export function createLegacyHostedMcpGoneBody(): string {
+  return JSON.stringify(
+    createHostedMcpBlockedPayload(LEGACY_HOSTED_MCP_DISABLED_MESSAGE),
+  );
+}
+
 function createHostedLegacyMcpDisabledResponse(): Response {
   return createHostedMcpBlockedResponse(
-    403,
-    'Legacy FPF MCP endpoint is disabled; use https://mcp.fpf.sh/api/mcp/fpf_reference/mcp.',
+    LEGACY_HOSTED_MCP_GONE_STATUS,
+    LEGACY_HOSTED_MCP_DISABLED_MESSAGE,
     {
-      'X-Vercel-Mitigated': 'deny',
       Link: '<https://mcp.fpf.sh/api/mcp/fpf_reference/mcp>; rel="successor-version"',
     },
   );
@@ -202,17 +215,14 @@ function createHostedMcpBlockedResponse(
 }
 
 function writeHostedLegacyMcpDisabledNodeResponse(response: ServerResponse): void {
-  response.statusCode = 403;
+  response.statusCode = LEGACY_HOSTED_MCP_GONE_STATUS;
   response.setHeader('Cache-Control', 'no-store');
   response.setHeader('Content-Type', 'application/json; charset=utf-8');
-  response.setHeader('X-Vercel-Mitigated', 'deny');
   response.setHeader(
     'Link',
     '<https://mcp.fpf.sh/api/mcp/fpf_reference/mcp>; rel="successor-version"',
   );
-  response.end(JSON.stringify(createHostedMcpBlockedPayload(
-    'Legacy FPF MCP endpoint is disabled; use https://mcp.fpf.sh/api/mcp/fpf_reference/mcp.',
-  )));
+  response.end(createLegacyHostedMcpGoneBody());
 }
 
 function writeHostedMcpDisabledNodeResponse(response: ServerResponse): void {

@@ -18,6 +18,8 @@ The MCP Vercel project (`fpf-reference-mcp`) serves:
 
 The wiki (`fpf.sh`) is a **separate** Vercel project (`fpf-sh`) built from `vercel:website:build`.
 
+Contributors who also run a local full-surface stdio runtime alongside hosted deploy should read [Dual Runtime Model](/dual-runtime-model) for client routing and snapshot alignment.
+
 ## Vercel MCP for operators
 
 Vercel MCP is a separate operator-side control-plane server from Vercel, not the hosted FPF Reference MCP server. Use it to inspect Vercel projects, deployments, build logs, runtime logs, protected preview URLs, and Vercel documentation while keeping `fpf_reference` as the public FPF lookup endpoint.
@@ -79,8 +81,8 @@ bun run deploy:prod
 
 Config files:
 
-- [`vercel.mcp.json`](../vercel.mcp.json) — MCP/API project (`buildCommand`: `bun run vercel:mcp:build`)
-- [`vercel.json`](../vercel.json) — static wiki project
+- [`vercel.mcp.json`](https://github.com/venikman/fpf-memory/blob/main/vercel.mcp.json) — MCP/API project (`buildCommand`: `bun run vercel:mcp:build`)
+- [`vercel.json`](https://github.com/venikman/fpf-memory/blob/main/vercel.json) — static wiki project
 
 ## Safety switches
 

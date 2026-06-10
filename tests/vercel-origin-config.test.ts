@@ -1,14 +1,19 @@
-import { readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
 import { describe, expect, it } from '@rstest/core';
 
 import { HOSTED_FPF_STATUS_ROUTE } from '../src/adapters/hosted/status-page.js';
 import {
+  collectWebsiteSitemapPaths,
   createVercelFunctionConfig,
   createVercelLegacyMcpBlockedRoute,
   createVercelMcpOutputConfig,
   createVercelWebsiteOutputConfig,
+  createWebsiteRobotsTxt,
+  createWebsiteSitemapXml,
+  WEBSITE_CANONICAL_ORIGIN,
 } from '../src/build/vercel-origin-build.js';
 import {
   HOSTED_HOME_ROUTES,
@@ -192,7 +197,7 @@ describe('Vercel deployment configs', () => {
       'handle' in route ? [route.handle] : [],
     );
 
-    expect(handles).toEqual(['filesystem', 'miss']);
+    expect(handles).toEqual(['filesystem', 'miss', 'hit', 'error']);
     expect(srcRoutes).toContain('^/(.*)$');
     expect(srcRoutes).not.toContain('^/$');
     expect(srcRoutes).not.toContain('^/connect-mcp$');
@@ -235,8 +240,14 @@ describe('Vercel deployment configs', () => {
       dest: '/_mcp',
     });
     expect(srcRoutes).not.toContain('^/(.*)$');
+    // The only non-function dest is the static legacy-gone migration body.
     expect(
-      config.routes.every((route) => !('dest' in route) || route.dest === '/_mcp'),
+      config.routes.every(
+        (route) =>
+          !('dest' in route) ||
+          route.dest === '/_mcp' ||
+          route.dest === '/legacy-mcp-gone.json',
+      ),
     ).toBe(true);
   });
 
@@ -247,14 +258,13 @@ describe('Vercel deployment configs', () => {
     expect(config.routes[0]).toEqual(legacyBlock);
     expect(legacyBlock).toEqual({
       src: `^${LEGACY_HOSTED_MCP_ROUTE}$`,
-      status: 403,
+      dest: '/legacy-mcp-gone.json',
+      status: 410,
       headers: {
         'Cache-Control': 'no-store',
-        'X-Vercel-Mitigated': 'deny',
         Link: '<https://mcp.fpf.sh/api/mcp/fpf_reference/mcp>; rel="successor-version"',
       },
     });
-    expect('dest' in legacyBlock).toBe(false);
   });
 
   it('runs the filesystem phase first in the website deployment', () => {
@@ -264,5 +274,81 @@ describe('Vercel deployment configs', () => {
     );
 
     expect(filesystemIndex).toBe(0);
+  });
+
+  it('serves the branded rspress 404 page with a real 404 status on website misses', () => {
+    const config = createVercelWebsiteOutputConfig();
+    const errorIndex = config.routes.findIndex(
+      (route) => 'handle' in route && route.handle === 'error',
+    );
+
+    expect(errorIndex).toBeGreaterThan(-1);
+    expect(config.routes[errorIndex + 1]).toEqual({
+      src: '^/.*$',
+      dest: '/404.html',
+      status: 404,
+    });
+  });
+
+  it('serves content-hashed static assets with immutable cache headers', () => {
+    const config = createVercelWebsiteOutputConfig();
+    const hitIndex = config.routes.findIndex(
+      (route) => 'handle' in route && route.handle === 'hit',
+    );
+
+    expect(hitIndex).toBeGreaterThan(-1);
+    expect(config.routes[hitIndex + 1]).toEqual({
+      src: '^/static/(.*)$',
+      headers: { 'cache-control': 'public, max-age=31536000, immutable' },
+      continue: true,
+      important: true,
+    });
+  });
+
+  it('maps built html files to clean sitemap paths', async () => {
+    const dir = await mkdtemp(resolve(tmpdir(), 'fpf-sitemap-'));
+    try {
+      await mkdir(resolve(dir, 'generated/patterns'), { recursive: true });
+      await mkdir(resolve(dir, 'static/css'), { recursive: true });
+      await writeFile(resolve(dir, 'index.html'), '<!doctype html>');
+      await writeFile(resolve(dir, '404.html'), '<!doctype html>');
+      await writeFile(resolve(dir, 'connect-mcp.html'), '<!doctype html>');
+      await writeFile(resolve(dir, 'generated/patterns/A.6.9.html'), '<!doctype html>');
+      await writeFile(resolve(dir, 'static/css/styles.css'), '');
+
+      const paths = await collectWebsiteSitemapPaths(dir);
+
+      expect(paths).toEqual(['/', '/connect-mcp', '/generated/patterns/A.6.9']);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('generates the sitemap rooted at the canonical website origin', () => {
+    const xml = createWebsiteSitemapXml(['/', '/connect-mcp']);
+
+    expect(WEBSITE_CANONICAL_ORIGIN).toBe('https://fpf.sh');
+    expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+    expect(xml).toContain('<loc>https://fpf.sh/</loc>');
+    expect(xml).toContain('<loc>https://fpf.sh/connect-mcp</loc>');
+  });
+
+  it('points robots.txt at the canonical sitemap', () => {
+    const robots = createWebsiteRobotsTxt();
+
+    expect(robots).toContain('User-agent: *');
+    expect(robots).toContain('Allow: /');
+    expect(robots).toContain('Sitemap: https://fpf.sh/sitemap.xml');
+  });
+
+  it('emits the SEO files into the website static output during build', async () => {
+    const build = await readFile(
+      resolve(process.cwd(), 'src/build/vercel-origin-build.ts'),
+      'utf8',
+    );
+
+    expect(build).toContain("WEBSITE_SITEMAP_FILENAME = 'sitemap.xml'");
+    expect(build).toContain("WEBSITE_ROBOTS_FILENAME = 'robots.txt'");
+    expect(build).toContain('writeWebsiteSeoFiles(staticDir)');
   });
 });
