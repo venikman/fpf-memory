@@ -20,9 +20,13 @@
 
 ## Validation
 
-- `bun run lint` passes locally
-- `bun run check` passes locally
-- `bun run test` passes locally
+- Verification profile: P0 / P1 / P2 / P3 / P4
+- Profile reason:
+- Focused local command or static inspection:
+- Broader checks skipped, if any:
+- `bun run lint` passes locally, or N/A with profile reason
+- `bun run check` passes locally, or N/A with profile reason
+- `bun run test` passes locally, or N/A with profile reason
 - No new warnings introduced
 - `bun run build` succeeds (if runtime/server code touched)
 - `bun run docs:build` succeeds (if docs touched)

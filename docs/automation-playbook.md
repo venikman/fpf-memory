@@ -26,6 +26,20 @@ Keep role, capability, promise, work, and evidence separate.
 
 The main safety rule is simple: discovery roles stay read-only, implementation roles make PRs, and merge or publishing authority stays explicit.
 
+## Verification profiles
+
+Use profile-based gates so small work stays small without lowering assurance for production or security surfaces.
+
+| Profile | Automation use | Required evidence |
+| --- | --- | --- |
+| P0 Planning/no mutation | Briefs, scouting, or explanation-only work. | No test/build claim; state that no verification was run. |
+| P1 Tiny low-risk | Copy, typo, dead-link text, comments, or docs wording with no public-promise, route, schema, security, deploy, monitor, or generated-artifact effect. | Focused static inspection or one targeted command, plus why broader checks were not needed. |
+| P2 Normal docs/code | Local docs, CLI, runtime, test, or hosted-copy changes with behavior impact but no production-control or security boundary change. | Closest surface check: focused test, docs build, CLI invocation, local smoke, or type check as applicable. |
+| P3 Production/security/deploy/MCP/published | Public promises, MCP routes/tools/contracts, security headers, deployment packaging, monitor behavior, production smoke, or `published/current/**`. | Surface E2E or deploy dry-run plus the production evidence packet when production-facing behavior is implicated. |
+| P4 Autonomous sync/deploy automation | Sync workers, scheduled monitors, merge/deploy automation, billing/spend controls, or autonomous workflow triggering. | Budget, guard verdict, stop/replan trigger, and ledger-style evidence note. |
+
+Agents start with the smallest admissible profile and escalate when the touched surface or claim requires it. Workflow trigger changes, path filters, or monitor cadence/backoff changes should be separate measured PRs unless the current task is explicitly about automation behavior.
+
 ## Role map
 
 | Role | Promise | May do | Must not do by default | Output artifact |
@@ -211,7 +225,7 @@ Operational defaults:
 - `sync-fpf.yml` accepts `fpf-origin-updated` and `fpf-sync-updated` dispatches or manual runs, closes superseded sync PRs, opens a current PR, runs validation/build/preview, then auto-merges only after the review window and required evidence pass.
 - `fpf-sync-monitor.yml` polls hourly, runs `bun run monitor:sync`, triggers `sync-fpf.yml` when upstream is ahead and no sync worker is queued or running, and fails the monitor if `mcp.fpf.sh` exceeds the drift SLO or the hosted runtime is stale. If a current generated PR already exists, the dispatch is a retry path for CI and merge eligibility rather than a duplicate PR path.
 - The default drift SLO is 10 hours: hourly detection plus a 2-hour review window plus operational margin.
-- `vercel-spend-monitor.yml` polls Vercel metrics every 15 minutes with `bun run monitor:vercel:spend`, failing when Function Duration exceeds the configured GB-hour window, the legacy MCP route reaches Functions again, Vercel reports unexpected function error-code rows, credentials are missing, or metrics are unavailable. It reports expected blocked legacy traffic separately so operators do not treat blocked traffic as a spend breach. It prefers the repo secret `VERCEL_SPEND_MONITOR_TOKEN` and falls back to `VERCEL_TOKEN`.
+- `vercel-spend-monitor.yml` polls Vercel metrics hourly with `bun run monitor:vercel:spend`, failing when Function Duration exceeds the configured GB-hour window, the legacy MCP route reaches Functions again, Vercel reports unexpected function error-code rows, credentials are missing, or metrics are unavailable. It reports expected blocked legacy traffic separately so operators do not treat blocked traffic as a spend breach. It prefers the repo secret `VERCEL_SPEND_MONITOR_TOKEN` and falls back to `VERCEL_TOKEN`.
 
 ## Publishing and outreach packets
 

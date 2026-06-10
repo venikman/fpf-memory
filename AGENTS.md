@@ -36,6 +36,18 @@ FPF work-evaluation surface:
 
 For every non-trivial Codex implementation or review-fix task, run the closest real end-to-end verification command for the surface that changed (docs build for docs, CLI invocation for CLI/MCP/evaluator changes, deploy dry-run for packaging) and share the command, the relevant output excerpt, and any caveats with the user before calling the work complete. Pure planning or explanation-only turns with no repo mutation do not require this.
 
+Use the smallest verification profile that is admissible for the changed surface, then escalate when the claim or touched files require stronger evidence:
+
+| Profile | Use when | Evidence expectation |
+| --- | --- | --- |
+| P0 Planning/no mutation | No repo files changed, or no completion claim is being made. | State that no verification was run. |
+| P1 Tiny low-risk | Copy, typo, dead-link text, comments, or docs wording that does not alter public promises, routes, schemas, security, deploy, monitors, or generated artifacts. | Focused static inspection or one targeted command, plus a note explaining why broader checks were not needed. |
+| P2 Normal docs/code | Docs, CLI, runtime, tests, or hosted copy changes with local behavior impact but no production-control or security boundary change. | Closest real surface check, such as a focused test, `bun run docs:build`, a CLI invocation, local smoke, or `bun run check` as applicable. |
+| P3 Production/security/deploy/MCP/published | Public promise wording, MCP routes/tools/contracts, security headers, deploy packaging, monitor behavior, production smoke, or `published/current/**`. | Surface E2E or deploy dry-run plus a production evidence packet when production-facing behavior is implicated. |
+| P4 Autonomous sync/deploy automation | Sync workers, scheduled monitors, merge/deploy automation, billing/spend controls, or any autonomous action path. | Budget, guard verdict, stop/replan trigger, and ledger-style evidence note. Human approval is still required for billing, purchases, destructive actions, and final external publishing. |
+
+Escalate out of P1/P2 immediately when the change touches MCP route shape, tool contracts, transport semantics, Vercel build/deploy packaging, aliases/domains, security or privacy logging, cost/spend controls, compatibility routes, generated publication artifacts, workflow files, branch-protection assumptions, merge automation, or deployment automation. A small PR should be small in local agent work, not weaker in evidence for high-risk surfaces. Subagents are case-by-case: use them for independent substantive tasks or material review independence, not by reflex for a two-line low-risk change.
+
 ## Learned User Preferences
 
 - Prefer `bun run spec:download` or set `FPF_PUBLISH_SOURCE_PATH` to a local checkout of Anatoly Levenchuk's upstream FPF repo when refreshing the committed `published/current/**` surface.
