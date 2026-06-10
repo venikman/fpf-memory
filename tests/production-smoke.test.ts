@@ -101,7 +101,7 @@ describe('semantic production smoke', () => {
       mcpBaseUrl: 'https://mcp.example.test',
       expectedPublication: EXPECTED,
       fetchImpl: createSmokeFetch({
-        websiteConnectText: wikiConnectText('406 Not Acceptable'),
+        websiteConnectText: wikiConnectText(),
         mcpConnectText: mcpLandingText('406 Not Acceptable'),
       }),
     });
@@ -109,6 +109,21 @@ describe('semantic production smoke', () => {
     expect(report.ok).toBe(false);
     expect(report.summary).toContain('standalone MCP GET documentation');
     expect(report.observed.standaloneMcpGet?.status).toBe(405);
+  });
+
+  it('does not require standalone MCP GET wording on the fpf.sh bridge page', async () => {
+    const report = await runProductionSmoke({
+      websiteBaseUrl: 'https://docs.example.test',
+      mcpBaseUrl: 'https://mcp.example.test',
+      expectedPublication: EXPECTED,
+      fetchImpl: createSmokeFetch({
+        websiteConnectText: wikiConnectText(),
+        mcpConnectText: mcpLandingText('405 Method Not Allowed'),
+      }),
+    });
+
+    expect(report.ok).toBe(true);
+    expect(report.summary).not.toContain('fpf.sh connect-mcp standalone MCP GET documentation');
   });
 });
 

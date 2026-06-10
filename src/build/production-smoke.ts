@@ -135,7 +135,6 @@ export async function runProductionSmoke(
     ...checkWikiConnectPage('fpf.sh connect-mcp', websiteConnect),
     ...checkMcpOriginLandingPage('mcp.fpf.sh root', mcpRoot),
     ...checkMcpOriginLandingPage('mcp.fpf.sh connect-mcp', mcpConnect),
-    ...checkGetDocs(websiteConnect),
     ...checkGetDocs(mcpConnect),
   );
 
