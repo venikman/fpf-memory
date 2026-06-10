@@ -493,23 +493,34 @@ describe('docs projection', () => {
       expect(rootIndex).toContain('[Quick connect](/connect-local)');
       expect(rootIndex).toContain('[Connect MCP](/connect-mcp)');
       expect(rootIndex).toContain('[Pattern Catalog](/patterns)');
-      expect(rootIndex).toContain('[Adoption guide](/start-here) · [Reference catalog](/patterns)');
+      // Hero: plain-language answer (what FPF is / what this site adds /
+      // what to do first) leads the page; the deep dive and provenance
+      // follow it (content audit 2026-06-09, findings 1-2).
+      expect(rootIndex).toContain('pattern language for rigorous reasoning');
+      expect(rootIndex).toContain('## What is FPF?');
+      const heroIndex = rootIndex.indexOf('pattern language for rigorous reasoning');
+      const entryPointIndex = rootIndex.indexOf('## Choose your entry point');
+      const provenanceIndex = rootIndex.indexOf('## Published from');
+      expect(heroIndex).toBeGreaterThan(-1);
+      expect(heroIndex).toBeLessThan(entryPointIndex);
+      // Provenance is footer material — after every adoption-facing section.
+      expect(provenanceIndex).toBeGreaterThan(rootIndex.indexOf('## What is FPF?'));
+      expect(provenanceIndex).toBeGreaterThan(rootIndex.indexOf('## Reference shortcuts'));
+      expect(provenanceIndex).toBeGreaterThan(rootIndex.indexOf('<details>'));
       if (Object.keys(snapshot.routeGraph.nodes).length > 0) {
         expect(rootIndex).toContain('[Routes](/routes)');
       } else {
         expect(rootIndex).not.toContain('[Routes](/routes)');
       }
-      const glossaryTarget = resolveDocTarget(
-        snapshot,
-        findPatternByTitleFragment(snapshot, 'alphabetic glossary').id,
-      );
+      // The newcomer glossary is an authored page at /glossary; the spec's
+      // own H.1 glossary is linked from there, not from the shortcuts row.
+      expect(rootIndex).toContain('[Glossary](/glossary)');
+      expect(rootIndex).not.toContain('[Glossary](/generated/patterns/');
       const changeLogTarget = resolveDocTarget(
         snapshot,
         findPatternByTitleFragment(snapshot, 'change log').id,
       );
-      expect(glossaryTarget).toBeDefined();
       expect(changeLogTarget).toBeDefined();
-      expect(rootIndex).toContain(`[Glossary](${glossaryTarget?.docRef.staticPath})`);
       expect(rootIndex).toContain(`[Change log](${changeLogTarget?.docRef.staticPath})`);
       expect(rootIndex).toContain('## Published from');
       expect(rootIndex).toContain('source hash `sha256:');
@@ -573,6 +584,9 @@ describe('docs projection', () => {
     expect(rootIndex).toContain('[Quick connect](/connect-local)');
     expect(rootIndex).not.toContain('[Glossary](/generated/patterns/');
     expect(rootIndex).not.toContain('[Change log](/generated/patterns/');
+    // The authored newcomer glossary link is static — present even when the
+    // spec lacks an H.1-style glossary pattern.
+    expect(rootIndex).toContain('[Glossary](/glossary)');
   });
 
   it('builds rspress output into a disposable outDir', async () => {

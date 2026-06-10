@@ -529,15 +529,17 @@ function renderHomeMarkdown(
     renderFrontMatter({
       title: 'FPF Reference',
       description:
-        'Hosted FPF Reference MCP server + slim wiki projection of the First Principles Framework (FPF) by Anatoly Levenchuk.',
+        'Reference wiki and hosted MCP lookup server for the First Principles Framework (FPF), a pattern language for rigorous engineering and research reasoning by Anatoly Levenchuk.',
       outline: false,
     }),
     '',
     '# FPF Reference',
     '',
-    `Hosted **FPF Reference** MCP server + slim wiki projection of the **First Principles Framework (FPF)**. ${referenceScope} — addressable by stable FPF IDs, browsable here and queryable through MCP.`,
+    'The **First Principles Framework (FPF)** is a pattern language for rigorous reasoning in engineering, research, and management, written by [Anatoly Levenchuk](https://github.com/ailev). Its named, interlinked patterns help teams and AI agents keep meanings, claims, evidence, and decisions stable as work moves between people, tools, and time.',
     '',
-    '[Adoption guide](/start-here) · [Reference catalog](/patterns)',
+    `This site is the FPF reference: a browsable wiki projection of the published spec (${referenceScope}, addressable by stable FPF IDs) plus a hosted **FPF Reference** MCP server so agents and editors can query the same patterns programmatically.`,
+    '',
+    'First time here? Walk the worked example on [Start Here](/start-here). Connecting an agent or editor? [Connect MCP](/connect-mcp). Stuck on a term like "holon" or "episteme"? Open the [Glossary](/glossary).',
     '',
     '## Choose your entry point',
     '',
@@ -548,19 +550,21 @@ function renderHomeMarkdown(
     '| Reviewing a project, PR, or design change | [Work Packets](/work-packets) | Use the PR/code review packet or product-role feedback packet. |',
     '| Looking up an exact ID | [Pattern Catalog](/patterns) | Search an ID like `A.2.3`. |',
     '',
+    '## What is FPF?',
+    '',
+    '> FPF helps when raw insight is not enough: meanings, claims, alternatives, evidence, boundaries, and outputs must remain stable across contexts, time, people, tools, or AI agents.',
+    '',
+    'FPF reads like a technical specification rather than a management book — named patterns, definitions, and review rules — with the goal of helping teams model complex work, make reasoning inspectable, and keep decisions stable across engineering, research, and management.',
+    '',
+    'The upstream publication source this site tracks is [`github.com/ailev/FPF`](https://github.com/ailev/FPF), specifically `FPF-Spec.md` on `main` by default. This wiki is a read projection of that source; the MCP server is a programmatic projection of the same compiled snapshot.',
+    '',
+    '> **Cite this spec.** If you use FPF, please cite: Levenchuk, Anatoly. *First Principles Framework (FPF).* GitHub repository: <https://github.com/ailev/FPF>',
+    '',
     '## Reference shortcuts',
     '',
     renderHomeNavigateLine(snapshot),
     '',
     'The full generated pattern catalog lives at [Pattern Catalog](/patterns); this home page stays focused on adoption paths and task entry points.',
-    '',
-    '## Published from',
-    '',
-    provenanceDetail,
-    '',
-    'Production readiness is checked with hosted status, MCP smoke, Q&A benchmark, and Vercel bundle-size gates.',
-    '',
-    'For MCP setup, see [Connect MCP](/connect-mcp). For framework orientation, see [Start Here](/start-here).',
     '',
     '<details>',
     '<summary>FPF Reference MCP — what this server does</summary>',
@@ -577,18 +581,15 @@ function renderHomeMarkdown(
     '',
     '</details>',
     '',
-    '<details>',
-    '<summary>FPF — the framework this server projects</summary>',
+    'For MCP setup, see [Connect MCP](/connect-mcp). For framework orientation, see [Start Here](/start-here).',
     '',
-    '> FPF helps when raw insight is not enough: meanings, claims, alternatives, evidence, boundaries, and outputs must remain stable across contexts, time, people, tools, or AI agents.',
+    '---',
     '',
-    'The **First Principles Framework (FPF)** is a structured framework for thinking and coordinating work. It reads like a technical specification rather than a management book — named patterns, definitions, and review rules — with the goal of helping teams model complex work, make reasoning inspectable, and keep decisions stable across engineering, research, and management.',
+    '## Published from',
     '',
-    'FPF is authored by [Anatoly Levenchuk](https://github.com/ailev). The upstream publication source this runtime tracks is [`github.com/ailev/FPF`](https://github.com/ailev/FPF), specifically `FPF-Spec.md` on `main` by default. This site is a wiki projection; the MCP server above is a programmatic projection.',
+    provenanceDetail,
     '',
-    '> **Cite this spec.** If you use FPF, please cite: Levenchuk, Anatoly. *First Principles Framework (FPF).* GitHub repository: <https://github.com/ailev/FPF>',
-    '',
-    '</details>',
+    'Production readiness is checked with hosted status, MCP smoke, Q&A benchmark, and Vercel bundle-size gates.',
     '',
     `Full connect walkthrough: [${WIKI_CONNECT_MCP_URL}](${WIKI_CONNECT_MCP_URL}).`,
   ];
@@ -602,14 +603,19 @@ function renderHomeNavigateLine(snapshot: Snapshot): string {
     { text: 'Quick connect', link: '/connect-local' },
     { text: 'Connect MCP', link: '/connect-mcp' },
     { text: 'Interface Contract', link: '/interface-contract' },
+    { text: 'Glossary', link: '/glossary' },
     { text: 'Pattern Catalog', link: '/patterns' },
   ];
   if (Object.keys(snapshot.routeGraph.nodes).length > 0) {
     links.push({ text: 'Routes', link: '/routes' });
   }
 
+  // The newcomer glossary is the authored page at /glossary; the spec's own
+  // H.1 Alphabetic Glossary is linked from there. Only the change log keeps
+  // the optional spec-derived shortcut.
   const orderedPatterns = sortedPatterns(snapshot);
   for (const candidate of OPTIONAL_TERM_LINKS) {
+    if (candidate.key === 'glossary') continue;
     const patternId = resolveOptionalTermPatternId(orderedPatterns, candidate.key);
     const pattern = patternId ? snapshot.patternGraph.nodes[patternId] : undefined;
     if (pattern) {
