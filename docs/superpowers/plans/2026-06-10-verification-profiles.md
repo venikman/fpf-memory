@@ -27,7 +27,7 @@ Replace the single-paragraph rule with the existing sentence plus a profile tabl
 
 - [ ] **Step 2: Static inspect the edited section**
 
-Run: `sed -n '31,95p' AGENTS.md`
+Run: `sed -n '31,70p' AGENTS.md`
 Expected: the section contains profiles P0 through P4, escalation triggers, and no workflow-trigger changes.
 
 - [ ] **Step 3: Commit is deferred**
