@@ -61,6 +61,7 @@ describe('public adoption copy parity', () => {
     const startHere = await readFile(resolve(process.cwd(), 'docs/start-here.md'), 'utf8');
 
     expect(startHere).toContain('First Principles Framework (FPF)');
+    expect(startHere).toContain(MCP_ORIGIN_HOME_URL);
     expect(startHere).toContain(FIRST_SUCCESSFUL_CALL_PROMPT);
     expect(startHere).toContain(MCP_SERVER_NAME);
     expect(startHere).toContain('query_fpf_spec');
