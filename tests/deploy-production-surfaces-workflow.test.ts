@@ -108,8 +108,10 @@ if [ "$1" = "run" ]; then
     vercel:mcp:build)
       rm -rf .vercel/output
       mkdir -p .vercel/output/functions/_mcp.func/hosted
+      mkdir -p .vercel/output/static
       printf 'export default {}\\n' > .vercel/output/functions/_mcp.func/index.mjs
       printf '{}\\n' > .vercel/output/functions/_mcp.func/hosted/manifest.json
+      printf '{}\\n' > .vercel/output/static/legacy-mcp-gone.json
       exit 0
       ;;
   esac

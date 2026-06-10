@@ -168,7 +168,9 @@ jobs:
 
       - name: Build MCP Vercel output without uploading
         # MCP/API deploys from a separate Vercel project and should not carry
-        # the static docs tree in its serverless bundle.
+        # the static docs tree in its serverless bundle. The only static
+        # asset is the legacy-route 410 migration body; anything else means
+        # the docs tree leaked into the MCP deployment.
         run: |
           bun run vercel:mcp:build
           test -d "$VERCEL_MCP_FUNCTION_BUNDLE_PATH"
@@ -176,7 +178,8 @@ jobs:
           test -f "$VERCEL_MCP_FUNCTION_BUNDLE_PATH/hosted/FPF-Spec.md"
           test -f "$VERCEL_MCP_FUNCTION_BUNDLE_PATH/hosted/manifest.json"
           test -f "$VERCEL_MCP_FUNCTION_BUNDLE_PATH/hosted/fpf-index/snapshot.json"
-          test ! -d .vercel/output/static
+          test -f .vercel/output/static/legacy-mcp-gone.json
+          test "$(ls -A .vercel/output/static)" = "legacy-mcp-gone.json"
 
       - name: Run semantic production smoke against local build
         # Exercise the same semantic assertions used for production against
