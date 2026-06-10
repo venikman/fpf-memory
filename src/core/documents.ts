@@ -539,7 +539,11 @@ function renderHomeMarkdown(
     '',
     `This site is the FPF reference: a browsable wiki projection of the published spec (${referenceScope}, addressable by stable FPF IDs) plus a hosted **FPF Reference** MCP server so agents and editors can query the same patterns programmatically.`,
     '',
-    'First time here? Walk the worked example on [Start Here](/start-here). Connecting an agent or editor? [Connect MCP](/connect-mcp). Stuck on a term like "holon" or "episteme"? Open the [Glossary](/glossary).',
+    // Wording deliberately avoids the exact phrase "Connecting an agent or
+    // editor" from the entry-point table below — the preview Playwright
+    // check targets that text with a strict locator, so it must stay
+    // unique on the page.
+    'First time here? Walk the worked example on [Start Here](/start-here). Need to connect an agent or editor? [Connect MCP](/connect-mcp). Stuck on a term like "holon" or "episteme"? Open the [Glossary](/glossary).',
     '',
     '## Choose your entry point',
     '',

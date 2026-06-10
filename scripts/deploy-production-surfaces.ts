@@ -284,8 +284,14 @@ async function assertMcpOutput(path: string): Promise<void> {
     resolve(path, 'static/legacy-mcp-gone.json'),
     'legacy MCP migration body',
   );
+  // Production deploys run from a developer Mac, where the OS file manager
+  // can drop metadata files into the build tree between build and assert;
+  // they are not a docs-tree leak.
+  const osMetadataEntries = new Set(['.DS_Store', 'Thumbs.db']);
   const staticEntries = await readdir(resolve(path, 'static'));
-  const unexpected = staticEntries.filter((entry) => entry !== 'legacy-mcp-gone.json');
+  const unexpected = staticEntries.filter(
+    (entry) => entry !== 'legacy-mcp-gone.json' && !osMetadataEntries.has(entry),
+  );
   if (unexpected.length > 0) {
     throw new Error(`Unexpected MCP static entries: ${unexpected.join(', ')}`);
   }
