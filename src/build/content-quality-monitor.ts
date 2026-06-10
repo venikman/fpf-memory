@@ -27,6 +27,7 @@ export const DEFAULT_CONTENT_QUALITY_STATUS_URL = 'https://mcp.fpf.sh/api/fpf/st
 export const CONTENT_QUALITY_CURATED_DOCS = [
   { label: 'home', path: '/', sourcePath: 'docs/index.md' },
   { label: 'start-here', path: '/start-here', sourcePath: 'docs/start-here.md' },
+  { label: 'glossary', path: '/glossary', sourcePath: 'docs/glossary.md' },
   { label: 'work-packets', path: '/work-packets', sourcePath: 'docs/work-packets.md' },
   { label: 'connect-local', path: '/connect-local', sourcePath: 'docs/connect-local.md' },
   { label: 'connect-mcp', path: '/connect-mcp', sourcePath: 'docs/connect-mcp.md' },
