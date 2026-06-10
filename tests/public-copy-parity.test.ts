@@ -41,6 +41,9 @@ describe('public adoption copy parity', () => {
     expect(html).toContain(HOSTED_MCP_STATUS_URL);
     expect(html).toContain(WIKI_INTERFACE_CONTRACT_URL);
     expect(html).toContain('stable FPF IDs');
+    expect(html).toContain('Package And Self-Hosting');
+    expect(html).toContain('bun run mcp');
+    expect(html).toContain('http://localhost:4111/api/mcp/fpf_reference/mcp');
     expect(html).toContain('<html lang="en">');
     expect(html).toContain('<main>');
     for (const tool of PUBLIC_MCP_TOOLS) {

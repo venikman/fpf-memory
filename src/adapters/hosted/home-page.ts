@@ -416,6 +416,21 @@ export function renderHostedHomePage(): string {
         ${CLIENT_SETUP_SECTIONS.map(renderClientSection).join('\n')}
       </section>
 
+      <h2 class="section-title">Package And Self-Hosting</h2>
+      <section class="prompt" aria-label="Package and self-hosting options">
+        <p>Use the hosted endpoint above when your client allows remote HTTP MCP servers. If your policy requires local or self-hosted tooling, run the same FPF Reference MCP runtime from source.</p>
+        <pre><code>git clone https://github.com/venikman/fpf-memory.git
+cd fpf-memory
+bun install
+bun run mcp</code></pre>
+        <p>Use the full local surface only for contributor or operator work that needs expert inspection tools.</p>
+        <pre><code>FPF_MCP_SURFACE=full bun run mcp</code></pre>
+        <p>For clients that require an HTTP URL instead of a stdio command, start the local HTTP server and register its MCP route.</p>
+        <pre><code>bun run start
+
+http://localhost:4111/api/mcp/fpf_reference/mcp</code></pre>
+      </section>
+
       <h2 class="section-title">Public Tools</h2>
       <section class="tools" aria-label="Public MCP tools">
         <ul>
