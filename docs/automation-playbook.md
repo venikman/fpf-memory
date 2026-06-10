@@ -306,7 +306,7 @@ The current material:
 - Website: https://fpf.sh/
 - MCP setup: https://fpf.sh/connect-mcp
 - Hosted endpoint: https://mcp.fpf.sh/api/mcp/fpf_reference/mcp
-- Legacy endpoint during transition: https://mcp.fpf.sh/api/mcp/fpf_memory/mcp (blocked at Vercel routing during May 2026 cost incident mitigation)
+- Legacy endpoint during transition: https://mcp.fpf.sh/api/mcp/fpf_memory/mcp (retired: Vercel routing answers HTTP 410 Gone with a successor-version link)
 
 The claim I am comfortable making right now is narrow: it is useful for bounded FPF lookup and agent workflows that need evidence-backed framework context. I am not claiming broad adoption or benchmark superiority yet.
 

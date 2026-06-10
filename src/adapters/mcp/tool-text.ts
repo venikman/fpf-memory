@@ -7,6 +7,14 @@
  * never add semantics beyond the structured payload.
  */
 
+import {
+  arrayOfRecords,
+  arrayOfStrings,
+  numberField,
+  recordField,
+  stringField,
+} from '../../core/unknown-fields.js';
+
 // Cap list-style renderings so a caller-requested 500-entry page does not
 // double the response size on the text channel. The structured payload
 // always carries the complete page.
@@ -15,6 +23,10 @@ const MAX_LISTED_IDS = 30;
 const MAX_ANCHOR_TEXT_CHARS = 1_000;
 const MAX_CITATION_TEXT_CHARS = 300;
 const MAX_ENTRY_LINE_CHARS = 160;
+// read_fpf_doc's primary deliverable is the exact page wording, so the text
+// mirror carries the markdown body itself, capped well above typical pattern
+// pages; oversized bodies stay complete in structuredContent.markdown.
+const MAX_DOC_TEXT_CHARS = 10_000;
 
 export function renderToolContent(
   toolId: string,
@@ -25,12 +37,9 @@ export function renderToolContent(
     return markdown;
   }
 
-  const answer = structuredContent.answer;
-  if (typeof answer === 'string') {
-    return answer;
-  }
-
   switch (toolId) {
+    case 'query_fpf_spec':
+      return renderQueryAnswer(structuredContent);
     case 'get_fpf_index_status':
       return renderIndexStatus(structuredContent);
     case 'browse_fpf_catalog':
@@ -50,11 +59,63 @@ export function renderToolContent(
     case 'refresh_fpf_index':
       return renderRefreshAudit(structuredContent);
     default: {
+      const answer = structuredContent.answer;
+      if (typeof answer === 'string') {
+        return answer;
+      }
       const status = structuredContent.status;
       const summary = status ? ` status=${String(status)}` : '';
       return `${toolId} returned structured content.${summary}`;
     }
   }
+}
+
+/**
+ * query_fpf_spec promises a bounded answer *with IDs, citations, and
+ * constraints* — mirror those grounding fields after the answer so a
+ * text-only client can chain into read_fpf_doc / expand_fpf_citations
+ * instead of receiving the bare answer sentence.
+ */
+function renderQueryAnswer(content: Record<string, unknown>): string {
+  const answer = stringField(content.answer);
+  const status = stringField(content.status);
+  if (!answer) {
+    return `query_fpf_spec returned structured content.${status ? ` status=${status}` : ''}`;
+  }
+
+  const grounding: string[] = [];
+  const confidence = numberField(content.confidence);
+  const statusParts = [
+    status ? `status ${status}` : undefined,
+    confidence !== undefined ? `confidence ${confidence}` : undefined,
+  ].filter(Boolean);
+  if (statusParts.length > 0) grounding.push(`- ${statusParts.join(', ')}`);
+  const ids = arrayOfStrings(content.ids);
+  if (ids) grounding.push(`- ids: ${joinCapped(ids)}`);
+  const citations = arrayOfStrings(content.citations);
+  if (citations) grounding.push(`- citations: ${joinCapped(citations)}`);
+  const constraints = arrayOfStrings(content.constraints);
+  if (constraints) {
+    grounding.push('- constraints:');
+    for (const constraint of constraints.slice(0, MAX_LISTED_IDS)) {
+      grounding.push(`  - ${truncate(constraint, MAX_ENTRY_LINE_CHARS)}`);
+    }
+    if (constraints.length > MAX_LISTED_IDS) {
+      grounding.push(`  - … (${constraints.length - MAX_LISTED_IDS} more)`);
+    }
+  }
+  const gaps = arrayOfStrings(content.gaps);
+  if (gaps) {
+    grounding.push('- gaps:');
+    for (const gap of gaps.slice(0, MAX_LISTED_IDS)) {
+      grounding.push(`  - ${truncate(gap, MAX_ENTRY_LINE_CHARS)}`);
+    }
+  }
+
+  if (grounding.length === 0) {
+    return answer;
+  }
+  return [answer, '', 'Grounding:', ...grounding].join('\n');
 }
 
 function renderIndexStatus(content: Record<string, unknown>): string {
@@ -292,6 +353,41 @@ function renderTrace(content: Record<string, unknown>): string {
   if (selectedAnchors && selectedAnchors.length > 0) {
     lines.push(`- selected anchors: ${joinCapped(selectedAnchors)}`);
   }
+  // The tool description promises candidate scores and graph expansions —
+  // the diagnostic core of the trace (why candidates won or lost) — so the
+  // text mirror must carry them, not just the selected slices.
+  const candidateScores = arrayOfRecords(content.candidateScores) ?? [];
+  if (candidateScores.length > 0) {
+    lines.push('Candidates:');
+    for (const candidate of candidateScores.slice(0, MAX_LISTED_IDS)) {
+      const reasons = arrayOfStrings(candidate.reasons);
+      lines.push(
+        `- ${stringField(candidate.nodeId) ?? 'unknown'}${
+          stringField(candidate.kind) ? ` [${stringField(candidate.kind)}]` : ''
+        } score ${numberField(candidate.score) ?? '?'}${
+          reasons ? `: ${truncate(reasons.join('; '), MAX_ENTRY_LINE_CHARS)}` : ''
+        }`,
+      );
+    }
+    if (candidateScores.length > MAX_LISTED_IDS) {
+      lines.push(`- … (${candidateScores.length - MAX_LISTED_IDS} more)`);
+    }
+  }
+  const expansions = arrayOfRecords(content.graphExpansions) ?? [];
+  if (expansions.length > 0) {
+    lines.push('Graph expansions:');
+    for (const expansion of expansions.slice(0, MAX_LISTED_IDS)) {
+      const reason = stringField(expansion.reason);
+      lines.push(
+        `- ${stringField(expansion.from) ?? 'unknown'} -[${
+          stringField(expansion.relation) ?? 'related'
+        }]-> ${stringField(expansion.to) ?? 'unknown'}${reason ? ` (${reason})` : ''}`,
+      );
+    }
+    if (expansions.length > MAX_LISTED_IDS) {
+      lines.push(`- … (${expansions.length - MAX_LISTED_IDS} more)`);
+    }
+  }
   return lines.join('\n');
 }
 
@@ -335,9 +431,11 @@ function nodeTag(node: Record<string, unknown>): string {
  * callers reading only the text channel got nothing actionable.
  *
  * The fallback mirrors the structured payload: title, node ID,
- * canonical doc paths, full markdown size, and the first few
- * outline headings so a reader can decide whether to fetch the
- * full body or follow the docRef link.
+ * canonical doc paths, full markdown size, the first few outline
+ * headings, and — in full mode — the markdown body itself (capped at
+ * MAX_DOC_TEXT_CHARS), since the exact page wording is the tool's
+ * primary deliverable and text-only clients cannot reach
+ * structuredContent.markdown.
  */
 function renderReadFpfDocFallback(
   structuredContent: Record<string, unknown>,
@@ -381,9 +479,19 @@ function renderReadFpfDocFallback(
     }
   }
 
+  const markdown = stringField(structuredContent.markdown);
   if (preview) {
     lines.push('');
     lines.push(preview);
+  } else if (markdown) {
+    lines.push('');
+    lines.push(truncate(markdown, MAX_DOC_TEXT_CHARS));
+    if (markdown.length > MAX_DOC_TEXT_CHARS) {
+      lines.push('');
+      lines.push(
+        `(truncated on the text channel — the complete markdown is in \`structuredContent.markdown\`)`,
+      );
+    }
   } else {
     lines.push('');
     lines.push('Full markdown is in `structuredContent.markdown`.');
@@ -402,32 +510,4 @@ function joinCapped(items: string[]): string {
     ? `, … (+${items.length - capped.length} more)`
     : '';
   return `${capped.join(', ')}${suffix}`;
-}
-
-function stringField(value: unknown): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : undefined;
-}
-
-function numberField(value: unknown): number | undefined {
-  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
-}
-
-function recordField(value: unknown): Record<string, unknown> | undefined {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : undefined;
-}
-
-function arrayOfRecords(value: unknown): Array<Record<string, unknown>> | undefined {
-  if (!Array.isArray(value)) return undefined;
-  return value.filter(
-    (item): item is Record<string, unknown> =>
-      typeof item === 'object' && item !== null && !Array.isArray(item),
-  );
-}
-
-function arrayOfStrings(value: unknown): string[] | undefined {
-  if (!Array.isArray(value)) return undefined;
-  const filtered = value.filter((item): item is string => typeof item === 'string');
-  return filtered.length > 0 ? filtered : undefined;
 }

@@ -16,6 +16,7 @@ import {
   type FpfMcpServer,
   writeMcpGetDisabledNodeResponse,
 } from '../adapters/mcp/server.js';
+import { HOSTED_MCP_ENDPOINT } from '../core/public-copy.js';
 import { applyHostedEnvDefaults } from './hosted-env.js';
 import { getSharedMcpComposition } from './mcp.js';
 
@@ -170,7 +171,14 @@ function isHostedMcpRoute(
 }
 
 const LEGACY_HOSTED_MCP_DISABLED_MESSAGE =
-  'Legacy FPF MCP endpoint is disabled; use https://mcp.fpf.sh/api/mcp/fpf_reference/mcp.';
+  `Legacy FPF MCP endpoint is disabled; use ${HOSTED_MCP_ENDPOINT}.`;
+
+// Single source for the successor pointer on every legacy-route surface —
+// the runtime responses below and the static Vercel route emitted by
+// vercel-origin-build.ts — so an endpoint migration is a one-line change
+// in public-copy.ts instead of synchronized literal edits.
+export const LEGACY_HOSTED_MCP_SUCCESSOR_LINK_HEADER =
+  `<${HOSTED_MCP_ENDPOINT}>; rel="successor-version"`;
 
 // 410 (not 401/403) keeps the block out of the HTTP auth family: MCP clients
 // such as claude.ai treat auth-shaped statuses as an OAuth challenge and fail
@@ -188,7 +196,7 @@ function createHostedLegacyMcpDisabledResponse(): Response {
     LEGACY_HOSTED_MCP_GONE_STATUS,
     LEGACY_HOSTED_MCP_DISABLED_MESSAGE,
     {
-      Link: '<https://mcp.fpf.sh/api/mcp/fpf_reference/mcp>; rel="successor-version"',
+      Link: LEGACY_HOSTED_MCP_SUCCESSOR_LINK_HEADER,
     },
   );
 }
@@ -218,10 +226,7 @@ function writeHostedLegacyMcpDisabledNodeResponse(response: ServerResponse): voi
   response.statusCode = LEGACY_HOSTED_MCP_GONE_STATUS;
   response.setHeader('Cache-Control', 'no-store');
   response.setHeader('Content-Type', 'application/json; charset=utf-8');
-  response.setHeader(
-    'Link',
-    '<https://mcp.fpf.sh/api/mcp/fpf_reference/mcp>; rel="successor-version"',
-  );
+  response.setHeader('Link', LEGACY_HOSTED_MCP_SUCCESSOR_LINK_HEADER);
   response.end(createLegacyHostedMcpGoneBody());
 }
 

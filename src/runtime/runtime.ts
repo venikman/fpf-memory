@@ -1,5 +1,13 @@
 import { createHash } from 'node:crypto';
-import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import {
+  access,
+  constants as fsConstants,
+  copyFile,
+  mkdir,
+  readFile,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 import { computeCompilerFingerprint } from '../build/compiler-fingerprint.js';
@@ -289,11 +297,17 @@ export class FpfRuntime {
 
   async status(): Promise<RuntimeStatus> {
     const currentCompilerFingerprint = await this.readCurrentCompilerFingerprint();
+    const currentSourceHash = await this.hashSourceFile();
     // status() is the documented preflight call, so warm calls must not pay
     // for re-reading the multi-MB artifact set: serve from the in-memory
-    // snapshot whenever one is loaded and still serviceable.
+    // snapshot whenever it is still serviceable AND still matches the
+    // on-disk source. On a source-hash mismatch fall through to disk —
+    // another process (parallel agent session, spec refresh) may have
+    // rebuilt the artifact set since this snapshot was cached.
     let existingSnapshot =
-      this.cachedSnapshot && !snapshotNeedsRebuild(this.cachedSnapshot, currentCompilerFingerprint)
+      this.cachedSnapshot &&
+      !snapshotNeedsRebuild(this.cachedSnapshot, currentCompilerFingerprint) &&
+      this.cachedSnapshot.sourceHash === currentSourceHash
         ? this.cachedSnapshot
         : await this.loadSnapshot();
     if (!existingSnapshot || snapshotNeedsRebuild(existingSnapshot, currentCompilerFingerprint)) {
@@ -307,14 +321,12 @@ export class FpfRuntime {
     }
 
     if (
-      !this.cachedSnapshot &&
       existingSnapshot &&
+      existingSnapshot !== this.cachedSnapshot &&
       !snapshotNeedsRebuild(existingSnapshot, currentCompilerFingerprint)
     ) {
       this.cachedSnapshot = existingSnapshot;
     }
-
-    const currentSourceHash = await this.hashSourceFile();
     return {
       sourcePath: this.sourcePath,
       sourceHash: existingSnapshot?.sourceHash,
@@ -341,7 +353,10 @@ export class FpfRuntime {
       forceRefresh?: boolean;
     } = {},
   ): Promise<BrowseCatalogResult> {
-    await this.refresh(options.forceRefresh ?? false);
+    // allowMemoryCache, like createEngine(): the memo path still re-stats
+    // the source per call, so freshness on spec edits is preserved without
+    // re-reading the multi-MB artifact set on every catalog page.
+    await this.refresh(options.forceRefresh ?? false, true);
     const snapshot = await this.requireSnapshot();
 
     const partFilter = resolvePartFilter(options.part, snapshot);
@@ -398,7 +413,7 @@ export class FpfRuntime {
     query: string,
     options: { kind?: NodeKind; limit?: number; forceRefresh?: boolean } = {},
   ): Promise<SearchResult> {
-    await this.refresh(options.forceRefresh ?? false);
+    await this.refresh(options.forceRefresh ?? false, true);
     const snapshot = await this.requireSnapshot();
 
     // Tokenize the raw query first so camelCase splits (e.g. BoundedContext →
@@ -512,12 +527,20 @@ export class FpfRuntime {
     // The fingerprint describes the compiler code this process is running,
     // which cannot change mid-process — compute it once per runtime instance.
     this.compilerFingerprintPromise ??= readSourceCompilerFingerprint();
-    return this.compilerFingerprintPromise;
+    const fingerprint = await this.compilerFingerprintPromise;
+    if (fingerprint === undefined) {
+      // readSourceCompilerFingerprint resolves undefined on read errors;
+      // drop the memo so one transient failure doesn't disable
+      // compiler-change detection for the rest of the process.
+      this.compilerFingerprintPromise = undefined;
+    }
+    return fingerprint;
   }
 
   /**
-   * SHA-256 of the spec source, memoized by (mtime, size) so repeated
-   * status() calls do not re-hash an unchanged multi-MB source file.
+   * SHA-256 of the spec source, memoized by the full stat fingerprint
+   * (mtime, ctime, size, inode) so repeated status() calls do not re-hash
+   * an unchanged multi-MB source file.
    */
   private async hashSourceFile(): Promise<string> {
     const fingerprint = await fingerprintFile(this.sourcePath);
@@ -641,9 +664,17 @@ export class FpfRuntime {
 
   private async pathExists(path: string): Promise<boolean> {
     try {
-      // stat, not readFile: presence checks run against multi-MB artifacts
-      // on every status() call and must not read the file bodies.
-      await stat(path);
+      // stat + access, not readFile: presence checks run against multi-MB
+      // artifacts on every status() call and must not read the file bodies.
+      // isFile() + R_OK keep the old readFile semantics — a directory
+      // shadowing an artifact path or an unreadable file counts as missing,
+      // so the only-missing/seed passes repair it and the status gate does
+      // not report unreadable artifacts as present.
+      const stats = await stat(path);
+      if (!stats.isFile()) {
+        return false;
+      }
+      await access(path, fsConstants.R_OK);
       return true;
     } catch {
       return false;

@@ -229,7 +229,7 @@ export const FPF_VS_MCP_EXPLAINER_MARKDOWN = `## FPF vs MCP in one paragraph
 
 You do not install FPF. Add one MCP URL to your client as **fpf_reference** from the MCP setup home: [${MCP_ORIGIN_HOME_URL}](${MCP_ORIGIN_HOME_URL}).`;
 
-export const LEGACY_MIGRATION_CALLOUT_MARKDOWN = `> **Still using \`fpf_memory\`?** Swap the server name to **\`fpf_reference\`** and replace the URL with the canonical endpoint above. The legacy route is blocked during the May 2026 mitigation.`;
+export const LEGACY_MIGRATION_CALLOUT_MARKDOWN = `> **Still using \`fpf_memory\`?** Swap the server name to **\`fpf_reference\`** and replace the URL with the canonical endpoint above. The legacy route is permanently retired and returns HTTP 410 Gone with a successor link.`;
 
 export const HOSTED_THREE_STEP_MARKDOWN = `## Connect in three steps
 
@@ -388,5 +388,5 @@ export function renderHomeMcpToolsMarkdown(): string {
 }
 
 export function renderHomeMcpEndpointLine(): string {
-  return `Endpoint: \`${HOSTED_MCP_ENDPOINT}\` · Legacy blocked during May 2026 mitigation: \`${LEGACY_HOSTED_MCP_ENDPOINT}\` · Status: [${HOSTED_MCP_STATUS_URL}](${HOSTED_MCP_STATUS_URL}) · Setup home: [${MCP_ORIGIN_HOME_URL}](${MCP_ORIGIN_HOME_URL})`;
+  return `Endpoint: \`${HOSTED_MCP_ENDPOINT}\` · Legacy retired (410 Gone): \`${LEGACY_HOSTED_MCP_ENDPOINT}\` · Status: [${HOSTED_MCP_STATUS_URL}](${HOSTED_MCP_STATUS_URL}) · Setup home: [${MCP_ORIGIN_HOME_URL}](${MCP_ORIGIN_HOME_URL})`;
 }

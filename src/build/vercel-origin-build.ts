@@ -17,8 +17,10 @@ import {
   HOSTED_HOME_ROUTES,
   LEGACY_HOSTED_MCP_GONE_STATUS,
   LEGACY_HOSTED_MCP_ROUTE,
+  LEGACY_HOSTED_MCP_SUCCESSOR_LINK_HEADER,
   HOSTED_MCP_ROUTES,
 } from '../composition/hosted.js';
+import { escapeHtml } from '../core/markup.js';
 
 export interface BuildVercelDeploymentOptions {
   rootDir?: string;
@@ -30,7 +32,6 @@ const MCP_FUNCTION_NAME = '_mcp';
 export const VERCEL_MCP_FUNCTION_BUNDLE_PATH =
   `${OUTPUT_DIR}/functions/${MCP_FUNCTION_NAME}.func`;
 const MCP_FUNCTION_DEST = `/${MCP_FUNCTION_NAME}`;
-const LEGACY_HOSTED_MCP_SUCCESSOR_URL = 'https://mcp.fpf.sh/api/mcp/fpf_reference/mcp';
 const VERCEL_LEGACY_MCP_GONE_STATIC_FILE = 'legacy-mcp-gone.json';
 export const VERCEL_FUNCTION_RUNTIME = 'nodejs24.x';
 export const VERCEL_FUNCTION_MEMORY_MB = 1024;
@@ -212,18 +213,26 @@ export async function collectWebsiteSitemapPaths(staticDir: string): Promise<str
     if (!relativePath.endsWith('.html') || relativePath === '404.html') {
       continue;
     }
-    paths.push(
-      relativePath === 'index.html'
-        ? '/'
-        : `/${relativePath.slice(0, -'.html'.length)}`,
-    );
+    paths.push(toCleanSitemapPath(relativePath));
   }
   return paths.sort();
 }
 
+// Nested index pages (e.g. generated/patterns/index.html) map to the
+// directory URL the site itself links to, not a non-canonical "/…/index".
+function toCleanSitemapPath(relativeHtmlPath: string): string {
+  if (relativeHtmlPath === 'index.html') {
+    return '/';
+  }
+  if (relativeHtmlPath.endsWith('/index.html')) {
+    return `/${relativeHtmlPath.slice(0, -'index.html'.length)}`;
+  }
+  return `/${relativeHtmlPath.slice(0, -'.html'.length)}`;
+}
+
 export function createWebsiteSitemapXml(paths: readonly string[]): string {
   const urls = paths
-    .map((path) => `  <url><loc>${escapeXml(`${WEBSITE_CANONICAL_ORIGIN}${path}`)}</loc></url>`)
+    .map((path) => `  <url><loc>${escapeHtml(`${WEBSITE_CANONICAL_ORIGIN}${path}`)}</loc></url>`)
     .join('\n');
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -252,15 +261,6 @@ async function writeWebsiteSeoFiles(staticDir: string): Promise<void> {
   );
 }
 
-function escapeXml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll("'", '&apos;')
-    .replaceAll('"', '&quot;');
-}
-
 export function createVercelMcpOutputConfig(): VercelDeploymentOutputConfig {
   const dest = MCP_FUNCTION_DEST;
   const mcpFunctionRoutes = HOSTED_MCP_ROUTES.filter(
@@ -285,7 +285,7 @@ export function createVercelLegacyMcpBlockedRoute(): VercelDeploymentRoute {
     status: LEGACY_HOSTED_MCP_GONE_STATUS,
     headers: {
       'Cache-Control': 'no-store',
-      Link: `<${LEGACY_HOSTED_MCP_SUCCESSOR_URL}>; rel="successor-version"`,
+      Link: LEGACY_HOSTED_MCP_SUCCESSOR_LINK_HEADER,
     },
   };
 }

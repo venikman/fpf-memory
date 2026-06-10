@@ -903,6 +903,14 @@ function containsOptionalTermLink(
   facts: FpfWorkFacts,
   link: OptionalTermLinkDefinition,
 ): boolean {
+  if (link.key === 'glossary') {
+    // The home page links the authored newcomer glossary at /glossary
+    // (which itself links the spec's own Alphabetic Glossary pattern);
+    // the spec-derived /generated/patterns/<id> shortcut was deliberately
+    // dropped from the index — see renderHomeNavigateLine in
+    // src/core/documents.ts.
+    return contains(facts, 'docsIndex', `[${link.label}](/glossary)`);
+  }
   const targetPath = resolveOptionalTermPatternPath(facts, link.key);
   if (targetPath === undefined) return false;
   if (targetPath === null) {

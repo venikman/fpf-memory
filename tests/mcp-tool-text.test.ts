@@ -203,6 +203,53 @@ describe('renderToolContent', () => {
     expect(text).toContain('ok');
   });
 
+  it('mirrors candidate scores and graph expansions in the trace text', () => {
+    const text = renderToolContent('trace_fpf_path', {
+      mode: 'compact',
+      question: 'boundary unpacking',
+      normalizedQuestion: 'boundary unpacking',
+      selectedNodeIds: ['A.2.3'],
+      selectedAnchorIds: [],
+      candidateScores: [
+        { nodeId: 'A.2.3', kind: 'pattern', score: 14, reasons: ['title match'] },
+        { nodeId: 'route:claim-decomposition', kind: 'route', score: 9, reasons: ['route alias'] },
+      ],
+      graphExpansions: [
+        { from: 'A.2.3', relation: 'refines', to: 'A.2.1', reason: 'parent pattern' },
+      ],
+      status: 'ok',
+      sufficient: true,
+      snapshot,
+    });
+
+    // The tool description promises candidate scores and graph expansion —
+    // the diagnostic core must reach text-only clients.
+    expect(text).toContain('score 14');
+    expect(text).toContain('title match');
+    expect(text).toContain('route:claim-decomposition');
+    expect(text).toContain('A.2.3 -[refines]-> A.2.1');
+  });
+
+  it('carries the markdown body for read_fpf_doc full mode', () => {
+    const text = renderToolContent('read_fpf_doc', {
+      selector: 'A.1.1',
+      resolvedAs: 'id',
+      status: 'ok',
+      nodeId: 'A.1.1',
+      title: 'U.BoundedContext',
+      markdown: '# U.BoundedContext\n\nA bounded context is the semantic frame.',
+      markdownChars: 58,
+      truncated: false,
+      headings: ['Definition'],
+      snapshot,
+    });
+
+    // The exact page wording is the tool's primary deliverable; text-only
+    // clients cannot reach structuredContent.markdown.
+    expect(text).toContain('A bounded context is the semantic frame.');
+    expect(text).not.toContain('Full markdown is in');
+  });
+
   it('renders a refresh audit summary', () => {
     const text = renderToolContent('refresh_fpf_index', {
       sourcePath: '/srv/FPF-Spec.md',
@@ -220,12 +267,34 @@ describe('renderToolContent', () => {
     expect(text).toContain('8643');
   });
 
-  it('passes ask_fpf markdown and query answers through unchanged', () => {
+  it('passes ask_fpf markdown through unchanged', () => {
     expect(
       renderToolContent('ask_fpf', { markdown: '## Result\n\nAnswer body' }),
     ).toBe('## Result\n\nAnswer body');
-    expect(
-      renderToolContent('query_fpf_spec', { answer: 'The answer.', status: 'ok' }),
-    ).toBe('The answer.');
+  });
+
+  it('mirrors query_fpf_spec grounding fields after the answer', () => {
+    const text = renderToolContent('query_fpf_spec', {
+      mode: 'compact',
+      question: 'how do I decompose a claim?',
+      answer: 'The answer.',
+      ids: ['A.2.3'],
+      relations: [],
+      constraints: ['Keep claims bounded.'],
+      citations: ['A.2.3#definition'],
+      confidence: 0.82,
+      gaps: [],
+      status: 'ok',
+      snapshot,
+    });
+
+    // The contract promises a bounded answer *with IDs, citations, and
+    // constraints* — a text-only client must be able to chain into
+    // read_fpf_doc / expand_fpf_citations from the text block alone.
+    expect(text.startsWith('The answer.')).toBe(true);
+    expect(text).toContain('A.2.3');
+    expect(text).toContain('A.2.3#definition');
+    expect(text).toContain('Keep claims bounded.');
+    expect(text).toContain('confidence 0.82');
   });
 });

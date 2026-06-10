@@ -351,11 +351,19 @@ describe('Vercel deployment configs', () => {
       await writeFile(resolve(dir, '404.html'), '<!doctype html>');
       await writeFile(resolve(dir, 'connect-mcp.html'), '<!doctype html>');
       await writeFile(resolve(dir, 'generated/patterns/A.6.9.html'), '<!doctype html>');
+      // Nested index pages must map to the directory URL the site links to,
+      // not a duplicate, non-canonical "/generated/patterns/index" form.
+      await writeFile(resolve(dir, 'generated/patterns/index.html'), '<!doctype html>');
       await writeFile(resolve(dir, 'static/css/styles.css'), '');
 
       const paths = await collectWebsiteSitemapPaths(dir);
 
-      expect(paths).toEqual(['/', '/connect-mcp', '/generated/patterns/A.6.9']);
+      expect(paths).toEqual([
+        '/',
+        '/connect-mcp',
+        '/generated/patterns/',
+        '/generated/patterns/A.6.9',
+      ]);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

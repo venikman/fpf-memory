@@ -12,6 +12,7 @@ import {
   resolveOptionalTermPatternId,
 } from './optional-term-links.js';
 import { WIKI_CONNECT_MCP_MARKDOWN_LINK } from './public-copy.js';
+import { escapeHtml } from './markup.js';
 import { normalizeForLookup, unique } from './text.js';
 
 export interface GeneratedDocPage {
@@ -1413,15 +1414,6 @@ function buildPatternBreadcrumb(pattern: PatternRecord): BreadcrumbSegment[] {
   }
   segments.push({ text: pattern.id });
   return segments;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }
 
 function dedupeRelations(relations: RelationEdge[]): RelationEdge[] {

@@ -1,3 +1,7 @@
+import {
+  arrayOfRecords as arrayOfRecordsField,
+  recordField as asRecord,
+} from '../../core/unknown-fields.js';
 import type { RuntimeLogger } from '../infra/logging/runtime-logger.js';
 import type { FpfMcpTool } from './tools.js';
 
@@ -514,17 +518,7 @@ function numericFields(
 }
 
 function arrayOfRecords(value: unknown): Array<Record<string, unknown>> {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  return value.filter((item): item is Record<string, unknown> => Boolean(asRecord(item)));
-}
-
-function asRecord(value: unknown): Record<string, unknown> | undefined {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    return undefined;
-  }
-  return value as Record<string, unknown>;
+  return arrayOfRecordsField(value) ?? [];
 }
 
 function pushString(target: string[], value: unknown): void {
