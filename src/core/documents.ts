@@ -11,7 +11,7 @@ import {
   OPTIONAL_TERM_LINKS,
   resolveOptionalTermPatternId,
 } from './optional-term-links.js';
-import { MCP_ORIGIN_HOME_URL } from './public-copy.js';
+import { WIKI_CONNECT_MCP_MARKDOWN_LINK } from './public-copy.js';
 import { normalizeForLookup, unique } from './text.js';
 
 export interface GeneratedDocPage {
@@ -532,7 +532,7 @@ function renderHomeMarkdown(
     '',
     'The **First Principles Framework (FPF)** is a pattern language for rigorous reasoning in engineering, research, and management, written by [Anatoly Levenchuk](https://github.com/ailev). Its named, interlinked patterns help teams and AI agents keep meanings, claims, evidence, and decisions stable as work moves between people, tools, and time.',
     '',
-    `This site is the FPF reference: a browsable wiki projection of the published spec (${referenceScope}, addressable by stable FPF IDs). Programmatic MCP lookup is documented separately on [mcp.fpf.sh](${MCP_ORIGIN_HOME_URL}).`,
+    `This site is the FPF reference: a browsable wiki projection of the published spec (${referenceScope}, addressable by stable FPF IDs). Programmatic MCP lookup is separate from this wiki; use ${WIKI_CONNECT_MCP_MARKDOWN_LINK} only when you need the setup handoff.`,
     '',
     // Wording deliberately avoids the exact phrase "Connecting an agent or
     // editor" from the entry-point table below — the preview Playwright
@@ -545,7 +545,7 @@ function renderHomeMarkdown(
     '| If you are... | Start with | Good first action |',
     '| --- | --- | --- |',
     '| New to FPF | [Start Here](/start-here) | Pick the work shape before opening the full catalog. |',
-    `| Connecting an agent or editor | [mcp.fpf.sh](${MCP_ORIGIN_HOME_URL}) | Add \`fpf_reference\`, then run \`get_fpf_index_status\`. |`,
+    `| Connecting an agent or editor | ${WIKI_CONNECT_MCP_MARKDOWN_LINK} | Open the setup handoff; registration details stay on the MCP origin. |`,
     '| Reviewing a project, PR, or design change | [Work Packets](/work-packets) | Use the PR/code review packet or product-role feedback packet. |',
     '| Looking up an exact ID | [Pattern Catalog](/patterns) | Search an ID like `A.2.3`. |',
     '',
@@ -565,7 +565,7 @@ function renderHomeMarkdown(
     '',
     'The full generated pattern catalog lives at [Pattern Catalog](/patterns); this home page stays focused on adoption paths and task entry points.',
     '',
-    `Agent/editor MCP setup lives on [mcp.fpf.sh](${MCP_ORIGIN_HOME_URL}). The reference wiki stays focused on the specification, generated IDs, routes, and glossary.`,
+    `Agent/editor MCP setup lives on the MCP origin; use ${WIKI_CONNECT_MCP_MARKDOWN_LINK} when you need the bridge. The reference wiki stays focused on the specification, generated IDs, routes, and glossary.`,
     '',
     'For framework orientation, see [Start Here](/start-here).',
     '',

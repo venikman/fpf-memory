@@ -32,7 +32,7 @@ A task-sized checklist on this site that bundles the right route and patterns fo
 
 ### fpf_reference (the MCP server)
 
-The hosted MCP server name agents and editors use to query the spec by stable ID. Six public read-only tools; deterministic graph lookups, not embeddings; not agent memory. Setup and the public contract live on [mcp.fpf.sh](https://mcp.fpf.sh/#interface-contract).
+The hosted MCP server name agents and editors use to query the spec by stable ID. Six public read-only tools; deterministic graph lookups, not embeddings; not agent memory. Setup and the public contract live on the MCP origin.
 
 ### Snapshot and provenance
 

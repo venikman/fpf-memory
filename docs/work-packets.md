@@ -143,7 +143,7 @@ Goal: let an agent use FPF without loading the whole FPF.
 
 Use:
 
-- [mcp.fpf.sh](https://mcp.fpf.sh/)
+- a connected `fpf_reference` server
 - [Automation Playbook](/automation-playbook) when the work needs role boundaries, access rules, merge authority, or draft-only publishing packets
 - [E.8 Authoring conventions](/generated/patterns/E.8)
 - [E.19 — Pattern Quality Gates: Review & Refresh Profiles](/generated/patterns/E.19) — use as the pattern change-record gate

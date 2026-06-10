@@ -16,4 +16,4 @@ This page remains as a compatibility bridge from older `fpf.sh/connect-mcp` link
 - **FPF Reference MCP** is the programmatic lookup server named `fpf_reference`.
 - **FPF Reference MCP** is not agent memory, not a workflow engine, and not the upstream FPF specification.
 
-Use [Start Here](/start-here) or the [Pattern Catalog](/patterns) for the reference wiki. Use [mcp.fpf.sh](https://mcp.fpf.sh/) for client setup, first-call checks, troubleshooting, and package or self-hosting options.
+Use [Start Here](/start-here) or the [Pattern Catalog](/patterns) for the reference wiki. Use the MCP origin for client setup, first-call checks, troubleshooting, and package or self-hosting options.

@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 import { describe, expect, it } from '@rstest/core';
@@ -15,6 +15,7 @@ import {
   MCP_ORIGIN_HOME_URL,
   MCP_SERVER_NAME,
   PUBLIC_MCP_TOOLS,
+  WIKI_CONNECT_MCP_MARKDOWN_LINK,
 } from '../src/core/public-copy.js';
 import * as toolContracts from '../src/mcp/tool-contracts.js';
 
@@ -64,10 +65,30 @@ describe('public adoption copy parity', () => {
     const startHere = await readFile(resolve(process.cwd(), 'docs/start-here.md'), 'utf8');
 
     expect(startHere).toContain('First Principles Framework (FPF)');
-    expect(startHere).toContain(MCP_ORIGIN_HOME_URL);
+    expect(startHere).not.toContain(WIKI_CONNECT_MCP_MARKDOWN_LINK);
+    expect(startHere).not.toContain(MCP_ORIGIN_HOME_URL);
     expect(startHere).toContain(FIRST_SUCCESSFUL_CALL_PROMPT);
     expect(startHere).toContain(MCP_SERVER_NAME);
     expect(startHere).toContain('query_fpf_spec');
+  });
+
+  it('keeps direct wiki-to-MCP markdown setup links constrained to the bridge page', async () => {
+    const bridge = await readFile(resolve(process.cwd(), 'docs/connect-mcp.md'), 'utf8');
+    const directBridgeLinks = bridge.match(/\]\(https:\/\/mcp\.fpf\.sh\/\)/g) ?? [];
+    expect(directBridgeLinks).toHaveLength(1);
+
+    const docsRoot = resolve(process.cwd(), 'docs');
+    const files = await readdir(docsRoot, { withFileTypes: true });
+    for (const file of files) {
+      if (!file.isFile() || !file.name.endsWith('.md') || file.name === 'connect-mcp.md') {
+        continue;
+      }
+      const markdown = await readFile(resolve(docsRoot, file.name), 'utf8');
+      // Operator runbooks may mention status or endpoint literals as evidence;
+      // public setup/home links should go through the compatibility bridge.
+      expect(markdown).not.toMatch(/\]\(https:\/\/mcp\.fpf\.sh\/(?:#[^)]+)?\)/);
+      expect(markdown).not.toMatch(/MCP setup:\s+https:\/\/mcp\.fpf\.sh\/(?=\s|$)/);
+    }
   });
 
   it('documents the FPF vs MCP explainer contract for wiki surfaces', () => {

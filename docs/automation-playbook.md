@@ -96,7 +96,7 @@ Default prompt boundary:
 Use the Vercel MCP server named vercel for read-only deployment evidence. Inspect the relevant project, deployment, build logs, runtime logs, and protected preview URL if needed. Do not deploy, promote, alias, rollback, buy domains, or change settings unless the user explicitly approves that action.
 ```
 
-For project-scoped operations, use the project-specific URLs documented in the [operator packaging section on mcp.fpf.sh](https://mcp.fpf.sh/#operator-packaging) so the team/project context is explicit.
+For project-scoped operations, use the project-specific URLs documented in the operator packaging section on the MCP origin so the team/project context is explicit.
 
 ## Merge policy
 
@@ -267,7 +267,7 @@ FPF Reference compiles the published FPF spec into deterministic lookup surfaces
 Useful for PR review, project alignment, spec writing, and adoption UX checks.
 
 Docs: https://fpf.sh/
-MCP setup: https://mcp.fpf.sh/
+MCP setup: https://fpf.sh/connect-mcp
 
 Caveat: deterministic retrieval is the source of truth; request counts are not unique users.
 ```
@@ -290,7 +290,7 @@ FPF Reference is a compiler-backed runtime for the published First Principles Fr
 
 The current material:
 - Website: https://fpf.sh/
-- MCP setup: https://mcp.fpf.sh/
+- MCP setup: https://fpf.sh/connect-mcp
 - Hosted endpoint: https://mcp.fpf.sh/api/mcp/fpf_reference/mcp
 - Legacy endpoint during transition: https://mcp.fpf.sh/api/mcp/fpf_memory/mcp (blocked at Vercel routing during May 2026 cost incident mitigation)
 

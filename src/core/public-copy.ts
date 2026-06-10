@@ -19,6 +19,10 @@ export const WIKI_BASE_URL = 'https://fpf.sh';
 // Compatibility bridge on the static reference site. New setup docs should
 // point at MCP_ORIGIN_HOME_URL so MCP instructions live on the MCP surface.
 export const WIKI_CONNECT_MCP_URL = `${WIKI_BASE_URL}/connect-mcp`;
+export const WIKI_CONNECT_MCP_PATH = '/connect-mcp';
+export const WIKI_CONNECT_MCP_LABEL = 'Connect MCP';
+export const WIKI_CONNECT_MCP_MARKDOWN_LINK =
+  `[${WIKI_CONNECT_MCP_LABEL}](${WIKI_CONNECT_MCP_PATH})`;
 
 export const MCP_ORIGIN_HOME_URL = 'https://mcp.fpf.sh/';
 

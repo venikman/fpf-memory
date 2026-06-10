@@ -484,7 +484,7 @@ describe('docs projection', () => {
       expect(rootIndex).toContain('## Choose your entry point');
       expect(rootIndex).toContain('| New to FPF | [Start Here](/start-here)');
       expect(rootIndex).toContain(
-        '| Connecting an agent or editor | [mcp.fpf.sh](https://mcp.fpf.sh/)',
+        '| Connecting an agent or editor | [Connect MCP](/connect-mcp)',
       );
       expect(rootIndex).toContain(
         '| Reviewing a project, PR, or design change | [Work Packets](/work-packets)',
@@ -493,7 +493,8 @@ describe('docs projection', () => {
       expect(rootIndex).toContain('## Reference shortcuts');
       expect(rootIndex).toContain('[Start here](/start-here)');
       expect(rootIndex).not.toContain('[Quick connect](/connect-local)');
-      expect(rootIndex).not.toContain('[Connect MCP](/connect-mcp)');
+      expect(rootIndex).toContain('[Connect MCP](/connect-mcp)');
+      expect(rootIndex).not.toContain('https://mcp.fpf.sh');
       expect(rootIndex).toContain('[Pattern Catalog](/patterns)');
       // Hero: plain-language answer (what FPF is / what this site adds /
       // what to do first) leads the page; the deep dive and provenance
