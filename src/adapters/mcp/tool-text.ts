@@ -110,6 +110,9 @@ function renderQueryAnswer(content: Record<string, unknown>): string {
     for (const gap of gaps.slice(0, MAX_LISTED_IDS)) {
       grounding.push(`  - ${truncate(gap, MAX_ENTRY_LINE_CHARS)}`);
     }
+    if (gaps.length > MAX_LISTED_IDS) {
+      grounding.push(`  - … (${gaps.length - MAX_LISTED_IDS} more)`);
+    }
   }
 
   if (grounding.length === 0) {

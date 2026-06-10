@@ -527,8 +527,12 @@ export class FpfRuntime {
     // The fingerprint describes the compiler code this process is running,
     // which cannot change mid-process — compute it once per runtime instance.
     this.compilerFingerprintPromise ??= readSourceCompilerFingerprint();
-    const fingerprint = await this.compilerFingerprintPromise;
-    if (fingerprint === undefined) {
+    // Await the captured promise (not the mutable field) and only clear the
+    // memo if it still holds that promise, so a concurrent caller's fresh
+    // retry is never awaited as undefined or clobbered by a stale failure.
+    const currentPromise = this.compilerFingerprintPromise;
+    const fingerprint = await currentPromise;
+    if (fingerprint === undefined && this.compilerFingerprintPromise === currentPromise) {
       // readSourceCompilerFingerprint resolves undefined on read errors;
       // drop the memo so one transient failure doesn't disable
       // compiler-change detection for the rest of the process.
