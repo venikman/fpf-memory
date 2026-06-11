@@ -1043,7 +1043,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.13",
-      "title": "Pragmatic Utility & Value Alignment",
+      "title": "Pragmatic Utility and Value Alignment",
       "staticPath": "/generated/patterns/E.13"
     },
     {
