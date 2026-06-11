@@ -597,6 +597,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.2.P"
     },
     {
+      "id": "C.2.P.DR",
+      "title": "Declarative Representation Precision Restoration",
+      "staticPath": "/generated/patterns/C.2.P.DR"
+    },
+    {
       "id": "C.3",
       "title": "Kind‑CAL — Kinds, Intent/Extent, and Typed Reasoning",
       "staticPath": "/generated/patterns/C.3"
@@ -1043,7 +1048,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.13",
-      "title": "Pragmatic Utility & Value Alignment",
+      "title": "Pragmatic Utility and Value Alignment",
       "staticPath": "/generated/patterns/E.13"
     },
     {
@@ -1103,7 +1108,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.17.ID.CR",
-      "title": "ComparativeReading — bounded comparative reading over comparative review units",
+      "title": "ComparativeReviewUnit - bounded comparison over comparative review units",
       "staticPath": "/generated/patterns/E.17.ID.CR"
     },
     {
@@ -1140,6 +1145,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "E.23",
       "title": "Quality Improvement Loop Method",
       "staticPath": "/generated/patterns/E.23"
+    },
+    {
+      "id": "E.24",
+      "title": "U.Ontic and Ontic Introduction Discipline",
+      "staticPath": "/generated/patterns/E.24"
     },
     {
       "id": "F.0.1",
