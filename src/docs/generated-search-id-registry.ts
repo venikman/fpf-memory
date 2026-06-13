@@ -88,8 +88,13 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.3.3",
-      "title": "U.Dynamics: The Law of Change",
+      "title": "U.Dynamics: State-Space and Transition-Law Episteme",
       "staticPath": "/generated/patterns/A.3.3"
+    },
+    {
+      "id": "A.3.4",
+      "title": "U.Transformation: Bounded Change Under Conditions",
+      "staticPath": "/generated/patterns/A.3.4"
     },
     {
       "id": "A.4",
@@ -548,7 +553,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.2.1",
-      "title": "U.Episteme - Epistemes and their slot graph",
+      "title": "U.Episteme - Epistemes and their slot relation",
       "staticPath": "/generated/patterns/C.2.1"
     },
     {
@@ -595,6 +600,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "C.2.P",
       "title": "Epistemic Precision Restoration",
       "staticPath": "/generated/patterns/C.2.P"
+    },
+    {
+      "id": "C.2.P.DR",
+      "title": "Declarative Representation Precision Restoration",
+      "staticPath": "/generated/patterns/C.2.P.DR"
     },
     {
       "id": "C.3",
@@ -790,6 +800,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "C.27",
       "title": "Temporal Claim Adequacy: State Readings, Temporal Trends, and Intervention-Sensitive Temporal Change",
       "staticPath": "/generated/patterns/C.27"
+    },
+    {
+      "id": "C.27.TA",
+      "title": "Temporal Aspect: Time Windows, Rhythm, Cadence, and Currentness",
+      "staticPath": "/generated/patterns/C.27.TA"
     },
     {
       "id": "C.28",
@@ -1043,7 +1058,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.13",
-      "title": "Pragmatic Utility & Value Alignment",
+      "title": "Pragmatic Utility and Value Alignment",
       "staticPath": "/generated/patterns/E.13"
     },
     {
@@ -1103,18 +1118,23 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.17.ID.CR",
-      "title": "ComparativeReading — bounded comparative reading over comparative review units",
+      "title": "ComparativeReviewUnit - bounded comparison over comparative review units",
       "staticPath": "/generated/patterns/E.17.ID.CR"
     },
     {
       "id": "E.18",
-      "title": "Transduction Graph Architecture (E.TGA)",
+      "title": "Transformation Flow Structure",
       "staticPath": "/generated/patterns/E.18"
     },
     {
       "id": "E.18.1",
-      "title": "Principles-to-Work Transduction Path",
+      "title": "Principles-to-Work Carry-Through",
       "staticPath": "/generated/patterns/E.18.1"
+    },
+    {
+      "id": "E.18.2",
+      "title": "Transformation Flow Mathematical Description",
+      "staticPath": "/generated/patterns/E.18.2"
     },
     {
       "id": "E.19",
@@ -1140,6 +1160,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "E.23",
       "title": "Quality Improvement Loop Method",
       "staticPath": "/generated/patterns/E.23"
+    },
+    {
+      "id": "E.24",
+      "title": "U.Ontic and Ontic Introduction Discipline",
+      "staticPath": "/generated/patterns/E.24"
     },
     {
       "id": "F.0.1",
