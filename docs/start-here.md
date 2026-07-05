@@ -68,4 +68,4 @@ Do not ask people to read all of FPF before they can benefit from it. Ask for th
 
 ## When to use the full catalog
 
-Use the [Pattern Catalog](/patterns) when the doorway is not enough, when an exact pattern clause matters, or when a reader needs to audit the source. Definitions live in the [Glossary](/glossary); the spec's own term index is [H.1](/generated/patterns/H.1).
+Use the [Pattern Catalog](/patterns) when the doorway is not enough, when an exact pattern clause matters, or when a reader needs to audit the source. Definitions live in the [Glossary](/glossary).

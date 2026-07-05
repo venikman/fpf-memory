@@ -6,7 +6,7 @@ outline: deep
 
 # Glossary
 
-Plain-language definitions of the terms you will meet on this site, in roughly the order you will meet them. Every entry links to the canonical FPF pattern so you can audit the full definition. For the spec's own exhaustive index of every `U.Type`, relation, and operator, see the [H.1 Alphabetic Glossary](/generated/patterns/H.1).
+Plain-language definitions of the terms you will meet on this site, in roughly the order you will meet them. Every entry links to the canonical FPF pattern so you can audit the full definition.
 
 ## The site
 
