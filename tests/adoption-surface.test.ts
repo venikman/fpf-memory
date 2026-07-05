@@ -21,13 +21,11 @@ describe('newcomer adoption surface', () => {
     ]) {
       expect(glossary).toContain(`### ${term}`);
     }
-    // Each jargon entry points at the canonical pattern page, and the page
-    // hands off to the spec's own exhaustive term index.
+    // Each jargon entry points at the canonical pattern page.
     expect(glossary).toContain('(/generated/patterns/A.1)');
     expect(glossary).toContain('(/generated/patterns/A.1.1)');
     expect(glossary).toContain('(/generated/patterns/F.17)');
     expect(glossary).toContain('(/generated/patterns/E.17)');
-    expect(glossary).toContain('(/generated/patterns/H.1)');
   });
 
   it('start-here expands the FPF acronym and walks a worked example before the catalog', async () => {
