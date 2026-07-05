@@ -13,12 +13,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.1",
-      "title": "Holonic Foundation: Entity → Holon",
+      "title": "Holon Ontic Foundation (U.Holon and Admitted Holon Kinds)",
       "staticPath": "/generated/patterns/A.1"
     },
     {
       "id": "A.1.1",
-      "title": "U.BoundedContext: The Semantic Frame",
+      "title": "U.BoundedContext Semantic Frame",
       "staticPath": "/generated/patterns/A.1.1"
     },
     {
@@ -33,22 +33,22 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.2.2",
-      "title": "U.Capability: System Ability (dispositional property)",
+      "title": "U.Capability: System Ability Envelope and Measures",
       "staticPath": "/generated/patterns/A.2.2"
     },
     {
       "id": "A.2.3",
-      "title": "U.PromiseContent: Consumer‑facing Promise Clause",
+      "title": "U.PromiseContent (Promise Content)",
       "staticPath": "/generated/patterns/A.2.3"
     },
     {
       "id": "A.2.4",
-      "title": "U.EvidenceRole: The Evidential Stance",
+      "title": "Episteme Evidence-Use and Status-Use Relations",
       "staticPath": "/generated/patterns/A.2.4"
     },
     {
       "id": "A.2.5",
-      "title": "U.RoleStateGraph: The Named State Space of a Role",
+      "title": "RoleStateRelation@BoundedContext - Role State Space and Enactable-State Admission",
       "staticPath": "/generated/patterns/A.2.5"
     },
     {
@@ -58,17 +58,17 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.2.7",
-      "title": "U.RoleAlgebra: In-Context Role Relations (≤, ⊥, ⊗)",
+      "title": "RoleRelationStructure@BoundedContext - Context-Local Role Relations and Representation-Lens Boundary",
       "staticPath": "/generated/patterns/A.2.7"
     },
     {
       "id": "A.2.8",
-      "title": "U.Commitment: Deontic Commitment Object",
+      "title": "U.Commitment (Deontic Commitment Object)",
       "staticPath": "/generated/patterns/A.2.8"
     },
     {
       "id": "A.2.9",
-      "title": "U.SpeechAct: Communicative Work Object",
+      "title": "U.SpeechAct (Communicative Work Object)",
       "staticPath": "/generated/patterns/A.2.9"
     },
     {
@@ -78,18 +78,28 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.3.1",
-      "title": "U.Method: The Abstract Way of Doing",
+      "title": "U.Method: Context-Defined Way of Doing",
       "staticPath": "/generated/patterns/A.3.1"
     },
     {
       "id": "A.3.2",
-      "title": "U.MethodDescription: The Recipe for Action",
+      "title": "U.MethodDescription: Description Episteme for a Way of Doing",
       "staticPath": "/generated/patterns/A.3.2"
     },
     {
       "id": "A.3.3",
-      "title": "U.Dynamics: The Law of Change",
+      "title": "U.Dynamics: State-Space and Transition-Law Episteme",
       "staticPath": "/generated/patterns/A.3.3"
+    },
+    {
+      "id": "A.3.4",
+      "title": "U.Transformation: Bounded Change Under Conditions",
+      "staticPath": "/generated/patterns/A.3.4"
+    },
+    {
+      "id": "A.3.4.P",
+      "title": "Transformation Ontic Precision Restoration",
+      "staticPath": "/generated/patterns/A.3.4.P"
     },
     {
       "id": "A.4",
@@ -108,22 +118,22 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.0",
-      "title": "U.Signature — Universal, law‑governed declaration",
+      "title": "U.Signature - Universal, law-governed declaration for a SubjectKind over a RangedValueKind",
       "staticPath": "/generated/patterns/A.6.0"
     },
     {
       "id": "A.6.1",
-      "title": "U.Mechanism - Law‑governed application to a SubjectKind over a BaseType",
+      "title": "U.Mechanism - Law-governed application to a SubjectKind over a RangedValueKind",
       "staticPath": "/generated/patterns/A.6.1"
     },
     {
       "id": "A.6.2",
-      "title": "U.EffectFreeEpistemicMorphing - Effect-Free Morphisms of Epistemes",
+      "title": "U.EffectFreeEpistemicMorphing — Effect‑free morphisms of epistemes",
       "staticPath": "/generated/patterns/A.6.2"
     },
     {
       "id": "A.6.3",
-      "title": "U.EpistemicViewing - EntityOfConcern-Preserving Morphism",
+      "title": "U.EpistemicViewing — EntityOfConcern-preserving morphism",
       "staticPath": "/generated/patterns/A.6.3"
     },
     {
@@ -137,23 +147,28 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.6.3.CSC"
     },
     {
+      "id": "A.6.3.NAR",
+      "title": "Structure-to-Narrative Rendering",
+      "staticPath": "/generated/patterns/A.6.3.NAR"
+    },
+    {
       "id": "A.6.3.RT",
-      "title": "RepresentationTransduction - entityOfConcernRef-preserving representation-scheme transition",
+      "title": "Representation-Scheme Transition: EntityOfConcern-Preserving Representation-Scheme Transition",
       "staticPath": "/generated/patterns/A.6.3.RT"
     },
     {
       "id": "A.6.4",
-      "title": "U.EpistemicRetargeting - EntityOfConcern-Retargeting Morphism",
+      "title": "U.EpistemicRetargeting — EntityOfConcern retargeting morphism",
       "staticPath": "/generated/patterns/A.6.4"
     },
     {
       "id": "A.6.5",
-      "title": "U.RelationSlotDiscipline - SlotKind / ValueKind / RefKind discipline for n‑ary relations (with slot‑operation lexicon)",
+      "title": "U.RelationSlotDiscipline - SlotKind, ValueKind, RefKind, and slot-operation discipline",
       "staticPath": "/generated/patterns/A.6.5"
     },
     {
       "id": "A.6.6",
-      "title": "U.BaseDeclarationDiscipline - Kind-explicit, scoped, witnessed base declaration discipline (with base-change lexicon)",
+      "title": "Base Declaration Discipline - Kind-explicit, scoped, witnessed base declaration discipline (with base-change lexicon)",
       "staticPath": "/generated/patterns/A.6.6"
     },
     {
@@ -168,12 +183,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.9",
-      "title": "U.CrossContextSamenessDisambiguation — Repairing cross-context “same / equivalent / align” via explicit Bridges (RPR-XCTX)",
+      "title": "Cross-Context Sameness Disambiguation - Repairing cross-context \"same / equivalent / align\" via explicit Bridges (RPR-XCTX)",
       "staticPath": "/generated/patterns/A.6.9"
     },
     {
       "id": "A.6.A",
-      "title": "U.ActionInvitationPrecisionRestoration — Affordance / Action-Invitation Precision Restoration (ACT-INV)",
+      "title": "Action-Invitation Precision Restoration (ACT-INV)",
       "staticPath": "/generated/patterns/A.6.A"
     },
     {
@@ -203,7 +218,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.P",
-      "title": "Relational Precision Restoration (RPR) — Kind-Explicit Qualified Relation Discipline",
+      "title": "Relational Precision Restoration (RPR) — Kind‑Explicit Qualified Relation Discipline",
       "staticPath": "/generated/patterns/A.6.P"
     },
     {
@@ -212,8 +227,13 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.6.RSIG"
     },
     {
+      "id": "A.6.RSIR",
+      "title": "Relation, Signature, Interface, Role, and Slot Precision Restoration",
+      "staticPath": "/generated/patterns/A.6.RSIR"
+    },
+    {
       "id": "A.6.S",
-      "title": "U.SignatureEngineeringPair — Constructive signature engineering (ConstructorSignature + TargetSignature)",
+      "title": "U.SignatureEngineeringPair - Signature engineering via a ConstructorSignature and a TargetSignature",
       "staticPath": "/generated/patterns/A.6.S"
     },
     {
@@ -223,7 +243,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.8",
-      "title": "Universal Core (C-1)",
+      "title": "Universal Core Principle",
       "staticPath": "/generated/patterns/A.8"
     },
     {
@@ -238,12 +258,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.11",
-      "title": "Ontological Parsimony (C-5)",
+      "title": "Ontological Parsimony",
       "staticPath": "/generated/patterns/A.11"
     },
     {
       "id": "A.12",
-      "title": "External Transformer & Reflexive Split (C-2)",
+      "title": "Acting-Side Externalization and Reflexive Split",
       "staticPath": "/generated/patterns/A.12"
     },
     {
@@ -263,7 +283,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.15.1",
-      "title": "U.Work: The Record of Occurrence",
+      "title": "U.Work: Dated Performed Work Occurrence",
       "staticPath": "/generated/patterns/A.15.1"
     },
     {
@@ -282,13 +302,18 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.15.4"
     },
     {
+      "id": "A.15.5",
+      "title": "Work-Entry Readiness and Full-Kit Preparation",
+      "staticPath": "/generated/patterns/A.15.5"
+    },
+    {
       "id": "A.16",
-      "title": "Language-State Transduction Coordination",
+      "title": "Language-State Move Coordination",
       "staticPath": "/generated/patterns/A.16"
     },
     {
       "id": "A.16.0",
-      "title": "U.LanguageStateTransductionTrajectory — Optional trajectory-account normal form",
+      "title": "U.LanguageStateMoveTrajectory - Optional trajectory-account normal form over the language-state U.CharacteristicSpace",
       "staticPath": "/generated/patterns/A.16.0"
     },
     {
@@ -313,7 +338,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.19",
-      "title": "CharacteristicSpace & Dynamics Hook (A.CHR-SPACE)",
+      "title": "CharacteristicSpace & Dynamics Hook (A.CHR‑SPACE)",
       "staticPath": "/generated/patterns/A.19"
     },
     {
@@ -368,7 +393,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.20",
-      "title": "U.Flow.ConstraintValidity — Eulerian",
+      "title": "Flow Constraint Validity — Eulerian",
       "staticPath": "/generated/patterns/A.20"
     },
     {
@@ -383,17 +408,17 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "B.1",
-      "title": "Universal Algebra of Aggregation (Γ)",
+      "title": "Holon Aggregation and Part-Whole Construction",
       "staticPath": "/generated/patterns/B.1"
     },
     {
       "id": "B.1.1",
-      "title": "Dependency Graph & Proofs",
+      "title": "Dependency Structure and Relation Grounding",
       "staticPath": "/generated/patterns/B.1.1"
     },
     {
       "id": "B.1.2",
-      "title": "System-specific Aggregation Γ_sys",
+      "title": "System Aggregation and Holon Delimitation",
       "staticPath": "/generated/patterns/B.1.2"
     },
     {
@@ -403,63 +428,53 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "B.1.4",
-      "title": "Contextual & Temporal Aggregation (Γctx & Γtime)",
+      "title": "Contextual and Temporal Aggregation",
       "staticPath": "/generated/patterns/B.1.4"
     },
     {
       "id": "B.1.5",
-      "title": "Γ_method — Order-Sensitive Method Composition & Work Enactment",
+      "title": "Gamma_method - Order-Sensitive Method Composition and Work Enactment",
       "staticPath": "/generated/patterns/B.1.5"
     },
     {
       "id": "B.1.6",
-      "title": "Γ_work — Work as Spent Resource",
+      "title": "Work-Resource Aggregation",
       "staticPath": "/generated/patterns/B.1.6"
     },
     {
       "id": "B.2",
-      "title": "Meta-Holon Transition (MHT): Recognizing Emergence and Re-identifying Wholes",
+      "title": "Meta-Holon Transition - Whole Reidentification",
       "staticPath": "/generated/patterns/B.2"
     },
     {
-      "id": "B.2.1",
-      "title": "BOSC Triggers",
-      "staticPath": "/generated/patterns/B.2.1"
-    },
-    {
       "id": "B.2.2",
-      "title": "MST (Sys) — Meta-System Transition",
+      "title": "Meta-System Transition - System Specialization of MHT",
       "staticPath": "/generated/patterns/B.2.2"
     },
     {
       "id": "B.2.3",
-      "title": "MET (KD) — Meta-Epistemic Transition",
+      "title": "Meta-Holon Transition With Episteme Result",
       "staticPath": "/generated/patterns/B.2.3"
     },
     {
       "id": "B.2.4",
-      "title": "MFT (Meta-Functional Transition)",
+      "title": "Capability and Functioning Whole Reidentification",
       "staticPath": "/generated/patterns/B.2.4"
     },
     {
       "id": "B.2.5",
-      "title": "Supervisor–Subholon Feedback Loop",
+      "title": "Supervisor-Subholon Feedback Relation",
       "staticPath": "/generated/patterns/B.2.5"
+    },
+    {
+      "id": "B.2.P",
+      "title": "Emergence and MHT Precision Restoration",
+      "staticPath": "/generated/patterns/B.2.P"
     },
     {
       "id": "B.3",
       "title": "Trust & Assurance Calculus (F–G–R with Congruence)",
       "staticPath": "/generated/patterns/B.3"
-    },
-    {
-      "id": "B.3.1",
-      "title": "Components & Epistemic Spaces",
-      "staticPath": "/generated/patterns/B.3.1"
-    },
-    {
-      "id": "B.3.2",
-      "title": "Evidence & Validation Logic (LOG-use)",
-      "staticPath": "/generated/patterns/B.3.2"
     },
     {
       "id": "B.3.3",
@@ -473,7 +488,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "B.3.5",
-      "title": "CT2R-LOG — Working-Model Relations & Grounding",
+      "title": "Working-Model Relations & Grounding (CT2R-LOG)",
       "staticPath": "/generated/patterns/B.3.5"
     },
     {
@@ -485,16 +500,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "B.4.1",
       "title": "Observe -> Notice -> Stabilize -> Route",
       "staticPath": "/generated/patterns/B.4.1"
-    },
-    {
-      "id": "B.4.2",
-      "title": "Knowledge Instantiation",
-      "staticPath": "/generated/patterns/B.4.2"
-    },
-    {
-      "id": "B.4.3",
-      "title": "Method Instantiation",
-      "staticPath": "/generated/patterns/B.4.3"
     },
     {
       "id": "B.5",
@@ -523,22 +528,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "B.5.3",
-      "title": "Role-Projection Bridge",
+      "title": "Domain-Concept Bridge",
       "staticPath": "/generated/patterns/B.5.3"
     },
     {
-      "id": "B.6",
-      "title": "Characterisation Families (CHR-use)",
-      "staticPath": "/generated/patterns/B.6"
-    },
-    {
-      "id": "B.7",
-      "title": "Common Logic Suite (LOG-use)",
-      "staticPath": "/generated/patterns/B.7"
-    },
-    {
       "id": "C.1",
-      "title": "Sys‑CAL",
+      "title": "Physical System State, Conservation, and Resource-Flow Calculus (Sys-CAL)",
       "staticPath": "/generated/patterns/C.1"
     },
     {
@@ -548,7 +543,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.2.1",
-      "title": "U.Episteme - Epistemes and their slot graph",
+      "title": "U.Episteme - Epistemes and their slot relation",
       "staticPath": "/generated/patterns/C.2.1"
     },
     {
@@ -583,12 +578,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.2.2a",
-      "title": "U.LanguageStateSpace — Language-state chart over U.CharacteristicSpace",
+      "title": "U.LanguageStateSpace - Language-state chart over U.CharacteristicSpace",
       "staticPath": "/generated/patterns/C.2.2a"
     },
     {
       "id": "C.2.LS",
-      "title": "U.LanguageStateFacetProfile — Compact profile for language-state facets",
+      "title": "U.LanguageStateFacetProfile - Thin profile bundle for language-state facets",
       "staticPath": "/generated/patterns/C.2.LS"
     },
     {
@@ -597,13 +592,18 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.2.P"
     },
     {
+      "id": "C.2.P.DR",
+      "title": "Declarative Representation Precision Restoration",
+      "staticPath": "/generated/patterns/C.2.P.DR"
+    },
+    {
       "id": "C.3",
-      "title": "Kind‑CAL — Kinds, Intent/Extent, and Typed Reasoning",
+      "title": "Kinds, Intent and Extent, and Typed Reasoning",
       "staticPath": "/generated/patterns/C.3"
     },
     {
       "id": "C.3.1",
-      "title": "U.Kind & U.SubkindOf (Core)",
+      "title": "U.Kind and U.SubkindOf Core",
       "staticPath": "/generated/patterns/C.3.1"
     },
     {
@@ -632,34 +632,19 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.3.A"
     },
     {
-      "id": "C.4",
-      "title": "Method‑CAL",
-      "staticPath": "/generated/patterns/C.4"
-    },
-    {
       "id": "C.5",
-      "title": "Resrc‑CAL",
+      "title": "Resource Use and Work-Cost Calculus (Resrc-CAL)",
       "staticPath": "/generated/patterns/C.5"
     },
     {
       "id": "C.6",
-      "title": "LOG‑CAL – Core Logic Calculus",
+      "title": "Proof and Inference Use Calculus (LOG-CAL)",
       "staticPath": "/generated/patterns/C.6"
     },
     {
-      "id": "C.7",
-      "title": "CHR‑CAL – Characterisation Kit",
-      "staticPath": "/generated/patterns/C.7"
-    },
-    {
       "id": "C.9",
-      "title": "Agency‑CHR",
+      "title": "Agency Characteristic Profile",
       "staticPath": "/generated/patterns/C.9"
-    },
-    {
-      "id": "C.10",
-      "title": "Norm‑CAL",
-      "staticPath": "/generated/patterns/C.10"
     },
     {
       "id": "C.11",
@@ -667,28 +652,18 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.11"
     },
     {
-      "id": "C.12",
-      "title": "ADR‑Kind-CAL",
-      "staticPath": "/generated/patterns/C.12"
-    },
-    {
       "id": "C.13",
-      "title": "Compose‑CAL — Constructional Mereology",
+      "title": "Constructional Mereology (Compose‑CAL)",
       "staticPath": "/generated/patterns/C.13"
     },
     {
       "id": "C.14",
-      "title": "M‑Sys‑CAL",
+      "title": "System-of-Systems and Infrastructure Calculus (M-Sys-CAL)",
       "staticPath": "/generated/patterns/C.14"
     },
     {
-      "id": "C.15",
-      "title": "M‑KD‑CAL",
-      "staticPath": "/generated/patterns/C.15"
-    },
-    {
       "id": "C.16",
-      "title": "MM-CHR — Measurement & Metrics Characterization",
+      "title": "Measurement & Metrics Characterization (MM‑CHR)",
       "staticPath": "/generated/patterns/C.16"
     },
     {
@@ -713,7 +688,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.18.1",
-      "title": "SLL — Scaling‑Law Lens (binding)",
+      "title": "Scaling‑Law Lens Binding (SLL)",
       "staticPath": "/generated/patterns/C.18.1"
     },
     {
@@ -728,7 +703,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.20",
-      "title": "Discipline‑CAL — Composition of U.Discipline",
+      "title": "Composition of U.Discipline (Discipline‑CAL)",
       "staticPath": "/generated/patterns/C.20"
     },
     {
@@ -738,7 +713,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.22",
-      "title": "Problem Typing & TaskSignature Assignment (Problem‑CHR)",
+      "title": "Problem Typing & TaskSignature Assignment (Problem-CHR)",
       "staticPath": "/generated/patterns/C.22"
     },
     {
@@ -792,6 +767,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.27"
     },
     {
+      "id": "C.27.TA",
+      "title": "Temporal Aspect: Time Windows, Rhythm, Cadence, and Currentness",
+      "staticPath": "/generated/patterns/C.27.TA"
+    },
+    {
       "id": "C.28",
       "title": "CausalUse-CAL: Causal-Use Questions, Causality-Ladder Rungs, Identification and Realizability",
       "staticPath": "/generated/patterns/C.28"
@@ -810,6 +790,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "C.30.AD",
       "title": "Architecture Description Adequacy",
       "staticPath": "/generated/patterns/C.30.AD"
+    },
+    {
+      "id": "C.30.AD.BA",
+      "title": "Built-Asset Architecture Description and Reference Designation",
+      "staticPath": "/generated/patterns/C.30.AD.BA"
     },
     {
       "id": "C.30.ASV",
@@ -852,79 +837,109 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.31.RSA"
     },
     {
+      "id": "C.32",
+      "title": "Architecture Candidate Synthesis",
+      "staticPath": "/generated/patterns/C.32"
+    },
+    {
+      "id": "C.32.ACE",
+      "title": "Architecture Characteristic Eval Programs",
+      "staticPath": "/generated/patterns/C.32.ACE"
+    },
+    {
+      "id": "C.32.ACS",
+      "title": "Architecture Characteristic Criteria Set for Improvement Cycles",
+      "staticPath": "/generated/patterns/C.32.ACS"
+    },
+    {
+      "id": "C.32.ADA",
+      "title": "Architecture Decision Adequacy Scales",
+      "staticPath": "/generated/patterns/C.32.ADA"
+    },
+    {
+      "id": "C.32.ADR",
+      "title": "Architecture Decision Record Projection",
+      "staticPath": "/generated/patterns/C.32.ADR"
+    },
+    {
+      "id": "C.32.CONWAY",
+      "title": "Transformer and Transformed Architecture Correspondence",
+      "staticPath": "/generated/patterns/C.32.CONWAY"
+    },
+    {
+      "id": "C.32.FAIL",
+      "title": "Architecture Failure Recognition and Repair",
+      "staticPath": "/generated/patterns/C.32.FAIL"
+    },
+    {
+      "id": "C.32.HCS",
+      "title": "Holon-Family Architecture Characteristic Starter Packs",
+      "staticPath": "/generated/patterns/C.32.HCS"
+    },
+    {
+      "id": "C.32.MLAO",
+      "title": "Multilevel Architecture Residual Optimization",
+      "staticPath": "/generated/patterns/C.32.MLAO"
+    },
+    {
+      "id": "C.32.P2S",
+      "title": "Problem-to-Structure Architecturing Transformation Flow",
+      "staticPath": "/generated/patterns/C.32.P2S"
+    },
+    {
+      "id": "C.32.PAD",
+      "title": "Project Architecture Decision After Candidate Synthesis",
+      "staticPath": "/generated/patterns/C.32.PAD"
+    },
+    {
+      "id": "C.33",
+      "title": "Structural Information Adequacy for Architecture Capture and Source Return",
+      "staticPath": "/generated/patterns/C.33"
+    },
+    {
+      "id": "C.34",
+      "title": "Structural Correspondence, Equivalence, and Morphism Adequacy",
+      "staticPath": "/generated/patterns/C.34"
+    },
+    {
+      "id": "C.35",
+      "title": "Structural Synthesis and Discovery Adequacy",
+      "staticPath": "/generated/patterns/C.35"
+    },
+    {
+      "id": "C.36",
+      "title": "Cultural Evolution and Cultural-Evolution Engineering",
+      "staticPath": "/generated/patterns/C.36"
+    },
+    {
+      "id": "C.36.P",
+      "title": "Cultural-Evolution Wording-Use Precision Restoration",
+      "staticPath": "/generated/patterns/C.36.P"
+    },
+    {
       "id": "D.1",
-      "title": "Axiological Neutrality Principle",
+      "title": "Ethical Value Plurality and FPF Boundary",
       "staticPath": "/generated/patterns/D.1"
     },
     {
       "id": "D.2",
-      "title": "Multi-Scale Ethics Framework",
+      "title": "Multilevel Ethics For System-Holon Work",
       "staticPath": "/generated/patterns/D.2"
     },
     {
-      "id": "D.2.1",
-      "title": "Local-Agent Ethics",
-      "staticPath": "/generated/patterns/D.2.1"
-    },
-    {
-      "id": "D.2.2",
-      "title": "Group-Ethics Standards",
-      "staticPath": "/generated/patterns/D.2.2"
-    },
-    {
-      "id": "D.2.3",
-      "title": "Ecosystem Stewardship",
-      "staticPath": "/generated/patterns/D.2.3"
-    },
-    {
-      "id": "D.2.4",
-      "title": "Planetary-Scale Precaution",
-      "staticPath": "/generated/patterns/D.2.4"
-    },
-    {
       "id": "D.3",
-      "title": "Holonic Conflict Topology",
+      "title": "Interlevel Ethical Conflict Structure",
       "staticPath": "/generated/patterns/D.3"
     },
     {
-      "id": "D.3.1",
-      "title": "Conflict Detection Logic (LOG-use)",
-      "staticPath": "/generated/patterns/D.3.1"
-    },
-    {
-      "id": "D.3.2",
-      "title": "Conflict Routing Protocol",
-      "staticPath": "/generated/patterns/D.3.2"
-    },
-    {
       "id": "D.4",
-      "title": "Trust-Aware Mediation Calculus",
+      "title": "Ethical Mediation and Decision Use",
       "staticPath": "/generated/patterns/D.4"
     },
     {
-      "id": "D.4.1",
-      "title": "Fair-Share Negotiation Operator",
-      "staticPath": "/generated/patterns/D.4.1"
-    },
-    {
-      "id": "D.4.2",
-      "title": "Assurance-Driven Override",
-      "staticPath": "/generated/patterns/D.4.2"
-    },
-    {
       "id": "D.5",
-      "title": "Bias-Audit & Ethical Assurance",
+      "title": "Bias Audit and Ethical Assurance",
       "staticPath": "/generated/patterns/D.5"
-    },
-    {
-      "id": "D.5.1",
-      "title": "Taxonomy-Guided Audit Templates",
-      "staticPath": "/generated/patterns/D.5.1"
-    },
-    {
-      "id": "D.5.2",
-      "title": "Assurance Metrics Roll-up",
-      "staticPath": "/generated/patterns/D.5.2"
     },
     {
       "id": "E.1",
@@ -950,6 +965,31 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "E.4",
       "title": "FPF Ecosystem Family Architecture",
       "staticPath": "/generated/patterns/E.4"
+    },
+    {
+      "id": "E.4.DPF",
+      "title": "Domain Principle Framework Authoring and Publication-or-Access Carrier Assembly",
+      "staticPath": "/generated/patterns/E.4.DPF"
+    },
+    {
+      "id": "E.4.DPF.DA",
+      "title": "Domain Principle Framework Package-Adequacy Evaluation CharacteristicSpace",
+      "staticPath": "/generated/patterns/E.4.DPF.DA"
+    },
+    {
+      "id": "E.4.FPF",
+      "title": "First Principles Framework Form and Publication-or-Access Carrier Assembly",
+      "staticPath": "/generated/patterns/E.4.FPF"
+    },
+    {
+      "id": "E.4.PFAD",
+      "title": "Principle-Framework Architecture Decision",
+      "staticPath": "/generated/patterns/E.4.PFAD"
+    },
+    {
+      "id": "E.4.PFR",
+      "title": "Pattern-Framework Relation and Edition Discipline",
+      "staticPath": "/generated/patterns/E.4.PFR"
     },
     {
       "id": "E.5",
@@ -988,7 +1028,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.8",
-      "title": "FPF Authoring Conventions and Style Guide",
+      "title": "FPF Authoring Conventions & Style Guide",
       "staticPath": "/generated/patterns/E.8"
     },
     {
@@ -1008,7 +1048,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.10",
-      "title": "LEX-BUNDLE: Unified Lexical Rules for FPF",
+      "title": "Unified Lexical Rules for FPF",
       "staticPath": "/generated/patterns/E.10"
     },
     {
@@ -1027,6 +1067,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/E.10.D2"
     },
     {
+      "id": "E.10.MOVE",
+      "title": "Move and Readiness Wording Precision Restoration",
+      "staticPath": "/generated/patterns/E.10.MOVE"
+    },
+    {
       "id": "E.10.P",
       "title": "Conceptual Prefixes (policy & registry)",
       "staticPath": "/generated/patterns/E.10.P"
@@ -1037,13 +1082,18 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/E.11"
     },
     {
+      "id": "E.11.PUR",
+      "title": "Pattern-Use Recommendation and Pattern-Use Sequence",
+      "staticPath": "/generated/patterns/E.11.PUR"
+    },
+    {
       "id": "E.12",
       "title": "Didactic Primacy & Cognitive Ergonomics",
       "staticPath": "/generated/patterns/E.12"
     },
     {
       "id": "E.13",
-      "title": "Pragmatic Utility & Value Alignment",
+      "title": "Pragmatic Utility and Value Alignment",
       "staticPath": "/generated/patterns/E.13"
     },
     {
@@ -1063,7 +1113,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.17",
-      "title": "Multi-View Publication Kit",
+      "title": "Multi‑View Publication Kit",
       "staticPath": "/generated/patterns/E.17"
     },
     {
@@ -1103,18 +1153,23 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.17.ID.CR",
-      "title": "ComparativeReading — bounded comparative reading over comparative review units",
+      "title": "ComparativeReviewUnit - bounded comparison over comparative review units",
       "staticPath": "/generated/patterns/E.17.ID.CR"
     },
     {
       "id": "E.18",
-      "title": "Transduction Graph Architecture (E.TGA)",
+      "title": "Transformation Flow Structure",
       "staticPath": "/generated/patterns/E.18"
     },
     {
       "id": "E.18.1",
-      "title": "Principles-to-Work Transduction Path",
+      "title": "Principles-to-Work Carry-Through",
       "staticPath": "/generated/patterns/E.18.1"
+    },
+    {
+      "id": "E.18.2",
+      "title": "Transformation Flow Mathematical Description",
+      "staticPath": "/generated/patterns/E.18.2"
     },
     {
       "id": "E.19",
@@ -1140,6 +1195,26 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "E.23",
       "title": "Quality Improvement Loop Method",
       "staticPath": "/generated/patterns/E.23"
+    },
+    {
+      "id": "E.24",
+      "title": "U.Ontic and Ontic Introduction Discipline",
+      "staticPath": "/generated/patterns/E.24"
+    },
+    {
+      "id": "E.24.CD",
+      "title": "Ontic Candidate Detection",
+      "staticPath": "/generated/patterns/E.24.CD"
+    },
+    {
+      "id": "E.24.PUB",
+      "title": "Ontic Description and Publication Discipline",
+      "staticPath": "/generated/patterns/E.24.PUB"
+    },
+    {
+      "id": "E.24.UK",
+      "title": "U-kind Governance and Ontic Settlement Coupling",
+      "staticPath": "/generated/patterns/E.24.UK"
     },
     {
       "id": "F.0.1",
@@ -1168,7 +1243,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "F.5",
-      "title": "Naming Discipline for U.Types & Roles",
+      "title": "Naming Discipline for U-kind Names and RoleDescription Labels",
       "staticPath": "/generated/patterns/F.5"
     },
     {
@@ -1183,12 +1258,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "F.8",
-      "title": "Mint or Reuse? (U.Type vs Concept-Set vs Role Description vs Alias)",
+      "title": "Mint-or-Reuse Decision",
       "staticPath": "/generated/patterns/F.8"
     },
     {
       "id": "F.9",
-      "title": "Alignment & Bridge across Contexts",
+      "title": "Alignment and Bridge across Contexts",
       "staticPath": "/generated/patterns/F.9"
     },
     {
@@ -1223,7 +1298,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "F.15",
-      "title": "SCR/RSCR Harness for Unification",
+      "title": "Static and Regression Conformance Harness for Unification",
       "staticPath": "/generated/patterns/F.15"
     },
     {
@@ -1233,7 +1308,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "F.17",
-      "title": "Unified Term Sheet (UTS)",
+      "title": "Unified Term Sheet",
       "staticPath": "/generated/patterns/F.17"
     },
     {
@@ -1317,69 +1392,9 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/G.13"
     },
     {
-      "id": "H.1",
-      "title": "Alphabetic Glossary",
-      "staticPath": "/generated/patterns/H.1"
-    },
-    {
-      "id": "H.2",
-      "title": "Definitional Pattern Catalogue",
-      "staticPath": "/generated/patterns/H.2"
-    },
-    {
-      "id": "H.3",
-      "title": "Cross‑Reference Maps",
-      "staticPath": "/generated/patterns/H.3"
-    },
-    {
-      "id": "I.1",
-      "title": "Deprecated Aliases",
-      "staticPath": "/generated/patterns/I.1"
-    },
-    {
       "id": "I.2",
       "title": "Expanded Entry Disambiguation Cases",
       "staticPath": "/generated/patterns/I.2"
-    },
-    {
-      "id": "I.3",
-      "title": "Change‑Log (auto‑generated)",
-      "staticPath": "/generated/patterns/I.3"
-    },
-    {
-      "id": "I.4",
-      "title": "External Standards Mappings",
-      "staticPath": "/generated/patterns/I.4"
-    },
-    {
-      "id": "J.1",
-      "title": "Concept‑to‑Pattern Index",
-      "staticPath": "/generated/patterns/J.1"
-    },
-    {
-      "id": "J.2",
-      "title": "Pattern‑to‑Example Index",
-      "staticPath": "/generated/patterns/J.2"
-    },
-    {
-      "id": "J.3",
-      "title": "Principle‑Trace Index",
-      "staticPath": "/generated/patterns/J.3"
-    },
-    {
-      "id": "K.1",
-      "title": "Mandatory Replacement of Measurement Terms",
-      "staticPath": "/generated/patterns/K.1"
-    },
-    {
-      "id": "K.2",
-      "title": "Migration Debt from A.2.6 (USM)",
-      "staticPath": "/generated/patterns/K.2"
-    },
-    {
-      "id": "K.3",
-      "title": "Temporal Claim Lexical Debt from C.27",
-      "staticPath": "/generated/patterns/K.3"
     }
   ],
   "routes": [
