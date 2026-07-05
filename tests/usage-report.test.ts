@@ -70,7 +70,7 @@ describe('usage report aggregation', () => {
       status: 'Stable',
       part: 'Part A - Kernel Architecture Cluster',
     });
-    expect(report.topServedPatterns[0]?.title).toContain('Holonic Foundation');
+    expect(report.topServedPatterns[0]?.title).toContain('Holon Ontic Foundation');
     expect(report.topRoutes[0]).toMatchObject({
       id: 'route:project-alignment',
       count: 1,

@@ -105,8 +105,8 @@ describe('Compiler / Parser stage', () => {
     });
     expect(relations).toContainEqual({
       from: 'A.1.1',
-      relation: 'prerequisite_for',
-      to: 'A.2.1',
+      relation: 'coordinates_with',
+      to: 'F.0.1',
       source: 'A.1.1:catalog',
     });
   });

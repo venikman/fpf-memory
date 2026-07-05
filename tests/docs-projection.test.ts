@@ -14,7 +14,6 @@ import {
   buildDocsProjection,
   resolveDocTarget,
 } from '../src/core/documents.js';
-import { normalizeForLookup } from '../src/core/text.js';
 import { compileFpfSource } from '../src/runtime/compiler.js';
 import type { Snapshot } from '../src/runtime/types.js';
 
@@ -40,25 +39,6 @@ function routeGeneratedMarkdownPath(routeId: string) {
 function routeGeneratedHtmlPath(routeId: string) {
   const slug = routeId.replace(/^route:/, '');
   return `generated/routes/route_${slug}.html`;
-}
-
-function findPatternByTitleFragment(snapshot: Snapshot, fragment: string) {
-  const normalizedFragment = normalizeHomeNavTitle(fragment);
-  const pattern = Object.values(snapshot.patternGraph.nodes).find((candidate) => {
-    const labels = [candidate.title, ...candidate.aliases].map(normalizeHomeNavTitle);
-    return labels.some((label) => label.includes(normalizedFragment));
-  });
-  if (!pattern) {
-    throw new Error(`Expected a pattern title or alias containing ${fragment}`);
-  }
-  return pattern;
-}
-
-function normalizeHomeNavTitle(value: string): string {
-  return normalizeForLookup(value)
-    .replace(/[-_]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 async function copyNonGeneratedDocs(srcRoot: string, dstRoot: string) {
@@ -147,8 +127,8 @@ describe('docs projection', () => {
     // "About this pattern" so the pattern page heading set says what
     // it actually means (PR #72 design review).
     expect(patternPage).toContain('## How to use this pattern');
-    expect(patternPage).toContain('## Problem frame');
-    expect(patternPage).not.toContain('## A.2:1 - Problem frame');
+    expect(patternPage).toContain('## Problem Frame');
+    expect(patternPage).not.toContain('## A.2:1 - Problem Frame');
     // The ID + status/type/normativity/cluster/part render as ONE
     // inline mono byline directly under the H1 (was a boxed blockquote
     // before PR #72 design review, then briefly an eyebrow above + a
@@ -162,12 +142,14 @@ describe('docs projection', () => {
     expect(patternPage).not.toContain('- **ID:** `A.2`');
   });
 
-  it('explains generated glossary, changelog, and route pages by source and method', () => {
+  it('explains generated route pages by source and method', () => {
+    // The upstream spec (2026-07-03 sync, ref f7c7e93f) no longer ships a
+    // dedicated Alphabetic Glossary (was H.1) or a specification change log
+    // (was I.3): the glossary role is now folded into A.0 "Onboarding
+    // Glossary" and the change log was dropped entirely. The renderer's
+    // per-ID glossary/changelog framing therefore no longer has a target,
+    // so this test asserts the route-page framing that still applies.
     const projection = buildDocsProjection(snapshot);
-    const glossaryPage =
-      projection.pagesByMarkdownPath['docs/generated/patterns/H.1.md']?.markdown ?? '';
-    const changeLogPage =
-      projection.pagesByMarkdownPath['docs/generated/patterns/I.3.md']?.markdown ?? '';
     const routeIndex =
       projection.pagesByMarkdownPath['docs/generated/routes/index.md']?.markdown ?? '';
     const firstRoute = Object.values(snapshot.routeGraph.nodes)[0];
@@ -175,10 +157,6 @@ describe('docs projection', () => {
       ? projection.pagesByMarkdownPath[routeDocRef(firstRoute.id).markdownPath]?.markdown ?? ''
       : '';
 
-    expect(glossaryPage).toContain('This is the FPF glossary');
-    expect(glossaryPage).toContain('not a glossary of FPF Reference UI');
-    expect(changeLogPage).toContain('This is the FPF specification change log');
-    expect(changeLogPage).toContain('not the FPF Reference product changelog');
     expect(routeIndex).toContain('They are not website routes');
     expect(routeIndex).toContain(
       `Generated pages: ${Object.keys(snapshot.routeGraph.nodes).length}`,
@@ -211,13 +189,29 @@ describe('docs projection', () => {
   });
 
   it('renders catalog reminders for stub pages with no body content', () => {
-    const projection = buildDocsProjection(snapshot);
-    const stubPage =
-      projection.pagesByMarkdownPath['docs/generated/patterns/I.4.md']?.markdown ?? '';
+    // The published spec no longer ships any pattern that is a pure catalog
+    // stub (every pattern now has body sections), so synthesize one from a
+    // real pattern: strip its anchor text and child sections but keep its
+    // catalog description. The reminder is the description-only fallback the
+    // renderer emits when there is no intro text and no first-child excerpt.
+    const stubId = 'I.2';
+    const synthetic = structuredClone(snapshot);
+    const catalogDescription = synthetic.patternGraph.nodes[stubId]?.description;
+    expect(
+      catalogDescription,
+      'expected the stub fixture pattern to carry a catalog description',
+    ).toBeTruthy();
 
-    expect(stubPage).toMatch(
-      /Trace tables to ISO 15926, BORO, CCO, Constructor.?Theory terms\./,
-    );
+    // Remove body content so the renderer falls through to the reminder.
+    if (synthetic.anchorMap[stubId]) synthetic.anchorMap[stubId].text = '';
+    if (synthetic.indexMap[stubId]) synthetic.indexMap[stubId].childIds = [];
+
+    const projection = buildDocsProjection(synthetic);
+    const stubPage =
+      projection.pagesByMarkdownPath[`docs/generated/patterns/${stubId}.md`]?.markdown ?? '';
+
+    expect(stubPage).not.toContain('## Content');
+    expect(stubPage).toContain(catalogDescription!);
   });
 
   it('preserves keyword cells that contain pipes inside code spans', () => {
@@ -414,7 +408,7 @@ describe('docs projection', () => {
     const a1ToA2ExplicitRows = relationRows.filter(
       (row) =>
         /class="fpf-pid[^"]*fpf-pid--a[^"]*"[^>]*>A\.1</.test(row) &&
-        /<span class="fpf-relation-kind">explicit reference<\/span>/.test(row) &&
+        /<span class="fpf-relation-kind">coordinates with<\/span>/.test(row) &&
         /href="\/generated\/patterns\/A\.2"/.test(row) &&
         row.includes('Role Taxonomy'),
     );
@@ -516,15 +510,14 @@ describe('docs projection', () => {
         expect(rootIndex).not.toContain('[Routes](/routes)');
       }
       // The newcomer glossary is an authored page at /glossary; the spec's
-      // own H.1 glossary is linked from there, not from the shortcuts row.
+      // own glossary pattern is linked from there, not from the shortcuts row.
       expect(rootIndex).toContain('[Glossary](/glossary)');
       expect(rootIndex).not.toContain('[Glossary](/generated/patterns/');
-      const changeLogTarget = resolveDocTarget(
-        snapshot,
-        findPatternByTitleFragment(snapshot, 'change log').id,
-      );
-      expect(changeLogTarget).toBeDefined();
-      expect(rootIndex).toContain(`[Change log](${changeLogTarget?.docRef.staticPath})`);
+      // The upstream spec (2026-07-03 sync) dropped the specification change
+      // log pattern (was I.3). The optional spec-derived "Change log" shortcut
+      // resolves by content, so it is correctly omitted when no changelog
+      // pattern is present.
+      expect(rootIndex).not.toContain('[Change log](/generated/patterns/');
       expect(rootIndex).toContain('## Published from');
       expect(rootIndex).toContain('source hash `sha256:');
       expect(rootIndex).toContain('<summary>Full provenance</summary>');
@@ -565,19 +558,16 @@ describe('docs projection', () => {
   }, 20_000);
 
   it('omits optional home navigation links when the selected spec lacks those IDs', () => {
-    const optionalHomePatternIds = new Set([
-      findPatternByTitleFragment(snapshot, 'alphabetic glossary').id,
-      findPatternByTitleFragment(snapshot, 'change log').id,
-    ]);
+    // The current spec already lacks a spec-derived glossary pattern in a
+    // "glossary" Part and a change-log pattern, so the optional home
+    // shortcuts (which resolve those by content) must be omitted. Build a
+    // synthetic snapshot with an empty pattern graph to prove the home page
+    // still renders its static shortcuts without those optional links.
     const alternateSnapshot: Snapshot = {
       ...snapshot,
       patternGraph: {
         ...snapshot.patternGraph,
-        nodes: Object.fromEntries(
-          Object.entries(snapshot.patternGraph.nodes).filter(
-            ([id]) => !optionalHomePatternIds.has(id),
-          ),
-        ),
+        nodes: {},
       },
     };
 
@@ -590,7 +580,7 @@ describe('docs projection', () => {
     expect(rootIndex).not.toContain('[Glossary](/generated/patterns/');
     expect(rootIndex).not.toContain('[Change log](/generated/patterns/');
     // The authored newcomer glossary link is static — present even when the
-    // spec lacks an H.1-style glossary pattern.
+    // spec lacks a dedicated glossary pattern.
     expect(rootIndex).toContain('[Glossary](/glossary)');
   });
 
@@ -665,9 +655,12 @@ describe('docs projection', () => {
           ),
         ).toContain(firstRoute.name);
       }
+      // The upstream spec (2026-07-03 sync) dropped the specification change
+      // log pattern (was I.3), so its generated page no longer exists. Verify
+      // a representative generated pattern page builds instead.
       expect(
-        await readFile(resolve(outDir, 'generated/patterns/I.3.html'), 'utf8'),
-      ).toContain('This is the FPF specification change log');
+        await readFile(resolve(outDir, 'generated/patterns/A.1.html'), 'utf8'),
+      ).toContain('Holon Ontic Foundation');
       expect(
         await readFile(resolve(outDir, 'generated/routes/index.html'), 'utf8'),
       ).toContain('They are not website routes');

@@ -177,8 +177,12 @@ describe('FpfRuntime', () => {
     expect(boundedContext.citations.some((citation) => citation.startsWith('A.1.1'))).toBe(true);
     expect(boundedContext.constraints.length).toBeGreaterThanOrEqual(2);
 
+    // Upstream (2026-07-03 sync) renamed A.2.5 from "U.RoleStateGraph" to
+    // "RoleStateRelation@BoundedContext", so the exact-lexeme query above no
+    // longer surfaces it. Use the natural-language phrasing so retrieval still
+    // recovers all three lawful-workflow role patterns.
     const roleWorkflow = await runtime.query(
-      'How do U.RoleAssignment, U.BoundedContext, and U.RoleStateGraph connect in a lawful workflow?',
+      'How do role assignment, bounded context, and role state relations connect in a lawful workflow?',
       'verbose',
     );
     expect(roleWorkflow.ids).toEqual(
@@ -352,7 +356,7 @@ describe('FpfRuntime', () => {
     expect(readById.status).toBe('ok');
     expect(readById.nodeId).toBe('A.1.1');
     expect(readById.docRef?.markdownPath).toBe('docs/generated/patterns/A.1.1.md');
-    expect(readById.markdown).toContain('# U.BoundedContext: The Semantic Frame');
+    expect(readById.markdown).toContain('# U.BoundedContext Semantic Frame');
     // Default-mode response carries metadata so callers can decide
     // whether to re-fetch with maxChars or follow the docRef link.
     expect(readById.markdownChars).toBe(readById.markdown!.length);
@@ -406,7 +410,7 @@ describe('FpfRuntime', () => {
     expect(readByLexeme.status).toBe('ok');
     expect(readByLexeme.nodeId).toBe('A.1.1');
     expect(readByLexeme.docRef?.markdownPath).toBe('docs/generated/patterns/A.1.1.md');
-    expect(readByLexeme.markdown).toContain('# U.BoundedContext: The Semantic Frame');
+    expect(readByLexeme.markdown).toContain('# U.BoundedContext Semantic Frame');
 
     const inspectAnchor = await runtime.inspectAnchor(inspectById.anchors[0]!.id);
     expect(inspectAnchor.status).toBe('ok');
@@ -422,8 +426,11 @@ describe('FpfRuntime', () => {
       expect(inspectSyntheticAnchor.ownerNode?.kind).toBe('route');
     }
 
+    // A.2.5 was renamed away from "U.RoleStateGraph" in the 2026-07-03 sync;
+    // use the natural-language phrasing so all three role patterns are
+    // recovered (see the query-based test above).
     const trace = await runtime.trace(
-      'How do U.RoleAssignment, U.BoundedContext, and U.RoleStateGraph connect in a lawful workflow?',
+      'How do role assignment, bounded context, and role state relations connect in a lawful workflow?',
       'proof',
     );
     expect(trace.status).toBe('ok');
@@ -663,17 +670,22 @@ describe('FpfRuntime', () => {
     }
   });
 
-  it('lists every Draft pattern in Part C grouped by cluster', async () => {
+  it('answers the Part C Draft listing route grouped by cluster', async () => {
     await runtime.refresh();
     const drafts = await runtime.query(
       'List all Draft patterns in Part C and what family each belongs to.',
       'verbose',
     );
 
+    // The structured Part C Draft listing route still resolves and groups by
+    // cluster. Upstream (2026-07-03 sync, ref f7c7e93f) retired the "Draft"
+    // status vocabulary entirely — every published pattern is now "Stable" or
+    // "Planned" — so the route correctly reports no members under each
+    // cluster instead of the former C.4 / C.15 Draft rows.
     expect(drafts.status).toBe('ok');
     expect(drafts.answer).toContain('Cluster C.I - Core CALs / LOGs / CHRs:');
-    expect(drafts.answer).toContain('C.4 - Method‑CAL');
     expect(drafts.answer).toContain('Cluster C.IV - Composite & Macro-Scale:');
-    expect(drafts.ids).toContain('C.15');
+    expect(drafts.answer).toContain('- none');
+    expect(drafts.ids).toHaveLength(0);
   });
 });

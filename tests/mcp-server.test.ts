@@ -328,7 +328,7 @@ describe('direct MCP server', () => {
     });
     const readDocPayload = asToolPayload(readDoc);
     expect(readDocPayload.nodeId).toBe('A.1.1');
-    expect(readDocPayload.markdown).toContain('# U.BoundedContext: The Semantic Frame');
+    expect(readDocPayload.markdown).toContain('# U.BoundedContext Semantic Frame');
     expect(typeof readDocPayload.markdownChars).toBe('number');
     expect(Array.isArray(readDocPayload.headings)).toBe(true);
 

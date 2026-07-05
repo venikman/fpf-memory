@@ -106,15 +106,20 @@ describe('compiled index golden snapshot', () => {
         titlePrefix: 'U.RoleAssignment',
         part: 'Part A - Kernel Architecture Cluster',
       },
+      // Upstream (2026-07-03 sync, ref f7c7e93f) renamed A.2.5 from
+      // "U.RoleStateGraph" to "RoleStateRelation@BoundedContext".
       'A.2.5': {
         kind: 'pattern',
-        titlePrefix: 'U.RoleStateGraph',
+        titlePrefix: 'RoleStateRelation',
         part: 'Part A - Kernel Architecture Cluster',
       },
-      'J.1': {
+      // Part J ("Indexes & Navigation Aids", incl. J.1 "Concept") was removed
+      // in the same sync. A.1 is the kernel Holon Ontic Foundation and stands
+      // in as the load-bearing canonical anchor here.
+      'A.1': {
         kind: 'pattern',
-        titlePrefix: 'Concept',
-        part: 'Part J - Indexes & Navigation Aids',
+        titlePrefix: 'Holon Ontic Foundation',
+        part: 'Part A - Kernel Architecture Cluster',
       },
     };
     for (const [id, expected] of Object.entries(canonical)) {
