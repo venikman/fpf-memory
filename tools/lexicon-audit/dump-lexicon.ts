@@ -19,7 +19,10 @@ import { compileFpfSource } from '../../src/runtime/compiler.js';
 
 const specPath = (process.env.FPF_SPEC_SOURCE_PATH ?? 'published/current/FPF-Spec.md').trim();
 const outArg = process.argv.indexOf('--out');
-const outPath = outArg !== -1 ? process.argv[outArg + 1] : 'tools/lexicon-audit/lexicon-export.json';
+const outPath =
+  outArg !== -1 && outArg + 1 < process.argv.length
+    ? process.argv[outArg + 1]!
+    : 'tools/lexicon-audit/lexicon-export.json';
 
 const sourceText = readFileSync(resolve(specPath), 'utf8');
 const sourceHash = `sha256:${createHash('sha256').update(sourceText).digest('hex')}`;
@@ -57,7 +60,9 @@ const lexemes = Object.values(projections.lexicon).map((entry) => ({
 const compiledNodes = snapshot.compiledNodes as unknown;
 const nodeList = Array.isArray(compiledNodes)
   ? (compiledNodes as { kind: string }[])
-  : (Object.values(compiledNodes as Record<string, { kind: string }>) as { kind: string }[]);
+  : compiledNodes
+    ? (Object.values(compiledNodes as Record<string, { kind: string }>) as { kind: string }[])
+    : [];
 const kindCounts: Record<string, number> = {};
 for (const node of nodeList) {
   kindCounts[node.kind] = (kindCounts[node.kind] ?? 0) + 1;

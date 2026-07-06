@@ -77,7 +77,7 @@ def load_canonicals(path: str) -> tuple[list[str], dict]:
         rows = data
     else:
         raise SystemExit(f"unrecognized lexicon JSON shape in {path}")
-    canon = [str(r.get("canonical", "")) for r in rows if isinstance(r, dict)]
+    canon = [str(r.get("canonical") or "") for r in rows if isinstance(r, dict)]
     return canon, provenance
 
 
