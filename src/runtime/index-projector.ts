@@ -356,6 +356,30 @@ function shouldIndexLexeme(canonical: string): boolean {
     return false;
   }
 
+  // Reject compiler artifacts the source parser mis-files as vocabulary. These
+  // are not terms a reader would ever search for, and each one pollutes the
+  // lexeme catalog + inherited search aliases. Rules mirror the "hard" band in
+  // tools/lexicon-audit so the compiler and that audit agree on the floor.
+  const trimmed = canonical.trim();
+  if (!/[A-Za-z]/.test(trimmed)) {
+    // No Latin letter at all: "{ }", "Δ-0", "[0,1]", "99.9%", bare arXiv ids.
+    return false;
+  }
+  if (!/^[\p{L}\p{N}]/u.test(trimmed)) {
+    // Punctuation-led fragment: ", not by the notation.", "{environment, method}".
+    // Unicode-aware so a leading operator symbol (e.g. "Γ_time", "Φ_plane") — a
+    // legitimate FPF term — is kept; only true punctuation/brackets are dropped.
+    return false;
+  }
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  if (trimmed.length > 120 || words.length > 12) {
+    // Prose / multi-sentence block split off as a single "term".
+    return false;
+  }
+  if (words.length > 10 && /[.:;]\s+\S/.test(trimmed)) {
+    return false;
+  }
+
   const tokens = normalizedCanonical.split(/\s+/).filter(Boolean);
   if (tokens.length === 1) {
     const token = tokens[0]!;
