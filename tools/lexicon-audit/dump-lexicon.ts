@@ -9,7 +9,7 @@
  * Run:  bun tools/lexicon-audit/dump-lexicon.ts [--out <path>]
  *       FPF_SPEC_SOURCE_PATH overrides the spec (default: committed 07-03 spec).
  *
- * The emitted JSON feeds tools/lexicon-audit/lexicon_audit.py.
+ * The emitted JSON feeds tools/lexicon-audit/lexicon-audit.ts.
  */
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';

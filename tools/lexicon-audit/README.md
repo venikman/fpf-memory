@@ -21,7 +21,7 @@ that can ratchet the number down once a compile-time filter lands
 bun tools/lexicon-audit/dump-lexicon.ts --out /tmp/lex.json
 
 # 2. classify, print the report, (optionally) gate and write a baseline
-python3 tools/lexicon-audit/lexicon_audit.py /tmp/lex.json \
+bun tools/lexicon-audit/lexicon-audit.ts /tmp/lex.json \
     --gate 10 --baseline-out tools/lexicon-audit/baseline-2026-07-03.json
 ```
 
@@ -100,13 +100,14 @@ delta as measurement noise). The filter removes it at the source.
 
 ## Next (not done here)
 
-1. **Wire the gate into CI** — add `lexicon_audit.py --gate` to
+1. **Wire the gate into CI** — add `lexicon-audit.ts --gate` to
    `fpf-content-quality.yml` in baseline-lock mode (fail on regression above the
    committed baseline). Now safe: the post-filter floor is 0%, well under any
    gate. Left as a gated follow-up because it edits a workflow surface.
-2. **Republish + deploy** — the compiler fingerprint changed, so
-   `published/current/**` (the committed snapshot) must be regenerated with
-   `bun run publish:current` and redeployed for the cleanup to reach production.
+2. **Deploy** — `published/current/**` has been regenerated with the new
+   compiler (fingerprint `722e13d0`, snapshot 117→87 MB) and committed, so
+   `validate:published` passes; the cleanup reaches production on the next prod
+   deploy of `main`.
 3. **SOFT band** — math-formula notation (`Γ_time=rolling(180d)`, `α(v) = id`)
    still lands in CLEAN/SOFT; a later pass can tighten these once the operator
    symbols worth keeping are enumerated.
