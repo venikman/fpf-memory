@@ -21,6 +21,8 @@ docs/routes.md
 .env.development
 output.txt
 reports/
+# regenerable lexicon export (tools/lexicon-audit/dump-lexicon.ts default out)
+tools/lexicon-audit/lexicon-export.json
 *.db
 *.db-*
 .vercel

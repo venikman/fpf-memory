@@ -1,0 +1,42 @@
+{
+  "provenance": {
+    "specPath": "published/current/FPF-Spec.md",
+    "sourceHash": "sha256:f916341a8b3711b847c8a701f8b71e0ee155d9e5517be3ed36363fa6621ccf2b",
+    "compilerFingerprint": "sha256:0c8fc337946799add7f525e712ecc3a9149e7111de4b2c0cd765db761f945a29",
+    "builtAt": "2026-07-03T21:18:14Z",
+    "upstreamRef": "f7c7e93f137a4691b390d46046428434e847099d",
+    "totalCompiledNodes": 9737,
+    "kindCounts": {
+      "pattern": 278,
+      "route": 3,
+      "lexeme": 9034,
+      "preface": 422
+    },
+    "lexemeCount": 9034,
+    "aliasStats": {
+      "total": 25912,
+      "avgPerLexeme": 2.868,
+      "max": 123
+    }
+  },
+  "lexemes": 9034,
+  "bands": {
+    "hard": 2626,
+    "soft": 880,
+    "clean": 5528
+  },
+  "pct": {
+    "hard": 29.1,
+    "soft": 9.7,
+    "clean": 61.2
+  },
+  "reasons": {
+    "clean:clean": 5528,
+    "hard:punctuation-led fragment": 1051,
+    "hard:prose/multi-sentence block": 1546,
+    "soft:notation/table residue": 349,
+    "soft:overlong phrase": 297,
+    "soft:trailing punctuation": 234,
+    "hard:no-letter (symbol/number/citation)": 29
+  }
+}
