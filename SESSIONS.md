@@ -15,7 +15,7 @@ thread IDs, prompts pasted from users, or personal scheduling details.
 
 1. **The repo is the memory; sessions are workers.** Nothing durable may live
    only in a chat session. Anything worth keeping leaves the session as a PR,
-   an issue, a Discussion, an `AGENTS.md` learned fact, or a row update in
+   an issue, a Discussion, an [AGENTS.md](AGENTS.md) learned fact, or a row update in
    this file. A session that ends without externalizing its output produced
    nothing.
 2. **One durable session per project, everything else bounded.** Each project
@@ -45,8 +45,8 @@ named target, then close), **retire** (extract residue, then close),
 | --- | --- | --- | --- |
 | Adoption strategy (fpf-memory) | Technical architect + Growth/publishing scout (draft-only) | **active** | The single strategy session. Absorbs "FPF-based projects for knowledge work" and "Strategy scaling research". Output lands as Discussions / issues / draft share packets, never as chat-only conclusions. |
 | FPF server update check (fpf-memory) | FPF sync monitor | **retire** | Fully superseded by `fpf-sync-monitor.yml` + `vercel-spend-monitor.yml` (hourly, evidence-gated). Reopen only to debug the monitors themselves, as a bounded packet. |
-| FPF Reference MCP setup (fpf-memory) | Implementation PR agent | **retire** | Setup shipped and is documented (`docs/connect-mcp.md`, https://fpf.sh/connect-mcp). Any residual setup friction becomes a product-role feedback packet, not a standing session. |
-| Project context exploration (fpf-memory) | Dogfood/product scout | **retire** | Context now lives in `AGENTS.md` / `CLAUDE.md` / this file. On last open: extract any durable fact into `AGENTS.md` "Learned Workspace Facts", then close. |
+| FPF Reference MCP setup (fpf-memory) | Implementation PR agent | **retire** | Setup shipped and is documented ([docs/connect-mcp.md](docs/connect-mcp.md), https://fpf.sh/connect-mcp). Any residual setup friction becomes a product-role feedback packet, not a standing session. |
+| Project context exploration (fpf-memory) | Dogfood/product scout | **retire** | Context now lives in [AGENTS.md](AGENTS.md) / [CLAUDE.md](CLAUDE.md) / this file. On last open: extract any durable fact into [AGENTS.md](AGENTS.md) "Learned Workspace Facts", then close. |
 | FPF memory and Glaze … (fpf-memory) | unknown (title truncated) | **triage** | On next open: state the session's role and one done condition. If neither exists, extract residue and close. |
 | A2UI Composer gallery (memory-sql) | out of scope for this repo | **active** | The single `memory-sql` session. Keep separate; do not route FPF Reference decisions through it. If it needs FPF grounding, connect it to the hosted `fpf_reference` MCP. |
 | Knowledge base indexing (wiki-index) | consumer / dogfood surface | **active** | The single `wiki-index` build session. Consumes FPF via hosted MCP (rule 5). Friction it hits is first-party adoption feedback — file it as a product-role feedback packet against this repo. |
