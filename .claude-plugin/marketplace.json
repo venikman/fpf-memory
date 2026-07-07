@@ -1,0 +1,26 @@
+{
+  "name": "fpf",
+  "owner": {
+    "name": "venikman",
+    "url": "https://github.com/venikman/fpf-memory"
+  },
+  "metadata": {
+    "description": "FPF Reference agent resources: the setup plugin for the FPF Reference MCP server (fpf_reference).",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "fpf-reference",
+      "source": "./plugins/fpf-reference",
+      "description": "Install, connect, validate, or self-host the FPF Reference MCP server (fpf_reference). Bundles the setup skill, the hosted MCP registration, and a validation command.",
+      "version": "0.1.0",
+      "author": {
+        "name": "venikman",
+        "url": "https://github.com/venikman"
+      },
+      "homepage": "https://mcp.fpf.sh/",
+      "license": "ISC",
+      "keywords": ["fpf", "fpf-reference", "mcp", "first-principles-framework", "spec-lookup"]
+    }
+  ]
+}
