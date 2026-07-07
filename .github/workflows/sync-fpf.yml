@@ -34,10 +34,13 @@ permissions:
   contents: write
   pull-requests: write
 
-# A single sync at a time. If a manual or monitor-triggered run overlaps
-# another sync, the later run waits so two jobs do not race on `published/current/`.
+# A single production-touching run at a time. Shared with deploy-prod.yml so a
+# manual production promotion never overlaps a sync's own deploy:prod (both
+# promote + alias the same Vercel projects and capture "previous deployment"
+# for rollback — concurrent runs could restore an alias to a stale deployment).
+# Overlapping runs wait rather than cancel.
 concurrency:
-  group: sync-fpf
+  group: fpf-production-deploy
   cancel-in-progress: false
 
 env:
