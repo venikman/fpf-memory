@@ -345,6 +345,18 @@ https://mcp.fpf.sh/api/fpf/status
 
 All MCP tools are deterministic. Set `FPF_MCP_SURFACE=public` on the deployed server to restrict it to public tools only.
 
+### MCP Apps (interactive results)
+
+`browse_fpf_catalog`, `search_fpf`, `ask_fpf`, and `query_fpf_spec` additionally
+advertise an [MCP Apps](https://blog.modelcontextprotocol.io/posts/2025-11-21-mcp-apps/)
+UI template (`ui://fpf-reference/result-viewer`, `text/html;profile=mcp-app`) via
+`_meta.ui.resourceUri`. Hosts that support MCP Apps — such as AI SDK chat UIs using
+[`experimental_MCPAppRenderer`](https://ai-sdk.dev/docs/reference/ai-sdk-ui/mcp-app-renderer) —
+render search hits, catalog pages, and grounded answers as an interactive sandboxed
+view; every other client keeps getting the same text and `structuredContent` payloads,
+so the surface is purely additive. The viewer HTML is fully self-contained (no network
+access needed inside the sandbox).
+
 ## Project layout
 
 **Runtime surfaces**

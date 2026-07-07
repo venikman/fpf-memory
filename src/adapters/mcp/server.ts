@@ -5,6 +5,7 @@ import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
+import { getFpfAppToolMeta, registerFpfAppResource } from './app-ui.js';
 import { renderToolContent } from './tool-text.js';
 import type { createMcpTools, FpfMcpTool, FpfMcpToolMap } from './tools.js';
 
@@ -67,8 +68,13 @@ export class FpfMcpServer {
       instructions: this.options.instructions,
     });
 
+    let hasAppEnabledTool = false;
     for (const tool of Object.values(this.options.tools)) {
-      registerFpfTool(server, tool);
+      hasAppEnabledTool = registerFpfTool(server, tool) || hasAppEnabledTool;
+    }
+
+    if (hasAppEnabledTool) {
+      registerFpfAppResource(server);
     }
 
     return server;
@@ -148,13 +154,16 @@ const FPF_REFERENCE_SERVER_INSTRUCTIONS = [
   'Prefer get_fpf_index_status before trust-sensitive FPF use, query_fpf_spec for route and ID discovery, and read_fpf_doc for exact wording.',
 ].join(' ');
 
-function registerFpfTool(server: McpServer, tool: FpfMcpTool): void {
+/** Returns true when the tool advertises the MCP App viewer. */
+function registerFpfTool(server: McpServer, tool: FpfMcpTool): boolean {
+  const appMeta = getFpfAppToolMeta(tool.id);
   server.registerTool(
     tool.id,
     {
       description: tool.description,
       inputSchema: tool.inputSchema,
       outputSchema: tool.outputSchema,
+      ...(appMeta ? { _meta: appMeta } : {}),
     },
     async (input) => {
       const structuredContent = await tool.execute(input);
@@ -169,5 +178,6 @@ function registerFpfTool(server: McpServer, tool: FpfMcpTool): void {
       } satisfies CallToolResult;
     },
   );
+  return appMeta !== undefined;
 }
 
