@@ -72,7 +72,7 @@ Local-first apps keep working offline: cached pages stay readable but are labele
 
 ## Glaze build prompt
 
-The operational artifact — paste into Glaze as-is:
+The operational artifact — paste into Glaze as-is. One caveat first: the endpoint and server name below are quoted **as of the design date**; their SSOT is `src/core/public-copy.ts` (surfaced at mcp.fpf.sh and the Connect MCP page), and this dated exploration page sits outside the adoption-copy parity tests. Before pasting, confirm both values still match the SSOT — if they have moved, this prompt is stale, not authoritative.
 
 ```text
 Build a macOS app called "FPF Companion": a read-only reader and lookup client
