@@ -28,7 +28,11 @@ FPF_MCP_SURFACE=full bun run mcp
 ## Register in a client
 
 Register as `fpf_reference_local` so it does not collide with the hosted
-`fpf_reference` key (see the collision rule below). Example `.mcp.json` entry:
+`fpf_reference` key (see the collision rule below). Set `cwd` to your local clone
+path: the `args` and `env` paths are relative, so the client resolves them against
+its own working directory (usually the user's active project) unless `cwd` pins
+them to the `fpf-memory` checkout — otherwise the server fails to start. Example
+`.mcp.json` entry:
 
 ```json
 {
@@ -36,6 +40,7 @@ Register as `fpf_reference_local` so it does not collide with the hosted
     "fpf_reference_local": {
       "command": "bun",
       "args": ["src/entrypoints/mcp-stdio.ts"],
+      "cwd": "/path/to/fpf-memory",
       "env": {
         "FPF_SPEC_SOURCE_PATH": "published/current/FPF-Spec.md",
         "FPF_RUNTIME_ARTIFACT_DIR": ".runtime/fpf-index",
@@ -46,7 +51,8 @@ Register as `fpf_reference_local` so it does not collide with the hosted
 }
 ```
 
-`server.json` in the repo carries the same stdio definition (`FPF_MCP_SURFACE=full`).
+`server.json` in the repo carries the same stdio definition (`FPF_MCP_SURFACE=full`,
+with `cwd` set to `.` because it is loaded from within the repo).
 The protocol `serverInfo.name` remains `fpf_reference`; the client key is what you
 name it (`fpf_reference_local`).
 

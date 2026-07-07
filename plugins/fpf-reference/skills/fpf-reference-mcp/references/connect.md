@@ -36,7 +36,7 @@ Add a custom connector (Settings → Connectors → Add custom connector):
 - Name: `FPF Reference`
 - URL: `https://mcp.fpf.sh/api/mcp/fpf_reference/mcp`
 
-### Cursor / Windsurf
+### Cursor
 
 ```json
 {
@@ -48,7 +48,19 @@ Add a custom connector (Settings → Connectors → Add custom connector):
 }
 ```
 
-(Windsurf uses `"serverUrl"` instead of `"url"`.)
+### Windsurf
+
+Windsurf uses `"serverUrl"` instead of `"url"`:
+
+```json
+{
+  "mcpServers": {
+    "fpf_reference": {
+      "serverUrl": "https://mcp.fpf.sh/api/mcp/fpf_reference/mcp"
+    }
+  }
+}
+```
 
 ### VS Code (MCP: Add Server → HTTP)
 
