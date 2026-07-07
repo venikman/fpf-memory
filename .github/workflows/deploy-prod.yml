@@ -1,0 +1,65 @@
+name: Deploy production surfaces
+
+# Manual, one-click production promotion of the CURRENT main publication surface
+# (published/current/**) to both Vercel projects — fpf.sh (website) and
+# mcp.fpf.sh (hosted MCP).
+#
+# Use this when main is ahead of live for a reason the upstream-driven
+# sync-fpf.yml worker won't act on — e.g. a compiler/index change that keeps the
+# same upstream ref but changes the compiled snapshot (its compilerFingerprint).
+# sync-fpf only republishes on an upstream-ref change, so a compiler-only cleanup
+# needs this explicit promotion.
+#
+# The heavy lifting is deploy:prod (scripts/deploy-production-surfaces.ts): it
+# runs deploy:validate, builds each surface, deploys the prebuilt bundle to a
+# staged production deployment, promotes + aliases the canonical domain, then
+# verifies with monitor:sync + monitor:content (live) + smoke:production, and
+# rolls the aliases back automatically if any verification fails.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+# Never run two production promotions at once.
+concurrency:
+  group: deploy-prod-surfaces
+  cancel-in-progress: false
+
+env:
+  BUN_VERSION: '1.3.5'
+
+jobs:
+  deploy:
+    name: Build + promote website and MCP to production
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - run: bun install --frozen-lockfile
+
+      # Fail fast if the committed published surface doesn't match the current
+      # compiler before touching production.
+      - name: Validate published surface
+        run: bun run validate:published
+
+      - name: Deploy to production (build + promote + verify + auto-rollback)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          FPF_VERCEL_SCOPE: team_CnO1I5xd2OS0lzbbc4RkW7Ym
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo "::error::VERCEL_TOKEN secret is not configured; cannot deploy to production."
+            exit 1
+          fi
+          bun run deploy:prod
