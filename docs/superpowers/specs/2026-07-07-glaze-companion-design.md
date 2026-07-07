@@ -28,7 +28,7 @@ The runtime snapshot used throughout this design: `sha256:f916341a8b3711b847c8a7
 
 | ID | Atomic claim | Owner layer |
 | --- | --- | --- |
-| GLZ-1 | The companion calls only the six public tools: `browse_fpf_catalog`, `search_fpf`, `ask_fpf`, `query_fpf_spec`, `read_fpf_doc`, `get_fpf_index_status`. | Interface contract (mcp.fpf.sh) |
+| GLZ-1 | The companion calls only tools from the contract's six-tool public roster (`browse_fpf_catalog`, `search_fpf`, `ask_fpf`, `query_fpf_spec`, `read_fpf_doc`, `get_fpf_index_status`) — and ships using five of them: `query_fpf_spec` is intentionally unused (agent-facing structured envelope; `ask_fpf` is its human-facing twin). | Interface contract (mcp.fpf.sh) |
 | GLZ-2 | Expert tools (`inspect_*`, `trace_fpf_path`, `refresh_fpf_index`) are never assumed on the hosted endpoint and never appear in the app. | Interface contract |
 | GLZ-3 | Reliance gate: before trust-sensitive display, `get_fpf_index_status` must show `snapshotExists: true`, `fresh: true`, and `currentSourceHash === sourceHash`; otherwise every surface renders a degraded state and answers are labeled unverified. | Interface contract |
 | GLZ-4 | Exact wording flows only through `read_fpf_doc`; `ask_fpf` output is presented as a grounded summary, never as canonical spec text. | Interface contract |
@@ -52,7 +52,7 @@ Maps `get_fpf_index_status` directly: a pill in the sidebar footer is green when
 
 ### Ask
 
-Maps `ask_fpf` (`mode: compact` default; `verbose`/`proof` toggle). Renders the `markdown` answer; `ids` as chips that open the Reader; `citations`, `constraints`, `gaps`, and `confidence` as a grounding footer. `status` enum handling: `ok` renders normally; `not_found` offers Search; `ambiguous` renders `candidateIds` as suggestion chips; `unsupported` explains the bound; `stale_snapshot_prevented` triggers the stale banner and a status re-check.
+Maps `ask_fpf` (`mode: compact` default; `verbose`/`proof` toggle) — the human-facing twin of `query_fpf_spec`, whose structured envelope stays deliberately unused in this app. Renders the `markdown` answer; `ids` as chips that open the Reader; `citations`, `constraints`, `gaps`, and `confidence` as a grounding footer. `status` enum handling: `ok` renders normally; `not_found` offers Search; `ambiguous` renders `candidateIds` as suggestion chips; `unsupported` explains the bound; `stale_snapshot_prevented` triggers the stale banner and a status re-check.
 
 ### Search
 
@@ -81,7 +81,7 @@ service, the hosted MCP endpoint:
 
   https://mcp.fpf.sh/api/mcp/fpf_reference/mcp   (server name: fpf_reference)
 
-Use only these six MCP tools, nothing else:
+Use only these five MCP tools, nothing else:
 - get_fpf_index_status {} -> { sourcePath, sourceHash, builtAt, snapshotExists,
   currentSourceHash, fresh, compilerMode, artifacts }
 - search_fpf { query (<=1000 chars), kind?: pattern|route|lexeme|preface,
@@ -93,10 +93,13 @@ Use only these six MCP tools, nothing else:
 - ask_fpf { question (<=2000 chars), mode?: compact|verbose|proof }
   -> { markdown, ids, citations, constraints, gaps, confidence, status,
   snapshot }
-- query_fpf_spec { question, mode? } -> structured envelope (same family)
 - read_fpf_doc { selector (<=256 chars), mode?: preview|full, maxChars? }
   -> { title?, nodeId?, markdown?, markdownChars?, truncated?, headings?,
   preview?, docRef?: { staticPath }, snapshot }
+
+(The endpoint also exposes a sixth public tool, query_fpf_spec; it returns an
+agent-facing structured envelope and is intentionally NOT used by this app —
+do not call it or generate code for it.)
 
 App shape: a menu-bar icon with a global-shortcut quick-search (top 5
 search_fpf hits; Enter opens the reader; typing an exact ID like "A.1.1" or
