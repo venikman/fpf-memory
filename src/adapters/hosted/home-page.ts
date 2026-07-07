@@ -82,14 +82,11 @@ export function renderHostedHomePage(): string {
         background: var(--panel);
       }
 
-      .hero > * {
-        margin-left: clamp(30px, 5vw, 64px);
-        margin-right: clamp(30px, 5vw, 64px);
-      }
-
-      .hero .eyebrow {
-        align-self: end;
-        margin-top: clamp(30px, 5vw, 64px);
+      .hero-copy {
+        display: grid;
+        gap: clamp(16px, 2vw, 22px);
+        align-content: center;
+        padding: clamp(30px, 5vw, 56px) clamp(30px, 5vw, 64px);
       }
 
       .eyebrow {
@@ -126,13 +123,10 @@ export function renderHostedHomePage(): string {
 
       .endpoint {
         display: grid;
-        grid-column: 2;
-        grid-row: 1 / span 4;
         align-content: center;
         gap: 14px;
-        padding: 18px;
+        padding: clamp(24px, 3vw, 40px);
         border-left: 1px solid var(--line-strong);
-        border-radius: 0;
         background: #12160f;
       }
 
@@ -191,6 +185,10 @@ export function renderHostedHomePage(): string {
       .quick div {
         padding: 20px;
         border-right: 1px solid var(--line);
+      }
+
+      .quick div:last-child {
+        border-right: 0;
       }
 
       .quick strong {
@@ -361,18 +359,13 @@ export function renderHostedHomePage(): string {
           min-height: auto;
         }
 
-        .hero > * {
-          margin-left: 28px;
-          margin-right: 28px;
+        .hero-copy {
+          padding: 28px;
         }
 
         .endpoint {
-          grid-column: auto;
-          grid-row: auto;
-          margin: 28px 0 0;
           border-top: 1px solid var(--line-strong);
           border-left: 0;
-          border-radius: 0;
         }
 
         h1 {
@@ -398,14 +391,16 @@ export function renderHostedHomePage(): string {
   <body>
     <main>
       <section class="hero" aria-labelledby="page-title">
-        <p class="eyebrow">Hosted MCP server</p>
-        <h1 id="page-title">FPF Reference MCP</h1>
-        <p class="lead">
-          Connect chat clients, editors, and coding CLIs to bounded FPF lookup by stable ID — not agent memory, not a web page. Register the server as <code>${MCP_SERVER_NAME}</code> (not <code>${LEGACY_MCP_SERVER_NAME}</code>).
-        </p>
-        <p class="lead">
-          This is the MCP setup home. The human-readable FPF specification reference stays on <a href="${WIKI_BASE_URL}">${WIKI_BASE_URL}</a>.
-        </p>
+        <div class="hero-copy">
+          <p class="eyebrow">Hosted MCP server</p>
+          <h1 id="page-title">FPF Reference MCP</h1>
+          <p class="lead">
+            Connect chat clients, editors, and coding CLIs to bounded FPF lookup by stable ID — not agent memory, not a web page. Register the server as <code>${MCP_SERVER_NAME}</code> (not <code>${LEGACY_MCP_SERVER_NAME}</code>).
+          </p>
+          <p class="lead">
+            This is the MCP setup home. The human-readable FPF specification reference stays on <a href="${WIKI_BASE_URL}">${WIKI_BASE_URL}</a>.
+          </p>
+        </div>
         <div class="endpoint">
           <span>Streamable HTTP endpoint</span>
           <code>${HOSTED_MCP_ENDPOINT}</code>
