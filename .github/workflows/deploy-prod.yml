@@ -48,8 +48,12 @@ jobs:
             exit 1
           fi
 
+      # Pin to the live main head (not the dispatch-time SHA): if this run waited
+      # behind the shared production lock while a sync advanced main, we must
+      # promote current main, never the stale snapshot from dispatch time.
       - uses: actions/checkout@v6
         with:
+          ref: main
           fetch-depth: 0
           lfs: true
 
