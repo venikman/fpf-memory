@@ -68,6 +68,10 @@ Use the smallest verification profile that is admissible for the changed surface
 
 Escalate out of P1/P2 immediately when the change touches public-facing promise wording, acceptance criteria, setup instructions, MCP route shape, tool contracts, transport semantics, Vercel build/deploy packaging, aliases/domains, security or privacy logging, cost/spend controls, compatibility routes, generated publication artifacts, workflow files, branch-protection assumptions, merge automation, or deployment automation. A small PR should be small in local agent work, not weaker in evidence for high-risk surfaces. Subagents are case-by-case: use them for independent substantive tasks or material review independence, not by reflex for a two-line low-risk change.
 
+## Operational CLI Workflows
+
+For end-to-end Vercel operations — production deploys, hosted MCP error debugging, rollback, spend-breach investigation, and content-freshness diagnosis — follow the composed CLI workflows in the [Automation Playbook](docs/automation-playbook.md) (`Operational CLI Workflows` section, published at https://fpf.sh/automation-playbook) instead of improvising command sequences. Each workflow is a complete command sequence with the reasoning between steps, adopted from Vercel's [agent CLI workflow pattern](https://vercel.com/docs/agent-resources/workflows), and ends with the evidence the verification profiles require.
+
 ## Learned User Preferences
 
 - Prefer `bun run spec:download` or set `FPF_PUBLISH_SOURCE_PATH` to a local checkout of Anatoly Levenchuk's upstream FPF repo when refreshing the committed `published/current/**` surface.
