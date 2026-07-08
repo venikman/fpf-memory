@@ -178,21 +178,19 @@ Non-negotiable behaviors:
 10. The app is read-only: no notes, no memory, no editing, no workflow
     features. Link out to https://fpf.sh/ for the full site.
 
-Visual design — reproduce this design system exactly (it is the approved
-mock's token set; follow native macOS conventions only where they conflict):
+Visual design: default native macOS look — standard system appearance,
+system fonts, light and dark mode both supported. Do not invent a custom
+brand palette. The only required visual elements are functional:
 - Layout: left sidebar (Ask, Search, Catalog, Reader, Status) + content
-  pane; freshness pill pinned at the sidebar bottom with the snapshot
-  short-hash beneath it; window footer bar with endpoint name, snapshot
+  pane; freshness pill at the sidebar bottom with the snapshot
+  short-hash beneath it; window footer with endpoint name, snapshot
   short-hash, and freshness state.
-- Color, light theme: background #F6F6F3, surface #FFFFFF, ink #1B1D20,
-  accent petrol #136A63, fresh green #1F7A46, warning amber #996A13.
-- Color, dark theme: background #141619, surface #1D2024, ink #E7E7E2,
-  accent #3FB8AC, fresh green #4CC38A, warning amber #D9A441.
-  Fresh/warning are semantic states, kept distinct from the accent.
-- Kind badges (uppercase micro-labels): pattern = petrol accent,
-  route = amber #8A5A0A, lexeme = plum #6E4A8E, preface = grey.
-- Type: system San Francisco for UI text; monospace (SF Mono) for every
-  FPF ID, snapshot hash, and payload value.
+- Semantic states: the freshness pill uses the platform's standard
+  positive color when trusted and warning color when degraded; the stale
+  banner uses the warning color. Kind badges (pattern / route / lexeme /
+  preface) are visually distinct from each other using system-appropriate
+  tints.
+- Monospace for every FPF ID, snapshot hash, and payload value.
 - Components: search hits as rows (kind badge, title + monospace ID,
   one-line snippet, score); FPF IDs rendered as chips that open the
   Reader; every answer and page ends with a grounding footer
