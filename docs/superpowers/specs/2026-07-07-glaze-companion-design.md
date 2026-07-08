@@ -133,8 +133,25 @@ Non-negotiable behaviors:
 10. The app is read-only: no notes, no memory, no editing, no workflow
     features. Link out to https://fpf.sh/ for the full site.
 
-Visual: native macOS feel, quiet reference-tool aesthetic, monospace for
-IDs and hashes, kind badges for pattern/route/lexeme/preface.
+Visual design — reproduce this design system exactly (it is the approved
+mock's token set; follow native macOS conventions only where they conflict):
+- Layout: left sidebar (Ask, Search, Catalog, Reader, Status) + content
+  pane; freshness pill pinned at the sidebar bottom with the snapshot
+  short-hash beneath it; window footer bar with endpoint name, snapshot
+  short-hash, and freshness state.
+- Color, light theme: background #F6F6F3, surface #FFFFFF, ink #1B1D20,
+  accent petrol #136A63, fresh green #1F7A46, warning amber #996A13.
+- Color, dark theme: background #141619, surface #1D2024, ink #E7E7E2,
+  accent #3FB8AC, fresh green #4CC38A, warning amber #D9A441.
+  Fresh/warning are semantic states, kept distinct from the accent.
+- Kind badges (uppercase micro-labels): pattern = petrol accent,
+  route = amber #8A5A0A, lexeme = plum #6E4A8E, preface = grey.
+- Type: system San Francisco for UI text; monospace (SF Mono) for every
+  FPF ID, snapshot hash, and payload value.
+- Components: search hits as rows (kind badge, title + monospace ID,
+  one-line snippet, score); FPF IDs rendered as chips that open the
+  Reader; every answer and page ends with a grounding footer
+  (confidence · status · snapshot short-hash).
 ```
 
 ## Evidence (design-time payloads, production endpoint, 2026-07-07)
