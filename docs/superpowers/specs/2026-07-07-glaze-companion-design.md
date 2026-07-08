@@ -97,14 +97,19 @@ Streamable HTTP transport, with the full lifecycle:
    on every subsequent request;
 5. then POST tools/call requests with the tool name and arguments; each
    response arrives as Content-Type application/json (parse directly) or
-   text/event-stream (read the SSE stream and parse the JSON-RPC message
-   from its data: lines) — support both, as the Accept header promises;
+   text/event-stream (read the SSE stream until the JSON-RPC message whose
+   id matches the request id; earlier events may be notifications or
+   server requests — skip anything the app does not handle) — support
+   both, as the Accept header promises;
 6. handle failures without crashing: a JSON-RPC response may carry an
    "error" member instead of "result" — surface its message in the UI as
-   a readable error state; HTTP failures and timeouts (use a 15 s request
-   timeout and at most one retry, consistent with the bounded-request
-   rule) switch the app to the offline state of behavior 6, keeping
-   cached content readable and labeled.
+   a readable error state; an HTTP 404 received while sending
+   Mcp-Session-Id means the session expired — discard the session id and
+   re-run the initialize flow once before concluding anything is wrong;
+   other HTTP failures and timeouts (use a 15 s request timeout and at
+   most one retry, consistent with the bounded-request rule) switch the
+   app to the offline state of behavior 6, keeping cached content
+   readable and labeled.
 Where this recipe is silent, follow the official MCP Streamable HTTP
 transport and lifecycle spec (modelcontextprotocol.io, revision
 2025-06-18) — it wins over any shortcut a code generator might prefer. In every tools/call response, the tool payload lives in the
