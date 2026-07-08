@@ -99,8 +99,9 @@ Streamable HTTP transport, with the full lifecycle:
    response arrives as Content-Type application/json (parse directly) or
    text/event-stream (read the SSE stream until the JSON-RPC message whose
    id matches the request id; earlier events may be notifications or
-   server requests — skip anything the app does not handle) — support
-   both, as the Accept header promises;
+   server requests — answer a ping request with an empty result, skip
+   other messages the app does not handle) — support both, as the Accept
+   header promises;
 6. handle failures without crashing: a JSON-RPC response may carry an
    "error" member instead of "result" — surface its message in the UI as
    a readable error state; an HTTP 404 received while sending
@@ -174,8 +175,11 @@ Non-negotiable behaviors:
 6. Cache responses keyed by (tool, arguments, sourceHash); drop the cache
    when the status hash changes. Offline: cached pages stay readable,
    labeled "offline — freshness unverified" with their snapshot hash.
-7. Enforce input caps client-side: question 2000, search 1000, selector 256
-   characters. Debounce search; page the catalog with nextOffset; never poll.
+7. Enforce input bounds client-side: question <= 2000 characters, search
+   query <= 1000 and never empty, selector <= 256, catalog part/status
+   filters <= 64; omit empty optional fields entirely instead of sending
+   empty strings. Debounce search; page the catalog with nextOffset;
+   never poll.
 8. Freshness means internal consistency of the deployed snapshot only —
    never display any claim that upstream FPF is current.
 9. The service name is fpf_reference. Never reference "fpf_memory" anywhere:
