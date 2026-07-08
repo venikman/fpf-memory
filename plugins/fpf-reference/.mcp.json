@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "fpf_reference": {
+      "type": "http",
+      "url": "https://mcp.fpf.sh/api/mcp/fpf_reference/mcp"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "fpf-reference",
+  "version": "0.1.0",
+  "description": "Install, connect, validate, or self-host the FPF Reference MCP server (fpf_reference). Bundles the setup skill, the hosted MCP registration, and a validation command.",
+  "author": {
+    "name": "venikman",
+    "url": "https://github.com/venikman"
+  },
+  "homepage": "https://mcp.fpf.sh/",
+  "repository": "https://github.com/venikman/fpf-memory",
+  "license": "ISC",
+  "keywords": ["fpf", "fpf-reference", "mcp", "first-principles-framework", "spec-lookup"]
+}
