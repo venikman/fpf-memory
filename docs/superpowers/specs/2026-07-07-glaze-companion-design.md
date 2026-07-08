@@ -94,7 +94,13 @@ Streamable HTTP transport, with the full lifecycle:
 4. if any response returns an Mcp-Session-Id header, echo it as a header
    on every subsequent request;
 5. then POST tools/call requests with the tool name and arguments,
-   parsing each JSON result. In every tools/call response, the tool payload lives in the
+   parsing each JSON result;
+6. handle failures without crashing: a JSON-RPC response may carry an
+   "error" member instead of "result" — surface its message in the UI as
+   a readable error state; HTTP failures and timeouts (use a 15 s request
+   timeout and at most one retry, consistent with the bounded-request
+   rule) switch the app to the offline state of behavior 6, keeping
+   cached content readable and labeled. In every tools/call response, the tool payload lives in the
 JSON-RPC envelope's result.structuredContent — NOT directly on result
 (result.content is only a human-readable text fallback); read all fields
 below from structuredContent. Do not depend on any Glaze MCP server
