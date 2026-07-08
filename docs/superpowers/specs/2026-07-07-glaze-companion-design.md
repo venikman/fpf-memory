@@ -84,9 +84,14 @@ service, the hosted MCP endpoint:
 IMPORTANT — runtime transport: Glaze's own MCP integration is build-time
 only (it equips the build agent, not the shipped app). The app itself must
 implement a plain HTTP client for the endpoint above using the MCP
-Streamable HTTP transport: JSON-RPC 2.0 POSTs (one initialize handshake,
-then tools/call with the tool name and arguments), parsing each JSON
-result. In every tools/call response, the tool payload lives in the
+Streamable HTTP transport, with the full lifecycle:
+1. every request sends header "Accept: application/json, text/event-stream";
+2. POST a JSON-RPC 2.0 initialize request, then POST the
+   notifications/initialized notification;
+3. if any response returns an Mcp-Session-Id header, echo it as a header
+   on every subsequent request;
+4. then POST tools/call requests with the tool name and arguments,
+   parsing each JSON result. In every tools/call response, the tool payload lives in the
 JSON-RPC envelope's result.structuredContent — NOT directly on result
 (result.content is only a human-readable text fallback); read all fields
 below from structuredContent. Do not depend on any Glaze MCP server
