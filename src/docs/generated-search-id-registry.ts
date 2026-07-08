@@ -298,7 +298,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.15.4",
-      "title": "Work-Relevant Source Restoration",
+      "title": "Work-Relevant Appearance-Based Reliance Repair",
       "staticPath": "/generated/patterns/A.15.4"
     },
     {
@@ -873,7 +873,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.32.HCS",
-      "title": "Holon-Family Architecture Characteristic Starter Packs",
+      "title": "Architecture-Bearing Family Characteristic Starter Packs",
       "staticPath": "/generated/patterns/C.32.HCS"
     },
     {
