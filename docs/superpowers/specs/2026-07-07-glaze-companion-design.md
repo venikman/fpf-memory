@@ -88,9 +88,12 @@ Streamable HTTP transport, with the full lifecycle:
 1. every request sends header "Accept: application/json, text/event-stream";
 2. POST a JSON-RPC 2.0 initialize request, then POST the
    notifications/initialized notification;
-3. if any response returns an Mcp-Session-Id header, echo it as a header
+3. after initialize, send header "MCP-Protocol-Version: <the version
+   returned in the initialize result>" (currently 2025-06-18) on every
+   subsequent request;
+4. if any response returns an Mcp-Session-Id header, echo it as a header
    on every subsequent request;
-4. then POST tools/call requests with the tool name and arguments,
+5. then POST tools/call requests with the tool name and arguments,
    parsing each JSON result. In every tools/call response, the tool payload lives in the
 JSON-RPC envelope's result.structuredContent — NOT directly on result
 (result.content is only a human-readable text fallback); read all fields
@@ -120,8 +123,11 @@ Call only these five tools through that client, nothing else:
   server-side default is deployment-configured and is verbose in
   production, so omitting mode gives slow verbose answers)
 - read_fpf_doc { selector (<=256 chars), mode?: preview|full, maxChars? }
-  -> { title?, nodeId?, markdown?, markdownChars?, truncated?, headings?,
+  -> { status: ok|not_found, resolvedAs: id|route|lexeme|not_found,
+  title?, nodeId?, markdown?, markdownChars?, truncated?, headings?,
   preview?, docRef?: { staticPath }, snapshot }
+  (on status "not_found" the content fields are absent — render the
+  Reader's not-found recovery state offering Search, never an empty page)
 
 (The endpoint also exposes a sixth public tool, query_fpf_spec; it returns an
 agent-facing structured envelope and is intentionally NOT used by this app —
