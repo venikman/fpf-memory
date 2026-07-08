@@ -82,8 +82,11 @@ service, the hosted MCP endpoint:
   https://mcp.fpf.sh/api/mcp/fpf_reference/mcp   (server name: fpf_reference)
 
 Use only these five MCP tools, nothing else:
-- get_fpf_index_status {} -> { sourcePath, sourceHash, builtAt, snapshotExists,
-  currentSourceHash, fresh, compilerMode, artifacts }
+- get_fpf_index_status {} -> { sourcePath, sourceHash?, builtAt?,
+  snapshotExists, currentSourceHash, fresh, compilerMode, artifacts }
+  (sourceHash and builtAt are OMITTED when no snapshot could be loaded —
+  exactly the degraded case; parse them as optional or the degraded render
+  itself breaks)
 - search_fpf { query (<=1000 chars), kind?: pattern|route|lexeme|preface,
   limit?: 1..100 } -> { hits: [{ id, kind, title, status?, part?, score,
   snippet }], total, snapshot }
@@ -91,8 +94,10 @@ Use only these five MCP tools, nothing else:
   -> { entries: [{ id, kind, title, status?, part?, description }], total,
   nextOffset?, didYouMean?, snapshot }
 - ask_fpf { question (<=2000 chars), mode?: compact|verbose|proof }
-  -> { markdown, ids, citations, constraints, gaps, confidence, status,
-  snapshot }
+  -> { markdown, ids, citations, constraints, gaps, confidence (nullable),
+  candidateIds?, status, snapshot }
+  (candidateIds carries the structured suggestions rendered as chips when
+  status is "ambiguous" — never scrape them from the markdown)
 - read_fpf_doc { selector (<=256 chars), mode?: preview|full, maxChars? }
   -> { title?, nodeId?, markdown?, markdownChars?, truncated?, headings?,
   preview?, docRef?: { staticPath }, snapshot }
