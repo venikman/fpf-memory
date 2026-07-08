@@ -86,21 +86,28 @@ only (it equips the build agent, not the shipped app). The app itself must
 implement a plain HTTP client for the endpoint above using the MCP
 Streamable HTTP transport, with the full lifecycle:
 1. every request sends header "Accept: application/json, text/event-stream";
-2. POST a JSON-RPC 2.0 initialize request, then POST the
-   notifications/initialized notification;
+2. POST a JSON-RPC 2.0 initialize request whose params include
+   protocolVersion ("2025-06-18"), capabilities ({} suffices for this
+   read-only client), and clientInfo ({ name: "fpf-companion", version });
+   then POST the notifications/initialized notification;
 3. after initialize, send header "MCP-Protocol-Version: <the version
    returned in the initialize result>" (currently 2025-06-18) on every
    subsequent request;
 4. if any response returns an Mcp-Session-Id header, echo it as a header
    on every subsequent request;
-5. then POST tools/call requests with the tool name and arguments,
-   parsing each JSON result;
+5. then POST tools/call requests with the tool name and arguments; each
+   response arrives as Content-Type application/json (parse directly) or
+   text/event-stream (read the SSE stream and parse the JSON-RPC message
+   from its data: lines) — support both, as the Accept header promises;
 6. handle failures without crashing: a JSON-RPC response may carry an
    "error" member instead of "result" — surface its message in the UI as
    a readable error state; HTTP failures and timeouts (use a 15 s request
    timeout and at most one retry, consistent with the bounded-request
    rule) switch the app to the offline state of behavior 6, keeping
-   cached content readable and labeled. In every tools/call response, the tool payload lives in the
+   cached content readable and labeled.
+Where this recipe is silent, follow the official MCP Streamable HTTP
+transport and lifecycle spec (modelcontextprotocol.io, revision
+2025-06-18) — it wins over any shortcut a code generator might prefer. In every tools/call response, the tool payload lives in the
 JSON-RPC envelope's result.structuredContent — NOT directly on result
 (result.content is only a human-readable text fallback); read all fields
 below from structuredContent. Do not depend on any Glaze MCP server
