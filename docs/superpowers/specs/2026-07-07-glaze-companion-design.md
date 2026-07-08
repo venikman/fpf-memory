@@ -52,7 +52,7 @@ Maps `get_fpf_index_status` directly: a pill in the sidebar footer is green when
 
 ### Ask
 
-Maps `ask_fpf` (`mode: compact` default; `verbose`/`proof` toggle) — the human-facing twin of `query_fpf_spec`, whose structured envelope stays deliberately unused in this app. Renders the `markdown` answer; `ids` as chips that open the Reader; `citations`, `constraints`, `gaps`, and `confidence` as a grounding footer. `status` enum handling: `ok` renders normally; `not_found` offers Search; `ambiguous` renders `candidateIds` as suggestion chips; `unsupported` explains the bound; `stale_snapshot_prevented` triggers the stale banner and a status re-check.
+Maps `ask_fpf` — the human-facing twin of `query_fpf_spec`, whose structured envelope stays deliberately unused in this app. The app always sends `mode` explicitly (`compact` unless the user toggles `verbose`/`proof`): the server-side default is deployment-configured (`FPF_QUERY_DEFAULT_MODE`, `verbose` in production), so omitting `mode` must not be relied on for the quick-answer UX. Renders the `markdown` answer; `ids` as chips that open the Reader; `citations`, `constraints`, `gaps`, and `confidence` as a grounding footer. `status` enum handling: `ok` renders normally; `not_found` offers Search; `ambiguous` renders `candidateIds` as suggestion chips; `unsupported` explains the bound; `stale_snapshot_prevented` triggers the stale banner and a status re-check.
 
 ### Search
 
@@ -86,9 +86,13 @@ only (it equips the build agent, not the shipped app). The app itself must
 implement a plain HTTP client for the endpoint above using the MCP
 Streamable HTTP transport: JSON-RPC 2.0 POSTs (one initialize handshake,
 then tools/call with the tool name and arguments), parsing each JSON
-result. Do not depend on any Glaze MCP server connection existing at
-runtime — if the generated app cannot reach the endpoint with its own
-HTTP client, the build has failed acceptance check 1.
+result. In every tools/call response, the tool payload lives in the
+JSON-RPC envelope's result.structuredContent — NOT directly on result
+(result.content is only a human-readable text fallback); read all fields
+below from structuredContent. Do not depend on any Glaze MCP server
+connection existing at runtime — if the generated app cannot reach the
+endpoint with its own HTTP client, the build has failed acceptance
+check 1.
 
 Call only these five tools through that client, nothing else:
 - get_fpf_index_status {} -> { sourcePath, sourceHash?, builtAt?,
@@ -106,7 +110,10 @@ Call only these five tools through that client, nothing else:
   -> { markdown, ids, citations, constraints, gaps, confidence (nullable),
   candidateIds?, status, snapshot }
   (candidateIds carries the structured suggestions rendered as chips when
-  status is "ambiguous" — never scrape them from the markdown)
+  status is "ambiguous" — never scrape them from the markdown. ALWAYS send
+  mode explicitly, "compact" unless the user toggles otherwise: the
+  server-side default is deployment-configured and is verbose in
+  production, so omitting mode gives slow verbose answers)
 - read_fpf_doc { selector (<=256 chars), mode?: preview|full, maxChars? }
   -> { title?, nodeId?, markdown?, markdownChars?, truncated?, headings?,
   preview?, docRef?: { staticPath }, snapshot }
