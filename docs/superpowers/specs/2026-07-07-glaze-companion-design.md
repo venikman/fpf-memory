@@ -81,7 +81,16 @@ service, the hosted MCP endpoint:
 
   https://mcp.fpf.sh/api/mcp/fpf_reference/mcp   (server name: fpf_reference)
 
-Use only these five MCP tools, nothing else:
+IMPORTANT — runtime transport: Glaze's own MCP integration is build-time
+only (it equips the build agent, not the shipped app). The app itself must
+implement a plain HTTP client for the endpoint above using the MCP
+Streamable HTTP transport: JSON-RPC 2.0 POSTs (one initialize handshake,
+then tools/call with the tool name and arguments), parsing each JSON
+result. Do not depend on any Glaze MCP server connection existing at
+runtime — if the generated app cannot reach the endpoint with its own
+HTTP client, the build has failed acceptance check 1.
+
+Call only these five tools through that client, nothing else:
 - get_fpf_index_status {} -> { sourcePath, sourceHash?, builtAt?,
   snapshotExists, currentSourceHash, fresh, compilerMode, artifacts }
   (sourceHash and builtAt are OMITTED when no snapshot could be loaded —
