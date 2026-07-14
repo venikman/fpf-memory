@@ -112,6 +112,67 @@ Use the Vercel MCP server named vercel for read-only deployment evidence. Inspec
 
 For project-scoped operations, use the project-specific URLs documented in the operator packaging section on the MCP origin so the team/project context is explicit.
 
+## Operational CLI Workflows
+
+This section adopts the composition pattern from Vercel's [CLI workflows for agents](https://vercel.com/docs/agent-resources/workflows): a workflow is a complete command sequence with the reasoning between steps, not a pile of isolated commands. Agents and operators should follow a workflow end to end instead of improvising command order, and should reuse these sequences as templates for novel situations.
+
+Shared rules:
+
+- Read before write. Inspection commands are always admissible; mutating Vercel actions (deploy, promote, alias, rollback) stay behind the access table above and require the role-specific approval it defines.
+- Every workflow ends with evidence. Production-affecting workflows end with the production evidence packet.
+- Commands run from the repo root. Direct `vercel` CLI calls use the pinned version and team scope the repo scripts use (`npx --yes vercel@54.7.1 ... --scope "$FPF_VERCEL_SCOPE"`).
+- Prefer the guarded repo scripts over hand-rolled `vercel` invocations: the scripts bundle validation, staged deploys, smoke, aliasing, and automatic rollback that a bare CLI call skips.
+
+| Workflow | Use when | Typical role | Minimum profile |
+| --- | --- | --- | --- |
+| Deploy both production surfaces | Publishing a validated change to `fpf.sh` and `mcp.fpf.sh` | Explicitly delegated operator | P3 |
+| Debug hosted MCP production errors | `mcp.fpf.sh` returns 5xx, protocol errors, or degraded status | Vercel MCP operator | P0 (read) → P3 (fix) |
+| Roll back a bad production deployment | Production is broken now and the fix is not immediate | Explicitly delegated operator | P3 |
+| Investigate a spend breach | Spend monitor reports a breach or opens an issue | Vercel spend monitor / operator | P0 (read) → P4 (guardrail change) |
+| Diagnose stale published content | Drift SLO alarm, or hosted content looks behind upstream FPF | FPF sync monitor | P0 (read) → P4 (sync trigger) |
+
+### Deploy both production surfaces from the CLI
+
+1. `bun run deploy:validate` — proves the committed `published/current/**` surface is coherent and the local content-quality gate passes before anything is built. Failing here is cheap; failing after an alias move is not.
+2. `bun run deploy:prod` — the guarded end-to-end path. It builds both surfaces, records the previous production and canonical-domain deployments as rollback targets, ships a staged production deployment per project, then promotes and explicitly aliases `fpf.sh` and `mcp.fpf.sh`, and only then runs the sync, content, and production smoke checks against the canonical domains. The guard is automatic rollback, not a pre-promotion gate: if any post-alias check fails, the script restores the previous project production deployment and re-aliases the previous canonical deployment. Approval and evidence must account for the short exposure window between aliasing and a failed check.
+3. `bun run smoke:production -- --format markdown --fail-on-breach` and `bun run bench:mcp:qa -- --name mcp-production --url https://mcp.fpf.sh/api/mcp/fpf_reference/mcp --format markdown` — independent post-alias verification that the canonical domains serve the new behavior, not just that a deployment exists. Keep `--fail-on-breach`: without it the smoke command exits zero even when it reports a breach.
+4. Fill the production evidence packet: deployment URLs, alias targets, rollback target, smoke/QA output excerpts.
+
+Per-surface deploys (`bun run vercel:website:deploy:prod`, `bun run vercel:mcp:deploy:prod`) are **not** guarded the same way: they validate and build, but the deploy step is a bare prebuilt `vercel deploy --prod` with no recorded rollback targets, no post-alias checks, and no automatic rollback. Prefer `bun run deploy:prod` even when only one surface changed. If a per-surface deploy is unavoidable, record the current production and canonical-domain deployments first, run step 3 immediately after, and be ready to execute the rollback workflow below by hand.
+
+### Debug hosted MCP production errors
+
+1. `curl -sS -w '\nhttp_status=%{http_code}\n' https://mcp.fpf.sh/api/fpf/status` — classify first, with the HTTP status printed explicitly. A `200` with `status: ok` and consistent hashes points at a route- or tool-level fault; a non-`200` or inconsistent runtime points at the deployment itself.
+2. `npx --yes vercel@54.7.1 inspect mcp.fpf.sh --scope "$FPF_VERCEL_SCOPE"` — confirm which deployment actually serves the canonical domain before reading any logs, so the investigation targets the right build.
+3. Read runtime and build logs for that deployment — via the Vercel MCP evidence loop above (read-only) or a historical query such as `npx --yes vercel@54.7.1 logs --deployment <deployment-url> --status-code 5xx --since 1h --expand --scope "$FPF_VERCEL_SCOPE"` — to find the failing route and error shape. In the pinned CLI, `logs` queries request history by default and streams live only with `--follow`, so the already-failed requests are readable after the fact; narrow with `--query`, `--level`, or `--request-id` as needed.
+4. Reproduce locally: `bun run start` plus the failing JSON-RPC call, or `bun run bench:mcp:qa` pointed at the failing surface. A fault that does not reproduce locally usually implicates packaging, so compare with `bun run vercel:mcp:build` output next.
+5. Fix, then ship a preview with `bun run vercel:mcp:deploy` and verify the failing call against the preview URL before touching production.
+6. Publish through the deploy workflow above and close with the evidence packet, including the original failing output and the passing rerun.
+
+### Roll back a bad production deployment
+
+Rollback is a mutating action: it needs explicit operator approval per the access table.
+
+1. Identify the two rollback targets separately — they can differ after an alias-only hotfix, and `deploy:prod` records them as distinct values. Project production target: `npx --yes vercel@54.7.1 ls fpf-reference-mcp --environment production --status READY --scope "$FPF_VERCEL_SCOPE"` (or `fpf-sh`); the environment and status filters match how `deploy:prod` records this target, and without them previews, failed builds, or in-progress deployments can masquerade as "last good". Canonical-domain target: the deployment the domain served before the incident, from the deploy evidence packet (recorded there via `vercel inspect` of the domain). The bad deployment is itself the newest `READY` production entry in the `ls` output — skip it and take the previous entry, or trust the evidence packet's recorded targets over the listing.
+2. Restore the project production target: `npx --yes vercel@54.7.1 promote <previous-project-production-url> --yes --local-config vercel.mcp.json --scope "$FPF_VERCEL_SCOPE"` (website: `vercel.json`) — this mirrors the automatic rollback in `deploy:prod`, which restores project production first so the bad deployment does not stay the project's production target and become the next recorded rollback target.
+3. Restore the canonical domain: `npx --yes vercel@54.7.1 alias set <previous-domain-deployment-url> mcp.fpf.sh --scope "$FPF_VERCEL_SCOPE"` (or `fpf.sh`) — canonical domains are aliased explicitly in this repo, so users are back on the known-good deployment only once the alias moves. Use the domain's own recorded target here, not the project production URL from step 2.
+4. `bun run smoke:production -- --format markdown --fail-on-breach` — prove the rollback restored user-visible behavior with a command that actually fails on breach; do not stop at the CLI reporting success.
+5. Record the evidence packet with the restored deployment URL, the bad deployment URL kept as an audit record, and the follow-up fix owner.
+
+### Investigate a spend or function-duration breach
+
+1. `bun run monitor:vercel:spend -- --format markdown --fail-on-breach` — rerun the guardrail first, in the same failing form the scheduled monitor uses (without `--fail-on-breach` the command exits zero even on a breach, so a script or agent would sail past a blind or breached guard). It distinguishes `breach`, `config_error`, `metrics_unavailable`, and `expected_blocked_traffic`. The first three all require operator action — the monitor marks them operator-action-required and exits nonzero under `--fail-on-breach`. A `config_error` (missing token) or `metrics_unavailable` window means the guardrail itself is blind and must be repaired, not ignored. Only blocked legacy-route traffic is benign: it is expected, not a spend problem.
+2. For a breach, read runtime logs for the breach window (Vercel MCP evidence loop) to attribute the spend to a route and caller pattern.
+3. Check the bundle and route shape locally: `bun run bench:vercel:function-size` after `bun run vercel:mcp:build`, since function-duration spikes often follow packaging regressions.
+4. Land the guardrail or fix as its own measured PR (P4 surface), and let the monitor close its issue after a clean window rather than closing it by hand.
+
+### Diagnose stale published content
+
+1. `bun run monitor:sync` — compares upstream FPF HEAD with hosted status and reports drift hours against the SLO. It does not check worker state: verify separately that no sync worker is active with `gh run list --workflow sync-fpf.yml`, treating `queued`, `in_progress`, `waiting`, `pending`, or `requested` runs as active — the same check the scheduled monitor performs before dispatching.
+2. `bun run monitor:content -- --mode live --format markdown` — checks that curated pages and generated route pages on production still cohere with the published snapshot, separating "site is up" from "site is current".
+3. If upstream is ahead and no sync worker is active, trigger `sync-fpf.yml` (dispatch or manual run) instead of hand-publishing; the worker owns validation, preview, and the publication PR.
+4. Evidence: drift hours, the upstream/hosted source-hash pair, and the triggered workflow run URL.
+
 ## Merge policy
 
 Implementation and merge authority are separate.
