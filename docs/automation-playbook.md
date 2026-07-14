@@ -134,7 +134,7 @@ Shared rules:
 ### Deploy both production surfaces from the CLI
 
 1. `bun run deploy:validate` — proves the committed `published/current/**` surface is coherent and the local content-quality gate passes before anything is built. Failing here is cheap; failing after an alias move is not.
-2. `bun run deploy:prod` — the guarded end-to-end path. It builds both surfaces, records the previous production and canonical-domain deployments as rollback targets, ships a staged production deployment per project, runs the production smoke against the staged URLs, then promotes and explicitly aliases `fpf.sh` and `mcp.fpf.sh`. On failure it re-aliases the previous deployments automatically.
+2. `bun run deploy:prod` — the guarded end-to-end path. It builds both surfaces, records the previous production and canonical-domain deployments as rollback targets, ships a staged production deployment per project, then promotes and explicitly aliases `fpf.sh` and `mcp.fpf.sh`, and only then runs the sync, content, and production smoke checks against the canonical domains. The guard is automatic rollback, not a pre-promotion gate: if any post-alias check fails, the script restores the previous project production deployment and re-aliases the previous canonical deployment. Approval and evidence must account for the short exposure window between aliasing and a failed check.
 3. `bun run smoke:production` and `bun run bench:mcp:qa -- --name mcp-production --url https://mcp.fpf.sh/api/mcp/fpf_reference/mcp --format markdown` — independent post-alias verification that the canonical domains serve the new behavior, not just that a deployment exists.
 4. Fill the production evidence packet: deployment URLs, alias targets, rollback target, smoke/QA output excerpts.
 
@@ -154,13 +154,14 @@ Deploying one surface alone follows the same shape with `bun run vercel:website:
 Rollback is a mutating action: it needs explicit operator approval per the access table.
 
 1. Identify the last good deployment: `npx --yes vercel@54.7.1 ls fpf-reference-mcp --scope "$FPF_VERCEL_SCOPE"` (or `fpf-sh`), cross-checked against the rollback target recorded in the deploy evidence packet.
-2. `npx --yes vercel@54.7.1 alias set <last-good-deployment-url> mcp.fpf.sh --scope "$FPF_VERCEL_SCOPE"` (or `fpf.sh`) — canonical domains are aliased explicitly in this repo, so rollback is an alias move to a known-good deployment, not a project promote.
-3. `bun run smoke:production` — prove the alias move restored user-visible behavior; do not stop at the CLI reporting success.
-4. Record the evidence packet with the restored deployment URL, the bad deployment URL kept as an audit record, and the follow-up fix owner.
+2. Restore the project production target: `npx --yes vercel@54.7.1 promote <last-good-deployment-url> --yes --local-config vercel.mcp.json --scope "$FPF_VERCEL_SCOPE"` (website: `vercel.json`) — this mirrors the automatic rollback in `deploy:prod`, which restores project production first so the bad deployment does not stay the project's production target and become the next recorded rollback target.
+3. Restore the canonical domain: `npx --yes vercel@54.7.1 alias set <last-good-deployment-url> mcp.fpf.sh --scope "$FPF_VERCEL_SCOPE"` (or `fpf.sh`) — canonical domains are aliased explicitly in this repo, so users are back on the known-good deployment only once the alias moves.
+4. `bun run smoke:production` — prove the rollback restored user-visible behavior; do not stop at the CLI reporting success.
+5. Record the evidence packet with the restored deployment URL, the bad deployment URL kept as an audit record, and the follow-up fix owner.
 
 ### Investigate a spend or function-duration breach
 
-1. `bun run monitor:vercel:spend` — rerun the guardrail first. It distinguishes `breach`, `config_error`, `metrics_unavailable`, and `expected_blocked_traffic`; only a breach justifies escalation, and blocked legacy-route traffic is expected, not a spend problem.
+1. `bun run monitor:vercel:spend` — rerun the guardrail first. It distinguishes `breach`, `config_error`, `metrics_unavailable`, and `expected_blocked_traffic`. The first three all require operator action — the monitor marks them operator-action-required and exits nonzero under `--fail-on-breach`. A `config_error` (missing token) or `metrics_unavailable` window means the guardrail itself is blind and must be repaired, not ignored. Only blocked legacy-route traffic is benign: it is expected, not a spend problem.
 2. For a breach, read runtime logs for the breach window (Vercel MCP evidence loop) to attribute the spend to a route and caller pattern.
 3. Check the bundle and route shape locally: `bun run bench:vercel:function-size` after `bun run vercel:mcp:build`, since function-duration spikes often follow packaging regressions.
 4. Land the guardrail or fix as its own measured PR (P4 surface), and let the monitor close its issue after a clean window rather than closing it by hand.
