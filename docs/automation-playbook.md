@@ -153,7 +153,7 @@ Per-surface deploys (`bun run vercel:website:deploy:prod`, `bun run vercel:mcp:d
 
 Rollback is a mutating action: it needs explicit operator approval per the access table.
 
-1. Identify the last good deployment: `npx --yes vercel@54.7.1 ls fpf-reference-mcp --scope "$FPF_VERCEL_SCOPE"` (or `fpf-sh`), cross-checked against the rollback target recorded in the deploy evidence packet.
+1. Identify the last good deployment: `npx --yes vercel@54.7.1 ls fpf-reference-mcp --environment production --status READY --scope "$FPF_VERCEL_SCOPE"` (or `fpf-sh`), cross-checked against the rollback target recorded in the deploy evidence packet. The environment and status filters match how `deploy:prod` records rollback targets; without them, previews, failed builds, or in-progress deployments can masquerade as the "last good" candidate.
 2. Restore the project production target: `npx --yes vercel@54.7.1 promote <last-good-deployment-url> --yes --local-config vercel.mcp.json --scope "$FPF_VERCEL_SCOPE"` (website: `vercel.json`) — this mirrors the automatic rollback in `deploy:prod`, which restores project production first so the bad deployment does not stay the project's production target and become the next recorded rollback target.
 3. Restore the canonical domain: `npx --yes vercel@54.7.1 alias set <last-good-deployment-url> mcp.fpf.sh --scope "$FPF_VERCEL_SCOPE"` (or `fpf.sh`) — canonical domains are aliased explicitly in this repo, so users are back on the known-good deployment only once the alias moves.
 4. `bun run smoke:production` — prove the rollback restored user-visible behavior; do not stop at the CLI reporting success.
@@ -168,7 +168,7 @@ Rollback is a mutating action: it needs explicit operator approval per the acces
 
 ### Diagnose stale published content
 
-1. `bun run monitor:sync` — compares upstream FPF HEAD with hosted status. It reports drift hours against the SLO and whether a sync worker is already queued or running.
+1. `bun run monitor:sync` — compares upstream FPF HEAD with hosted status and reports drift hours against the SLO. It does not check worker state: verify separately that no sync worker is active with `gh run list --workflow sync-fpf.yml`, treating `queued`, `in_progress`, `waiting`, `pending`, or `requested` runs as active — the same check the scheduled monitor performs before dispatching.
 2. `bun run monitor:content -- --mode live --format markdown` — checks that curated pages and generated route pages on production still cohere with the published snapshot, separating "site is up" from "site is current".
 3. If upstream is ahead and no sync worker is active, trigger `sync-fpf.yml` (dispatch or manual run) instead of hand-publishing; the worker owns validation, preview, and the publication PR.
 4. Evidence: drift hours, the upstream/hosted source-hash pair, and the triggered workflow run URL.
