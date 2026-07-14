@@ -138,11 +138,11 @@ Shared rules:
 3. `bun run smoke:production` and `bun run bench:mcp:qa -- --name mcp-production --url https://mcp.fpf.sh/api/mcp/fpf_reference/mcp --format markdown` — independent post-alias verification that the canonical domains serve the new behavior, not just that a deployment exists.
 4. Fill the production evidence packet: deployment URLs, alias targets, rollback target, smoke/QA output excerpts.
 
-Deploying one surface alone follows the same shape with `bun run vercel:website:deploy:prod` or `bun run vercel:mcp:deploy:prod`, then step 3 for the surface that changed.
+Per-surface deploys (`bun run vercel:website:deploy:prod`, `bun run vercel:mcp:deploy:prod`) are **not** guarded the same way: they validate and build, but the deploy step is a bare prebuilt `vercel deploy --prod` with no recorded rollback targets, no post-alias checks, and no automatic rollback. Prefer `bun run deploy:prod` even when only one surface changed. If a per-surface deploy is unavoidable, record the current production and canonical-domain deployments first, run step 3 immediately after, and be ready to execute the rollback workflow below by hand.
 
 ### Debug hosted MCP production errors
 
-1. `curl -s https://mcp.fpf.sh/api/fpf/status` — classify first. A `200` with `status: ok` and consistent hashes points at a route- or tool-level fault; a non-`200` or inconsistent runtime points at the deployment itself.
+1. `curl -sS -w '\nhttp_status=%{http_code}\n' https://mcp.fpf.sh/api/fpf/status` — classify first, with the HTTP status printed explicitly. A `200` with `status: ok` and consistent hashes points at a route- or tool-level fault; a non-`200` or inconsistent runtime points at the deployment itself.
 2. `npx --yes vercel@54.7.1 inspect mcp.fpf.sh --scope "$FPF_VERCEL_SCOPE"` — confirm which deployment actually serves the canonical domain before reading any logs, so the investigation targets the right build.
 3. Read runtime and build logs for that deployment — via the Vercel MCP evidence loop above (read-only) or `npx --yes vercel@54.7.1 logs <deployment-url> --scope "$FPF_VERCEL_SCOPE"` — to find the failing route and error shape.
 4. Reproduce locally: `bun run start` plus the failing JSON-RPC call, or `bun run bench:mcp:qa` pointed at the failing surface. A fault that does not reproduce locally usually implicates packaging, so compare with `bun run vercel:mcp:build` output next.
