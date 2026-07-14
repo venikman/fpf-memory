@@ -298,7 +298,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.15.4",
-      "title": "Work-Relevant Source Restoration",
+      "title": "Work-Relevant Appearance-Based Reliance Repair",
       "staticPath": "/generated/patterns/A.15.4"
     },
     {
@@ -405,6 +405,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "A.22",
       "title": "Structure and Structural Views (STRUCT-CAL)",
       "staticPath": "/generated/patterns/A.22"
+    },
+    {
+      "id": "A.22.CGUS",
+      "title": "Constraint-Governed Unfolding Structure",
+      "staticPath": "/generated/patterns/A.22.CGUS"
     },
     {
       "id": "B.1",
@@ -873,7 +878,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.32.HCS",
-      "title": "Holon-Family Architecture Characteristic Starter Packs",
+      "title": "Architecture-Bearing Family Characteristic Starter Packs",
       "staticPath": "/generated/patterns/C.32.HCS"
     },
     {
@@ -883,7 +888,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.32.P2S",
-      "title": "Problem-to-Structure Architecturing Transformation Flow",
+      "title": "Problem-to-Structure Architecturing Unfolding",
       "staticPath": "/generated/patterns/C.32.P2S"
     },
     {
@@ -893,7 +898,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.33",
-      "title": "Structural Information Adequacy for Architecture Capture and Source Return",
+      "title": "Structural Information Adequacy for Architecture Capture and Missing-Structure Return",
       "staticPath": "/generated/patterns/C.33"
     },
     {
@@ -1078,12 +1083,17 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.11",
-      "title": "First-Practical Entry and Pattern-Use Discoverability Discipline",
+      "title": "Practical-Use Guidance and Pattern Discovery",
       "staticPath": "/generated/patterns/E.11"
     },
     {
+      "id": "E.11.PUA",
+      "title": "Pattern Use in a Working Situation and First Useful Result",
+      "staticPath": "/generated/patterns/E.11.PUA"
+    },
+    {
       "id": "E.11.PUR",
-      "title": "Pattern-Use Recommendation and Pattern-Use Sequence",
+      "title": "Pattern-Use Applicability, Recommendation, and Coordination",
       "staticPath": "/generated/patterns/E.11.PUR"
     },
     {
@@ -1163,13 +1173,18 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.18.1",
-      "title": "Principles-to-Work Carry-Through",
+      "title": "P2W Problem-to-Work Carry-Through",
       "staticPath": "/generated/patterns/E.18.1"
     },
     {
       "id": "E.18.2",
       "title": "Transformation Flow Mathematical Description",
       "staticPath": "/generated/patterns/E.18.2"
+    },
+    {
+      "id": "E.18.3",
+      "title": "Constraint-Governed Transformation-Flow Unfolding Structure",
+      "staticPath": "/generated/patterns/E.18.3"
     },
     {
       "id": "E.19",
