@@ -320,7 +320,36 @@ jobs:
             exit 0
           fi
 
-          CHECKS_JSON=$(gh pr checks "$PR_NUMBER" --json name,bucket,state,link)
+          # `gh pr checks` reads the PR's statusCheckRollup, which never
+          # includes check runs from workflow_dispatch-triggered workflows —
+          # and that is exactly how this workflow runs CI, because a
+          # GITHUB_TOKEN-created PR cannot trigger pull_request events. The
+          # rollup alone therefore reports the required CI checks as missing
+          # forever and the sync PR never auto-merges (PR #245 sat open 1.5
+          # days while production breached the sync SLO). Union the rollup
+          # (Vercel app checks + commit statuses) with the commit's REST check
+          # runs (where the dispatched CI reports); on a name collision the
+          # REST entry wins because the check-runs API returns the latest run.
+          ROLLUP_CHECKS=$(gh pr checks "$PR_NUMBER" --json name,bucket,state,link)
+          REST_CHECKS=$(gh api "repos/${{ github.repository }}/commits/$PR_HEAD_SHA/check-runs?per_page=100" --paginate --jq '
+            .check_runs[]
+            | {
+                name,
+                started: (.started_at // ""),
+                bucket: (
+                  if .status != "completed" then "pending"
+                  elif .conclusion == "success" then "pass"
+                  elif (.conclusion == "skipped" or .conclusion == "neutral") then "skipping"
+                  else "fail"
+                  end
+                ),
+                state: (.conclusion // .status),
+                link: .html_url
+              }' | jq -s 'sort_by(.started) | group_by(.name) | map(.[-1] | del(.started))')
+          CHECKS_JSON=$(jq -n --argjson rollup "$ROLLUP_CHECKS" --argjson rest "$REST_CHECKS" '
+            ($rest | map(.name)) as $restNames
+            | ($rollup | map(select(.name as $n | ($restNames | index($n)) | not))) + $rest
+          ')
           CHECK_COUNT=$(jq 'length' <<<"$CHECKS_JSON")
           if [ "$CHECK_COUNT" -eq 0 ]; then
             echo "::warning::No checks reported for PR #$PR_NUMBER after the two-hour window; leaving it open."
