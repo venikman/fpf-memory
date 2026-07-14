@@ -4,7 +4,9 @@ on:
   schedule:
     # Separate from the sync freshness sentinel: this checks that production
     # pages still project the published FPF snapshot without stale selectors.
-    - cron: '37 * * * *'
+    # Daily is enough — every production deploy already runs the same live
+    # checks with --fail-on-breach, so this only catches drift between deploys.
+    - cron: '37 6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -25,7 +27,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # lfs: true because monitor:content parses the local published snapshot,
+      # which is Git LFS-tracked — without it the checkout leaves a pointer
+      # file and the run dies with "snapshot is invalid JSON" (this made the
+      # monitor red on every run between 2026-07-03 and 2026-07-13).
       - uses: actions/checkout@v6
+        with:
+          lfs: true
 
       - uses: oven-sh/setup-bun@v2
         with:

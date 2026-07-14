@@ -7,7 +7,10 @@ import {
 } from './upstream-source.js';
 
 export const DEFAULT_SYNC_MONITOR_STATUS_URL = 'https://mcp.fpf.sh/api/fpf/status';
-export const DEFAULT_SYNC_MONITOR_MAX_DRIFT_HOURS = 10;
+// The freshness promise is ≤1 day behind upstream, plus build/deploy slack.
+// The sync worker runs twice daily, so normal worst-case drift is ~13h; a
+// breach past 26h means the pipeline is broken, not merely scheduled later.
+export const DEFAULT_SYNC_MONITOR_MAX_DRIFT_HOURS = 26;
 
 export const FPF_SYNC_QA_ANCHORS = [
   {

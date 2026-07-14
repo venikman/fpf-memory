@@ -2,11 +2,12 @@ name: Vercel Spend Monitor
 
 on:
   schedule:
-    # Hourly early warning for Function Duration burn. The known spike path is
+    # Early warning for Function Duration burn. The known spike path is
     # already blocked at two layers (edge firewall rule + code-level MCP GET
     # guard), so this is insurance against a *new* regression, not the primary
-    # control — hourly cadence is sufficient and ~4x cheaper than every 15 min.
-    - cron: '0 * * * *'
+    # control — every 6 hours bounds a runaway regression to a quarter day
+    # of burn while keeping the Actions log quiet.
+    - cron: '0 */6 * * *'
   workflow_dispatch:
     inputs:
       window_minutes:
@@ -30,8 +31,10 @@ env:
   BUN_VERSION: '1.3.5'
   FPF_VERCEL_PROJECT: fpf-reference-mcp
   FPF_VERCEL_SCOPE: venikmans-projects
-  FPF_VERCEL_SPEND_WINDOW_MINUTES: ${{ github.event.inputs.window_minutes || '30' }}
-  FPF_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR: ${{ github.event.inputs.max_function_duration_gbhr || '0.25' }}
+  # Window covers the full 6h schedule gap (+15 min overlap) so no burn goes
+  # unobserved; the GB-hour threshold scales with the window (0.25 per 30 min).
+  FPF_VERCEL_SPEND_WINDOW_MINUTES: ${{ github.event.inputs.window_minutes || '375' }}
+  FPF_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR: ${{ github.event.inputs.max_function_duration_gbhr || '3' }}
   FPF_VERCEL_SPEND_MAX_LEGACY_INVOCATIONS: '0'
   FPF_VERCEL_SPEND_MAX_ERROR_INVOCATIONS: '0'
   FPF_VERCEL_SPEND_LEGACY_PATH: /api/mcp/fpf_memory
