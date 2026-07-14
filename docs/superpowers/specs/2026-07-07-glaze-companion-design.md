@@ -24,29 +24,29 @@ Repo QA anchors reused: `B.5.1` (this doc is exploration/shaping, separated from
 
 The runtime snapshot used throughout this design: `sha256:f916341a8b3711b847c8a701f8b71e0ee155d9e5517be3ed36363fa6621ccf2b`, built `2026-07-03T21:18:14Z`, `fresh: true` — identical hash reported by `get_fpf_index_status` and echoed in every payload captured in the Evidence section.
 
-## Claim register
+## Claim Register
 
 | ID | Atomic claim | Owner layer |
 | --- | --- | --- |
 | GLZ-1 | The companion calls only tools from the contract's six-tool public roster (`browse_fpf_catalog`, `search_fpf`, `ask_fpf`, `query_fpf_spec`, `read_fpf_doc`, `get_fpf_index_status`) — and ships using five of them: `query_fpf_spec` is intentionally unused (agent-facing structured envelope; `ask_fpf` is its human-facing twin). | Interface contract (mcp.fpf.sh) |
-| GLZ-2 | Expert tools (`inspect_*`, `trace_fpf_path`, `refresh_fpf_index`) are never assumed on the hosted endpoint and never appear in the app. | Interface contract |
+| GLZ-2 | Expert tools (`inspect_*`, `trace_fpf_path`, `expand_fpf_citations`) and the admin tool `refresh_fpf_index` are never assumed on the hosted endpoint and never appear in the app. | Interface contract |
 | GLZ-3 | Reliance gate: before trust-sensitive display, `get_fpf_index_status` must show `snapshotExists: true`, `fresh: true`, and `currentSourceHash === sourceHash`; otherwise every surface renders a degraded state and answers are labeled unverified. | Interface contract |
 | GLZ-4 | Exact wording flows only through `read_fpf_doc`; `ask_fpf` output is presented as a grounded summary, never as canonical spec text. | Interface contract |
 | GLZ-5 | The companion is not agent memory, job state, a workflow engine, or a policy authority — the contract's non-admissible uses stay non-admissible in the client UI and copy. | Interface contract |
 | GLZ-6 | The app, its configuration, and any store listing use the canonical `fpf_reference` endpoint and name; the legacy `fpf_memory` name appears nowhere. | Repo policy (AGENTS.md) |
 | GLZ-7 | Every rendered answer or page footer carries `snapshot.sourceHash` (short form) and `builtAt` from that same response; a mismatch against the status hash renders a stale banner. | Client app |
-| GLZ-8 | Freshness is shown as internal consistency only; the app never claims upstream currentness (`upstreamCurrentness` is `unknown` by design on the public status). | Interface contract |
+| GLZ-8 | Freshness is shown as internal consistency only; the app never claims upstream currentness — `get_fpf_index_status` proves the deployed snapshot's internal consistency, and upstream currentness is by design unknowable from the endpoint alone. | Interface contract |
 | GLZ-9 | Client-side caching is keyed by `(tool, arguments, sourceHash)` — admissible because tool responses are deterministic per snapshot — and invalidated when the status hash changes. | Client app |
-| GLZ-10 | Input caps are mirrored client-side (question ≤ 2000 chars, search query ≤ 1000, selector ≤ 256; bounded reads via `maxChars`), so the app never emits schema-rejected input. | Client app (mirrors `src/mcp/tool-contracts.ts`) |
-| GLZ-11 | Requests stay bounded: search fires on submit (or ≥ 300 ms debounce), catalog pages via `nextOffset`, status is checked at launch and on manual refresh only — courtesy to the hosted spend guardrails. | Client app |
+| GLZ-10 | Input bounds are mirrored client-side (question ≤ 2000 chars and non-empty, search query ≤ 1000 and non-empty, selector ≤ 256 and non-empty, catalog filters ≤ 64; `maxChars` within [100, 200000]), so the app never emits schema-rejected input. | Client app (mirrors `src/mcp/tool-contracts.ts`) |
+| GLZ-11 | Requests stay bounded: search fires on submit (or ≥ 300 ms debounce), catalog pages via `nextOffset`, and status is checked only at launch, on manual refresh, after a `stale_snapshot_prevented` answer, or on network reconnect — never on a timer. Courtesy to the hosted spend guardrails. | Client app |
 | GLZ-12 | Publishing to the Glaze Store is external publication and requires explicit human approval; unlisted sharing is the default distribution. | Repo policy (AGENTS.md autonomy norms) |
 | GLZ-13 | Nothing in this repo's runtime, pipeline, CI, or published surfaces depends on the companion; removing it is a no-op for the project. | Repo policy |
 
 ## Design
 
-Working name: **FPF Companion**. One dependency: `https://mcp.fpf.sh/api/mcp/fpf_reference/mcp`. Shape: a menu-bar quick-search plus a main window with five surfaces.
+Working name: **FPF Companion**. One dependency: the hosted `fpf_reference` MCP endpoint (the dated value is quoted once, in the build prompt below, under its SSOT caveat). Shape: a menu-bar quick-search plus a main window with five surfaces.
 
-### Status (freshness spine)
+### Status (Freshness Spine)
 
 Maps `get_fpf_index_status` directly: a pill in the sidebar footer is green when the GLZ-3 gate passes, amber otherwise. The detail view lists `sourceHash`, `builtAt`, `compilerMode: local_vectorless`, and the artifact booleans. The pill's state gates the trust labeling on every other surface.
 
@@ -56,7 +56,7 @@ Maps `ask_fpf` — the human-facing twin of `query_fpf_spec`, whose structured e
 
 ### Search
 
-Maps `search_fpf`. Hit rows show `kind` badge (pattern / route / lexeme / preface), `title`, `id`, `part`, `status`, and the `snippet`; selecting a hit opens the Reader. Optional `kind` filter mirrors the schema enum.
+Maps `search_fpf`. Hit rows show `kind` badge (pattern / route / lexeme / preface), `title`, `id`, `part`, `status`, `score`, and the `snippet`; selecting a hit opens the Reader. Optional `kind` filter mirrors the schema enum.
 
 ### Catalog
 
@@ -66,11 +66,11 @@ Maps `browse_fpf_catalog` with `part` / `status` / `kind` filters, paged by `nex
 
 Maps `read_fpf_doc`. Hover cards use `mode: "preview"` (headings + snippet, no body). Full pages request `maxChars: 20000` first and offer "load full page" when `truncated: true` (`markdownChars` tells the user the full size). Header shows `title`, resolved `nodeId`, and an "open on fpf.sh" link derived from `docRef.staticPath`. Typing an ID (`A.1.1`) or route (`route:project-alignment`) anywhere jumps straight here via selector auto-resolution.
 
-### Offline behavior
+### Offline Behavior
 
 Local-first apps keep working offline: cached pages stay readable but are labeled with their snapshot short-hash plus "offline — freshness unverified", and the GLZ-3 gate re-runs on reconnect.
 
-## Glaze build prompt
+## Glaze Build Prompt
 
 The operational artifact — paste into Glaze as-is. One caveat first: the endpoint and server name below are quoted **as of the design date**; their SSOT is `src/core/public-copy.ts` (surfaced at mcp.fpf.sh and the Connect MCP page), and this dated exploration page sits outside the adoption-copy parity tests. Before pasting, confirm both values still match the SSOT — if they have moved, this prompt is stale, not authoritative.
 
@@ -99,9 +99,10 @@ Streamable HTTP transport, with the full lifecycle:
    response arrives as Content-Type application/json (parse directly) or
    text/event-stream (read the SSE stream until the JSON-RPC message whose
    id matches the request id; earlier events may be notifications or
-   server requests — answer a ping request with an empty result, skip
-   other messages the app does not handle) — support both, as the Accept
-   header promises;
+   server requests — answer a ping request with an empty result, answer
+   any other server request with JSON-RPC error -32601 (method not
+   found), and skip only notifications the app does not handle) —
+   support both, as the Accept header promises;
 6. handle failures without crashing: a JSON-RPC response may carry an
    "error" member instead of "result" — surface its message in the UI as
    a readable error state; an HTTP 404 received while sending
@@ -118,8 +119,9 @@ JSON-RPC envelope's result.structuredContent — NOT directly on result
 (result.content is only a human-readable text fallback); read all fields
 below from structuredContent. Do not depend on any Glaze MCP server
 connection existing at runtime — if the generated app cannot reach the
-endpoint with its own HTTP client, the build has failed acceptance
-check 1.
+endpoint with its own HTTP client, the build has failed its primary
+acceptance test: the app must function with this endpoint as its only
+network dependency.
 
 Call only these five tools through that client, nothing else:
 - get_fpf_index_status {} -> { sourcePath, sourceHash?, builtAt?,
@@ -158,7 +160,9 @@ search_fpf hits; Enter opens the reader; typing an exact ID like "A.1.1" or
 a sidebar: Ask, Search, Catalog, Reader, Status.
 
 Non-negotiable behaviors:
-1. On launch and on manual refresh call get_fpf_index_status. Trusted state
+1. Call get_fpf_index_status at launch, on manual refresh, after any
+   stale_snapshot_prevented answer, and on network reconnect — never on a
+   timer. Trusted state
    requires snapshotExists && fresh && currentSourceHash === sourceHash.
    Show a green "Fresh" pill when trusted, amber "Degraded" otherwise, and
    label all content "unverified" in degraded state.
@@ -171,21 +175,27 @@ Non-negotiable behaviors:
    (render candidateIds as suggestions); unsupported (explain);
    stale_snapshot_prevented (stale banner + status re-check).
 5. Reader fetches use maxChars 20000 first; when truncated is true show
-   "Load full page (N chars)". Preview/hover cards use mode "preview".
+   "Load full page (N chars)" and re-fetch with maxChars = min(N, 200000)
+   — maxChars must always stay within the schema bounds [100, 200000].
+   Preview/hover cards use mode "preview".
 6. Cache responses keyed by (tool, arguments, sourceHash); drop the cache
    when the status hash changes. Offline: cached pages stay readable,
    labeled "offline — freshness unverified" with their snapshot hash.
-7. Enforce input bounds client-side: question <= 2000 characters, search
-   query <= 1000 and never empty, selector <= 256, catalog part/status
-   filters <= 64; omit empty optional fields entirely instead of sending
-   empty strings. Debounce search; page the catalog with nextOffset;
-   never poll.
+7. Enforce input bounds client-side: question <= 2000 characters and never
+   empty, search query <= 1000 and never empty, selector <= 256 and never
+   empty, catalog part/status filters <= 64, maxChars within [100, 200000];
+   omit empty optional fields entirely instead of sending empty strings.
+   Debounce search by >= 300 ms (or fire on submit); page the catalog with
+   nextOffset, and when a browse response carries didYouMean.part, offer it
+   as a one-tap corrected filter; never poll.
 8. Freshness means internal consistency of the deployed snapshot only —
    never display any claim that upstream FPF is current.
 9. The service name is fpf_reference. Never reference "fpf_memory" anywhere:
    not in code, settings, copy, or the store listing.
 10. The app is read-only: no notes, no memory, no editing, no workflow
-    features. Link out to https://fpf.sh/ for the full site.
+    features. Link out to https://fpf.sh/ for the full site, and give
+    every Reader page an "open on fpf.sh" link built from its
+    docRef.staticPath.
 
 Visual design: default native macOS look — standard system appearance,
 system fonts, light and dark mode both supported. Do not invent a custom
@@ -201,12 +211,15 @@ brand palette. The only required visual elements are functional:
   tints.
 - Monospace for every FPF ID, snapshot hash, and payload value.
 - Components: search hits as rows (kind badge, title + monospace ID,
-  one-line snippet, score); FPF IDs rendered as chips that open the
-  Reader; every answer and page ends with a grounding footer
-  (confidence · status · snapshot short-hash).
+  part/status, one-line snippet, score); FPF IDs rendered as chips that
+  open the Reader; every answer and page ends with a grounding footer
+  (confidence · status · snapshot short-hash · builtAt), with the
+  answer's citations, constraints, and gaps listed beneath it; the
+  Status surface's detail view lists sourcePath, sourceHash, builtAt,
+  compilerMode, and the artifact booleans.
 ```
 
-## Evidence (design-time payloads, production endpoint, 2026-07-07)
+## Evidence (Design-Time Payloads, Production Endpoint, 2026-07-07)
 
 `get_fpf_index_status`:
 
@@ -216,25 +229,27 @@ brand palette. The only required visual elements are functional:
  "fresh":true,"compilerMode":"local_vectorless"}
 ```
 
+(Abbreviated: hashes shortened, and the full payload also carried `sourcePath` plus the eight artifact booleans, all `true` — the always-present fields the prompt's schema declares.)
+
 `search_fpf { query: "bounded context", limit: 3 }` → 1689 total; top hits `lex:bounded-context` (lexeme, score 160.8), `A.1.1` "U.BoundedContext Semantic Frame" (pattern, Stable), `A.2.5` (pattern, Stable) — same snapshot hash echoed.
 
 `browse_fpf_catalog { kind: "route", limit: 3 }` → 3 routes total: `route:boundary-unpacking`, `route:project-alignment`, `route:writing-or-reviewing-patterns`, each with a task-oriented `description`.
 
 `ask_fpf` (boundary question) → `route:boundary-unpacking`, IDs `A.6, A.6.B, A.6.C` (+ conditional `A.6.P, C.16.Q, A.6.A`), confidence 0.92, status `ok`.
 
-## Non-goals
+## Non-Goals
 
 - No Glaze anywhere in the build/publish/sync path; the README scope list (no vector DB, no remote indexing, no LLM step in the docs pipeline) stays authoritative and untouched.
 - No expert tools; no bundling of the local stdio runtime inside the app.
 - No cross-platform promise — the website remains the canonical human surface; the companion is macOS-only by Glaze's own constraint.
 - Not an FPF authoring or editing surface, and not a second source of adoption copy: endpoint/setup wording keeps its SSOT in `src/core/public-copy.ts`.
 
-## Acceptance checks (app-level, mirroring the contract's)
+## Acceptance Checks (App-Level, Mirroring the Contract's)
 
-1. With outbound network restricted to `mcp.fpf.sh`, all five surfaces function — proving the single-dependency boundary (GLZ-1, GLZ-13).
-2. Simulating `fresh: false` or a hash mismatch degrades every surface and labels all content unverified (GLZ-3, GLZ-7).
+1. With outbound network restricted to `mcp.fpf.sh`, all five surfaces function — proving the single-dependency boundary (GLZ-1, GLZ-2).
+2. Simulating `fresh: false` degrades every surface and labels all content unverified; simulating a response-vs-status hash mismatch renders the stale banner (GLZ-3, GLZ-7).
 3. A search of the generated app's source contains zero occurrences of `fpf_memory` (GLZ-6).
-4. Every rendered answer/page shows its snapshot short-hash; in the nominal state it equals the status hash (GLZ-7).
+4. Every rendered answer/page shows its snapshot short-hash and `builtAt`; in the nominal state the hash equals the status hash (GLZ-7).
 5. Any store or unlisted listing names `fpf_reference`, links `https://fpf.sh/`, and ships only after explicit human approval (GLZ-6, GLZ-12).
 
 ## Decision
