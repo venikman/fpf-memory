@@ -25,14 +25,15 @@ own acceptance criteria and an auditable evidence link:
 26h = the ≤1-day promise plus slack for one missed run of a twice-daily worker.
 **The acceptance verdict must be computed from the published artifact's own
 timestamp**, never from upstream's commit time — measuring the source rather than
-the delivery is what let a 16-day outage report "within SLO" (see #250).
+the delivery is what let a 16-day outage report "within SLO" (see #253).
 
 ## Now
 
 1. **Restore freshness and make its alarm real.** De-LFS the 95MB index snapshot
    that exhausted the GitHub LFS budget and took down sync, CI, content-quality,
    and every fresh clone; fix the drift metric to measure the published artifact;
-   route workflow failures to a GitHub issue. Tracked in #250.
+   route workflow failures to a GitHub issue. Shipped in #253 + #255;
+   live freshness verification in flight.
 2. **LICENSE.** The repo is all-rights-reserved by default, which caps every
    distribution move below it. Needs Stas to pick (MIT or Apache-2.0), and the
    file must scope repo code separately from the mirrored upstream spec text in
@@ -42,6 +43,7 @@ the delivery is what let a 16-day outage report "within SLO" (see #250).
    `src/core/public-copy.ts` (the SSOT for the mcp.fpf.sh setup page). Add the
    literal install commands to all three, and correct the GitHub repo
    description (it still claims 247 patterns / 13 routes; live is 281 / 3).
+   In flight: #250.
 4. **Publish to `registry.modelcontextprotocol.io`.** Zero listings today and no
    publication was ever attempted. Gated on item 1 — listing a stale server in
    the canonical index is worse than not listing. Note repo-root `server.json`
@@ -50,6 +52,14 @@ the delivery is what let a 16-day outage report "within SLO" (see #250).
 5. **Contribution surface.** `CONTRIBUTING.md`, issue templates, and a
    `CODE_OF_CONDUCT.md`. GitHub community health is 42%; there is no entry point
    for an outside contributor even once a LICENSE exists.
+
+6. **Route catalog recovery.** Curated routes regressed 23 → 3 on 2026-06-09
+   (adoption surface restructure, #210). Audit which curated routes carried real
+   query traffic and restore the high-value ones. The P4 boundary-route
+   re-activation below belongs to this item when it un-defers.
+7. **Monitor hardening & telemetry revival.** Content-quality monitor back to a
+   green path, and the weekly FPF usage telemetry review (#170, dormant since
+   June) re-established so adoption moves are measured, not guessed.
 
 ## Deferred — decided, not forgotten
 
