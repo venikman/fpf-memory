@@ -1,0 +1,23 @@
+name: Ensure published snapshot
+description: >-
+  Restore or deterministically regenerate the derived
+  published/current/fpf-index/snapshot.json (~95MB, never committed since
+  CR-1 de-LFS'd it). Requires setup-bun + `bun install` to have already run
+  in the job. The cache key covers upstreamRef + sourceHash +
+  compilerFingerprint (all inside manifest.json), so a hit is exactly the
+  snapshot this manifest describes; a miss regenerates in ~15-40s and the
+  post-job save covers sibling jobs and PR branches.
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache@v5
+      with:
+        path: published/current/fpf-index/snapshot.json
+        key: published-snapshot-v1-${{ hashFiles('published/current/manifest.json') }}
+
+    - shell: bash
+      # Fast path (~1-2s) validates a cached snapshot against the committed
+      # manifest; on miss/invalid it regenerates deterministically from the
+      # committed spec + manifest and hard-fails on any provenance drift or
+      # missing upstream blame enrichment.
+      run: bun run snapshot:ensure

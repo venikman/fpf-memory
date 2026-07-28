@@ -17,6 +17,7 @@ on:
 permissions:
   actions: write
   contents: read
+  issues: write
   pull-requests: read
 
 concurrency:
@@ -126,12 +127,131 @@ jobs:
             echo "No active sync worker run found; dispatch can open or retry the current sync PR."
           fi
 
+      # CR-3 stop-retry ledger: run-listing APIs cannot recover dispatch inputs,
+      # so a per-ref open issue IS the durable attempt counter. A new upstream
+      # ref gets a fresh title (short ref in it) and therefore a fresh counter.
+      - name: Read recovery attempt ledger
+        id: ledger
+        if: steps.monitor.outputs.needs_sync == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: FPF sync recovery stalled (upstream ${{ steps.monitor.outputs.upstream_short_ref }})
+        run: |
+          set -euo pipefail
+
+          issue_json="$(
+            gh issue list \
+              --state open \
+              --search "$TITLE in:title" \
+              --json number,body \
+              --jq '.[0] // empty'
+          )"
+
+          issue_number=""
+          attempts="0"
+          if [ -n "$issue_json" ]; then
+            issue_number="$(jq -r '.number' <<<"$issue_json")"
+            body="$(jq -r '.body // ""' <<<"$issue_json")"
+            parsed="$(sed -n 's/.*<!-- fpf-sync-attempts:\([0-9][0-9]*\) -->.*/\1/p' <<<"$body" | head -n 1)"
+            if [ -n "$parsed" ]; then
+              attempts="$parsed"
+            fi
+          fi
+
+          {
+            echo "issue_number=$issue_number"
+            echo "attempts=$attempts"
+          } >> "$GITHUB_OUTPUT"
+          echo "Recovery ledger: issue=${issue_number:-none} attempts=$attempts"
+
       - name: Trigger guarded publication sync
-        if: steps.monitor.outputs.needs_sync == 'true' && steps.active_sync_worker.outputs.active != 'true'
+        if: steps.monitor.outputs.needs_sync == 'true' && steps.active_sync_worker.outputs.active != 'true' && fromJSON(steps.ledger.outputs.attempts || '0') < 2
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           UPSTREAM_REF: ${{ steps.monitor.outputs.upstream_ref }}
         run: gh workflow run sync-fpf.yml --ref main -f upstream_ref="$UPSTREAM_REF"
+
+      - name: Record recovery attempt
+        if: steps.monitor.outputs.needs_sync == 'true' && steps.active_sync_worker.outputs.active != 'true' && fromJSON(steps.ledger.outputs.attempts || '0') < 2
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: FPF sync recovery stalled (upstream ${{ steps.monitor.outputs.upstream_short_ref }})
+          ISSUE_NUMBER: ${{ steps.ledger.outputs.issue_number }}
+          ATTEMPTS: ${{ steps.ledger.outputs.attempts }}
+          UPSTREAM_REF: ${{ steps.monitor.outputs.upstream_ref }}
+          PUBLISHED_REF: ${{ steps.monitor.outputs.published_ref }}
+          DRIFT_HOURS: ${{ steps.monitor.outputs.drift_hours }}
+          MAX_DRIFT_HOURS: ${{ steps.monitor.outputs.max_drift_hours }}
+          SUMMARY: ${{ steps.monitor.outputs.summary }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          next=$(( ${ATTEMPTS:-0} + 1 ))
+          body_file="$(mktemp)"
+          {
+            printf '%s\n' \
+              "<!-- fpf-sync-attempts:$next -->" \
+              'The sync freshness monitor found production behind upstream and dispatched the sync worker.' \
+              '' \
+              "- Upstream ref: $UPSTREAM_REF" \
+              "- Published ref: ${PUBLISHED_REF:-unknown}" \
+              "- Drift: ${DRIFT_HOURS:-unknown}h (limit ${MAX_DRIFT_HOURS:-unknown}h)" \
+              "- Monitor summary: ${SUMMARY:-n/a}" \
+              "- Recovery dispatches for this ref: $next" \
+              "- Dispatched at: $(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+              "- Run: $RUN_URL" \
+              '' \
+              'This ledger tracks automatic recovery dispatches for this upstream ref. After 2 dispatches without recovery the monitor stops re-dispatching and escalates here instead of retrying forever.'
+          } > "$body_file"
+
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh issue edit "$ISSUE_NUMBER" --body-file "$body_file"
+          else
+            gh issue create --title "$TITLE" --body-file "$body_file"
+          fi
+
+      - name: Escalate stalled recovery
+        if: steps.monitor.outputs.needs_sync == 'true' && steps.active_sync_worker.outputs.active != 'true' && fromJSON(steps.ledger.outputs.attempts || '0') >= 2
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ steps.ledger.outputs.issue_number }}
+          UPSTREAM_REF: ${{ steps.monitor.outputs.upstream_ref }}
+          SUMMARY: ${{ steps.monitor.outputs.summary }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh issue comment "$ISSUE_NUMBER" --body "$(printf '%s\n' \
+              "2 recovery dispatches for $UPSTREAM_REF did not restore freshness; halting automatic re-dispatch, manual investigation required." \
+              '' \
+              "- Monitor summary: ${SUMMARY:-n/a}" \
+              "- Run: $RUN_URL")"
+          fi
+          echo "::error::FPF sync recovery is stalled for upstream $UPSTREAM_REF after 2 dispatches; halting automatic re-dispatch — manual investigation required."
+          exit 1
+
+      - name: Close recovery ledger when fresh
+        if: steps.monitor.outputs.needs_sync != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          # Close every open ledger, not just the current ref's: after a ref
+          # rollover the stale-ref ledger would otherwise stay open forever.
+          gh issue list \
+            --state open \
+            --search '"FPF sync recovery stalled" in:title' \
+            --json number \
+            --jq '.[].number' |
+          while read -r number; do
+            [ -n "$number" ] || continue
+            gh issue comment "$number" --body "Production is fresh again; closing the recovery ledger. Run: $RUN_URL"
+            gh issue close "$number" --reason completed
+          done
 
       - name: Enforce sync SLO
         if: steps.monitor.outputs.breached == 'true'

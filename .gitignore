@@ -4,6 +4,9 @@ FPF-spec.md
 # manifest) owned by the local pre-push hook. Override the case-insensitive
 # FPF-spec.md rule above so the committed copy tracks.
 !published/current/FPF-Spec.md
+# The ~95MB runtime snapshot is derived, never committed (LFS quota kill,
+# CR-1 2026-07-28). Regenerate deterministically: bun run snapshot:ensure
+published/current/fpf-index/snapshot.json
 dist
 doc_build
 .runtime

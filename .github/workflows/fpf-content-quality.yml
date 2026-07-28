@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: fpf-content-quality
@@ -27,13 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      # lfs: true because monitor:content parses the local published snapshot,
-      # which is Git LFS-tracked — without it the checkout leaves a pointer
-      # file and the run dies with "snapshot is invalid JSON" (this made the
-      # monitor red on every run between 2026-07-03 and 2026-07-13).
       - uses: actions/checkout@v6
-        with:
-          lfs: true
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -41,8 +36,121 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
+      # monitor:content and smoke:production parse the local published
+      # snapshot, which is derived and no longer committed (CR-1) — restore
+      # it from cache or regenerate deterministically before either check.
+      - name: Ensure published snapshot
+        uses: ./.github/actions/ensure-published-snapshot
+
+      # continue-on-error on both checks so a content breach doesn't mask the
+      # smoke result (and vice versa); the final step re-fails the run so the
+      # red signal is never laundered away (CR-3).
       - name: Evaluate hosted generated and curated pages
-        run: bun run monitor:content -- --mode live --format markdown --fail-on-breach
+        id: content
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+
+          monitor_log="$(mktemp)"
+          set +e
+          bun run monitor:content -- --mode live --format markdown --fail-on-breach > "$monitor_log" 2>&1
+          status="$?"
+          set -e
+          cat "$monitor_log"
+
+          error_tail="$(tail -n 20 "$monitor_log" | tr '\r\n' '  ' | sed -E 's/[[:space:]]+/ /g' | cut -c1-900)"
+          printf 'error_tail=%s\n' "$error_tail" >> "$GITHUB_OUTPUT"
+
+          exit "$status"
 
       - name: Evaluate semantic production smoke
-        run: bun run smoke:production -- --format markdown --fail-on-breach
+        id: smoke
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+
+          monitor_log="$(mktemp)"
+          set +e
+          bun run smoke:production -- --format markdown --fail-on-breach > "$monitor_log" 2>&1
+          status="$?"
+          set -e
+          cat "$monitor_log"
+
+          error_tail="$(tail -n 20 "$monitor_log" | tr '\r\n' '  ' | sed -E 's/[[:space:]]+/ /g' | cut -c1-900)"
+          printf 'error_tail=%s\n' "$error_tail" >> "$GITHUB_OUTPUT"
+
+          exit "$status"
+
+      - name: Open or update content quality issue
+        if: steps.content.outcome != 'success' || steps.smoke.outcome != 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: Investigate FPF content quality monitor breach
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          CONTENT_OUTCOME: ${{ steps.content.outcome }}
+          SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+          CONTENT_ERROR: ${{ steps.content.outputs.error_tail || '' }}
+          SMOKE_ERROR: ${{ steps.smoke.outputs.error_tail || '' }}
+        run: |
+          set -euo pipefail
+
+          existing="$(
+            gh issue list \
+              --state open \
+              --search "$TITLE in:title" \
+              --json number \
+              --jq '.[0].number // ""'
+          )"
+
+          body_file="$(mktemp)"
+          {
+            printf '%s\n' \
+              'The scheduled FPF content quality monitor needs attention.' \
+              '' \
+              "- Content monitor (monitor:content --mode live): $CONTENT_OUTCOME" \
+              "- Production smoke (smoke:production): $SMOKE_OUTCOME" \
+              "- Run: $RUN_URL"
+            if [ "$CONTENT_OUTCOME" != "success" ] && [ -n "$CONTENT_ERROR" ]; then
+              printf '%s\n' "- Content monitor tail: $CONTENT_ERROR"
+            fi
+            if [ "$SMOKE_OUTCOME" != "success" ] && [ -n "$SMOKE_ERROR" ]; then
+              printf '%s\n' "- Production smoke tail: $SMOKE_ERROR"
+            fi
+            printf '%s\n' \
+              '' \
+              'Check the workflow summary for the full monitor output before changing curated pages or deploy settings.'
+          } > "$body_file"
+
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file "$body_file"
+          else
+            gh issue create --title "$TITLE" --body-file "$body_file"
+          fi
+
+      - name: Close content quality issue after clean run
+        if: steps.content.outcome == 'success' && steps.smoke.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: Investigate FPF content quality monitor breach
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          existing="$(
+            gh issue list \
+              --state open \
+              --search "$TITLE in:title" \
+              --json number \
+              --jq '.[0].number // ""'
+          )"
+
+          if [ -z "$existing" ]; then
+            exit 0
+          fi
+
+          gh issue comment "$existing" --body "The content quality monitor is clean again; closing. Run: $RUN_URL"
+          gh issue close "$existing" --reason completed
+
+      - name: Fail workflow on content quality breach
+        if: steps.content.outcome != 'success' || steps.smoke.outcome != 'success'
+        run: exit 1

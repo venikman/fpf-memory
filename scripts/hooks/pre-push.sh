@@ -33,8 +33,10 @@ FPF_SPEC_SOURCE_PATH="$PUBLISH_SOURCE" bun run cli -- refresh
 echo "pre-push: publishing ./published/current/"
 FPF_PUBLISH_SOURCE_PATH="$PUBLISH_SOURCE" bun run publish:current
 
+# The runtime snapshot is derived and gitignored since CR-1 (2026-07-28);
+# `git add` of an explicitly named ignored path exits non-zero, so only the
+# committed publication surface is staged here.
 git add published/current/FPF-Spec.md \
-        published/current/fpf-index/snapshot.json \
         published/current/manifest.json
 
 # Tell the user whether the publication diff is clean. If publish

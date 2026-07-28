@@ -7,6 +7,23 @@ const script = surface === 'mcp' ? 'vercel:mcp:build' : 'vercel:website:build';
 
 process.stdout.write(`build-vercel-git-preview: surface=${surface} script=${script}\n`);
 
+// Vercel's Git clone has no LFS and (since CR-1) no committed snapshot, so
+// every preview build regenerates the derived snapshot first. Without this
+// the MCP surface hard-fails in stage:from-published and the website surface
+// silently drops upstream blame enrichment.
+const ensure = spawnSync('bun', ['run', 'snapshot:ensure'], {
+  cwd: process.cwd(),
+  env: process.env,
+  stdio: 'inherit',
+});
+
+if (ensure.error) {
+  throw ensure.error;
+}
+if (ensure.status !== 0) {
+  throw new Error(`bun run snapshot:ensure exited with code ${ensure.status ?? 'unknown'}`);
+}
+
 const result = spawnSync('bun', ['run', script], {
   cwd: process.cwd(),
   env: process.env,
