@@ -172,6 +172,7 @@ jobs:
         run: gh workflow run sync-fpf.yml --ref main -f upstream_ref="$UPSTREAM_REF"
 
       - name: Record recovery attempt
+        id: record
         if: steps.monitor.outputs.needs_sync == 'true' && steps.active_sync_worker.outputs.active != 'true' && fromJSON(steps.ledger.outputs.attempts || '0') < 2
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -212,6 +213,7 @@ jobs:
           fi
 
       - name: Escalate stalled recovery
+        id: escalate
         if: steps.monitor.outputs.needs_sync == 'true' && steps.active_sync_worker.outputs.active != 'true' && fromJSON(steps.ledger.outputs.attempts || '0') >= 2
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -258,3 +260,83 @@ jobs:
         run: |
           echo "::error::${{ steps.monitor.outputs.summary }}"
           exit 1
+
+      # CR-3: any red monitor run must leave a durable, deduplicated trail —
+      # not only the stalled-recovery branch. This catches the paths the
+      # branches above miss: a crash of the health evaluation itself (every
+      # later step skips), a breach with no pending upstream sync
+      # (breached && !needs_sync — e.g. hosted runtime incoherent), and a
+      # breach suppressed by an already-active worker run. Runs where the
+      # per-ref ledger was updated this run (record) or the stalled-recovery
+      # escalation fired (escalate) are excluded — those already own an issue.
+      - name: Open or update monitor failure issue
+        if: ${{ failure() && steps.record.outcome != 'success' && steps.escalate.outcome != 'failure' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Explicit repo: this step must work even when checkout itself
+          # failed and the workspace has no git remote for gh to infer from.
+          GH_REPO: ${{ github.repository }}
+          TITLE: Investigate FPF sync monitor failure
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          MONITOR_OUTCOME: ${{ steps.monitor.outcome }}
+          NEEDS_SYNC: ${{ steps.monitor.outputs.needs_sync }}
+          BREACHED: ${{ steps.monitor.outputs.breached }}
+          DRIFT_HOURS: ${{ steps.monitor.outputs.drift_hours }}
+          MAX_DRIFT_HOURS: ${{ steps.monitor.outputs.max_drift_hours }}
+          SUMMARY: ${{ steps.monitor.outputs.summary }}
+        run: |
+          set -euo pipefail
+
+          existing="$(
+            gh issue list \
+              --state open \
+              --search "$TITLE in:title" \
+              --json number \
+              --jq '.[0].number // ""'
+          )"
+
+          body_file="$(mktemp)"
+          {
+            printf '%s\n' \
+              'The FPF sync monitor run went red without an existing escalation path covering it; the freshness sentinel is not doing its job until this is resolved.' \
+              '' \
+              "- Health evaluation (monitor:sync): ${MONITOR_OUTCOME:-skipped}" \
+              "- needs_sync: ${NEEDS_SYNC:-unknown}" \
+              "- SLO breached: ${BREACHED:-unknown}" \
+              "- Drift: ${DRIFT_HOURS:-unknown}h (limit ${MAX_DRIFT_HOURS:-unknown}h)" \
+              "- Monitor summary: ${SUMMARY:-n/a}" \
+              "- Run: $RUN_URL"
+            if [ "${MONITOR_OUTCOME:-skipped}" != "success" ]; then
+              printf '%s\n' '- The health evaluation itself did not complete (setup or evaluation crash); see the run log.'
+            fi
+          } > "$body_file"
+
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file "$body_file"
+          else
+            gh issue create --title "$TITLE" --body-file "$body_file"
+          fi
+
+      - name: Close monitor failure issue after green run
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: Investigate FPF sync monitor failure
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          existing="$(
+            gh issue list \
+              --state open \
+              --search "$TITLE in:title" \
+              --json number \
+              --jq '.[0].number // ""'
+          )"
+
+          if [ -z "$existing" ]; then
+            exit 0
+          fi
+
+          gh issue comment "$existing" --body "The sync monitor completed a clean run; closing. Run: $RUN_URL"
+          gh issue close "$existing" --reason completed

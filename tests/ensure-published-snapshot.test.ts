@@ -135,7 +135,7 @@ describe('ensurePublishedSnapshot', () => {
     );
   }, 90_000);
 
-  it('throws the drift error instead of rewriting a manifest the spec no longer matches', async () => {
+  it('throws the drift error and restores the pre-call bytes instead of rewriting the manifest', async () => {
     await publishBaseline();
 
     // Mutate the committed spec: regeneration would produce a new sourceHash,
@@ -147,12 +147,25 @@ describe('ensurePublishedSnapshot', () => {
       'utf8',
     );
 
+    // The pre-call surface: committed manifest, mutated spec, baseline
+    // snapshot. Rejection must leave all three byte-identical — the
+    // regeneration internally rewrites them before the drift check can run,
+    // and a rewritten self-consistent manifest with stale provenance would
+    // pass validate:published on a shared checkout.
+    const manifestBefore = await readFile(publishedManifestPath);
+    const specBefore = await readFile(publishedSpecPath);
+    const snapshotBefore = await readFile(publishedSnapshotPath);
+
     await expect(ensurePublishedSnapshot(ensureOptions())).rejects.toThrow(
       /drifted under regeneration/,
     );
+
+    expect((await readFile(publishedManifestPath)).equals(manifestBefore)).toBe(true);
+    expect((await readFile(publishedSpecPath)).equals(specBefore)).toBe(true);
+    expect((await readFile(publishedSnapshotPath)).equals(snapshotBefore)).toBe(true);
   }, 90_000);
 
-  it('throws when regeneration loses the upstream blame enrichment', async () => {
+  it('throws when regeneration loses the upstream blame enrichment and restores the stub', async () => {
     await publishBaseline();
     await writeFile(publishedSnapshotPath, LFS_POINTER_STUB, 'utf8');
 
@@ -161,5 +174,13 @@ describe('ensurePublishedSnapshot', () => {
         ensureOptions({ loadLineBlame: async () => undefined }),
       ),
     ).rejects.toThrow(/blame enrichment missing/);
+
+    // The degraded (blame-less) snapshot must not survive on disk: it would
+    // validate as `present` on the next call and launder the blame loss.
+    expect(await readFile(publishedSnapshotPath, 'utf8')).toBe(LFS_POINTER_STUB);
+
+    // With a working blame loader the same checkout must still recover.
+    const recovered = await ensurePublishedSnapshot(ensureOptions());
+    expect(recovered.status).toBe('regenerated');
   }, 90_000);
 });

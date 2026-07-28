@@ -81,10 +81,19 @@ jobs:
 
           exit "$status"
 
+      # `failure()` (with the implicit success() precondition removed) covers
+      # red setup steps too — checkout, bun install, or the snapshot ensure
+      # failing must still file the issue: this workflow was red on every run
+      # 2026-07-03..07-13 from exactly such a setup failure and escalated to
+      # nobody (CR-3). `!cancelled()` keeps a manually-cancelled run from
+      # filing a bogus breach.
       - name: Open or update content quality issue
-        if: steps.content.outcome != 'success' || steps.smoke.outcome != 'success'
+        if: ${{ !cancelled() && (failure() || steps.content.outcome != 'success' || steps.smoke.outcome != 'success') }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Explicit repo: this step must work even when checkout itself
+          # failed and the workspace has no git remote for gh to infer from.
+          GH_REPO: ${{ github.repository }}
           TITLE: Investigate FPF content quality monitor breach
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           CONTENT_OUTCOME: ${{ steps.content.outcome }}
@@ -107,9 +116,12 @@ jobs:
             printf '%s\n' \
               'The scheduled FPF content quality monitor needs attention.' \
               '' \
-              "- Content monitor (monitor:content --mode live): $CONTENT_OUTCOME" \
-              "- Production smoke (smoke:production): $SMOKE_OUTCOME" \
+              "- Content monitor (monitor:content --mode live): ${CONTENT_OUTCOME:-skipped}" \
+              "- Production smoke (smoke:production): ${SMOKE_OUTCOME:-skipped}" \
               "- Run: $RUN_URL"
+            if [ "${CONTENT_OUTCOME:-skipped}" = "skipped" ] || [ "${SMOKE_OUTCOME:-skipped}" = "skipped" ]; then
+              printf '%s\n' '- A setup step (checkout / bun install / snapshot ensure) failed before the checks could run; see the run log.'
+            fi
             if [ "$CONTENT_OUTCOME" != "success" ] && [ -n "$CONTENT_ERROR" ]; then
               printf '%s\n' "- Content monitor tail: $CONTENT_ERROR"
             fi

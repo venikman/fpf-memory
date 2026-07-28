@@ -398,6 +398,9 @@ jobs:
         if: failure()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Explicit repo: this step must work even when checkout itself
+          # failed and the workspace has no git remote for gh to infer from.
+          GH_REPO: ${{ github.repository }}
           TITLE: Investigate FPF sync worker failure
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           UPSTREAM_REF: ${{ steps.upstream.outputs.ref }}

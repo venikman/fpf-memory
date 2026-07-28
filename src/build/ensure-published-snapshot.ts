@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 
 import {
   publishCurrent,
@@ -47,6 +48,14 @@ export type EnsurePublishedSnapshotResult =
  * leave the manifest and spec byte-identical, otherwise this checkout's
  * compiler no longer matches the committed publication and the caller must
  * republish instead of silently rewriting history.
+ *
+ * Rejection restores the pre-call bytes: `publishCurrent` rewrites the
+ * tracked manifest/spec (and the snapshot) on disk before the drift check can
+ * run, so every failure path below puts all three files back exactly as they
+ * were found. A failed ensure therefore never mutates the publication surface
+ * — in this repo's shared-checkout multi-agent workflow a freshly rewritten,
+ * self-consistent manifest with stale upstream provenance would otherwise
+ * pass `validate:published` and get folded into someone else's commit.
  */
 export async function ensurePublishedSnapshot(
   options: EnsurePublishedSnapshotOptions = {},
@@ -73,6 +82,22 @@ export async function ensurePublishedSnapshot(
   const manifest = await readCommittedManifest(paths.publishedManifestPath);
   const manifestBytesBefore = await readFile(paths.publishedManifestPath);
   const specBytesBefore = await readRequiredSpec(paths.publishedSpecPath);
+  const snapshotBytesBefore = await readOptionalFile(paths.publishedSnapshotPath);
+
+  // Undo publishCurrent's on-disk writes so a rejected ensure leaves the
+  // checkout byte-identical to how it was found (see module docstring).
+  const restorePreCallSurface = async (): Promise<void> => {
+    await mkdir(dirname(paths.publishedManifestPath), { recursive: true });
+    await writeFile(paths.publishedManifestPath, manifestBytesBefore);
+    await mkdir(dirname(paths.publishedSpecPath), { recursive: true });
+    await writeFile(paths.publishedSpecPath, specBytesBefore);
+    if (snapshotBytesBefore === undefined) {
+      await rm(paths.publishedSnapshotPath, { force: true });
+    } else {
+      await mkdir(dirname(paths.publishedSnapshotPath), { recursive: true });
+      await writeFile(paths.publishedSnapshotPath, snapshotBytesBefore);
+    }
+  };
 
   const upstream = parseUpstreamRepo(manifest.upstreamRepoUrl);
   const resolveUpstreamCommit =
@@ -106,6 +131,7 @@ export async function ensurePublishedSnapshot(
     !manifestBytesAfter.equals(manifestBytesBefore)
     || !specBytesAfter.equals(specBytesBefore)
   ) {
+    await restorePreCallSurface();
     throw new Error(
       'published/current drifted under regeneration: this checkout\'s compiler '
       + 'fingerprint or spec no longer matches the committed manifest. Run '
@@ -113,11 +139,20 @@ export async function ensurePublishedSnapshot(
     );
   }
 
-  await validatePublishedSurface(surfaceOptions);
+  try {
+    await validatePublishedSurface(surfaceOptions);
+  } catch (error) {
+    await restorePreCallSurface();
+    throw error;
+  }
 
   const snapshotBytes = await readFile(paths.publishedSnapshotPath);
   const blameNodes = countBlameEnrichedNodes(snapshotBytes);
   if (blameNodes < 1) {
+    // Restore too: leaving the degraded-but-schema-valid snapshot on disk
+    // would make the next ensure call return `present` and silently launder
+    // the very blame loss this guard exists to catch.
+    await restorePreCallSurface();
     throw new Error(
       'ensure-published-snapshot: upstream blame enrichment missing — the '
       + 'ailev/FPF clone (or injected blame loader) produced no per-line data; '
@@ -155,6 +190,14 @@ async function readCommittedManifest(
       `ensure-published-snapshot: published manifest is invalid JSON or schema-invalid at ${manifestPath}; `
       + 'without committed provenance the snapshot cannot be regenerated.',
     );
+  }
+}
+
+async function readOptionalFile(path: string): Promise<Buffer | undefined> {
+  try {
+    return await readFile(path);
+  } catch {
+    return undefined;
   }
 }
 
