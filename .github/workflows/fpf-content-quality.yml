@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: fpf-content-quality
@@ -27,13 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      # lfs: true because monitor:content parses the local published snapshot,
-      # which is Git LFS-tracked — without it the checkout leaves a pointer
-      # file and the run dies with "snapshot is invalid JSON" (this made the
-      # monitor red on every run between 2026-07-03 and 2026-07-13).
       - uses: actions/checkout@v6
-        with:
-          lfs: true
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -41,8 +36,95 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
+      - name: Ensure published snapshot
+        # REQUIRED, not conditional. runContentQualityMonitor calls
+        # validatePublishedSurface + readPublishedSnapshot unconditionally,
+        # before it branches on --mode, and smoke:production does the same.
+        # The snapshot is a regenerated build product, no longer committed.
+        run: bun run ensure:snapshot
+
       - name: Evaluate hosted generated and curated pages
+        id: content
+        continue-on-error: true
         run: bun run monitor:content -- --mode live --format markdown --fail-on-breach
 
       - name: Evaluate semantic production smoke
+        id: smoke
+        continue-on-error: true
         run: bun run smoke:production -- --format markdown --fail-on-breach
+
+      # `!cancelled()` rather than the bare `steps.X.outcome != 'success'` used
+      # by vercel-spend-monitor: an `if:` with no status function gets an
+      # implicit success() ANDed in, so a hard failure in checkout, bun install
+      # or ensure:snapshot would SKIP the escalation entirely. Skipped steps
+      # report outcome 'skipped', which satisfies != 'success' as intended —
+      # and the body says so, because a skipped monitor is an infrastructure
+      # failure, not content evidence.
+      - name: Open or update content quality issue
+        if: ${{ !cancelled() && (steps.content.outcome != 'success' || steps.smoke.outcome != 'success') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TITLE: fpf.sh content quality monitor is failing
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          CONTENT_OUTCOME: ${{ steps.content.outcome }}
+          CONTENT_STATE: ${{ steps.content.outputs.state || 'unknown' }}
+          CONTENT_SUMMARY: ${{ steps.content.outputs.summary || 'Monitor did not produce a summary.' }}
+          SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+          SMOKE_SUMMARY: ${{ steps.smoke.outputs.summary || 'Smoke did not produce a summary.' }}
+        run: |
+          set -euo pipefail
+
+          existing="$(
+            gh issue list --state open --limit 100 --json number,title |
+            jq -r --arg t "$TITLE" 'map(select(.title == $t)) | .[0].number // ""'
+          )"
+
+          body_file="$(mktemp)"
+          {
+            printf '%s\n' \
+              'The scheduled fpf.sh content quality monitor needs attention.' \
+              '' \
+              "- Content monitor: $CONTENT_OUTCOME (state $CONTENT_STATE)" \
+              "- Content summary: $CONTENT_SUMMARY" \
+              "- Production smoke: $SMOKE_OUTCOME" \
+              "- Smoke summary: $SMOKE_SUMMARY" \
+              "- Run: $RUN_URL" \
+              '' \
+              'An outcome of `skipped` means the job failed before the monitor ran (checkout, install, or ensure:snapshot) — fix that first; it is not content evidence.'
+          } > "$body_file"
+
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file "$body_file"
+          else
+            gh issue create --title "$TITLE" --body-file "$body_file"
+          fi
+
+      - name: Close content quality issue after clean run
+        if: ${{ !cancelled() && steps.content.outcome == 'success' && steps.smoke.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TITLE: fpf.sh content quality monitor is failing
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          existing="$(
+            gh issue list --state open --limit 100 --json number,title |
+            jq -r --arg t "$TITLE" 'map(select(.title == $t)) | .[0].number // ""'
+          )"
+
+          if [ -z "$existing" ]; then
+            exit 0
+          fi
+
+          gh issue comment "$existing" --body "Content quality and production smoke are both clean; closing. Run: $RUN_URL"
+          gh issue close "$existing" --reason completed
+
+      # Load-bearing: continue-on-error makes the job green, so without this
+      # the monitor would report a breach as a pass — replacing a loud red
+      # with silence, which is worse than today.
+      - name: Fail workflow on content quality breach
+        if: ${{ !cancelled() && (steps.content.outcome != 'success' || steps.smoke.outcome != 'success') }}
+        run: exit 1

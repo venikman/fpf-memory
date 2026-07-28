@@ -35,8 +35,6 @@ jobs:
       cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
       - uses: actions/checkout@v6
-        with:
-          lfs: true
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -56,11 +54,25 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
+      - name: Ensure published snapshot
+        # published/current/fpf-index/snapshot.json is a 95MB build product,
+        # regenerated here instead of committed. Hermetic: no network.
+        run: bun run ensure:snapshot
+
+      - name: Assert ensure did not rewrite the committed surface
+        # ensure:snapshot rewrites the spec + manifest as a side effect. If
+        # either actually changed, the committed surface is stale (typically a
+        # compiler-fingerprint input moved) and the push must be re-published
+        # with `bun run publish:current`, not silently patched in CI.
+        run: git diff --exit-code -- published/current/FPF-Spec.md published/current/manifest.json
+
       - name: Validate published/current coherence
         # The publication surface is owned by the local pre-push hook and
-        # the Sync FPF Publication workflow. CI never regenerates it. If
-        # the committed tree is missing or internally inconsistent, fail
-        # here so the broken push doesn't reach the deploy jobs.
+        # the Sync FPF Publication workflow. CI regenerates only the snapshot
+        # (a build product); the committed spec + manifest are asserted
+        # unchanged by the step above. If the committed tree is missing or
+        # internally inconsistent, fail here so the broken push doesn't reach
+        # the deploy jobs.
         run: bun run validate:published
 
       - name: Monitor generated and curated content quality
@@ -120,8 +132,6 @@ jobs:
         shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v6
-        with:
-          lfs: true
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
@@ -132,6 +142,11 @@ jobs:
             node_modules
           key: ${{ needs.setup.outputs.cache-key }}
       - run: bun install --frozen-lockfile
+      # tests/fpf-work-evaluator.test.ts and tests/fpf-spec-runtime.test.ts
+      # copyFile the real snapshot from process.cwd(). The shard job invokes
+      # scripts/run-test-shard.ts directly, so a `pretest` hook never fires —
+      # this step is required.
+      - run: bun run ensure:snapshot
       # Run one shard per runner, then split that shard into one Rstest
       # process per file. The full FPF suite includes docs and runtime index
       # builds; keeping each file in a fresh process prevents late-shard worker
@@ -147,8 +162,6 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
-        with:
-          lfs: true
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
@@ -159,6 +172,10 @@ jobs:
             node_modules
           key: ${{ needs.setup.outputs.cache-key }}
       - run: bun install --frozen-lockfile
+      # vercel:mcp:build -> predeploy -> stage:from-published and
+      # smoke:production --local both call validatePublishedSurface, which
+      # hard-fails without the snapshot.
+      - run: bun run ensure:snapshot
       - run: bun run build:mcp
       - name: Build website Vercel output without uploading
         # Assemble the Vercel Build Output API bundle without uploading.

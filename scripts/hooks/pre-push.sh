@@ -34,7 +34,6 @@ echo "pre-push: publishing ./published/current/"
 FPF_PUBLISH_SOURCE_PATH="$PUBLISH_SOURCE" bun run publish:current
 
 git add published/current/FPF-Spec.md \
-        published/current/fpf-index/snapshot.json \
         published/current/manifest.json
 
 # Tell the user whether the publication diff is clean. If publish
