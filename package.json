@@ -15,6 +15,7 @@
     "spec:download": "bun scripts/download-upstream-spec.ts",
     "publish:current": "bun scripts/publish-current.ts",
     "validate:published": "bun scripts/validate-published-current.ts",
+    "ensure:snapshot": "bun scripts/ensure-published-snapshot.ts",
     "monitor:sync": "bun scripts/monitor-fpf-sync.ts",
     "monitor:content": "bun scripts/monitor-content-quality.ts",
     "monitor:vercel:spend": "bun scripts/monitor-vercel-spend.ts",

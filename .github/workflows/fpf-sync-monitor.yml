@@ -17,6 +17,7 @@ on:
 permissions:
   actions: write
   contents: read
+  issues: write
   pull-requests: read
 
 concurrency:
@@ -126,15 +127,141 @@ jobs:
             echo "No active sync worker run found; dispatch can open or retry the current sync PR."
           fi
 
+      # No `if:` — this must run on every monitor run so the close path below
+      # can fire when production is current again.
+      - name: Measure recovery-dispatch budget
+        id: recovery_budget
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAX_FAILED_RECOVERIES: '3'
+        run: |
+          set -euo pipefail
+
+          # Fail open: a transient API 5xx must not silently suppress the
+          # recovery dispatch this step guards.
+          RUNS="$(gh api "repos/${{ github.repository }}/actions/workflows/sync-fpf.yml/runs?per_page=100" || true)"
+          if [ -z "$RUNS" ]; then
+            echo "::warning::Could not read sync-fpf run history; failing open and allowing a dispatch."
+            echo "failed_streak=0" >> "$GITHUB_OUTPUT"
+            echo "exhausted=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Reset anchor: the newest sync-fpf run of ANY event/actor that
+          # succeeded. Anchoring to the bot-dispatch stream instead would be a
+          # one-way latch — this workflow is its only producer, so once
+          # dispatch stops the streak could never fall.
+          LAST_SUCCESS="$(jq -r '
+            [.workflow_runs[] | select(.conclusion == "success") | .created_at] | sort | last // ""
+          ' <<<"$RUNS")"
+
+          # Count only automated recovery dispatches since that success. The
+          # event+actor filter matters: without it the two daily SCHEDULED
+          # worker failures would burn the budget within a day and the monitor
+          # would never retry at all.
+          FAILED_STREAK="$(jq -r --arg since "$LAST_SUCCESS" '
+            [ .workflow_runs[]
+              | select(.event == "workflow_dispatch")
+              | select(.triggering_actor.login == "github-actions[bot]")
+              | select(.conclusion == "failure")
+              | select($since == "" or .created_at > $since)
+            ] | length
+          ' <<<"$RUNS")"
+
+          echo "failed_streak=$FAILED_STREAK" >> "$GITHUB_OUTPUT"
+          echo "last_success=$LAST_SUCCESS" >> "$GITHUB_OUTPUT"
+          if [ "$FAILED_STREAK" -ge "$MAX_FAILED_RECOVERIES" ]; then
+            echo "exhausted=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::$FAILED_STREAK automated recovery dispatches of sync-fpf.yml have failed since the last successful worker run ($LAST_SUCCESS); not dispatching again until one succeeds."
+          else
+            echo "exhausted=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Trigger guarded publication sync
-        if: steps.monitor.outputs.needs_sync == 'true' && steps.active_sync_worker.outputs.active != 'true'
+        if: steps.monitor.outputs.needs_sync == 'true' && steps.active_sync_worker.outputs.active != 'true' && steps.recovery_budget.outputs.exhausted != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           UPSTREAM_REF: ${{ steps.monitor.outputs.upstream_ref }}
         run: gh workflow run sync-fpf.yml --ref main -f upstream_ref="$UPSTREAM_REF"
 
+      # Gated on the budget, not on `breached`: a breach-gated escalation would
+      # have been inert for the whole outage, because the drift bug kept every
+      # run green.
+      - name: Escalate exhausted recovery budget
+        if: steps.recovery_budget.outputs.exhausted == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TITLE: FPF sync recovery is stuck — automated retries stopped
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          UPSTREAM_REF: ${{ steps.monitor.outputs.upstream_ref }}
+          PUBLISHED_REF: ${{ steps.monitor.outputs.published_ref }}
+          DRIFT_HOURS: ${{ steps.monitor.outputs.drift_hours }}
+          FRESHNESS_BASIS: ${{ steps.monitor.outputs.freshness_basis }}
+          EVIDENCE_URL: ${{ steps.monitor.outputs.evidence_url }}
+          FAILED_STREAK: ${{ steps.recovery_budget.outputs.failed_streak }}
+          LAST_SUCCESS: ${{ steps.recovery_budget.outputs.last_success }}
+          SUMMARY: ${{ steps.monitor.outputs.summary }}
+        run: |
+          set -euo pipefail
+
+          existing="$(
+            gh issue list --state open --limit 100 --json number,title |
+            jq -r --arg t "$TITLE" 'map(select(.title == $t)) | .[0].number // ""'
+          )"
+
+          body_file="$(mktemp)"
+          {
+            printf '%s\n' \
+              'Automated re-dispatch of `sync-fpf.yml` is suspended: consecutive recovery attempts failed.' \
+              '' \
+              "- Failed recovery dispatches since the last successful worker run: $FAILED_STREAK" \
+              "- Last successful sync-fpf run: $LAST_SUCCESS" \
+              "- Published ref: $PUBLISHED_REF" \
+              "- Upstream ref: $UPSTREAM_REF" \
+              "- Reported drift: ${DRIFT_HOURS}h (basis $FRESHNESS_BASIS)" \
+              "- Evidence: $EVIDENCE_URL" \
+              "- Monitor summary: $SUMMARY" \
+              "- Run: $RUN_URL" \
+              '' \
+              'Retries resume automatically once ANY `sync-fpf.yml` run succeeds — including its own 05:17/17:17 scheduled slots. Fix the worker before re-dispatching by hand.'
+          } > "$body_file"
+
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file "$body_file"
+          else
+            gh issue create --title "$TITLE" --body-file "$body_file"
+          fi
+
+      - name: Close recovery-stuck issue once retries resume
+        # `== 'false'` explicitly, not `!= 'true'`: an empty value means the
+        # budget step did not produce a verdict, which is not proof of recovery.
+        if: steps.recovery_budget.outputs.exhausted == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TITLE: FPF sync recovery is stuck — automated retries stopped
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          existing="$(
+            gh issue list --state open --limit 100 --json number,title |
+            jq -r --arg t "$TITLE" 'map(select(.title == $t)) | .[0].number // ""'
+          )"
+
+          if [ -z "$existing" ]; then
+            exit 0
+          fi
+
+          gh issue comment "$existing" --body "A sync-fpf run has succeeded; the recovery-dispatch budget has reset and automated retries have resumed. Run: $RUN_URL"
+          gh issue close "$existing" --reason completed
+
       - name: Enforce sync SLO
-        if: steps.monitor.outputs.breached == 'true'
+        # Also fails when the recovery budget is exhausted: without that the
+        # monitor stays green while it has silently stopped trying to recover —
+        # the exact bug class that let 34 failures pass unnoticed.
+        if: steps.monitor.outputs.breached == 'true' || steps.recovery_budget.outputs.exhausted == 'true'
         run: |
           echo "::error::${{ steps.monitor.outputs.summary }}"
           exit 1

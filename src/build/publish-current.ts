@@ -233,7 +233,9 @@ export async function publishCurrent(
     // auto-merge gate, which only merges when a completed CI run matches the
     // current PR head SHA. Pinning to the (immutable) upstream revision time
     // makes republishes of the same ref byte-identical. publishedAt is
-    // provenance/display only — no SLO drift math reads it.
+    // provenance/display, and the degraded third-tier freshness basis in
+    // src/build/sync-monitor.ts. Do not move it back to wall-clock without
+    // reading resolveFreshnessEvidence there.
     publishedAt: upstreamCommit.committedAt,
   };
 
