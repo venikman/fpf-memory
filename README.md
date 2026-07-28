@@ -103,11 +103,11 @@ Out:
 `.github/workflows/sync-fpf.yml` keeps both public surfaces current when FPF changes upstream in [ailev/FPF](https://github.com/ailev/FPF):
 
 - Fast path: a trusted origin notifier can send this repo a `repository_dispatch` event named `fpf-origin-updated` or `fpf-sync-updated` with `client_payload.sha`/`after`, `client_payload.ref`/`branch`, and optionally `client_payload.spec_url`.
-- Backstops: `.github/workflows/fpf-sync-monitor.yml` runs hourly and triggers this worker when production is behind and no sync worker is already active; the worker can also be triggered manually with a branch, tag, commit SHA, or raw spec URL paired with an explicit upstream ref.
+- Backstops: `.github/workflows/fpf-sync-monitor.yml` runs daily (11:47 UTC) and triggers this worker when production is behind and no sync worker is already active; the worker can also be triggered manually with a branch, tag, commit SHA, or raw spec URL paired with an explicit upstream ref.
 - Work performed: download `FPF-Spec.md`, run `publish:current`, validate `published/current/**`, build the static website deployment, build the separate hosted MCP deployment, and open a publication PR only when files changed.
 - Hosted MCP handoff: before opening a new PR, the workflow closes superseded `chore/sync-fpf-*` PRs. After the review window and required checks pass, it squash-merges the current PR and deploys the website and MCP production bundles through the repo CLI scripts.
-- Monitor: `.github/workflows/fpf-sync-monitor.yml` runs hourly, checks `ailev/FPF` HEAD against `https://mcp.fpf.sh/api/fpf/status`, triggers `sync-fpf.yml` when upstream is ahead, and redispatches it when a current generated PR exists but no worker is queued or running. It fails only when drift exceeds the configured SLO or the hosted runtime is internally stale.
-- Spend guardrail: `.github/workflows/vercel-spend-monitor.yml` runs every 15 minutes with `VERCEL_SPEND_MONITOR_TOKEN` or `VERCEL_TOKEN`, checks Vercel Function Duration GB-hours, platform error-code rows, and legacy `/api/mcp/fpf_memory` function invocations, distinguishes `ok`, `breach`, `config_error`, `metrics_unavailable`, and `expected_blocked_traffic`, updates one open issue only when operator action is required, and closes it after a clean monitor window.
+- Monitor: `.github/workflows/fpf-sync-monitor.yml` runs daily (11:47 UTC), checks `ailev/FPF` HEAD against `https://mcp.fpf.sh/api/fpf/status`, triggers `sync-fpf.yml` when upstream is ahead, and redispatches it when a current generated PR exists but no worker is queued or running. It fails only when drift exceeds the configured SLO or the hosted runtime is internally stale.
+- Spend guardrail: `.github/workflows/vercel-spend-monitor.yml` runs every 6 hours with `VERCEL_SPEND_MONITOR_TOKEN` or `VERCEL_TOKEN`, checks Vercel Function Duration GB-hours, platform error-code rows, and legacy `/api/mcp/fpf_memory` function invocations, distinguishes `ok`, `breach`, `config_error`, `metrics_unavailable`, and `expected_blocked_traffic`, updates one open issue only when operator action is required, and closes it after a clean monitor window.
 
 Minimal dispatch payload:
 
@@ -141,7 +141,7 @@ Copy `.env.example` to `.env`. The most common settings:
 | `FPF_SYNC_MONITOR_STATUS_URL`             | `https://mcp.fpf.sh/api/fpf/status`  | MCP production status endpoint checked by `monitor:sync`.              |
 | `FPF_CONTENT_QUALITY_BASE_URL`            | `https://fpf.sh`                     | Website production base URL checked by `monitor:content --mode live`.  |
 | `FPF_CONTENT_QUALITY_STATUS_URL`          | `https://mcp.fpf.sh/api/fpf/status`  | Runtime status URL used for live content provenance checks.            |
-| `FPF_SYNC_MONITOR_MAX_DRIFT_HOURS`        | `10`                                 | Allowed upstream-to-production drift before monitor failure.           |
+| `FPF_SYNC_MONITOR_MAX_DRIFT_HOURS`        | `26`                                 | Hours a publishable upstream commit may stay unpublished before breach. |
 | `FPF_VERCEL_PROJECT`                      | `fpf-reference-mcp`                  | Vercel MCP/API project checked by `monitor:vercel:spend`.              |
 | `FPF_VERCEL_SCOPE`                        | _none_ (example: `venikmans-projects`) | Vercel team scope for metrics and deploy commands. No built-in code default; seeded in `.env.example`. |
 | `FPF_VERCEL_SPEND_WINDOW_MINUTES`         | `30`                                 | Metrics lookback window for spend guardrails.                          |

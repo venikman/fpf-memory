@@ -11,7 +11,7 @@ The repo was churned by many rotating agents with no single owner, which
 produced drift and a stalled pipeline. The mandate exists so one owner just
 moves. Default posture:
 
-- Pick the highest-value next step from the ranked roadmap and **do it**. Don't
+- Pick the highest-value next step from the ranked roadmap ([ROADMAP.md](ROADMAP.md)) and **do it**. Don't
   ask "which should I work on" or "should I proceed" — choose and report.
 - When handed a decision ("you decide"), make the **decisive** call, not the
   timid one. You were given the authority on purpose. The mandate attaches to

@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 import { publishCurrentManifestSchema } from './published-surface.js';
 import {
   DEFAULT_UPSTREAM_OWNER,
@@ -7,9 +9,13 @@ import {
 } from './upstream-source.js';
 
 export const DEFAULT_SYNC_MONITOR_STATUS_URL = 'https://mcp.fpf.sh/api/fpf/status';
-// The freshness promise is ≤1 day behind upstream, plus build/deploy slack.
-// The sync worker runs twice daily, so normal worst-case drift is ~13h; a
-// breach past 26h means the pipeline is broken, not merely scheduled later.
+// Drift = how long production has been late on an upstream commit it could
+// already have published: now − (oldest unpublished upstream commit date),
+// falling back to the published artifact's own upstream date. It is NOT the
+// age of upstream HEAD — that resets on every upstream commit and can never
+// breach. The worker runs twice daily (05:17/17:17 UTC), so the healthy worst
+// case is ~13h; a breach past 26h means two consecutive slots failed to
+// publish a commit that was already available.
 export const DEFAULT_SYNC_MONITOR_MAX_DRIFT_HOURS = 26;
 
 export const FPF_SYNC_QA_ANCHORS = [
@@ -71,6 +77,10 @@ export interface HostedSyncStatus {
   servedAt: string;
   publication: {
     upstreamRef: string;
+    // Optional on purpose: staged deployments and responses cached from before
+    // #169 omit it. A required field would make the sentinel *throw* precisely
+    // when the deployment is odd — an alarm that crashes reports nothing.
+    upstreamDate?: string;
     publishedAt: string;
     sourceHash: string;
     compilerFingerprint: string;
@@ -94,6 +104,32 @@ export interface HostedSyncStatus {
 
 export type SyncMonitorState = 'ok' | 'pending_sync' | 'breach';
 
+export type FreshnessBasis =
+  | 'oldest_unpublished_commit'
+  | 'published_upstream_date'
+  | 'published_at'
+  | 'unknown';
+
+export interface UpstreamBacklog {
+  aheadBy: number;
+  oldestUnpublishedSha: string | null;
+  oldestUnpublishedCommittedAt: string | null;
+  compareUrl: string | null;
+}
+
+export interface SyncFreshnessEvidence {
+  basis: FreshnessBasis;
+  /** The timestamp the drift clock runs from: the fact the verdict is computed on. */
+  measuredFrom: string | null;
+  publishedUpstreamRef: string;
+  publishedUpstreamDate: string | null;
+  publishedCommitUrl: string;
+  upstreamCommitUrl: string;
+  compareUrl: string | null;
+  unpublishedCommits: number | null;
+  hostedStatusUrl: string;
+}
+
 export interface SyncMonitorReport {
   state: SyncMonitorState;
   ok: boolean;
@@ -102,6 +138,7 @@ export interface SyncMonitorReport {
   generatedAt: string;
   maxDriftHours: number;
   driftHours: number;
+  evidence: SyncFreshnessEvidence;
   runtimeFresh: boolean;
   sourceCoherent: boolean;
   upstreamAhead: boolean;
@@ -131,15 +168,21 @@ export async function runFpfSyncMonitor(
   config: SyncMonitorConfig = {},
 ): Promise<SyncMonitorReport> {
   const fetchImpl = config.fetchImpl ?? fetch;
+  const statusUrl = config.statusUrl ?? DEFAULT_SYNC_MONITOR_STATUS_URL;
   const upstream = await fetchUpstreamCommit(config, fetchImpl);
-  const hosted = await fetchHostedStatus(
-    config.statusUrl ?? DEFAULT_SYNC_MONITOR_STATUS_URL,
-    fetchImpl,
-  );
+  const hosted = await fetchHostedStatus(statusUrl, fetchImpl);
+  // Only when the refs actually differ: keeps the healthy path to one GitHub
+  // call, and keeps the existing fetch-mock tests (which answer ANY
+  // api.github.com URL with a commit payload) from seeing a compare request.
+  const backlog = hosted.publication.upstreamRef !== upstream.sha
+    ? await fetchUpstreamBacklog(config, fetchImpl, hosted.publication.upstreamRef, upstream.sha)
+    : undefined;
 
   return evaluateFpfSyncMonitor({
     upstream,
     hosted,
+    backlog,
+    statusUrl,
     now: config.now ?? new Date(),
     maxDriftHours: config.maxDriftHours ?? DEFAULT_SYNC_MONITOR_MAX_DRIFT_HOURS,
   });
@@ -150,6 +193,8 @@ export function evaluateFpfSyncMonitor(input: {
   hosted: HostedSyncStatus;
   now: Date;
   maxDriftHours: number;
+  backlog?: UpstreamBacklog;
+  statusUrl?: string;
 }): SyncMonitorReport {
   const sourceCoherent =
     input.hosted.publication.sourceHash === input.hosted.runtime.currentSourceHash
@@ -161,10 +206,17 @@ export function evaluateFpfSyncMonitor(input: {
     && input.hosted.runtime.snapshotConsistent
     && sourceCoherent;
   const upstreamAhead = input.hosted.publication.upstreamRef !== input.upstream.sha;
-  const driftHours = upstreamAhead
-    ? roundHours((input.now.getTime() - Date.parse(input.upstream.committedAt)) / 3_600_000)
+  const publishedRefShort = input.hosted.publication.upstreamRef.slice(0, 8);
+  const evidence = resolveFreshnessEvidence(input, upstreamAhead);
+  const sinceMs = evidence.measuredFrom === null
+    ? null
+    : input.now.getTime() - Date.parse(evidence.measuredFrom);
+  const driftHours = upstreamAhead && sinceMs !== null && Number.isFinite(sinceMs)
+    ? roundHours(Math.max(sinceMs, 0) / 3_600_000)
     : 0;
-  const driftBreached = upstreamAhead && driftHours > input.maxDriftHours;
+  // Fail closed: if we cannot prove freshness we do not get to pass.
+  const driftUnknown = upstreamAhead && evidence.basis === 'unknown';
+  const driftBreached = upstreamAhead && (driftUnknown || driftHours > input.maxDriftHours);
   const breached = !runtimeFresh || driftBreached;
   const state: SyncMonitorState = breached ? 'breach' : upstreamAhead ? 'pending_sync' : 'ok';
 
@@ -173,8 +225,8 @@ export function evaluateFpfSyncMonitor(input: {
       characteristic: 'freshness',
       status: upstreamAhead ? (driftBreached ? 'fail' : 'pending') : 'pass',
       evidence: upstreamAhead
-        ? `published ${input.hosted.publication.upstreamRef.slice(0, 8)} lags upstream ${input.upstream.sha.slice(0, 8)} by ${driftHours}h`
-        : `published upstreamRef matches ${input.upstream.sha.slice(0, 8)}`,
+        ? `published ${publishedRefShort} has been behind for ${driftHours}h (basis ${evidence.basis} @ ${evidence.measuredFrom ?? 'unknown'}); upstream head ${input.upstream.sha.slice(0, 8)}; evidence ${evidence.compareUrl ?? evidence.publishedCommitUrl}`
+        : `published upstreamRef matches ${input.upstream.sha.slice(0, 8)} (${evidence.publishedCommitUrl})`,
       fpf: ['E.19', 'E.21'],
     },
     {
@@ -209,6 +261,7 @@ export function evaluateFpfSyncMonitor(input: {
     generatedAt: input.now.toISOString(),
     maxDriftHours: input.maxDriftHours,
     driftHours,
+    evidence,
     runtimeFresh,
     sourceCoherent,
     upstreamAhead,
@@ -216,7 +269,7 @@ export function evaluateFpfSyncMonitor(input: {
     hosted: input.hosted,
     quality,
     fpfAnchors: FPF_SYNC_QA_ANCHORS,
-    summary: summarizeState(state, upstreamAhead, driftHours, input.maxDriftHours),
+    summary: summarizeState(state, upstreamAhead, driftHours, input.maxDriftHours, evidence.basis),
   };
 }
 
@@ -242,10 +295,12 @@ ${qualityRows}
 
 ## Provenance
 
-- Upstream: [${report.upstream.sha}](${report.upstream.htmlUrl}) (${report.upstream.committedAt})
-- Published: ${report.hosted.publication.upstreamRef} (${report.hosted.publication.publishedAt})
+- Upstream head: [${report.upstream.sha}](${report.upstream.htmlUrl}) (${report.upstream.committedAt})
+- Published: [${report.evidence.publishedUpstreamRef}](${report.evidence.publishedCommitUrl}) — upstream date ${report.evidence.publishedUpstreamDate ?? 'unknown'}, published ${report.hosted.publication.publishedAt}
+- Freshness clock: ${report.driftHours}h since ${report.evidence.measuredFrom ?? 'unknown'} (basis: ${report.evidence.basis}, limit ${report.maxDriftHours}h)
+- Unpublished upstream commits: ${report.evidence.unpublishedCommits ?? 'unknown'}${report.evidence.compareUrl ? ` — [compare](${report.evidence.compareUrl})` : ''}
+- Hosted status: ${report.evidence.hostedStatusUrl}
 - Hosted source hash: ${report.hosted.runtime.currentSourceHash}
-- Max drift: ${report.maxDriftHours}h
 
 ## Strategy Anchors
 
@@ -288,6 +343,52 @@ async function fetchUpstreamCommit(
   };
 }
 
+async function fetchUpstreamBacklog(
+  config: SyncMonitorConfig,
+  fetchImpl: typeof fetch,
+  publishedRef: string,
+  upstreamSha: string,
+): Promise<UpstreamBacklog | undefined> {
+  const owner = config.upstreamOwner ?? DEFAULT_UPSTREAM_OWNER;
+  const repo = config.upstreamRepo ?? DEFAULT_UPSTREAM_REPO;
+  const range = `${encodeURIComponent(publishedRef)}...${encodeURIComponent(upstreamSha)}`;
+  const url = `https://api.github.com/repos/${owner}/${repo}/compare/${range}`;
+  // Must never throw: a 404 on rewritten upstream history or a 403 on the
+  // anonymous rate limit has to degrade to published_upstream_date, not take
+  // the sentinel down. A monitor that crashes reports nothing.
+  try {
+    const response = await fetchImpl(url, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'fpf-reference-sync-monitor',
+        ...(config.githubToken ? { Authorization: `Bearer ${config.githubToken}` } : {}),
+      },
+    });
+    if (!response.ok) return undefined;
+    const body = await response.json() as {
+      ahead_by?: unknown;
+      html_url?: unknown;
+      commits?: Array<{
+        sha?: unknown;
+        commit?: { committer?: { date?: unknown }; author?: { date?: unknown } };
+      }>;
+    };
+    const commits = Array.isArray(body.commits) ? body.commits : [];
+    const oldest = commits[0];
+    // Committer date, not author date: a rebase or cherry-pick preserves the
+    // author date and would otherwise register as an instant multi-day breach.
+    const oldestAt = oldest?.commit?.committer?.date ?? oldest?.commit?.author?.date;
+    return {
+      aheadBy: typeof body.ahead_by === 'number' ? body.ahead_by : commits.length,
+      oldestUnpublishedSha: typeof oldest?.sha === 'string' ? oldest.sha : null,
+      oldestUnpublishedCommittedAt: typeof oldestAt === 'string' ? oldestAt : null,
+      compareUrl: typeof body.html_url === 'string' ? body.html_url : null,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 async function fetchHostedStatus(
   statusUrl: string,
   fetchImpl: typeof fetch,
@@ -312,6 +413,11 @@ function parseHostedStatus(value: unknown): HostedSyncStatus {
       compilerFingerprint: true,
       specBytes: true,
     })
+    // The manifest key is `upstreamCommittedAt`; the hosted JSON renames it to
+    // `upstreamDate` (status-page.ts). Picking the manifest name would throw
+    // on every live response — extend with the wire name, and keep it optional
+    // so an older deployment degrades instead of killing the sentinel.
+    .extend({ upstreamDate: z.string().min(1).optional() })
     .parse(record.publication);
   const runtime = requireRecord(record.runtime, 'hosted runtime');
   const legacyFresh = typeof runtime.fresh === 'boolean' ? runtime.fresh : undefined;
@@ -359,16 +465,84 @@ function summarizeState(
   upstreamAhead: boolean,
   driftHours: number,
   maxDriftHours: number,
+  basis: FreshnessBasis,
 ): string {
   if (state === 'ok') {
     return 'mcp.fpf.sh is coherent and published from the current upstream ref.';
   }
+  if (upstreamAhead && basis === 'unknown') {
+    return 'mcp.fpf.sh freshness cannot be proven: the hosted status carries no parseable publication date. Treating as a breach.';
+  }
   if (upstreamAhead && state === 'pending_sync') {
-    return `mcp.fpf.sh is behind upstream by ${driftHours}h, within the ${maxDriftHours}h sync SLO.`;
+    return `mcp.fpf.sh has been behind upstream for ${driftHours}h, within the ${maxDriftHours}h sync SLO.`;
   }
   return upstreamAhead
-    ? `mcp.fpf.sh is behind upstream by ${driftHours}h, exceeding the ${maxDriftHours}h sync SLO.`
+    ? `mcp.fpf.sh has been behind upstream for ${driftHours}h, exceeding the ${maxDriftHours}h sync SLO.`
     : 'mcp.fpf.sh hosted runtime is not internally coherent.';
+}
+
+function resolveFreshnessEvidence(
+  input: {
+    upstream: UpstreamCommitStatus;
+    hosted: HostedSyncStatus;
+    backlog?: UpstreamBacklog;
+    statusUrl?: string;
+  },
+  upstreamAhead: boolean,
+): SyncFreshnessEvidence {
+  const publishedRef = input.hosted.publication.upstreamRef;
+  const publishedUpstreamDate = input.hosted.publication.upstreamDate ?? null;
+  // Lower clamp: a rebased/force-pushed upstream history can carry commit
+  // dates older than what we already published. Drift can never predate the
+  // publication it is measured against.
+  const floorMs = parseMs(publishedUpstreamDate)
+    ?? parseMs(input.hosted.publication.publishedAt);
+  const candidates: Array<[FreshnessBasis, string | null]> = [
+    ['oldest_unpublished_commit', clampToFloor(input.backlog?.oldestUnpublishedCommittedAt ?? null, floorMs)],
+    ['published_upstream_date', publishedUpstreamDate],
+    // Degraded tier: publish-current.ts anchors publishedAt to
+    // upstreamCommittedAt, so in practice this equals the tier above. It
+    // exists so a deployment predating `publication.upstreamDate` degrades
+    // instead of failing closed.
+    ['published_at', input.hosted.publication.publishedAt],
+  ];
+  let basis: FreshnessBasis = 'unknown';
+  let measuredFrom: string | null = null;
+  if (upstreamAhead) {
+    for (const [candidateBasis, at] of candidates) {
+      if (parseMs(at) === undefined) continue;
+      basis = candidateBasis;
+      measuredFrom = at;
+      break;
+    }
+  }
+
+  const repoUrl = `https://github.com/${input.upstream.owner}/${input.upstream.repo}`;
+  return {
+    basis,
+    measuredFrom,
+    publishedUpstreamRef: publishedRef,
+    publishedUpstreamDate,
+    publishedCommitUrl: `${repoUrl}/commit/${publishedRef}`,
+    upstreamCommitUrl: input.upstream.htmlUrl,
+    compareUrl: input.backlog?.compareUrl
+      ?? (upstreamAhead ? `${repoUrl}/compare/${publishedRef}...${input.upstream.sha}` : null),
+    unpublishedCommits: input.backlog?.aheadBy ?? null,
+    hostedStatusUrl: input.statusUrl ?? DEFAULT_SYNC_MONITOR_STATUS_URL,
+  };
+}
+
+function parseMs(value: string | null | undefined): number | undefined {
+  if (typeof value !== 'string' || value.length === 0) return undefined;
+  const ms = Date.parse(value);
+  return Number.isFinite(ms) ? ms : undefined;
+}
+
+function clampToFloor(value: string | null, floorMs: number | undefined): string | null {
+  const ms = parseMs(value);
+  if (ms === undefined) return null;
+  if (floorMs !== undefined && ms < floorMs) return new Date(floorMs).toISOString();
+  return value;
 }
 
 function requireRecord(value: unknown, label: string): Record<string, unknown> {

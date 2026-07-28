@@ -78,12 +78,23 @@ async function defaultResolveUpstreamCommit(
   repo: string,
 ): Promise<{ sha: string; committedAt: string }> {
   const url = `https://api.github.com/repos/${owner}/${repo}/commits/${encodeURIComponent(ref)}`;
+  // Authenticate when a token is available. Unauthenticated api.github.com is
+  // limited to 60 requests/hour per source IP, and GitHub-hosted runners share
+  // egress IPs — so this 403s on a busy runner even though the repo is public.
+  // Same pattern as sync-monitor.ts. GH_TOKEN is what `gh` sets; GITHUB_TOKEN
+  // is the Actions default.
+  const token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN;
   const response = await fetch(url, {
-    headers: { Accept: 'application/vnd.github+json' },
+    headers: {
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'fpf-reference-publish-current',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
   });
   if (!response.ok) {
     throw new Error(
-      `publish-current: GitHub API ${response.status} for ${url}`,
+      `publish-current: GitHub API ${response.status} for ${url}`
+      + `${token ? '' : ' (no GITHUB_TOKEN/GH_TOKEN set; unauthenticated requests are rate-limited to 60/hour per IP)'}`,
     );
   }
   const body = (await response.json()) as {
@@ -233,7 +244,9 @@ export async function publishCurrent(
     // auto-merge gate, which only merges when a completed CI run matches the
     // current PR head SHA. Pinning to the (immutable) upstream revision time
     // makes republishes of the same ref byte-identical. publishedAt is
-    // provenance/display only — no SLO drift math reads it.
+    // provenance/display, and the degraded third-tier freshness basis in
+    // src/build/sync-monitor.ts. Do not move it back to wall-clock without
+    // reading resolveFreshnessEvidence there.
     publishedAt: upstreamCommit.committedAt,
   };
 
