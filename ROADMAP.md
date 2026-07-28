@@ -29,37 +29,42 @@ the delivery is what let a 16-day outage report "within SLO" (see #253).
 
 ## Now
 
-1. **Restore freshness and make its alarm real.** De-LFS the 95MB index snapshot
-   that exhausted the GitHub LFS budget and took down sync, CI, content-quality,
-   and every fresh clone; fix the drift metric to measure the published artifact;
-   route workflow failures to a GitHub issue. Shipped in #253 + #255;
-   live freshness verification in flight.
-2. **LICENSE.** The repo is all-rights-reserved by default, which caps every
+1. **LICENSE.** The repo is all-rights-reserved by default, which caps every
    distribution move below it. Needs Stas to pick (MIT or Apache-2.0), and the
    file must scope repo code separately from the mirrored upstream spec text in
    `published/current/`.
-3. **Make the plugin discoverable.** `.claude-plugin/` shipped 2026-07-08 and is
-   advertised in zero places — not the README, not `docs/`, not
-   `src/core/public-copy.ts` (the SSOT for the mcp.fpf.sh setup page). Add the
-   literal install commands to all three, and correct the GitHub repo
-   description (it still claims 247 patterns / 13 routes; live is 281 / 3).
-   In flight: #250.
-4. **Publish to `registry.modelcontextprotocol.io`.** Zero listings today and no
-   publication was ever attempted. Gated on item 1 — listing a stale server in
-   the canonical index is worse than not listing. Note repo-root `server.json`
+2. **Make the plugin discoverable — remaining scope: a `docs/` mention.** The
+   README quick-install block and the `src/core/public-copy.ts` card shipped in
+   #250 (2026-07-28), and the GitHub description now states the live counts
+   (292 patterns / 3 curated routes, corrected 2026-07-28).
+3. **Publish to `registry.modelcontextprotocol.io`.** Zero listings today and no
+   publication was ever attempted. The freshness gate cleared 2026-07-28 (see
+   Shipped); what remains is the board go/no-go. Note repo-root `server.json`
    is a contributor stdio launcher currently occupying the filename the registry
    reserves.
-5. **Contribution surface.** `CONTRIBUTING.md`, issue templates, and a
+4. **Contribution surface.** `CONTRIBUTING.md`, issue templates, and a
    `CODE_OF_CONDUCT.md`. GitHub community health is 42%; there is no entry point
    for an outside contributor even once a LICENSE exists.
 
-6. **Route catalog recovery.** Curated routes regressed 23 → 3 on 2026-06-09
+5. **Route catalog recovery.** Curated routes regressed 23 → 3 on 2026-06-09
    (adoption surface restructure, #210). Audit which curated routes carried real
    query traffic and restore the high-value ones. The P4 boundary-route
    re-activation below belongs to this item when it un-defers.
-7. **Monitor hardening & telemetry revival.** Content-quality monitor back to a
+6. **Monitor hardening & telemetry revival.** Content-quality monitor back to a
    green path, and the weekly FPF usage telemetry review (#170, dormant since
    June) re-established so adoption moves are measured, not guessed.
+
+## Shipped
+
+- **Freshness restored and its alarm made real** (2026-07-28). De-LFS (#253),
+  authenticated upstream lookup (#255), spec-coupled retrieval + test
+  reconciliation for the upstream A.1.1 restructure (on #256), CR-3 escalation
+  proven live in both directions (issue #254 auto-opened 10:50Z on worker
+  failure, auto-closed 11:26Z on the first green run). Evidence: worker run
+  30354263681 success; `/api/fpf/status` at 2026-07-28T11:26:44Z served
+  upstreamRef `17edd955` (= upstream HEAD, committed 10:09Z — 77 min latency
+  against the 26h SLO); A.7.1, A.6.RCD, C.19.2, A.15.PROD all 200 after 16 days
+  of 404. Full claim register: `plans/2026-07-28-fpf-memory-recovery-review-packet.md`.
 
 ## Deferred — decided, not forgotten
 

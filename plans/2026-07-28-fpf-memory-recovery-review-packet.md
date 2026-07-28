@@ -55,7 +55,17 @@ acceptance check has dated evidence.
 
 - Performed [fact]: 2026-07-28 six-dimension audit (42 agents, adversarially verified);
   drift expression re-read at `src/build/sync-monitor.ts:164`; LFS quota 403 re-verified.
-- Next: execute CR-1 … CR-5. **One next owner: this maintainer session.**
+- Performed [fact, run-stance]: CR-1/CR-2/CR-3 shipped 2026-07-28 by concurrent
+  maintainer session as #253 (merged 10:33Z) + #255 (merged 10:43Z); this session's
+  parallel PRs #251/#252 closed as superseded with stated reasoning. CR-5 shipped
+  as #250 (merged 10:55Z) after folding onto main. CR-3 escalation fired live:
+  issue #254 auto-opened 10:50Z on the first post-unblock worker failure.
+- Performed [fact, run-stance]: layer-5 failure diagnosed on sync PR #256 — upstream
+  17edd955 renamed A.1.1, breaking title-lexeme retrieval + 10 spec-coupled tests;
+  reconciled via `bounded-context-recovery` seed rule + republish (blame 7629) +
+  dated test repins, pushed `ccc57548` (425/425 local).
+- Next: merge #256 when CI settles → dispatch worker (repair-deploy path) →
+  CR-4 evidence. **One next owner: this maintainer session.**
 
 ## Evidence
 
