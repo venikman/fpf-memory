@@ -27,9 +27,9 @@ describe('FPF sync monitor', () => {
     const report = evaluateFpfSyncMonitor({
       upstream: makeUpstream({
         sha: SHA_CURRENT,
-        committedAt: '2026-05-30T08:00:00Z',
+        committedAt: '2026-05-30T11:30:00Z',
       }),
-      hosted: makeHosted({ upstreamRef: SHA_PUBLISHED }),
+      hosted: makeHosted({ upstreamRef: SHA_PUBLISHED, upstreamDate: '2026-05-30T08:00:00Z' }),
       now: new Date('2026-05-30T12:00:00Z'),
       maxDriftHours: 10,
     });
@@ -47,9 +47,9 @@ describe('FPF sync monitor', () => {
     const report = evaluateFpfSyncMonitor({
       upstream: makeUpstream({
         sha: SHA_CURRENT,
-        committedAt: '2026-05-29T20:00:00Z',
+        committedAt: '2026-05-30T11:00:00Z',
       }),
-      hosted: makeHosted({ upstreamRef: SHA_PUBLISHED }),
+      hosted: makeHosted({ upstreamRef: SHA_PUBLISHED, upstreamDate: '2026-05-29T20:00:00Z' }),
       now: new Date('2026-05-30T12:00:00Z'),
       maxDriftHours: 10,
     });
@@ -64,11 +64,12 @@ describe('FPF sync monitor', () => {
     const report = evaluateFpfSyncMonitor({
       upstream: makeUpstream({
         sha: SHA_CURRENT,
-        committedAt: '2026-05-29T20:00:00Z',
+        committedAt: '2026-05-30T11:00:00Z',
       }),
       hosted: makeHosted({
         upstreamRef: SHA_PUBLISHED,
         runtimeFresh: true,
+        upstreamDate: '2026-05-29T20:00:00Z',
       }),
       now: new Date('2026-05-30T12:00:00Z'),
       maxDriftHours: 10,
@@ -188,6 +189,27 @@ describe('FPF sync monitor', () => {
       'User-Agent': 'fpf-reference-sync-monitor',
     });
   });
+
+  it('breaches when the publication is stale even though upstream HEAD is fresh', () => {
+    const report = evaluateFpfSyncMonitor({
+      upstream: makeUpstream({
+        sha: SHA_CURRENT,
+        committedAt: '2026-05-30T11:00:00Z', // upstream HEAD is only 1h old
+      }),
+      hosted: makeHosted({
+        upstreamRef: SHA_PUBLISHED,
+        upstreamDate: '2026-05-15T12:00:00Z', // publication is 15 days old
+      }),
+      now: new Date('2026-05-30T12:00:00Z'),
+      maxDriftHours: 26,
+    });
+
+    expect(report.upstreamAhead).toBe(true);
+    expect(report.driftHours).toBe(360);
+    expect(report.breached).toBe(true);
+    expect(report.state).toBe('breach');
+    expect(report.summary).toContain('exceeding the 26h sync SLO');
+  });
 });
 
 const SHA_CURRENT = '2e112078bb209e5e3a511c3bd1aa6b1b2e299efe';
@@ -210,6 +232,7 @@ function makeUpstream(overrides: Partial<UpstreamCommitStatus>): UpstreamCommitS
 function makeHosted(
   overrides: Partial<{
     upstreamRef: string;
+    upstreamDate: string;
     status: string;
     runtimeFresh: boolean;
     sourceHash: string;
@@ -221,6 +244,7 @@ function makeHosted(
     servedAt: '2026-05-30T12:00:00Z',
     publication: {
       upstreamRef: overrides.upstreamRef ?? SHA_CURRENT,
+      upstreamDate: overrides.upstreamDate ?? '2026-05-30T08:00:00Z',
       publishedAt: '2026-05-30T10:00:00Z',
       sourceHash,
       compilerFingerprint: 'sha256:compiler',

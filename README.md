@@ -128,7 +128,7 @@ Copy `.env.example` to `.env`. The most common settings:
 | `FPF_SYNC_MONITOR_STATUS_URL`             | `https://mcp.fpf.sh/api/fpf/status`  | MCP production status endpoint checked by `monitor:sync`.              |
 | `FPF_CONTENT_QUALITY_BASE_URL`            | `https://fpf.sh`                     | Website production base URL checked by `monitor:content --mode live`.  |
 | `FPF_CONTENT_QUALITY_STATUS_URL`          | `https://mcp.fpf.sh/api/fpf/status`  | Runtime status URL used for live content provenance checks.            |
-| `FPF_SYNC_MONITOR_MAX_DRIFT_HOURS`        | `10`                                 | Allowed upstream-to-production drift before monitor failure.           |
+| `FPF_SYNC_MONITOR_MAX_DRIFT_HOURS`        | `26`                                 | Max age (hours) of the published upstream commit, when upstream has newer content, before the sync monitor breaches. |
 | `FPF_VERCEL_PROJECT`                      | `fpf-reference-mcp`                  | Vercel MCP/API project checked by `monitor:vercel:spend`.              |
 | `FPF_VERCEL_SCOPE`                        | _none_ (example: `venikmans-projects`) | Vercel team scope for metrics and deploy commands. No built-in code default; seeded in `.env.example`. |
 | `FPF_VERCEL_SPEND_WINDOW_MINUTES`         | `30`                                 | Metrics lookback window for spend guardrails.                          |

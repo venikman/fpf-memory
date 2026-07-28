@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 import { publishCurrentManifestSchema } from './published-surface.js';
 import {
   DEFAULT_UPSTREAM_OWNER,
@@ -8,8 +10,10 @@ import {
 
 export const DEFAULT_SYNC_MONITOR_STATUS_URL = 'https://mcp.fpf.sh/api/fpf/status';
 // The freshness promise is ≤1 day behind upstream, plus build/deploy slack.
-// The sync worker runs twice daily, so normal worst-case drift is ~13h; a
-// breach past 26h means the pipeline is broken, not merely scheduled later.
+// driftHours measures the age of the *published* upstream commit
+// (publication.upstreamDate) whenever upstream has newer content; a breach
+// past 26h means visitors get >1-day-old content while newer exists — a
+// broken or stalled pipeline, not one merely scheduled later.
 export const DEFAULT_SYNC_MONITOR_MAX_DRIFT_HOURS = 26;
 
 export const FPF_SYNC_QA_ANCHORS = [
@@ -71,6 +75,7 @@ export interface HostedSyncStatus {
   servedAt: string;
   publication: {
     upstreamRef: string;
+    upstreamDate: string;
     publishedAt: string;
     sourceHash: string;
     compilerFingerprint: string;
@@ -162,7 +167,7 @@ export function evaluateFpfSyncMonitor(input: {
     && sourceCoherent;
   const upstreamAhead = input.hosted.publication.upstreamRef !== input.upstream.sha;
   const driftHours = upstreamAhead
-    ? roundHours((input.now.getTime() - Date.parse(input.upstream.committedAt)) / 3_600_000)
+    ? roundHours((input.now.getTime() - Date.parse(input.hosted.publication.upstreamDate)) / 3_600_000)
     : 0;
   const driftBreached = upstreamAhead && driftHours > input.maxDriftHours;
   const breached = !runtimeFresh || driftBreached;
@@ -173,7 +178,7 @@ export function evaluateFpfSyncMonitor(input: {
       characteristic: 'freshness',
       status: upstreamAhead ? (driftBreached ? 'fail' : 'pending') : 'pass',
       evidence: upstreamAhead
-        ? `published ${input.hosted.publication.upstreamRef.slice(0, 8)} lags upstream ${input.upstream.sha.slice(0, 8)} by ${driftHours}h`
+        ? `published ${input.hosted.publication.upstreamRef.slice(0, 8)} carries an upstream commit ${driftHours}h old (${input.hosted.publication.upstreamDate}); upstream ${input.upstream.sha.slice(0, 8)} is newer`
         : `published upstreamRef matches ${input.upstream.sha.slice(0, 8)}`,
       fpf: ['E.19', 'E.21'],
     },
@@ -243,7 +248,7 @@ ${qualityRows}
 ## Provenance
 
 - Upstream: [${report.upstream.sha}](${report.upstream.htmlUrl}) (${report.upstream.committedAt})
-- Published: ${report.hosted.publication.upstreamRef} (${report.hosted.publication.publishedAt})
+- Published: ${report.hosted.publication.upstreamRef} (upstream commit ${report.hosted.publication.upstreamDate}, published ${report.hosted.publication.publishedAt})
 - Hosted source hash: ${report.hosted.runtime.currentSourceHash}
 - Max drift: ${report.maxDriftHours}h
 
@@ -312,6 +317,12 @@ function parseHostedStatus(value: unknown): HostedSyncStatus {
       compilerFingerprint: true,
       specBytes: true,
     })
+    .extend({
+      upstreamDate: z.string().refine(
+        (value) => Number.isFinite(Date.parse(value)),
+        'publication.upstreamDate must be a parseable ISO date',
+      ),
+    })
     .parse(record.publication);
   const runtime = requireRecord(record.runtime, 'hosted runtime');
   const legacyFresh = typeof runtime.fresh === 'boolean' ? runtime.fresh : undefined;
@@ -364,10 +375,10 @@ function summarizeState(
     return 'mcp.fpf.sh is coherent and published from the current upstream ref.';
   }
   if (upstreamAhead && state === 'pending_sync') {
-    return `mcp.fpf.sh is behind upstream by ${driftHours}h, within the ${maxDriftHours}h sync SLO.`;
+    return `mcp.fpf.sh serves a publication ${driftHours}h old with newer upstream available, within the ${maxDriftHours}h sync SLO.`;
   }
   return upstreamAhead
-    ? `mcp.fpf.sh is behind upstream by ${driftHours}h, exceeding the ${maxDriftHours}h sync SLO.`
+    ? `mcp.fpf.sh serves a publication ${driftHours}h old with newer upstream available, exceeding the ${maxDriftHours}h sync SLO.`
     : 'mcp.fpf.sh hosted runtime is not internally coherent.';
 }
 
