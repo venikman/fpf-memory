@@ -356,7 +356,7 @@ describe('FpfRuntime', () => {
     expect(readById.status).toBe('ok');
     expect(readById.nodeId).toBe('A.1.1');
     expect(readById.docRef?.markdownPath).toBe('docs/generated/patterns/A.1.1.md');
-    expect(readById.markdown).toContain('# U.BoundedContext Semantic Frame');
+    expect(readById.markdown).toContain('# Bounded Model-Use Structure and DDD Bounded-Context Recovery');
     // Default-mode response carries metadata so callers can decide
     // whether to re-fetch with maxChars or follow the docRef link.
     expect(readById.markdownChars).toBe(readById.markdown!.length);
@@ -410,7 +410,7 @@ describe('FpfRuntime', () => {
     expect(readByLexeme.status).toBe('ok');
     expect(readByLexeme.nodeId).toBe('A.1.1');
     expect(readByLexeme.docRef?.markdownPath).toBe('docs/generated/patterns/A.1.1.md');
-    expect(readByLexeme.markdown).toContain('# U.BoundedContext Semantic Frame');
+    expect(readByLexeme.markdown).toContain('# Bounded Model-Use Structure and DDD Bounded-Context Recovery');
 
     const inspectAnchor = await runtime.inspectAnchor(inspectById.anchors[0]!.id);
     expect(inspectAnchor.status).toBe('ok');

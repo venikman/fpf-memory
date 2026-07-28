@@ -36,8 +36,8 @@ import type { FrontierOrigin } from './types.js';
  */
 export const SPEC_HEURISTICS_PROVENANCE = {
   upstreamRepoUrl: 'https://github.com/ailev/FPF',
-  upstreamRef: '16cd31387cff04ab6b0feef22717f82ac54efa8f',
-  sourceHash: 'sha256:f86b7e00c39bb0e9b817917f807b5514048d763988c682b81a61b8190cba7158',
+  upstreamRef: '17edd955485f60cafb16159c7d90e20f4ad21844',
+  sourceHash: 'sha256:5f4ae6ca1512f7cafe945667b6c5a0c33fe04b1fe76b57911060d4e48f2c889b',
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -334,6 +334,24 @@ export const SEED_RULE_DEFS: readonly SeedRuleDef[] = [
     seedNodeIds: ['A.1.1', 'A.2.1', 'A.2.5'],
     initialNodeIds: [],
     seedScore: 36,
+    seedOrigin: 'lexical',
+  },
+  {
+    // Upstream 17edd955 (2026-07-28) renamed A.1.1 from "U.BoundedContext
+    // Semantic Frame" to "Bounded Model-Use Structure and DDD Bounded-Context
+    // Recovery" (U.BoundedContext is no longer published as a U-kind). The
+    // rename removed the title-lexeme match that used to carry
+    // "U.BoundedContext" / "bounded context" questions to A.1.1, so retrieval
+    // drifted to A.2.5/A.2.7 (whose titles still contain "@BoundedContext").
+    // A.1.1 remains the pattern that keeps the DDD plain name and owns the
+    // recovery story, so a mention of the term seeds it directly — the same
+    // behaviour the old title provided.
+    name: 'bounded-context-recovery',
+    allOf: [['boundedcontext', 'u.boundedcontext', 'bounded context']],
+    anyOf: [['boundedcontext', 'u.boundedcontext', 'bounded context']],
+    seedNodeIds: ['A.1.1'],
+    initialNodeIds: [],
+    seedScore: 40,
     seedOrigin: 'lexical',
   },
   {

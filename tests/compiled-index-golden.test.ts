@@ -96,9 +96,13 @@ describe('compiled index golden snapshot', () => {
     // Canonical nodes — these IDs and titles are load-bearing in FPF vocabulary
     // and docs; a rename here would require a coordinated spec change.
     const canonical: Record<string, { kind: CompiledNode['kind']; titlePrefix: string; part: string }> = {
+      // Upstream (2026-07-28 sync, ref 17edd955) renamed A.1.1 from
+      // "U.BoundedContext Semantic Frame" to "Bounded Model-Use Structure and
+      // DDD Bounded-Context Recovery" — U.BoundedContext is no longer
+      // published as a U-kind.
       'A.1.1': {
         kind: 'pattern',
-        titlePrefix: 'U.BoundedContext',
+        titlePrefix: 'Bounded Model-Use Structure',
         part: 'Part A - Kernel Architecture Cluster',
       },
       'A.2.1': {

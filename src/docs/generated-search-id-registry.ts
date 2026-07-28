@@ -18,7 +18,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.1.1",
-      "title": "U.BoundedContext Semantic Frame",
+      "title": "Bounded Model-Use Structure and DDD Bounded-Context Recovery",
       "staticPath": "/generated/patterns/A.1.1"
     },
     {
@@ -28,7 +28,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.2.1",
-      "title": "U.RoleAssignment: Contextual Role Assignment",
+      "title": "U.RoleAssignment - System Role Assignment",
       "staticPath": "/generated/patterns/A.2.1"
     },
     {
@@ -67,8 +67,13 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.2.8"
     },
     {
+      "id": "A.2.8.PER",
+      "title": "Granted Permission, Exercise, and Non-Prohibition",
+      "staticPath": "/generated/patterns/A.2.8.PER"
+    },
+    {
       "id": "A.2.9",
-      "title": "U.SpeechAct (Communicative Work Object)",
+      "title": "U.SpeechAct (Communicative Work Kind, Occurrences, and Records)",
       "staticPath": "/generated/patterns/A.2.9"
     },
     {
@@ -78,7 +83,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.3.1",
-      "title": "U.Method: Context-Defined Way of Doing",
+      "title": "U.Method: Reusable Way of Doing with Explicit Applicability",
       "staticPath": "/generated/patterns/A.3.1"
     },
     {
@@ -118,12 +123,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.0",
-      "title": "U.Signature - Universal, law-governed declaration for a SubjectKind over a RangedValueKind",
+      "title": "U.Signature - Reusable Law-Governed Declaration Episteme",
       "staticPath": "/generated/patterns/A.6.0"
     },
     {
       "id": "A.6.1",
-      "title": "U.Mechanism - Law-governed application to a SubjectKind over a RangedValueKind",
+      "title": "U.Mechanism - Reusable Law-Governed Operation Declaration",
       "staticPath": "/generated/patterns/A.6.1"
     },
     {
@@ -163,7 +168,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.5",
-      "title": "U.RelationSlotDiscipline - SlotKind, ValueKind, RefKind, and slot-operation discipline",
+      "title": "Relation-Declaration Slot Discipline - SlotKind, ValueKind, RefKind, and participant-designation discipline",
       "staticPath": "/generated/patterns/A.6.5"
     },
     {
@@ -218,8 +223,23 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.P",
-      "title": "Relational Precision Restoration (RPR) — Kind‑Explicit Qualified Relation Discipline",
+      "title": "Relational Precision Restoration — Recovering Direct Relations from Under-Specified Claims",
       "staticPath": "/generated/patterns/A.6.P"
+    },
+    {
+      "id": "A.6.P.WMR",
+      "title": "Exact Relation Recovery for Method and Work Claims",
+      "staticPath": "/generated/patterns/A.6.P.WMR"
+    },
+    {
+      "id": "A.6.RCD",
+      "title": "Needed Relation Claim Derivation and Relation-Kind Admission",
+      "staticPath": "/generated/patterns/A.6.RCD"
+    },
+    {
+      "id": "A.6.REL",
+      "title": "Relation Obtaining and Individuated Relation Occurrences",
+      "staticPath": "/generated/patterns/A.6.REL"
     },
     {
       "id": "A.6.RSIG",
@@ -240,6 +260,21 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "A.7",
       "title": "Strict Distinction (Clarity Lattice)",
       "staticPath": "/generated/patterns/A.7"
+    },
+    {
+      "id": "A.7.1",
+      "title": "Consequence-Guided Ontological Problem Solving",
+      "staticPath": "/generated/patterns/A.7.1"
+    },
+    {
+      "id": "A.7.2",
+      "title": "FPF Ontology-Premise Reconciliation",
+      "staticPath": "/generated/patterns/A.7.2"
+    },
+    {
+      "id": "A.7.CP",
+      "title": "Constructive-Premise Compact and Reasoning-Basis Use",
+      "staticPath": "/generated/patterns/A.7.CP"
     },
     {
       "id": "A.8",
@@ -293,7 +328,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.15.3",
-      "title": "SlotFillingsPlanItem — Planned Slot-Fillings Baseline (WorkPlanning PlanItem)",
+      "title": "SlotFillingsPlanItem — Declaration-Local Planned Designation",
       "staticPath": "/generated/patterns/A.15.3"
     },
     {
@@ -305,6 +340,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "A.15.5",
       "title": "Work-Entry Readiness and Full-Kit Preparation",
       "staticPath": "/generated/patterns/A.15.5"
+    },
+    {
+      "id": "A.15.PROD",
+      "title": "Production Work, Entity-Identity Inception, and Production Completion Recovery",
+      "staticPath": "/generated/patterns/A.15.PROD"
     },
     {
       "id": "A.16",
@@ -548,7 +588,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.2.1",
-      "title": "U.Episteme - Epistemes and their slot relation",
+      "title": "U.Episteme: Constitution, Empirical Grounding, and Edition Relations",
       "staticPath": "/generated/patterns/C.2.1"
     },
     {
@@ -613,12 +653,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.3.2",
-      "title": "KindSignature (+F) & Extension/MemberOf",
+      "title": "Kind Intent, Membership Judgment, and Extension",
       "staticPath": "/generated/patterns/C.3.2"
     },
     {
       "id": "C.3.3",
-      "title": "KindBridge & CL^k — Cross‑context Mapping of Kinds",
+      "title": "KindBridge & CL^k — Cross-context Mapping of Kinds",
       "staticPath": "/generated/patterns/C.3.3"
     },
     {
@@ -707,6 +747,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.19.1"
     },
     {
+      "id": "C.19.2",
+      "title": "Use-Bounded Apparatus Application",
+      "staticPath": "/generated/patterns/C.19.2"
+    },
+    {
       "id": "C.20",
       "title": "Composition of U.Discipline (Discipline‑CAL)",
       "staticPath": "/generated/patterns/C.20"
@@ -730,6 +775,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "C.22.2",
       "title": "ProblemCard@Context",
       "staticPath": "/generated/patterns/C.22.2"
+    },
+    {
+      "id": "C.22.PFR",
+      "title": "Problematic-For Relation",
+      "staticPath": "/generated/patterns/C.22.PFR"
     },
     {
       "id": "C.23",
@@ -868,7 +918,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.32.CONWAY",
-      "title": "Transformer and Transformed Architecture Correspondence",
+      "title": "Architecture-Influence and Transformed-Architecture Correspondence",
       "staticPath": "/generated/patterns/C.32.CONWAY"
     },
     {
@@ -1187,6 +1237,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/E.18.3"
     },
     {
+      "id": "E.18.NET",
+      "title": "Network of Transformation-Flow Structures",
+      "staticPath": "/generated/patterns/E.18.NET"
+    },
+    {
       "id": "E.19",
       "title": "Pattern Quality Gates: Review and Refresh Profiles",
       "staticPath": "/generated/patterns/E.19"
@@ -1218,7 +1273,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.24.CD",
-      "title": "Ontic Candidate Detection",
+      "title": "Ontic Candidate Detection and First-Use Disposition",
       "staticPath": "/generated/patterns/E.24.CD"
     },
     {
@@ -1228,7 +1283,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.24.UK",
-      "title": "U-kind Governance and Ontic Settlement Coupling",
+      "title": "U-kind Admission and Ontic Settlement",
       "staticPath": "/generated/patterns/E.24.UK"
     },
     {
@@ -1263,7 +1318,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "F.6",
-      "title": "Role Assignment & Enactment Cycle (Six-Step)",
+      "title": "RoleAssignment and Performed-Work Attribution Check",
       "staticPath": "/generated/patterns/F.6"
     },
     {

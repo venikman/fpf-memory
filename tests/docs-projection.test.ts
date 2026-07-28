@@ -405,15 +405,18 @@ describe('docs projection', () => {
     // changes — extra classes, attribute reordering, whitespace — don't break
     // this test while it's still guarding the dedup behaviour.
     const relationRows = patternPage.match(/<div class="fpf-relation">[\s\S]*?<\/div>/g) ?? [];
-    const a1ToA2ExplicitRows = relationRows.filter(
+    // Upstream 17edd955 (2026-07-28) dropped A.2 from A.1's coordinates-with
+    // list; A.1 -> A.1.1 is the surviving explicit coordinates-with row used
+    // to guard dedup here.
+    const a1ToA11ExplicitRows = relationRows.filter(
       (row) =>
         /class="fpf-pid[^"]*fpf-pid--a[^"]*"[^>]*>A\.1</.test(row) &&
         /<span class="fpf-relation-kind">coordinates with<\/span>/.test(row) &&
-        /href="\/generated\/patterns\/A\.2"/.test(row) &&
-        row.includes('Role Taxonomy'),
+        /href="\/generated\/patterns\/A\.1\.1"/.test(row) &&
+        row.includes('Bounded Model-Use'),
     );
 
-    expect(a1ToA2ExplicitRows).toHaveLength(1);
+    expect(a1ToA11ExplicitRows).toHaveLength(1);
     expect(navigation.patterns.some((group) => group.text.startsWith('Part A'))).toBe(true);
     expect(navigation.routes[0]?.items.length).toBe(
       Object.keys(snapshot.routeGraph.nodes).length,

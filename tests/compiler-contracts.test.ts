@@ -103,10 +103,12 @@ describe('Compiler / Parser stage', () => {
       to: 'A.1',
       source: 'A.1.1:catalog',
     });
+    // Upstream 17edd955 (2026-07-28) rewrote A.1.1's catalog row; F.0.1 left
+    // its coordinates-with list. A.2 is the first entry in the current row.
     expect(relations).toContainEqual({
       from: 'A.1.1',
       relation: 'coordinates_with',
-      to: 'F.0.1',
+      to: 'A.2',
       source: 'A.1.1:catalog',
     });
   });
