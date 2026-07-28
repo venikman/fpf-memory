@@ -45,6 +45,7 @@ justify it); and I closed with "want me to open a PR or continue?" All three
 are the permission-seeking pattern this mandate rejects. Corrected: bias to
 action, report outcomes, reserve questions for genuine forks.
 
-> Full narrative, live coordinates, and durable facts: the Cowork→Claude Code
-> handoff bundle (`HANDOFF.md`, `fpf-state.json`, `memory-export.md`) when kept
-> in the project.
+> The ranked roadmap this mandate points at is `ROADMAP.md` (repo root —
+> deliberately not under `docs/`, which publishes to fpf.sh). Start there. The
+> old Cowork→Claude Code handoff bundle (`HANDOFF.md`, `fpf-state.json`,
+> `memory-export.md`) is retired; don't go looking for it.

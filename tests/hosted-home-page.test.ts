@@ -34,6 +34,8 @@ describe('hosted home page', () => {
     expect(html).not.toContain('&quot;fpf-reference&quot;:');
     expect(html).toContain('codex mcp add fpf_reference --url');
     expect(html).toContain('claude mcp add --transport http fpf_reference');
+    expect(html).toContain('/plugin marketplace add venikman/fpf-memory');
+    expect(html).toContain('/plugin install fpf-reference@fpf');
     expect(html).toContain('pi install npm:pi-mcp-extension');
     expect(html).toContain('Package And Self-Hosting');
     expect(html).toContain('Recipes');

@@ -28,6 +28,19 @@ A local **FPF spec** runtime. Given a single markdown spec file, it compiles a d
 
 No vector database, no remote indexing, no Python, and no local LLM dependency. Answers are produced from deterministic retrieval over the compiled spec snapshot.
 
+## Claude Code plugin
+
+This repository is also a Claude Code plugin marketplace. The `fpf-reference`
+plugin registers the hosted `fpf_reference` MCP server, ships the setup skill,
+and adds a `/fpf-reference:validate` first-call validation command:
+
+```text
+/plugin marketplace add venikman/fpf-memory
+/plugin install fpf-reference@fpf
+```
+
+Details: [`plugins/fpf-reference/README.md`](./plugins/fpf-reference/README.md).
+
 ## Quick start
 
 ```bash

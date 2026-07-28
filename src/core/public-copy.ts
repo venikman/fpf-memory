@@ -337,9 +337,16 @@ url = "${endpoint}"`,
     {
       id: 'claude-code',
       title: 'Claude Code',
-      summary: 'Use the HTTP MCP transport and verify status with /mcp inside Claude Code.',
-      body: ['Run the command, then use /mcp inside Claude Code to check connection status.'],
-      code: `claude mcp add --transport http fpf_reference ${endpoint}`,
+      summary:
+        "Install the fpf-reference plugin from this repo's marketplace, or add the HTTP MCP transport directly.",
+      body: [
+        'The plugin bundles the hosted MCP registration, the setup skill, and the /fpf-reference:validate command.',
+        'Either way, run /mcp inside Claude Code to check connection status.',
+      ],
+      code: `/plugin marketplace add venikman/fpf-memory
+/plugin install fpf-reference@fpf
+
+claude mcp add --transport http fpf_reference ${endpoint}`,
       href: 'https://code.claude.com/docs/en/mcp',
     },
     {
