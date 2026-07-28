@@ -111,6 +111,10 @@ jobs:
         env:
           FPF_PUBLISH_SOURCE_PATH: .fpf-upstream/FPF-Spec.md
           FPF_UPSTREAM_REF: ${{ steps.upstream.outputs.ref }}
+          # Resolving the upstream commit hits api.github.com. Unauthenticated
+          # it is 60 req/hour per IP and runners share egress addresses, so the
+          # call 403s on a busy runner even for a public repo.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bun run publish:current
 
       - name: Assert per-section blame survived the publish
