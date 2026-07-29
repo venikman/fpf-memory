@@ -342,6 +342,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.15.5"
     },
     {
+      "id": "A.15.6",
+      "title": "Project, Process, and Case Recovery through Work, Method, and Transformation",
+      "staticPath": "/generated/patterns/A.15.6"
+    },
+    {
       "id": "A.15.PROD",
       "title": "Production Work, Entity-Identity Inception, and Production Completion Recovery",
       "staticPath": "/generated/patterns/A.15.PROD"
