@@ -22,6 +22,16 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.1.1"
     },
     {
+      "id": "A.1.SCR",
+      "title": "Finding the Acting or Changed System",
+      "staticPath": "/generated/patterns/A.1.SCR"
+    },
+    {
+      "id": "A.1.STM",
+      "title": "Using the System-Thinking Long Mantra",
+      "staticPath": "/generated/patterns/A.1.STM"
+    },
+    {
       "id": "A.2",
       "title": "Role Taxonomy",
       "staticPath": "/generated/patterns/A.2"
@@ -180,11 +190,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "A.6.7",
       "title": "MechSuiteDescription — Description of a set of distinct mechanisms",
       "staticPath": "/generated/patterns/A.6.7"
-    },
-    {
-      "id": "A.6.8",
-      "title": "Service Polysemy Unpacking (RPR-SERV)",
-      "staticPath": "/generated/patterns/A.6.8"
     },
     {
       "id": "A.6.9",
@@ -493,12 +498,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "B.2",
-      "title": "Meta-Holon Transition - Whole Reidentification",
+      "title": "Meta-Holon Transition — Whole Reidentification",
       "staticPath": "/generated/patterns/B.2"
     },
     {
       "id": "B.2.2",
-      "title": "Meta-System Transition - System Specialization of MHT",
+      "title": "Meta-System Transition — System Specialization of MHT",
       "staticPath": "/generated/patterns/B.2.2"
     },
     {
