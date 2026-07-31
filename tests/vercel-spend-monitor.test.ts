@@ -93,6 +93,57 @@ describe('Vercel spend monitor', () => {
       .toBe('warn');
   });
 
+  it('tolerates canonical-route error rows within the tail budget', () => {
+    const report = evaluateVercelSpendMonitor({
+      project: 'fpf-reference-mcp',
+      windowMinutes: 375,
+      legacyPath: DEFAULT_VERCEL_SPEND_LEGACY_PATH,
+      now: new Date('2026-07-31T03:00:00Z'),
+      thresholds: makeThresholds({ maxErrorFunctionInvocations: 10 }),
+      metrics: makeSnapshot({
+        errorFunctionInvocations: 3,
+        errorInvocationRows: [
+          {
+            value: 3,
+            requestPath: '/api/mcp/fpf_reference/mcp',
+            errorCode: 'timeout',
+          },
+        ],
+      }),
+    });
+
+    expect(report.state).toBe('ok');
+    expect(report.breached).toBe(false);
+    expect(report.operatorActionRequired).toBe(false);
+    expect(report.quality.find((item) => item.characteristic === 'platform-errors')?.status)
+      .toBe('pass');
+  });
+
+  it('still breaches when error rows exceed the tail budget', () => {
+    const report = evaluateVercelSpendMonitor({
+      project: 'fpf-reference-mcp',
+      windowMinutes: 375,
+      legacyPath: DEFAULT_VERCEL_SPEND_LEGACY_PATH,
+      now: new Date('2026-07-31T03:00:00Z'),
+      thresholds: makeThresholds({ maxErrorFunctionInvocations: 10 }),
+      metrics: makeSnapshot({
+        errorFunctionInvocations: 48,
+        errorInvocationRows: [
+          {
+            value: 48,
+            requestPath: '/api/mcp/fpf_reference/mcp',
+            errorCode: 'internal',
+          },
+        ],
+      }),
+    });
+
+    expect(report.state).toBe('breach');
+    expect(report.operatorActionRequired).toBe(true);
+    expect(report.quality.find((item) => item.characteristic === 'platform-errors')?.status)
+      .toBe('fail');
+  });
+
   it('reports missing credentials as config_error with metrics not queried', () => {
     const report = createVercelSpendConfigErrorReport({
       project: 'fpf-reference-mcp',
