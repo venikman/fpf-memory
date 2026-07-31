@@ -2,7 +2,16 @@ export const DEFAULT_VERCEL_SPEND_PROJECT = 'fpf-reference-mcp';
 export const DEFAULT_VERCEL_SPEND_WINDOW_MINUTES = 30;
 export const DEFAULT_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR = 0.25;
 export const DEFAULT_VERCEL_SPEND_MAX_LEGACY_INVOCATIONS = 0;
-export const DEFAULT_VERCEL_SPEND_MAX_ERROR_INVOCATIONS = 0;
+// Tail budget, not zero-tolerance: the canonical MCP route serves ~18.5k
+// invocations/day with a measured 0.027% timeout tail (10 of 37,085 over the
+// 48h ending 2026-07-31; worst 375m window saw 3). At 0 the monitor flapped
+// breach→ok four times in two days (#261), which is the alert-fatigue failure
+// mode that hid the #253 outage. 10 per window stays 3× above the observed
+// tail while a systematic regression (even 1% errors ≈ 48 per 375m window)
+// still breaches within one window. Legacy-route isolation stays at 0 —
+// zero-tolerance is correct there. Recalibrate if route volume changes
+// materially; the evidence query lives in the automation playbook.
+export const DEFAULT_VERCEL_SPEND_MAX_ERROR_INVOCATIONS = 10;
 export const DEFAULT_VERCEL_SPEND_LEGACY_PATH = '/api/mcp/fpf_memory';
 export const DEFAULT_LEGACY_FUNCTION_DURATION_USD_PER_GBHR = 0.18;
 

@@ -19,7 +19,7 @@ own acceptance criteria and an auditable evidence link:
 | Promised effect | Published spec content matches upstream `main` |
 | Eligibility / access | Public, unauthenticated, via fpf.sh and mcp.fpf.sh |
 | Acceptance criterion | Time since the oldest upstream commit we could already have published ≤ 26h (falling back to the published artifact's own upstream date when the compare API is unavailable) |
-| Evidence | `/api/fpf/status` → `publication.upstreamDate`, plus `ailev/FPF/compare/<published>...<HEAD>` |
+| Evidence | `mcp.fpf.sh/api/fpf/status` → `publication.upstreamDate`, plus `ailev/FPF/compare/<published>...<HEAD>` (the status API lives on mcp.fpf.sh only; fpf.sh is the static docs host and 404s that path) |
 | Verdict owner | `.github/workflows/fpf-sync-monitor.yml` (independent of the sync worker) |
 
 26h = the ≤1-day promise plus slack for one missed run of a twice-daily worker.

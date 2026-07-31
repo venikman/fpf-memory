@@ -36,7 +36,12 @@ env:
   FPF_VERCEL_SPEND_WINDOW_MINUTES: ${{ github.event.inputs.window_minutes || '375' }}
   FPF_VERCEL_SPEND_MAX_FUNCTION_DURATION_GBHR: ${{ github.event.inputs.max_function_duration_gbhr || '3' }}
   FPF_VERCEL_SPEND_MAX_LEGACY_INVOCATIONS: '0'
-  FPF_VERCEL_SPEND_MAX_ERROR_INVOCATIONS: '0'
+  # Error budget, not zero-tolerance: ~18.5k invocations/day carry a ~0.03%
+  # timeout tail (worst observed 375m window: 3). At 0 this monitor flapped
+  # daily (#261). 10 stays above the tail; a real regression (1% errors ≈ 48
+  # per window) still breaches in one window. Keep in sync with
+  # DEFAULT_VERCEL_SPEND_MAX_ERROR_INVOCATIONS in src/build/vercel-spend-monitor.ts.
+  FPF_VERCEL_SPEND_MAX_ERROR_INVOCATIONS: '10'
   FPF_VERCEL_SPEND_LEGACY_PATH: /api/mcp/fpf_memory
   FPF_VERCEL_FUNCTION_DURATION_USD_PER_GBHR: '0.18'
 

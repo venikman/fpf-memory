@@ -162,7 +162,16 @@ Rollback is a mutating action: it needs explicit operator approval per the acces
 ### Investigate a spend or function-duration breach
 
 1. `bun run monitor:vercel:spend -- --format markdown --fail-on-breach` — rerun the guardrail first, in the same failing form the scheduled monitor uses (without `--fail-on-breach` the command exits zero even on a breach, so a script or agent would sail past a blind or breached guard). It distinguishes `breach`, `config_error`, `metrics_unavailable`, and `expected_blocked_traffic`. The first three all require operator action — the monitor marks them operator-action-required and exits nonzero under `--fail-on-breach`. A `config_error` (missing token) or `metrics_unavailable` window means the guardrail itself is blind and must be repaired, not ignored. Only blocked legacy-route traffic is benign: it is expected, not a spend problem.
-2. For a breach, read runtime logs for the breach window (Vercel MCP evidence loop) to attribute the spend to a route and caller pattern.
+2. For a breach, attribute the error rows before touching anything. Runtime logs expire within hours, so use the metrics API, which retains days and is what the monitor itself queries:
+
+   ```bash
+   npx --yes vercel@54.7.1 metrics vercel.function_invocation.count \
+     --group-by request_path --group-by error_code --filter "error_code ne ''" \
+     --project fpf-reference-mcp --scope venikmans-projects \
+     --since 2880m --granularity 30m --format json --non-interactive
+   ```
+
+   Compare the nonzero buckets against `gh run list` timestamps to separate self-inflicted monitor traffic from external callers, and against total route volume (`--group-by request_path`, no filter) to judge whether the errors are a tail rate or a systematic break. The platform-errors threshold is a tail budget calibrated against measured volume (2026-07-31 calibration: ~18.5k invocations/day, 0.027% timeout tail, worst 375m window 3 → budget 10); if volume shifts by an order of magnitude, recalibrate the budget with this query rather than absorbing daily flapping or muting the alarm.
 3. Check the bundle and route shape locally: `bun run bench:vercel:function-size` after `bun run vercel:mcp:build`, since function-duration spikes often follow packaging regressions.
 4. Land the guardrail or fix as its own measured PR (P4 surface), and let the monitor close its issue after a clean window rather than closing it by hand.
 
@@ -286,7 +295,7 @@ Operational defaults:
 - `sync-fpf.yml` accepts `fpf-origin-updated` and `fpf-sync-updated` dispatches or manual runs, closes superseded sync PRs, opens a current PR, runs validation/build/preview, then auto-merges only after the review window and required evidence pass.
 - `fpf-sync-monitor.yml` polls daily (11:47 UTC), runs `bun run monitor:sync`, triggers `sync-fpf.yml` when upstream is ahead and no sync worker is queued or running, and fails the monitor if `mcp.fpf.sh` exceeds the drift SLO or the hosted runtime is stale. If a current generated PR already exists, the dispatch is a retry path for CI and merge eligibility rather than a duplicate PR path.
 - The default drift SLO is 26 hours. Drift is measured as the time since the oldest upstream commit that could already have been published — not the age of upstream HEAD, which resets on every upstream push and can never breach. The sync worker runs twice daily, so the healthy worst case is ~13h; past 26h, two consecutive slots failed.
-- `vercel-spend-monitor.yml` polls Vercel metrics every 6 hours with `bun run monitor:vercel:spend`, failing when Function Duration exceeds the configured GB-hour window, the legacy MCP route reaches Functions again, Vercel reports unexpected function error-code rows, credentials are missing, or metrics are unavailable. It reports expected blocked legacy traffic separately so operators do not treat blocked traffic as a spend breach. It prefers the repo secret `VERCEL_SPEND_MONITOR_TOKEN` and falls back to `VERCEL_TOKEN`.
+- `vercel-spend-monitor.yml` polls Vercel metrics every 6 hours with `bun run monitor:vercel:spend`, failing when Function Duration exceeds the configured GB-hour window, the legacy MCP route reaches Functions again, function error-code rows exceed the tail budget (10 per window; legacy-route isolation stays zero-tolerance), credentials are missing, or metrics are unavailable. It reports expected blocked legacy traffic separately so operators do not treat blocked traffic as a spend breach. It prefers the repo secret `VERCEL_SPEND_MONITOR_TOKEN` and falls back to `VERCEL_TOKEN`.
 
 ## Publishing and outreach packets
 
