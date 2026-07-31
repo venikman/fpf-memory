@@ -773,7 +773,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.22",
-      "title": "Problem Typing & TaskSignature Assignment (Problem-CHR)",
+      "title": "Task Typing and TaskSignature Assignment (Problem-CHR)",
       "staticPath": "/generated/patterns/C.22"
     },
     {
@@ -783,7 +783,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.22.2",
-      "title": "ProblemCard@Context",
+      "title": "ProblemCard",
       "staticPath": "/generated/patterns/C.22.2"
     },
     {
