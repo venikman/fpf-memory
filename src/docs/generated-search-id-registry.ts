@@ -738,7 +738,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.18",
-      "title": "NQD‑CAL — Open‑Ended Search Calculus",
+      "title": "Open-Ended Search Archive and Front Stewardship",
       "staticPath": "/generated/patterns/C.18"
     },
     {
@@ -748,7 +748,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.19",
-      "title": "Explore–Exploit Governor (E/E‑LOG)",
+      "title": "Explore-Exploit Live-Pool Governor",
       "staticPath": "/generated/patterns/C.19"
     },
     {
@@ -763,7 +763,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.20",
-      "title": "Composition of U.Discipline (Discipline‑CAL)",
+      "title": "Composition of U.Discipline (Discipline-CAL)",
       "staticPath": "/generated/patterns/C.20"
     },
     {
