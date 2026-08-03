@@ -16,6 +16,11 @@ const STUB_UPSTREAM_RESOLVER = async (ref: string) => ({
   committedAt: '2026-01-15T00:00:00.000Z',
 });
 
+// Every test here publishes the real spec (DEFAULT_SOURCE_PATH), so each
+// publishCurrent/validatePublishedSurface pair pays one or two full compiles
+// of a corpus that grows with upstream — 12.2 MB as of the 2026-08-01 sync,
+// which pushed the two-compile tests past the old 30s ceiling on loaded CI
+// runners. Budgets are ceilings for hang detection, not targets.
 describe('publishCurrent', () => {
   let tempRoot: string;
   let publishSourcePath: string;
@@ -70,7 +75,7 @@ describe('publishCurrent', () => {
     const secondManifest = await readFile(publishedManifestPath, 'utf8');
 
     expect(secondManifest).toBe(firstManifest);
-  }, 30_000);
+  }, 120_000);
 
   it('republishes the same ref byte-identically from a clean tree', async () => {
     // Reproduces the CI sync worker: it republishes from a fresh `main`
@@ -111,7 +116,7 @@ describe('publishCurrent', () => {
     expect(await readFile(resolve(publishedArtifactDir, 'snapshot.json'), 'utf8')).toBe(
       firstSnapshot,
     );
-  }, 30_000);
+  }, 120_000);
 
   it('resolves the default runtime artifact dir relative to the publish source root', async () => {
     await publishCurrent(
@@ -128,7 +133,7 @@ describe('publishCurrent', () => {
     );
 
     expect(await readFile(publishedManifestPath, 'utf8')).toContain('"channel": "latest-published"');
-  }, 30_000);
+  }, 120_000);
 
   it('keeps the published surface stable across equivalent publish roots', async () => {
     const config = {
@@ -168,7 +173,7 @@ describe('publishCurrent', () => {
     expect(await readFile(resolve(publishedArtifactDir, 'snapshot.json'), 'utf8')).toBe(
       firstSnapshot,
     );
-  }, 30_000);
+  }, 120_000);
 
   it('writes a compiler fingerprint into the published manifest and snapshot', async () => {
     await publishCurrent(
@@ -198,7 +203,7 @@ describe('publishCurrent', () => {
 
     expect(manifest.compilerFingerprint).toMatch(/^sha256:/);
     expect(snapshot.compilerFingerprint).toBe(manifest.compilerFingerprint);
-  }, 30_000);
+  }, 120_000);
 
   it('rebuilds the runtime snapshot when the published compiler fingerprint is stale', async () => {
     await publishCurrent(
@@ -253,7 +258,7 @@ describe('publishCurrent', () => {
     ) as Record<string, unknown>;
 
     expect(republishedSnapshot.staleCompilerOnlyMarker).toBeUndefined();
-  }, 30_000);
+  }, 120_000);
 
   it('rejects a published surface whose compiler fingerprint drifted', async () => {
     await publishCurrent(
@@ -285,5 +290,5 @@ describe('publishCurrent', () => {
         publishedManifestPath: 'published/current/manifest.json',
       }),
     ).rejects.toThrow(/compilerFingerprint/);
-  }, 30_000);
+  }, 120_000);
 });

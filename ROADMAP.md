@@ -33,10 +33,20 @@ the delivery is what let a 16-day outage report "within SLO" (see #253).
    distribution move below it. Needs Stas to pick (MIT or Apache-2.0), and the
    file must scope repo code separately from the mirrored upstream spec text in
    `published/current/`.
-2. **Make the plugin discoverable — remaining scope: a `docs/` mention.** The
-   README quick-install block and the `src/core/public-copy.ts` card shipped in
-   #250 (2026-07-28), and the GitHub description now states the live counts
-   (292 patterns / 3 curated routes, corrected 2026-07-28).
+2. **Make the plugin discoverable — remaining scope: a `docs/` mention, plus
+   the About-text swap below.** The README quick-install block and the
+   `src/core/public-copy.ts` card shipped in #250 (2026-07-28). The GitHub
+   About was hand-corrected to live counts on 2026-07-28 and was stale again
+   by the 2026-08-01 sync (292 → 294 patterns; flagged 2026-08-03). Lesson:
+   repo metadata must not quote numbers only the compiled snapshot knows —
+   the corpus changes twice a day and the About is hand-edited. Live counts
+   stay on surfaces that compute them (`src/core/documents.ts`, fpf.sh).
+   Canonical count-free About text (needs a repo admin — description edits
+   are not exposed to session tooling):
+   > Hosted MCP server + slim wiki projection of the First Principles
+   > Framework (FPF) by Anatoly Levenchuk. Bounded, vectorless retrieval
+   > over the full pattern catalog and curated routes — addressable by
+   > stable FPF IDs, synced daily from ailev/FPF.
 3. **Publish to `registry.modelcontextprotocol.io`.** Zero listings today and no
    publication was ever attempted. The freshness gate cleared 2026-07-28 (see
    Shipped); what remains is the board go/no-go. Note repo-root `server.json`
