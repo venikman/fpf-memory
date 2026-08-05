@@ -1143,7 +1143,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.11",
-      "title": "Practical-Use Guidance and Pattern Discovery",
+      "title": "First-Practical Entry and Pattern-Use Discoverability Discipline",
       "staticPath": "/generated/patterns/E.11"
     },
     {
