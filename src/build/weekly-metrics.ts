@@ -299,6 +299,27 @@ export function webAnalyticsSectionError(
   return { project, state, current: {}, previous: {}, detail };
 }
 
+/**
+ * Attaches the previous-window counts to a current-window section. A failed
+ * previous-window query must not silently render as "no data": the section
+ * keeps its current counts but carries an explicit note that the
+ * week-over-week comparison is missing and why.
+ */
+export function withPreviousWindow(
+  current: WeeklyWebAnalyticsSection,
+  previous: WeeklyWebAnalyticsSection,
+): WeeklyWebAnalyticsSection {
+  if (previous.state === 'ok') {
+    return { ...current, previous: previous.current };
+  }
+  const note = `Week-over-week comparison unavailable: previous-window query returned ${previous.state}${previous.detail ? ` — ${previous.detail}` : ''}`;
+  return {
+    ...current,
+    previous: {},
+    detail: current.detail ? `${current.detail} ${note}` : note,
+  };
+}
+
 export function buildWeeklyMetricsReport(input: {
   now: Date;
   window: { label: string; start: string; end: string };

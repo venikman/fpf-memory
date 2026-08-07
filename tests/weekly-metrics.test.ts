@@ -10,6 +10,7 @@ import {
   summarizeGitActivity,
   unavailableFreshnessSection,
   webAnalyticsSectionError,
+  withPreviousWindow,
   type WeeklyFreshnessSection,
 } from '../src/build/weekly-metrics.js';
 
@@ -137,6 +138,35 @@ describe('web analytics interpretation', () => {
       bodyText: '{"error":{"code":"forbidden"}}',
     });
     expect(section.state).toBe('config_error');
+  });
+
+  it('attaches previous-window counts, and surfaces a failed previous query', () => {
+    const current = interpretWebAnalyticsResponse({
+      project: 'fpf-sh',
+      status: 200,
+      bodyText: '{"visitors": 42, "pageviews": 128}',
+    });
+    const previousOk = interpretWebAnalyticsResponse({
+      project: 'fpf-sh',
+      status: 200,
+      bodyText: '{"visitors": 30, "pageviews": 90}',
+    });
+    expect(withPreviousWindow(current, previousOk)).toMatchObject({
+      state: 'ok',
+      current: { visitors: 42, pageviews: 128 },
+      previous: { visitors: 30, pageviews: 90 },
+    });
+
+    const previousFailed = interpretWebAnalyticsResponse({
+      project: 'fpf-sh',
+      status: 500,
+      bodyText: '{"error":{"code":"internal_error"}}',
+    });
+    const degraded = withPreviousWindow(current, previousFailed);
+    expect(degraded.state).toBe('ok');
+    expect(degraded.previous).toEqual({});
+    expect(degraded.detail).toContain('Week-over-week comparison unavailable');
+    expect(degraded.detail).toContain('error');
   });
 });
 

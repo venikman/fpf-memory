@@ -107,12 +107,14 @@ jobs:
             printf '%s\n' '' '</details>' '' "_Run: ${RUN_URL}_"
           } >> "$body_file"
 
+          # List-and-filter instead of `--search "... in:title"`: the search
+          # index is eventually consistent and tokenizes ids like 2026-W32, so
+          # a search miss would silently create a duplicate weekly issue. Same
+          # pattern as fpf-sync-monitor.yml.
+          open_issues="$(gh issue list --state open --limit 100 --json number,title)"
           existing="$(
-            gh issue list \
-              --state open \
-              --search "\"$title\" in:title" \
-              --json number,title \
-              --jq "map(select(.title == \"$title\")) | .[0].number // \"\""
+            printf '%s' "$open_issues" \
+            | jq -r --arg t "$title" 'map(select(.title == $t)) | .[0].number // ""'
           )"
 
           if [ -n "$existing" ]; then
@@ -125,11 +127,8 @@ jobs:
 
           # Keep exactly one open review: close older "Weekly metrics review"
           # issues as superseded so the list never accumulates stale reviews.
-          gh issue list \
-            --state open \
-            --search "Weekly metrics review in:title" \
-            --json number,title \
-            --jq ".[] | select(.title != \"$title\") | select(.title | startswith(\"Weekly metrics review\")) | .number" \
+          printf '%s' "$open_issues" \
+          | jq -r --arg t "$title" '.[] | select(.title != $t) | select(.title | startswith("Weekly metrics review")) | .number' \
           | while read -r stale; do
               gh issue comment "$stale" --body "Superseded by #$issue_number."
               gh issue close "$stale" --reason completed

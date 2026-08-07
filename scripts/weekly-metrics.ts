@@ -18,16 +18,21 @@ import {
   unavailableFreshnessSection,
   unavailableGitSection,
   webAnalyticsSectionError,
+  withPreviousWindow,
   type WeeklyDeploymentsSection,
   type WeeklyMetricsProjectRef,
   type WeeklyMetricsReport,
-  type WeeklyWebAnalyticsCounts,
   type WeeklyWebAnalyticsSection,
 } from '../src/build/weekly-metrics.js';
 import { parseFlagMap, readOptionalString, readOutputFormat, readString } from './_args.js';
 
 const VERCEL_API_BASE = 'https://api.vercel.com';
 const FETCH_TIMEOUT_MS = 30_000;
+const DEPLOYMENTS_PAGE_LIMIT = 100;
+// 5 pages x 100 rows covers ~16x the busiest observed week; if a window ever
+// exceeds it, the section says the counts are lower bounds instead of
+// pretending the page was the whole window.
+const DEPLOYMENTS_MAX_PAGES = 5;
 
 const flags = parseFlagMap(process.argv.slice(2));
 const windowLabel = readString(
@@ -137,22 +142,47 @@ async function loadDeployments(project: WeeklyMetricsProjectRef): Promise<Weekly
       'Missing Vercel token. Set VERCEL_WEEKLY_METRICS_TOKEN or VERCEL_TOKEN.',
     );
   }
-  const url = new URL('/v6/deployments', VERCEL_API_BASE);
-  url.searchParams.set('projectId', project.projectId);
-  url.searchParams.set('teamId', teamId);
-  url.searchParams.set('since', String(Date.parse(window.start)));
-  url.searchParams.set('until', String(Date.parse(window.end)));
-  url.searchParams.set('limit', '100');
+  const sinceMs = Date.parse(window.start);
+  const rows: unknown[] = [];
+  let untilMs = Date.parse(window.end);
+  let truncated = false;
   try {
-    const response = await vercelFetch(url);
-    if (!response.ok) {
-      return deploymentsSectionError(
-        project.name,
-        response.status === 401 || response.status === 403 ? 'config_error' : 'error',
-        `Deployments query failed with HTTP ${response.status}.`,
-      );
+    // /v6/deployments returns newest-first pages; pagination.next is the
+    // cursor for the next (older) page, walked via `until` until the window
+    // start or the page cap is reached.
+    for (let page = 0; page < DEPLOYMENTS_MAX_PAGES; page += 1) {
+      const url = new URL('/v6/deployments', VERCEL_API_BASE);
+      url.searchParams.set('projectId', project.projectId);
+      url.searchParams.set('teamId', teamId);
+      url.searchParams.set('since', String(sinceMs));
+      url.searchParams.set('until', String(untilMs));
+      url.searchParams.set('limit', String(DEPLOYMENTS_PAGE_LIMIT));
+      const response = await vercelFetch(url);
+      if (!response.ok) {
+        return deploymentsSectionError(
+          project.name,
+          response.status === 401 || response.status === 403 ? 'config_error' : 'error',
+          `Deployments query failed with HTTP ${response.status}.`,
+        );
+      }
+      const payload = await response.json() as {
+        deployments?: unknown[];
+        pagination?: { next?: number | null };
+      };
+      const pageRows = Array.isArray(payload.deployments) ? payload.deployments : [];
+      rows.push(...pageRows);
+      const next = payload.pagination?.next;
+      if (typeof next !== 'number' || next <= sinceMs || pageRows.length < DEPLOYMENTS_PAGE_LIMIT) {
+        return summarizeDeployments(project.name, { deployments: rows });
+      }
+      untilMs = next;
+      truncated = page === DEPLOYMENTS_MAX_PAGES - 1;
     }
-    return summarizeDeployments(project.name, await response.json());
+    const section = summarizeDeployments(project.name, { deployments: rows });
+    if (truncated) {
+      section.detail = `Pagination stopped after ${DEPLOYMENTS_MAX_PAGES} pages; counts are lower bounds for this window.`;
+    }
+    return section;
   } catch (error) {
     return deploymentsSectionError(project.name, 'error', errorMessage(error));
   }
@@ -174,9 +204,7 @@ async function loadWebAnalytics(project: WeeklyMetricsProjectRef): Promise<Weekl
     // Same-length window immediately before this one, for week-over-week deltas.
     const previousStart = new Date(Date.parse(window.start) - window.durationMs).toISOString();
     const previous = await queryWebAnalyticsCount(project, previousStart, window.start);
-    const previousCounts: WeeklyWebAnalyticsCounts =
-      previous.state === 'ok' ? previous.current : {};
-    return { ...current, previous: previousCounts };
+    return withPreviousWindow(current, previous);
   } catch (error) {
     return webAnalyticsSectionError(project.name, 'error', errorMessage(error));
   }

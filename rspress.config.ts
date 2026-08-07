@@ -283,8 +283,13 @@ document.addEventListener('keydown',function(e){
     // deferred request 404s silently and no data is sent. The `window.va`
     // shim mirrors Vercel's plain-HTML quickstart so calls queued before the
     // script loads are not lost.
-    `<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>`,
-    ['script', { defer: '', src: '/_vercel/insights/script.js' }],
+    //
+    // Both tags live in ONE raw string with explicit closing tags: a
+    // `['script', attrs]` tuple is emitted by the head pipeline without a
+    // closing </script>, which makes the browser swallow the next inline
+    // script (rspress's theme no-flash initializer) as inert script content.
+    // Caught on the PR #275 preview deployment.
+    `<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script><script defer src="/_vercel/insights/script.js"></script>`,
   ],
   route: {
     cleanUrls: true,

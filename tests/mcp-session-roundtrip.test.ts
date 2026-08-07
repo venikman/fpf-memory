@@ -39,7 +39,7 @@ class StdioMcpHarness {
     this.child.stderr.on('data', (chunk) => this.stderr.push(chunk.toString()));
     // Spawn failures (e.g. binary not on PATH) emit 'error' without ever
     // firing 'exit' — reject pending requests so the test fails fast
-    // instead of blocking on the 15s request timeout.
+    // instead of blocking on the per-request timeout.
     this.child.on('error', (err) => {
       for (const { reject, timeout } of this.pending.values()) {
         clearTimeout(timeout);
@@ -67,7 +67,11 @@ class StdioMcpHarness {
       const timeout = setTimeout(() => {
         this.pending.delete(id);
         reject(new Error(`Timed out waiting for ${method}\n${this.stderr.join('')}`));
-      }, 15_000);
+        // 120s matches the per-test budgets: compile-bearing calls (initial
+        // build, refresh_fpf_index) crossed 15s once the spec corpus grew
+        // past 12MB, so a short request timeout became a corpus-growth
+        // tripwire instead of a hang detector.
+      }, 120_000);
       this.pending.set(id, { resolve, reject, timeout });
     });
     this.child.stdin.write(`${payload}\n`);
@@ -221,7 +225,7 @@ describe('MCP session-continuity roundtrip', () => {
     // would break session caching and inflate latency.
     expect(followupStatus.builtAt).toBe(initialBuiltAt);
     expect(followupStatus.fresh).toBe(true);
-  });
+  }, 120_000);
 
   it('forces a rebuild via refresh_fpf_index without corrupting the session cache', async () => {
     const harness = await startHarness();
@@ -261,5 +265,5 @@ describe('MCP session-continuity roundtrip', () => {
     // Session cache survives a rebuild (sessions are in-memory, not in artefacts).
     const postSessionCache = postRefreshStatus.sessionCache as { activeSessions: number };
     expect(postSessionCache.activeSessions).toBeGreaterThanOrEqual(1);
-  });
+  }, 120_000);
 });
