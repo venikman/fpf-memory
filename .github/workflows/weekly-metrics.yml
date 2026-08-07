@@ -54,8 +54,12 @@ jobs:
         # Idempotent: enabling an already-enabled project is a no-op. Tolerant
         # on purpose — if this CLI surface changes, the review must still
         # publish, and its Web Analytics section will show `not_enabled` so
-        # the gap is visible instead of silent.
+        # the gap is visible instead of silent. The step timeout keeps a
+        # stalled npx resolution or CLI call from consuming the job budget
+        # before the report is built: a killed step still fails into
+        # continue-on-error and the run proceeds.
         continue-on-error: true
+        timeout-minutes: 5
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_WEEKLY_METRICS_TOKEN || secrets.VERCEL_TOKEN }}
         run: |
@@ -72,8 +76,11 @@ jobs:
         # Vercel runtime-log retention is far shorter than a week, so this is
         # an honest 24h sample, embedded in the review as supporting detail.
         # Tolerant: a config error still renders as a config_error report.
+        # The step timeout backstops the script's own 300s vercel-logs spawn
+        # timeout so a stall degrades to an `absent` sample finding.
         id: usage
         continue-on-error: true
+        timeout-minutes: 6
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_USAGE_REPORT_TOKEN || secrets.VERCEL_TOKEN }}
         run: |
