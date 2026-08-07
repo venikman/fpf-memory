@@ -336,11 +336,18 @@ describe('weekly metrics report', () => {
         }),
       ],
       webAnalytics: [
-        interpretWebAnalyticsResponse({
-          project: 'fpf-sh',
-          status: 200,
-          bodyText: '{"visitors": 10, "pageviews": 25}',
-        }),
+        withPreviousWindow(
+          interpretWebAnalyticsResponse({
+            project: 'fpf-sh',
+            status: 200,
+            bodyText: '{"visitors": 10, "pageviews": 25}',
+          }),
+          interpretWebAnalyticsResponse({
+            project: 'fpf-sh',
+            status: 200,
+            bodyText: '{"visitors": 8, "pageviews": 20}',
+          }),
+        ),
       ],
     });
 
@@ -348,6 +355,46 @@ describe('weekly metrics report', () => {
     expect(report.findings).toHaveLength(0);
     expect(report.summary).toContain('freshness ok');
     expect(report.summary).toContain('no findings');
+  });
+
+  it('promotes incomplete week-over-week evidence to a finding', () => {
+    const base = {
+      now: NOW,
+      window,
+      freshness: { state: 'ok', summary: 'published matches upstream head' } as WeeklyFreshnessSection,
+      git: summarizeGitActivity([
+        'abcdef1234\t2026-08-01T09:00:00+00:00\tpublish: sync FPF spec from ailev/FPF (aaaa · 2026-08-01) (#1)',
+      ]),
+      deployments: [],
+    };
+    const current = interpretWebAnalyticsResponse({
+      project: 'fpf-sh',
+      status: 200,
+      bodyText: '{"visitors": 10, "pageviews": 25}',
+    });
+
+    const partialPrevious = withPreviousWindow(
+      current,
+      interpretWebAnalyticsResponse({
+        project: 'fpf-sh',
+        status: 200,
+        bodyText: '{"visitors": 8}',
+      }),
+    );
+    expect(partialPrevious.detail).toContain('Previous window:');
+    const partialReport = buildWeeklyMetricsReport({ ...base, webAnalytics: [partialPrevious] });
+    expect(partialReport.findings.join('\n')).toContain('Week-over-week evidence for fpf-sh is incomplete');
+
+    const failedPrevious = withPreviousWindow(
+      current,
+      interpretWebAnalyticsResponse({
+        project: 'fpf-sh',
+        status: 500,
+        bodyText: '{"error":{"code":"internal_error"}}',
+      }),
+    );
+    const failedReport = buildWeeklyMetricsReport({ ...base, webAnalytics: [failedPrevious] });
+    expect(failedReport.findings.join('\n')).toContain('Week-over-week evidence for fpf-sh is incomplete');
   });
 
   it('renders markdown with every section and degrades gracefully', () => {

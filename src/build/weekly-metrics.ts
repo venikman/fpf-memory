@@ -337,7 +337,17 @@ export function withPreviousWindow(
   previous: WeeklyWebAnalyticsSection,
 ): WeeklyWebAnalyticsSection {
   if (previous.state === 'ok') {
-    return { ...current, previous: previous.current };
+    if (!previous.detail) {
+      return { ...current, previous: previous.current };
+    }
+    // A partial previous window (one counter missing) keeps its warning: the
+    // missing delta must stay visible, not vanish into a dash.
+    const partialNote = `Previous window: ${previous.detail}`;
+    return {
+      ...current,
+      previous: previous.current,
+      detail: current.detail ? `${current.detail} ${partialNote}` : partialNote,
+    };
   }
   const note = `Week-over-week comparison unavailable: previous-window query returned ${previous.state}${previous.detail ? ` — ${previous.detail}` : ''}`;
   return {
@@ -420,6 +430,16 @@ export function buildWeeklyMetricsReport(input: {
     } else if (section.current.visitors === undefined || section.current.pageviews === undefined) {
       findings.push(
         `Web Analytics for ${section.project} returned partial counters; evidence is incomplete: ${section.detail ?? 'a counter was missing from the response'}`,
+      );
+    } else if (
+      section.previous.visitors === undefined
+      || section.previous.pageviews === undefined
+    ) {
+      // The previous window failed or came back partial: the promised
+      // week-over-week delta is missing, which is a guard verdict, not a
+      // footnote.
+      findings.push(
+        `Week-over-week evidence for ${section.project} is incomplete: ${section.detail ?? 'the previous-window query did not produce both counters'}`,
       );
     }
   }
