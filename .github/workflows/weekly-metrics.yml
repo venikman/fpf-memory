@@ -65,7 +65,12 @@ jobs:
         continue-on-error: true
         timeout-minutes: 5
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_WEEKLY_METRICS_TOKEN || secrets.VERCEL_TOKEN }}
+          # VERCEL_SPEND_MONITOR_TOKEN sits in the fallback chain because it
+          # is the proven team-scoped token (the spend monitor queries the
+          # venikmans-projects scope with it every 6 hours). The first live
+          # run showed plain VERCEL_TOKEN cannot see that team: the CLI says
+          # "The specified scope does not exist" and REST returns 403.
+          VERCEL_TOKEN: ${{ secrets.VERCEL_WEEKLY_METRICS_TOKEN || secrets.VERCEL_SPEND_MONITOR_TOKEN || secrets.VERCEL_TOKEN }}
         run: |
           set -euo pipefail
           for project in fpf-sh fpf-reference-mcp; do
@@ -86,7 +91,7 @@ jobs:
         continue-on-error: true
         timeout-minutes: 6
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_USAGE_REPORT_TOKEN || secrets.VERCEL_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_USAGE_REPORT_TOKEN || secrets.VERCEL_SPEND_MONITOR_TOKEN || secrets.VERCEL_TOKEN }}
         run: |
           bun run usage:report -- \
             --source vercel \
@@ -97,7 +102,7 @@ jobs:
       - name: Build weekly metrics report
         id: metrics
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_WEEKLY_METRICS_TOKEN || secrets.VERCEL_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_WEEKLY_METRICS_TOKEN || secrets.VERCEL_SPEND_MONITOR_TOKEN || secrets.VERCEL_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
           # Usage-report verdict from its GITHUB_OUTPUT, so a failing or
           # breaching sample becomes a top-level finding in the weekly state

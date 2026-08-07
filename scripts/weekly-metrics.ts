@@ -34,6 +34,18 @@ const DEPLOYMENTS_PAGE_LIMIT = 100;
 // pretending the page was the whole window.
 const DEPLOYMENTS_MAX_PAGES = 5;
 
+// Declared before the top-level report assembly below: as a `const` this does
+// NOT hoist, and loadFreshness() runs during module evaluation — declaring it
+// later dies with a temporal-dead-zone error, which is exactly what broke the
+// freshness section of the first live run (issue #276). Bun's `typeof fetch`
+// carries the `preconnect` static, so the wrapper forwards it to stay a
+// drop-in replacement type-wise.
+const boundedFetch: typeof fetch = Object.assign(
+  (input: string | URL | Request, init?: RequestInit) =>
+    fetch(input, { ...init, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) }),
+  { preconnect: fetch.preconnect.bind(fetch) },
+);
+
 const flags = parseFlagMap(process.argv.slice(2));
 const windowLabel = readString(
   flags,
@@ -259,14 +271,6 @@ function vercelFetch(url: URL): Promise<Response> {
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
 }
-
-// Bun's `typeof fetch` carries the `preconnect` static, so the wrapper
-// forwards it to stay a drop-in replacement type-wise.
-const boundedFetch: typeof fetch = Object.assign(
-  (input: string | URL | Request, init?: RequestInit) =>
-    fetch(input, { ...init, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) }),
-  { preconnect: fetch.preconnect.bind(fetch) },
-);
 
 function parseProjects(raw: string | undefined): WeeklyMetricsProjectRef[] {
   if (!raw) {
