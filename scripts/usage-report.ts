@@ -7,6 +7,7 @@ import {
   configErrorUsageReport,
   DEFAULT_USAGE_REPORT_LOG_PATH,
   formatUsageReportMarkdown,
+  isVercelExportCapped,
   readUsageReportLinesFromFile,
   type UsageReport,
   type UsageReportFormat,
@@ -277,6 +278,7 @@ function renderGithubOutput(report: UsageReport): string {
     ['top_tool', report.topTools[0]?.id ?? ''],
     ['top_intent_category', report.topIntentCategories[0]?.id ?? ''],
     ['top_served_pattern', report.topServedPatterns[0]?.id ?? ''],
+    ['export_capped', String(isVercelExportCapped(report.totals, report.source))],
     ['triage_findings', report.triageFindings.join(' | ')],
   ].map(([key, value]) => `${key}=${sanitizeOutputValue(value)}\n`).join('');
 }

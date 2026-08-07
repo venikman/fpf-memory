@@ -95,6 +95,7 @@ jobs:
           FPF_WEEKLY_USAGE_STATE: ${{ steps.usage.outputs.state || 'absent' }}
           FPF_WEEKLY_USAGE_ACTION_REQUIRED: ${{ steps.usage.outputs.operator_action_required || 'true' }}
           FPF_WEEKLY_USAGE_SUMMARY: ${{ steps.usage.outputs.summary || 'usage report produced no outputs' }}
+          FPF_WEEKLY_USAGE_EXPORT_CAPPED: ${{ steps.usage.outputs.export_capped || 'false' }}
         run: |
           bun run weekly:metrics -- \
             --window "$FPF_WEEKLY_METRICS_WINDOW" \

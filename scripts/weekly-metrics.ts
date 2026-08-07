@@ -68,6 +68,8 @@ const usageSample = usageState === undefined ? undefined : {
   operatorActionRequired:
     readString(flags, 'usage-action-required', process.env.FPF_WEEKLY_USAGE_ACTION_REQUIRED ?? 'false') === 'true',
   summary: readOptionalString(flags, 'usage-summary', process.env.FPF_WEEKLY_USAGE_SUMMARY),
+  exportCapped:
+    readString(flags, 'usage-export-capped', process.env.FPF_WEEKLY_USAGE_EXPORT_CAPPED ?? 'false') === 'true',
 };
 
 const now = new Date();
@@ -121,6 +123,10 @@ async function loadFreshness() {
       statusUrl: readOptionalString(flags, 'status-url', process.env.FPF_SYNC_MONITOR_STATUS_URL),
       githubToken: readOptionalString(flags, 'github-token', process.env.GITHUB_TOKEN),
       now,
+      // The monitor's own fetches are unbounded; a stalled connection must
+      // degrade to an `unavailable` freshness section, not run the whole job
+      // into its timeout with no report at all.
+      fetchImpl: boundedFetch,
     });
     return freshnessFromSyncMonitor(monitorReport);
   } catch (error) {
@@ -198,6 +204,7 @@ async function loadDeployments(project: WeeklyMetricsProjectRef): Promise<Weekly
     }
     const section = summarizeDeployments(project.name, { deployments: rows });
     if (truncated) {
+      section.truncated = true;
       section.detail = `Pagination stopped after ${DEPLOYMENTS_MAX_PAGES} pages; counts are lower bounds for this window.`;
     }
     return section;
@@ -252,6 +259,14 @@ function vercelFetch(url: URL): Promise<Response> {
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
 }
+
+// Bun's `typeof fetch` carries the `preconnect` static, so the wrapper
+// forwards it to stay a drop-in replacement type-wise.
+const boundedFetch: typeof fetch = Object.assign(
+  (input: string | URL | Request, init?: RequestInit) =>
+    fetch(input, { ...init, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) }),
+  { preconnect: fetch.preconnect.bind(fetch) },
+);
 
 function parseProjects(raw: string | undefined): WeeklyMetricsProjectRef[] {
   if (!raw) {

@@ -66,6 +66,8 @@ export interface WeeklyDeploymentsSection {
   preview: number;
   errored: number;
   latestProductionAt: string | null;
+  /** True when pagination stopped before the window was exhausted — counts are lower bounds. */
+  truncated?: boolean;
   detail?: string;
 }
 
@@ -99,6 +101,8 @@ export interface WeeklyUsageSampleSection {
   state: string;
   operatorActionRequired: boolean;
   summary?: string;
+  /** True when the runtime-log export hit its line cap — event counts are lower bounds. */
+  exportCapped?: boolean;
 }
 
 export interface WeeklyMetricsReport {
@@ -401,6 +405,10 @@ export function buildWeeklyMetricsReport(input: {
       findings.push(
         `MCP usage telemetry sample requires operator action${input.usageSample.summary ? `: ${input.usageSample.summary}` : '.'}`,
       );
+    } else if (input.usageSample.exportCapped) {
+      findings.push(
+        'MCP usage telemetry export hit its line cap; usage counts are lower bounds for the sample window.',
+      );
     }
   }
 
@@ -414,6 +422,11 @@ export function buildWeeklyMetricsReport(input: {
     if (section.errored > 0) {
       findings.push(
         `${section.project} had ${section.errored} errored/canceled deployment${section.errored === 1 ? '' : 's'} in this window.`,
+      );
+    }
+    if (section.truncated) {
+      findings.push(
+        `Deployment counts for ${section.project} are lower bounds: ${section.detail ?? 'pagination stopped before the window was exhausted'}`,
       );
     }
   }
@@ -627,7 +640,7 @@ function usageSampleSection(sample: WeeklyUsageSampleSection | undefined): strin
   return `## MCP usage telemetry sample
 
 - State: **${sample.state}**
-- Operator action required: ${sample.operatorActionRequired ? 'yes' : 'no'}${sample.summary ? `\n- Summary: ${sample.summary}` : ''}
+- Operator action required: ${sample.operatorActionRequired ? 'yes' : 'no'}${sample.summary ? `\n- Summary: ${sample.summary}` : ''}${sample.exportCapped ? '\n- Export capped: yes — usage counts are lower bounds for the sample window.' : ''}
 - The full sample is attached below this report by the workflow.
 
 `;

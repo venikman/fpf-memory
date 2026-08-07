@@ -322,6 +322,34 @@ describe('weekly metrics report', () => {
     expect(clean.findings).toHaveLength(0);
   });
 
+  it('promotes lower-bound evidence (capped pagination, capped export) to findings', () => {
+    const base = {
+      now: NOW,
+      window,
+      freshness: { state: 'ok', summary: 'published matches upstream head' } as WeeklyFreshnessSection,
+      git: summarizeGitActivity([
+        'abcdef1234\t2026-08-01T09:00:00+00:00\tpublish: sync FPF spec from ailev/FPF (aaaa · 2026-08-01) (#1)',
+      ]),
+      webAnalytics: [],
+    };
+
+    const truncatedSection = summarizeDeployments('fpf-sh', {
+      deployments: [{ state: 'READY', target: 'production', created: 1785747843811 }],
+    });
+    truncatedSection.truncated = true;
+    truncatedSection.detail = 'Pagination stopped after 5 pages; counts are lower bounds for this window.';
+    const truncatedReport = buildWeeklyMetricsReport({ ...base, deployments: [truncatedSection] });
+    expect(truncatedReport.findings.join('\n')).toContain('Deployment counts for fpf-sh are lower bounds');
+
+    const cappedReport = buildWeeklyMetricsReport({
+      ...base,
+      deployments: [],
+      usageSample: { state: 'ok', operatorActionRequired: false, exportCapped: true },
+    });
+    expect(cappedReport.findings.join('\n')).toContain('usage counts are lower bounds');
+    expect(formatWeeklyMetricsMarkdown(cappedReport)).toContain('Export capped: yes');
+  });
+
   it('reports ok with no findings on a healthy week', () => {
     const report = buildWeeklyMetricsReport({
       now: NOW,
