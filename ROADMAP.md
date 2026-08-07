@@ -61,8 +61,16 @@ the delivery is what let a 16-day outage report "within SLO" (see #253).
    query traffic and restore the high-value ones. The P4 boundary-route
    re-activation below belongs to this item when it un-defers.
 6. **Monitor hardening & telemetry revival.** Content-quality monitor back to a
-   green path, and the weekly FPF usage telemetry review (#170, dormant since
-   June) re-established so adoption moves are measured, not guessed.
+   green path (#273 open). The weekly-review half shipped 2026-08-07:
+   `weekly-metrics.yml` posts a Monday "Weekly metrics review \<ISO week\>"
+   issue combining freshness vs the 26h SLO (reusing the sync monitor), main
+   activity, Vercel deployments, Web Analytics, and the #170 usage report as a
+   trailing-24h sample (runtime-log retention is shorter than a week). Both
+   sites ship the `/_vercel/insights/script.js` beacon; the workflow enables
+   Web Analytics idempotently via `vercel project web-analytics`. Remaining:
+   confirm on the first run that analytics enablement + beacon actually
+   collect, then swap the 24h usage sample for durable Web Analytics custom
+   events emitted server-side from the MCP runtime.
 
 ## Shipped
 

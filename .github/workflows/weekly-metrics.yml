@@ -1,0 +1,178 @@
+name: Weekly Metrics Review
+
+on:
+  schedule:
+    # Monday 06:00 UTC. The report covers the trailing 7 days, so a Monday
+    # run reviews the ISO week that just ended (the report derives the week
+    # id from the window midpoint, not the fire time).
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      window:
+        description: 'Metrics window (e.g. 7d)'
+        required: false
+        default: '7d'
+      publish:
+        description: 'Write the canonical weekly review issue (scheduled runs always do)'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: weekly-metrics
+  cancel-in-progress: false
+
+env:
+  BUN_VERSION: '1.3.5'
+  FPF_VERCEL_SCOPE: venikmans-projects
+  FPF_WEEKLY_METRICS_WINDOW: ${{ github.event.inputs.window || '7d' }}
+
+jobs:
+  report:
+    name: Build and publish the weekly metrics review
+    runs-on: ubuntu-latest
+    # Sized for the fully degraded path, not the happy one: the tolerant
+    # precursor steps may burn up to 11 minutes of timeouts and the report's
+    # sequential 30s-bounded fetches up to ~8.5 more, and the ledger (or its
+    # explicit unavailable verdicts) must still publish after all of that.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Full history: the repository-activity section reads
+          # `git log --since <window>`, which a depth-1 checkout would
+          # silently truncate to one commit.
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - run: bun install --frozen-lockfile
+
+      - name: Ensure Web Analytics is enabled for both projects
+        # Idempotent: enabling an already-enabled project is a no-op. Tolerant
+        # on purpose — if this CLI surface changes, the review must still
+        # publish, and its Web Analytics section will show `not_enabled` so
+        # the gap is visible instead of silent. The step timeout keeps a
+        # stalled npx resolution or CLI call from consuming the job budget
+        # before the report is built: a killed step still fails into
+        # continue-on-error and the run proceeds.
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_WEEKLY_METRICS_TOKEN || secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          for project in fpf-sh fpf-reference-mcp; do
+            npx --yes vercel@54.7.1 project web-analytics "$project" \
+              --scope "$FPF_VERCEL_SCOPE" \
+              --format json \
+              --token "$VERCEL_TOKEN" \
+              || echo "::warning::Could not enable Web Analytics for $project"
+          done
+
+      - name: Build MCP usage telemetry sample (trailing 24h of runtime logs)
+        # Vercel runtime-log retention is far shorter than a week, so this is
+        # an honest 24h sample, embedded in the review as supporting detail.
+        # Tolerant: a config error still renders as a config_error report.
+        # The step timeout backstops the script's own 300s vercel-logs spawn
+        # timeout so a stall degrades to an `absent` sample finding.
+        id: usage
+        continue-on-error: true
+        timeout-minutes: 6
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_USAGE_REPORT_TOKEN || secrets.VERCEL_TOKEN }}
+        run: |
+          bun run usage:report -- \
+            --source vercel \
+            --window 24h \
+            --format markdown \
+            --output reports/usage/weekly-usage-sample.md
+
+      - name: Build weekly metrics report
+        id: metrics
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_WEEKLY_METRICS_TOKEN || secrets.VERCEL_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          # Usage-report verdict from its GITHUB_OUTPUT, so a failing or
+          # breaching sample becomes a top-level finding in the weekly state
+          # instead of hiding inside the collapsed details block. `absent`
+          # when the step died before writing outputs.
+          FPF_WEEKLY_USAGE_STATE: ${{ steps.usage.outputs.state || 'absent' }}
+          FPF_WEEKLY_USAGE_ACTION_REQUIRED: ${{ steps.usage.outputs.operator_action_required || 'true' }}
+          FPF_WEEKLY_USAGE_SUMMARY: ${{ steps.usage.outputs.summary || 'usage report produced no outputs' }}
+          FPF_WEEKLY_USAGE_EXPORT_CAPPED: ${{ steps.usage.outputs.export_capped || 'false' }}
+        run: |
+          bun run weekly:metrics -- \
+            --window "$FPF_WEEKLY_METRICS_WINDOW" \
+            --format markdown \
+            --output reports/weekly/weekly-metrics.md
+
+      - name: Publish review issue
+        # Canonical-ledger guard: scheduled runs write the rolling "Weekly
+        # metrics review" issue; manual dispatches only do so with the
+        # explicit publish input, on main, at the default window. Otherwise a
+        # branch dispatch would report that ref's git history as "main"
+        # activity, a custom-window dispatch (e.g. 1d) would overwrite the
+        # scheduled full-week evidence under the same ISO-week identity, and
+        # an off-schedule Friday dispatch could mint the in-progress week's
+        # issue and close the completed review as superseded. Non-publishing
+        # runs still render the complete report in the step summary.
+        if: >-
+          github.event_name == 'schedule'
+          || (github.event.inputs.publish == 'true'
+              && github.ref == 'refs/heads/main'
+              && env.FPF_WEEKLY_METRICS_WINDOW == '7d')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REVIEW_WEEK: ${{ steps.metrics.outputs.review_week }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          title="Weekly metrics review ${REVIEW_WEEK}"
+          body_file="$(mktemp)"
+          cat reports/weekly/weekly-metrics.md > "$body_file"
+          {
+            printf '%s\n' '' '<details>'
+            printf '%s\n' '<summary>MCP usage telemetry (trailing 24h sample from Vercel runtime logs)</summary>' ''
+            cat reports/usage/weekly-usage-sample.md 2>/dev/null \
+              || printf '%s\n' '_Usage report was not produced this run._'
+            printf '%s\n' '' '</details>' '' "_Run: ${RUN_URL}_"
+          } >> "$body_file"
+
+          # List-and-filter instead of `--search "... in:title"`: the search
+          # index is eventually consistent and tokenizes ids like 2026-W32, so
+          # a search miss would silently create a duplicate weekly issue. Same
+          # pattern as fpf-sync-monitor.yml.
+          open_issues="$(gh issue list --state open --limit 100 --json number,title)"
+          existing="$(
+            printf '%s' "$open_issues" \
+            | jq -r --arg t "$title" 'map(select(.title == $t)) | .[0].number // ""'
+          )"
+
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file "$body_file"
+            issue_number="$existing"
+          else
+            issue_number="$(gh issue create --title "$title" --body-file "$body_file" | sed -E 's#.*/##')"
+          fi
+          echo "Review issue: #$issue_number"
+
+          # Keep exactly one open review: close older reviews as superseded.
+          # Match ONLY the canonical "Weekly metrics review YYYY-Www" shape,
+          # strictly older than the current week (lexicographic compare is
+          # correct for that format, year first) — a prefix match would let
+          # this autonomous close swallow unrelated issues that merely start
+          # with the same words.
+          printf '%s' "$open_issues" \
+          | jq -r --arg t "$title" '.[] | select(.title | test("^Weekly metrics review [0-9]{4}-W[0-9]{2}$")) | select(.title < $t) | .number' \
+          | while read -r stale; do
+              gh issue comment "$stale" --body "Superseded by #$issue_number."
+              gh issue close "$stale" --reason completed
+            done

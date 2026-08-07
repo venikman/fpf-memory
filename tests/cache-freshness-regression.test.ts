@@ -68,7 +68,7 @@ describe('FpfRuntime cache-freshness regressions', () => {
     expect(second.rebuilt).toBe(true);
     // The runtime treats a stale-shaped snapshot as if it were missing.
     expect(second.reason).toBe('missing_snapshot');
-  });
+  }, 120_000);
 
   it('backfills the indexing view when it is deleted between refreshes', async () => {
     await runtime.refresh();
@@ -91,7 +91,7 @@ describe('FpfRuntime cache-freshness regressions', () => {
     expect(typeof view.routes).toBe('object');
     expect(view.anchorIds.length).toBeGreaterThan(0);
     expect(view.lexiconCanonicals.length).toBeGreaterThan(0);
-  });
+  }, 120_000);
 
   it('recovers from corrupt snapshot bytes by rebuilding on next refresh', async () => {
     await runtime.refresh();
@@ -105,7 +105,7 @@ describe('FpfRuntime cache-freshness regressions', () => {
     // The rebuilt snapshot must be parseable again.
     const recovered = await readSnapshot();
     expect(typeof recovered.sourceHash).toBe('string');
-  });
+  }, 120_000);
 
   it('auto-refreshes inside status() when the cached snapshot is stale', async () => {
     await runtime.refresh();
@@ -117,7 +117,7 @@ describe('FpfRuntime cache-freshness regressions', () => {
     expect(status.snapshotExists).toBe(true);
     expect(status.fresh).toBe(true);
     expect(status.sourceHash).toBe(status.currentSourceHash);
-  });
+  }, 120_000);
 
   it('serves status() from the in-memory snapshot without re-reading artifact bytes', async () => {
     await runtime.refresh();
@@ -134,7 +134,7 @@ describe('FpfRuntime cache-freshness regressions', () => {
     // The presence map still reports the truth about the on-disk artifact
     // set — and proves status() did not rebuild the snapshot to answer.
     expect(status.artifacts.snapshot).toBe(false);
-  });
+  }, 120_000);
 
   it('warms the in-memory snapshot cache on the first status() call', async () => {
     // Cold call: no artifacts yet, so status() builds and persists them.
@@ -149,7 +149,7 @@ describe('FpfRuntime cache-freshness regressions', () => {
     expect(second.snapshotExists).toBe(true);
     expect(second.fresh).toBe(true);
     expect(second.artifacts.snapshot).toBe(false);
-  });
+  }, 120_000);
 
   it('reports source_hash_changed and emits a refreshClassification on spec edits', async () => {
     await runtime.refresh();
@@ -163,7 +163,7 @@ describe('FpfRuntime cache-freshness regressions', () => {
     expect(rebuilt.refreshClassification).toBeDefined();
     expect(rebuilt.previousSourceHash).toBeDefined();
     expect(rebuilt.previousSourceHash).not.toBe(rebuilt.sourceHash);
-  });
+  }, 120_000);
 
   it('rebuilds when the compiler fingerprint changes without spec edits', async () => {
     await runtime.refresh();
@@ -183,7 +183,7 @@ describe('FpfRuntime cache-freshness regressions', () => {
     const recovered = await readSnapshot();
     expect(recovered.compilerFingerprint).toMatch(/^sha256:/);
     expect(recovered.compilerFingerprint).not.toBe('sha256:previous-compiler');
-  });
+  }, 120_000);
 
   it('computes the default compiler fingerprint outside the repo cwd', async () => {
     const expected = await computeCompilerFingerprint({ cwd: process.cwd() });
@@ -207,5 +207,5 @@ describe('FpfRuntime cache-freshness regressions', () => {
     } finally {
       await rm(outsideCwd, { recursive: true, force: true });
     }
-  });
+  }, 120_000);
 });

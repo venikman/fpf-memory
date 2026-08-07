@@ -964,12 +964,27 @@ function buildCaveats(totals: UsageReportTotals, source: UsageReportSource): str
   }
   if (source.kind === 'vercel') {
     caveats.push('Vercel log export availability and retention can limit historical windows.');
-    const queryLimit = readVercelQueryLimit(source);
-    if (queryLimit !== undefined && totals.rawLineCount >= queryLimit) {
-      caveats.push(`Vercel returned the configured ${queryLimit}-line limit; reported counts are lower bounds for this window.`);
+    if (isVercelExportCapped(totals, source)) {
+      caveats.push(`Vercel returned the configured ${readVercelQueryLimit(source)}-line limit; reported counts are lower bounds for this window.`);
     }
   }
   return caveats;
+}
+
+/**
+ * True when a Vercel log export filled its configured line limit — the
+ * report's counts are then lower bounds, which consumers (the weekly metrics
+ * review) must surface rather than treat as complete evidence.
+ */
+export function isVercelExportCapped(
+  totals: UsageReportTotals,
+  source: UsageReportSource,
+): boolean {
+  if (source.kind !== 'vercel') {
+    return false;
+  }
+  const queryLimit = readVercelQueryLimit(source);
+  return queryLimit !== undefined && totals.rawLineCount >= queryLimit;
 }
 
 function readVercelQueryLimit(source: UsageReportSource): number | undefined {
