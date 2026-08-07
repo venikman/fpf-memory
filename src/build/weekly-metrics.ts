@@ -301,6 +301,20 @@ export function interpretWebAnalyticsResponse(input: {
       detail: `Web Analytics responded 200 but no visitor/pageview counts were recognized: ${excerpt(input.bodyText)}`,
     };
   }
+  const missing = [
+    ...(counts.visitors === undefined ? ['visitors'] : []),
+    ...(counts.pageviews === undefined ? ['pageviews'] : []),
+  ];
+  if (missing.length > 0) {
+    // Partial evidence must stay visible: keep what was recognized but say
+    // what was not, so an API shape change can't quietly shrink the report.
+    return {
+      ...base,
+      state: 'ok',
+      current: counts,
+      detail: `Response was missing the ${missing.join(' and ')} counter: ${excerpt(input.bodyText)}`,
+    };
+  }
   return { ...base, state: 'ok', current: counts };
 }
 
@@ -402,6 +416,10 @@ export function buildWeeklyMetricsReport(input: {
     } else if (section.state !== 'ok') {
       findings.push(
         `Web Analytics for ${section.project} did not produce counts (${section.state}): ${section.detail ?? ''}`.trim(),
+      );
+    } else if (section.current.visitors === undefined || section.current.pageviews === undefined) {
+      findings.push(
+        `Web Analytics for ${section.project} returned partial counters; evidence is incomplete: ${section.detail ?? 'a counter was missing from the response'}`,
       );
     }
   }
@@ -554,12 +572,25 @@ function webAnalyticsTable(sections: WeeklyWebAnalyticsSection[]): string {
     return '_No projects configured._';
   }
   return [
-    '| Project | State | Visitors | Pageviews | Prev visitors | Prev pageviews |',
+    '| Project | State | Visitors | Pageviews | Prev (v / pv) | Δ week-over-week (v / pv) |',
     '| --- | --- | ---: | ---: | ---: | ---: |',
     ...sections.map((section) =>
-      `| ${section.project} | ${section.state} | ${formatCount(section.current.visitors)} | ${formatCount(section.current.pageviews)} | ${formatCount(section.previous.visitors)} | ${formatCount(section.previous.pageviews)} |`,
+      `| ${section.project} | ${section.state} | ${formatCount(section.current.visitors)} | ${formatCount(section.current.pageviews)} | ${formatCount(section.previous.visitors)} / ${formatCount(section.previous.pageviews)} | ${formatDelta(section.current.visitors, section.previous.visitors)} / ${formatDelta(section.current.pageviews, section.previous.pageviews)} |`,
     ),
   ].join('\n');
+}
+
+function formatDelta(current: number | undefined, previous: number | undefined): string {
+  if (current === undefined || previous === undefined) {
+    return '—';
+  }
+  const diff = current - previous;
+  const signed = `${diff >= 0 ? '+' : ''}${diff}`;
+  if (previous === 0) {
+    return signed;
+  }
+  const pct = Math.round((diff / previous) * 1000) / 10;
+  return `${signed} (${pct >= 0 ? '+' : ''}${pct}%)`;
 }
 
 function webAnalyticsNotes(sections: WeeklyWebAnalyticsSection[]): string {

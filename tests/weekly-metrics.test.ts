@@ -121,6 +121,65 @@ describe('web analytics interpretation', () => {
     ).toMatchObject({ state: 'ok', current: { visitors: 7, pageviews: 9 } });
   });
 
+  it('flags partial counter responses instead of passing them as complete', () => {
+    const partial = interpretWebAnalyticsResponse({
+      project: 'fpf-sh',
+      status: 200,
+      bodyText: '{"visitors": 42}',
+    });
+    expect(partial.state).toBe('ok');
+    expect(partial.current).toEqual({ visitors: 42 });
+    expect(partial.detail).toContain('missing the pageviews counter');
+
+    const report = buildWeeklyMetricsReport({
+      now: NOW,
+      window: {
+        label: '7d',
+        start: '2026-07-31T06:00:00.000Z',
+        end: '2026-08-07T06:00:00.000Z',
+      },
+      freshness: { state: 'ok', summary: 'published matches upstream head' },
+      git: summarizeGitActivity([
+        'abcdef1234\t2026-08-01T09:00:00+00:00\tpublish: sync FPF spec from ailev/FPF (aaaa · 2026-08-01) (#1)',
+      ]),
+      deployments: [],
+      webAnalytics: [partial],
+    });
+    expect(report.findings.join('\n')).toContain('partial counters');
+  });
+
+  it('renders week-over-week delta columns when both windows have counts', () => {
+    const section = withPreviousWindow(
+      interpretWebAnalyticsResponse({
+        project: 'fpf-sh',
+        status: 200,
+        bodyText: '{"visitors": 42, "pageviews": 128}',
+      }),
+      interpretWebAnalyticsResponse({
+        project: 'fpf-sh',
+        status: 200,
+        bodyText: '{"visitors": 30, "pageviews": 90}',
+      }),
+    );
+    const report = buildWeeklyMetricsReport({
+      now: NOW,
+      window: {
+        label: '7d',
+        start: '2026-07-31T06:00:00.000Z',
+        end: '2026-08-07T06:00:00.000Z',
+      },
+      freshness: { state: 'ok', summary: 'published matches upstream head' },
+      git: summarizeGitActivity([
+        'abcdef1234\t2026-08-01T09:00:00+00:00\tpublish: sync FPF spec from ailev/FPF (aaaa · 2026-08-01) (#1)',
+      ]),
+      deployments: [],
+      webAnalytics: [section],
+    });
+    const markdown = formatWeeklyMetricsMarkdown(report);
+    expect(markdown).toContain('Δ week-over-week');
+    expect(markdown).toContain('+12 (+40%) / +38 (+42.2%)');
+  });
+
   it('marks unrecognized 200 bodies as unparsed instead of guessing', () => {
     const section = interpretWebAnalyticsResponse({
       project: 'fpf-sh',
