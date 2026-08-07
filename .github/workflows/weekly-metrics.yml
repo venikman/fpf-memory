@@ -35,7 +35,11 @@ jobs:
   report:
     name: Build and publish the weekly metrics review
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Sized for the fully degraded path, not the happy one: the tolerant
+    # precursor steps may burn up to 11 minutes of timeouts and the report's
+    # sequential 30s-bounded fetches up to ~8.5 more, and the ledger (or its
+    # explicit unavailable verdicts) must still publish after all of that.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
         with:
