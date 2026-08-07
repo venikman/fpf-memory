@@ -169,7 +169,14 @@ async function loadDeployments(project: WeeklyMetricsProjectRef): Promise<Weekly
         deployments?: unknown[];
         pagination?: { next?: number | null };
       };
-      const pageRows = Array.isArray(payload.deployments) ? payload.deployments : [];
+      if (!Array.isArray(payload.deployments)) {
+        return deploymentsSectionError(
+          project.name,
+          'error',
+          `Deployments response had no recognizable deployments array (page ${page + 1}).`,
+        );
+      }
+      const pageRows = payload.deployments;
       rows.push(...pageRows);
       const next = payload.pagination?.next;
       if (typeof next !== 'number' || next <= sinceMs || pageRows.length < DEPLOYMENTS_PAGE_LIMIT) {
