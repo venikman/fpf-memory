@@ -152,10 +152,14 @@ jobs:
           fi
           echo "Review issue: #$issue_number"
 
-          # Keep exactly one open review: close older "Weekly metrics review"
-          # issues as superseded so the list never accumulates stale reviews.
+          # Keep exactly one open review: close older reviews as superseded.
+          # Match ONLY the canonical "Weekly metrics review YYYY-Www" shape,
+          # strictly older than the current week (lexicographic compare is
+          # correct for that format, year first) — a prefix match would let
+          # this autonomous close swallow unrelated issues that merely start
+          # with the same words.
           printf '%s' "$open_issues" \
-          | jq -r --arg t "$title" '.[] | select(.title != $t) | select(.title | startswith("Weekly metrics review")) | .number' \
+          | jq -r --arg t "$title" '.[] | select(.title | test("^Weekly metrics review [0-9]{4}-W[0-9]{2}$")) | select(.title < $t) | .number' \
           | while read -r stale; do
               gh issue comment "$stale" --body "Superseded by #$issue_number."
               gh issue close "$stale" --reason completed
