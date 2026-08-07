@@ -394,6 +394,12 @@ export function renderHostedHomePage(): string {
         }
       }
     </style>
+    <!-- Vercel Web Analytics: cookieless pageview beacon for the weekly
+         metrics review. The script route only exists once Web Analytics is
+         enabled for the fpf-reference-mcp project; before that the deferred
+         request 404s silently. -->
+    <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+    <script defer src="/_vercel/insights/script.js"></script>
   </head>
   <body>
     <main>
