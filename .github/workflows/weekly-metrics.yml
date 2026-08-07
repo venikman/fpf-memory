@@ -89,6 +89,14 @@ jobs:
             --output reports/weekly/weekly-metrics.md
 
       - name: Publish review issue
+        # Canonical-ledger guard: only a default-window run on main may touch
+        # the rolling "Weekly metrics review" issue. A dispatch from another
+        # ref would report that ref's git history as "main" activity, and a
+        # custom-window dispatch (e.g. 1d) resolves to the same ISO week and
+        # would overwrite the scheduled full-week evidence. Those runs still
+        # render the complete report in the step summary — they just don't
+        # write the ledger.
+        if: github.ref == 'refs/heads/main' && env.FPF_WEEKLY_METRICS_WINDOW == '7d'
         env:
           GH_TOKEN: ${{ github.token }}
           REVIEW_WEEK: ${{ steps.metrics.outputs.review_week }}
