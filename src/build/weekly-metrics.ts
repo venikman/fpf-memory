@@ -89,6 +89,18 @@ export interface WeeklyWebAnalyticsSection {
   detail?: string;
 }
 
+/**
+ * Verdict of the separately produced MCP usage report (`usage:report`),
+ * carried via its GITHUB_OUTPUT keys so a failing or breaching usage sample
+ * surfaces as a top-level finding instead of hiding inside the embedded
+ * details block. Absent when no usage sample was requested (local runs).
+ */
+export interface WeeklyUsageSampleSection {
+  state: string;
+  operatorActionRequired: boolean;
+  summary?: string;
+}
+
 export interface WeeklyMetricsReport {
   generatedAt: string;
   window: WeeklyMetricsWindow;
@@ -96,6 +108,7 @@ export interface WeeklyMetricsReport {
   git: WeeklyGitSection;
   deployments: WeeklyDeploymentsSection[];
   webAnalytics: WeeklyWebAnalyticsSection[];
+  usageSample?: WeeklyUsageSampleSection;
   findings: string[];
   operatorActionRequired: boolean;
   summary: string;
@@ -327,6 +340,7 @@ export function buildWeeklyMetricsReport(input: {
   git: WeeklyGitSection;
   deployments: WeeklyDeploymentsSection[];
   webAnalytics: WeeklyWebAnalyticsSection[];
+  usageSample?: WeeklyUsageSampleSection;
 }): WeeklyMetricsReport {
   const findings: string[] = [];
 
@@ -342,8 +356,28 @@ export function buildWeeklyMetricsReport(input: {
 
   if (input.git.state === 'unavailable') {
     findings.push(`Repository activity could not be read: ${input.git.detail ?? 'unknown error'}`);
-  } else if (input.git.syncCommits === 0) {
-    findings.push('No sync publications merged to main in this window.');
+  } else if (
+    input.git.syncCommits === 0
+    && (input.freshness.state === 'breach' || input.freshness.state === 'unavailable')
+  ) {
+    // Zero syncs on a quiet upstream week is healthy — it only becomes
+    // evidence of missed publication work when freshness is breached, or
+    // unprovable, in the same window.
+    findings.push(
+      'No sync publications merged to main in this window while freshness was not provably ok.',
+    );
+  }
+
+  if (input.usageSample) {
+    if (input.usageSample.state !== 'ok') {
+      findings.push(
+        `MCP usage telemetry sample did not run cleanly (${input.usageSample.state})${input.usageSample.summary ? `: ${input.usageSample.summary}` : '.'}`,
+      );
+    } else if (input.usageSample.operatorActionRequired) {
+      findings.push(
+        `MCP usage telemetry sample requires operator action${input.usageSample.summary ? `: ${input.usageSample.summary}` : '.'}`,
+      );
+    }
   }
 
   for (const section of input.deployments) {
@@ -383,6 +417,7 @@ export function buildWeeklyMetricsReport(input: {
     git: input.git,
     deployments: input.deployments,
     webAnalytics: input.webAnalytics,
+    ...(input.usageSample ? { usageSample: input.usageSample } : {}),
     findings,
     operatorActionRequired: findings.length > 0,
     summary: '',
@@ -433,7 +468,7 @@ ${webAnalyticsTable(report.webAnalytics)}
 
 ${webAnalyticsNotes(report.webAnalytics)}
 
-## Caveats
+${usageSampleSection(report.usageSample)}## Caveats
 
 ${report.caveats.map((item) => `- ${item}`).join('\n')}
 `;
@@ -532,6 +567,19 @@ function webAnalyticsNotes(sections: WeeklyWebAnalyticsSection[]): string {
     .filter((section) => section.detail)
     .map((section) => `- ${section.project}: ${section.detail}`);
   return notes.join('\n');
+}
+
+function usageSampleSection(sample: WeeklyUsageSampleSection | undefined): string {
+  if (!sample) {
+    return '';
+  }
+  return `## MCP usage telemetry sample
+
+- State: **${sample.state}**
+- Operator action required: ${sample.operatorActionRequired ? 'yes' : 'no'}${sample.summary ? `\n- Summary: ${sample.summary}` : ''}
+- The full sample is attached below this report by the workflow.
+
+`;
 }
 
 function findingList(findings: string[]): string {

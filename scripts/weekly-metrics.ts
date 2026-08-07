@@ -59,6 +59,16 @@ const vercelToken = readOptionalString(
 const projects = parseProjects(
   readOptionalString(flags, 'projects', process.env.FPF_WEEKLY_METRICS_PROJECTS),
 );
+// Verdict of the separately produced usage report, passed through from its
+// GITHUB_OUTPUT keys by the workflow. Only wired in when --usage-state is
+// present; local runs without a usage sample simply omit the section.
+const usageState = readOptionalString(flags, 'usage-state', process.env.FPF_WEEKLY_USAGE_STATE);
+const usageSample = usageState === undefined ? undefined : {
+  state: usageState,
+  operatorActionRequired:
+    readString(flags, 'usage-action-required', process.env.FPF_WEEKLY_USAGE_ACTION_REQUIRED ?? 'false') === 'true',
+  summary: readOptionalString(flags, 'usage-summary', process.env.FPF_WEEKLY_USAGE_SUMMARY),
+};
 
 const now = new Date();
 const window = resolveUsageWindow(windowLabel, now);
@@ -79,6 +89,7 @@ const report = buildWeeklyMetricsReport({
   git,
   deployments,
   webAnalytics,
+  usageSample,
 });
 const rendered = format === 'json'
   ? `${JSON.stringify(report, null, 2)}\n`

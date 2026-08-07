@@ -215,6 +215,54 @@ describe('weekly metrics report', () => {
     expect(report.findings.join('\n')).toContain('Web Analytics is not enabled for fpf-sh');
   });
 
+  it('does not flag zero syncs on a quiet upstream week with freshness ok', () => {
+    const report = buildWeeklyMetricsReport({
+      now: NOW,
+      window,
+      freshness: { state: 'ok', summary: 'published matches upstream head' },
+      git: summarizeGitActivity([
+        'abcdef1234\t2026-08-01T09:00:00+00:00\tdocs: tidy the playbook (#9)',
+      ]),
+      deployments: [],
+      webAnalytics: [],
+    });
+    expect(report.findings).toHaveLength(0);
+    expect(report.operatorActionRequired).toBe(false);
+  });
+
+  it('folds the usage-sample verdict into the top-level findings', () => {
+    const base = {
+      now: NOW,
+      window,
+      freshness: { state: 'ok', summary: 'published matches upstream head' } as WeeklyFreshnessSection,
+      git: summarizeGitActivity([
+        'abcdef1234\t2026-08-01T09:00:00+00:00\tpublish: sync FPF spec from ailev/FPF (aaaa · 2026-08-01) (#1)',
+      ]),
+      deployments: [],
+      webAnalytics: [],
+    };
+
+    const broken = buildWeeklyMetricsReport({
+      ...base,
+      usageSample: { state: 'absent', operatorActionRequired: true, summary: 'usage report produced no outputs' },
+    });
+    expect(broken.findings.join('\n')).toContain('usage telemetry sample did not run cleanly (absent)');
+    expect(broken.operatorActionRequired).toBe(true);
+    expect(formatWeeklyMetricsMarkdown(broken)).toContain('## MCP usage telemetry sample');
+
+    const breaching = buildWeeklyMetricsReport({
+      ...base,
+      usageSample: { state: 'ok', operatorActionRequired: true, summary: 'ask_fpf error rate is 40%' },
+    });
+    expect(breaching.findings.join('\n')).toContain('requires operator action: ask_fpf error rate is 40%');
+
+    const clean = buildWeeklyMetricsReport({
+      ...base,
+      usageSample: { state: 'ok', operatorActionRequired: false, summary: '12 valid events' },
+    });
+    expect(clean.findings).toHaveLength(0);
+  });
+
   it('reports ok with no findings on a healthy week', () => {
     const report = buildWeeklyMetricsReport({
       now: NOW,

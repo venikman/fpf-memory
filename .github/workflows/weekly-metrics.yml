@@ -12,6 +12,11 @@ on:
         description: 'Metrics window (e.g. 7d)'
         required: false
         default: '7d'
+      publish:
+        description: 'Write the canonical weekly review issue (scheduled runs always do)'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -67,6 +72,7 @@ jobs:
         # Vercel runtime-log retention is far shorter than a week, so this is
         # an honest 24h sample, embedded in the review as supporting detail.
         # Tolerant: a config error still renders as a config_error report.
+        id: usage
         continue-on-error: true
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_USAGE_REPORT_TOKEN || secrets.VERCEL_TOKEN }}
@@ -82,6 +88,13 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_WEEKLY_METRICS_TOKEN || secrets.VERCEL_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
+          # Usage-report verdict from its GITHUB_OUTPUT, so a failing or
+          # breaching sample becomes a top-level finding in the weekly state
+          # instead of hiding inside the collapsed details block. `absent`
+          # when the step died before writing outputs.
+          FPF_WEEKLY_USAGE_STATE: ${{ steps.usage.outputs.state || 'absent' }}
+          FPF_WEEKLY_USAGE_ACTION_REQUIRED: ${{ steps.usage.outputs.operator_action_required || 'true' }}
+          FPF_WEEKLY_USAGE_SUMMARY: ${{ steps.usage.outputs.summary || 'usage report produced no outputs' }}
         run: |
           bun run weekly:metrics -- \
             --window "$FPF_WEEKLY_METRICS_WINDOW" \
@@ -89,14 +102,20 @@ jobs:
             --output reports/weekly/weekly-metrics.md
 
       - name: Publish review issue
-        # Canonical-ledger guard: only a default-window run on main may touch
-        # the rolling "Weekly metrics review" issue. A dispatch from another
-        # ref would report that ref's git history as "main" activity, and a
-        # custom-window dispatch (e.g. 1d) resolves to the same ISO week and
-        # would overwrite the scheduled full-week evidence. Those runs still
-        # render the complete report in the step summary — they just don't
-        # write the ledger.
-        if: github.ref == 'refs/heads/main' && env.FPF_WEEKLY_METRICS_WINDOW == '7d'
+        # Canonical-ledger guard: scheduled runs write the rolling "Weekly
+        # metrics review" issue; manual dispatches only do so with the
+        # explicit publish input, on main, at the default window. Otherwise a
+        # branch dispatch would report that ref's git history as "main"
+        # activity, a custom-window dispatch (e.g. 1d) would overwrite the
+        # scheduled full-week evidence under the same ISO-week identity, and
+        # an off-schedule Friday dispatch could mint the in-progress week's
+        # issue and close the completed review as superseded. Non-publishing
+        # runs still render the complete report in the step summary.
+        if: >-
+          github.event_name == 'schedule'
+          || (github.event.inputs.publish == 'true'
+              && github.ref == 'refs/heads/main'
+              && env.FPF_WEEKLY_METRICS_WINDOW == '7d')
         env:
           GH_TOKEN: ${{ github.token }}
           REVIEW_WEEK: ${{ steps.metrics.outputs.review_week }}
