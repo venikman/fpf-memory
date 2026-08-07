@@ -1143,7 +1143,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.11",
-      "title": "Practical-Use Guidance and Pattern Discovery",
+      "title": "First-Practical Entry and Pattern-Use Discoverability Discipline",
       "staticPath": "/generated/patterns/E.11"
     },
     {
@@ -1188,17 +1188,17 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.17.0",
-      "title": "U.MultiViewDescribing - Viewpoints, Views & Correspondences",
+      "title": "Viewpoint and View Recognition for Multi-View Describing",
       "staticPath": "/generated/patterns/E.17.0"
     },
     {
       "id": "E.17.1",
-      "title": "U.ViewpointBundleLibrary — Reusable Viewpoint Bundles",
+      "title": "Viewpoint Bundle Library — Reusable Viewpoint Reference Bundles",
       "staticPath": "/generated/patterns/E.17.1"
     },
     {
       "id": "E.17.2",
-      "title": "TEVB - Typical Engineering Viewpoints Bundle",
+      "title": "TEVB — Project-local Typical Engineering Viewpoint Bundle Template for Holons",
       "staticPath": "/generated/patterns/E.17.2"
     },
     {
@@ -1213,12 +1213,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.17.AUD.OOTD",
-      "title": "PublicationUnit Stability Discipline and PublicationUnit Primary EntityOfConcern Discipline",
+      "title": "PublicationUnit Primary-Subject Discipline",
       "staticPath": "/generated/patterns/E.17.AUD.OOTD"
     },
     {
       "id": "E.17.EFP",
-      "title": "ExplanationFaithfulnessProfile — explanation-use discipline over existing MVPK faces",
+      "title": "ExplanationFaithfulnessProfile — bounded explanation-use discipline",
       "staticPath": "/generated/patterns/E.17.EFP"
     },
     {
