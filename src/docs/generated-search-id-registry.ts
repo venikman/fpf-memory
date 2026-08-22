@@ -33,12 +33,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.2",
-      "title": "Role Taxonomy",
+      "title": "System-Role Kinds and Assignments",
       "staticPath": "/generated/patterns/A.2"
     },
     {
       "id": "A.2.1",
-      "title": "U.RoleAssignment - System Role Assignment",
+      "title": "U.SystemRoleAssignment - Contextual System-Role Assignment",
       "staticPath": "/generated/patterns/A.2.1"
     },
     {
@@ -58,7 +58,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.2.5",
-      "title": "RoleStateRelation@BoundedContext - Role State Space and Enactable-State Admission",
+      "title": "SystemRoleAssignmentStateRelation - Assignment-State Recognition and Work Admission",
       "staticPath": "/generated/patterns/A.2.5"
     },
     {
@@ -68,12 +68,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.2.7",
-      "title": "RoleRelationStructure@BoundedContext - Context-Local Role Relations and Representation-Lens Boundary",
+      "title": "SystemRoleKindRelationStructure - Relations among System-Role Kinds",
       "staticPath": "/generated/patterns/A.2.7"
     },
     {
       "id": "A.2.8",
-      "title": "U.Commitment (Deontic Commitment Object)",
+      "title": "U.Commitment (Deontic Commitment Relation)",
       "staticPath": "/generated/patterns/A.2.8"
     },
     {
@@ -143,12 +143,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.2",
-      "title": "U.EffectFreeEpistemicMorphing — Effect‑free morphisms of epistemes",
+      "title": "Effect-free episteme morphing",
       "staticPath": "/generated/patterns/A.6.2"
     },
     {
       "id": "A.6.3",
-      "title": "U.EpistemicViewing — EntityOfConcern-preserving morphism",
+      "title": "Episteme viewing - EntityOfConcern-preserving episteme construction",
       "staticPath": "/generated/patterns/A.6.3"
     },
     {
@@ -173,7 +173,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.4",
-      "title": "U.EpistemicRetargeting — EntityOfConcern retargeting morphism",
+      "title": "EntityOfConcern retargeting",
       "staticPath": "/generated/patterns/A.6.4"
     },
     {
@@ -183,7 +183,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.6",
-      "title": "Base Declaration Discipline - Kind-explicit, scoped, witnessed base declaration discipline (with base-change lexicon)",
+      "title": "Base Declaration Discipline - Direct relation first; reusable declaration only when needed",
       "staticPath": "/generated/patterns/A.6.6"
     },
     {
@@ -258,7 +258,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.S",
-      "title": "U.SignatureEngineeringPair - Signature engineering via a ConstructorSignature and a TargetSignature",
+      "title": "TargetSignature and optional ConstructorSignature - demand-driven signature engineering",
       "staticPath": "/generated/patterns/A.6.S"
     },
     {
@@ -318,7 +318,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.15",
-      "title": "Role-Method-Work Alignment (Contextual Enactment)",
+      "title": "System-Role–Method–Work Alignment",
       "staticPath": "/generated/patterns/A.15"
     },
     {
@@ -443,12 +443,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.20",
-      "title": "Flow Constraint Validity — Eulerian",
+      "title": "Constraint Validity for Transformation Steps",
       "staticPath": "/generated/patterns/A.20"
     },
     {
       "id": "A.21",
-      "title": "GateProfilization: OperationalGate(profile) (GateFit core)",
+      "title": "Gate Decisions from Independent Check Results",
       "staticPath": "/generated/patterns/A.21"
     },
     {
@@ -528,7 +528,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "B.3",
-      "title": "Trust & Assurance Calculus (F–G–R with Congruence)",
+      "title": "Trust and Assurance Calculus",
       "staticPath": "/generated/patterns/B.3"
     },
     {
@@ -668,12 +668,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.3.3",
-      "title": "KindBridge & CL^k — Cross-context Mapping of Kinds",
+      "title": "KindBridge and CL^k — Cross-local Correspondence between Distinct Kinds",
       "staticPath": "/generated/patterns/C.3.3"
     },
     {
       "id": "C.3.4",
-      "title": "RoleMask — Contextual Adaptation of Kinds (without cloning)",
+      "title": "KindUseAdaptationDeclaration — Contextual Adaptation of Kinds without Cloning",
       "staticPath": "/generated/patterns/C.3.4"
     },
     {
@@ -733,7 +733,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.17",
-      "title": "Creativity‑CHR — Characterising Generative Novelty & Value",
+      "title": "Characterising Generative Novelty and Value",
       "staticPath": "/generated/patterns/C.17"
     },
     {
@@ -828,7 +828,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.27",
-      "title": "Temporal Claim Adequacy: State Readings, Temporal Trends, and Intervention-Sensitive Temporal Change",
+      "title": "Temporal Claim Adequacy: State Readings, Temporal Trends, and Intervention-Sensitive Change",
       "staticPath": "/generated/patterns/C.27"
     },
     {
@@ -838,7 +838,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "C.28",
-      "title": "CausalUse-CAL: Causal-Use Questions, Causality-Ladder Rungs, Identification and Realizability",
+      "title": "CausalUse-CAL: Causal-Use Questions, Identification, and Realizability",
       "staticPath": "/generated/patterns/C.28"
     },
     {
@@ -1098,7 +1098,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.8.ECSPF",
-      "title": "Evaluation CharacteristicSpace FPF Pattern Publication Form",
+      "title": "FPF Pattern Publication Form for Evaluation Guidance",
       "staticPath": "/generated/patterns/E.8.ECSPF"
     },
     {
@@ -1123,7 +1123,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.10.D1",
-      "title": "Lexical Discipline for “Context” (D.CTX)",
+      "title": "Recovering What “Context” Means in Use",
       "staticPath": "/generated/patterns/E.10.D1"
     },
     {
@@ -1140,6 +1140,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "E.10.P",
       "title": "Conceptual Prefixes (policy & registry)",
       "staticPath": "/generated/patterns/E.10.P"
+    },
+    {
+      "id": "E.10.ROLE",
+      "title": "Recovering What “Role” Means in the Current Claim",
+      "staticPath": "/generated/patterns/E.10.ROLE"
     },
     {
       "id": "E.11",
@@ -1173,7 +1178,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.15",
-      "title": "Lexical Authoring & Evolution Protocol (LEX-AUTH)",
+      "title": "Pattern Change, Edition Continuity, and Impact Analysis",
       "staticPath": "/generated/patterns/E.15"
     },
     {
@@ -1298,12 +1303,12 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "F.0.1",
-      "title": "Contextual Lexicon Principles",
+      "title": "Source-Local Meaning Recovery",
       "staticPath": "/generated/patterns/F.0.1"
     },
     {
       "id": "F.1",
-      "title": "Domain‑Family Landscape Survey",
+      "title": "Question-Relative Source Selection",
       "staticPath": "/generated/patterns/F.1"
     },
     {
@@ -1313,27 +1318,27 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "F.3",
-      "title": "Intra‑Context Sense Clustering",
+      "title": "Source-Local Sense Clustering",
       "staticPath": "/generated/patterns/F.3"
     },
     {
       "id": "F.4",
-      "title": "Role Description (RCS + RoleStateGraph + Checklists)",
+      "title": "SystemRoleKindDescription — Describing an Exact System-Role Kind",
       "staticPath": "/generated/patterns/F.4"
     },
     {
       "id": "F.5",
-      "title": "Naming Discipline for U-kind Names and RoleDescription Labels",
+      "title": "Naming Discipline for U-kind Names and SystemRoleKindDescription Labels",
       "staticPath": "/generated/patterns/F.5"
     },
     {
       "id": "F.6",
-      "title": "RoleAssignment and Performed-Work Attribution Check",
+      "title": "SystemRoleAssignment and Performed-Work Attribution Check",
       "staticPath": "/generated/patterns/F.6"
     },
     {
       "id": "F.7",
-      "title": "Concept‑Set Table Construction",
+      "title": "Concept-Set Table Construction",
       "staticPath": "/generated/patterns/F.7"
     },
     {
@@ -1348,7 +1353,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "F.9.1",
-      "title": "Bridge Stance Overlay",
+      "title": "Bridge Stance Note",
       "staticPath": "/generated/patterns/F.9.1"
     },
     {
@@ -1363,7 +1368,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "F.12",
-      "title": "Service Acceptance Binding",
+      "title": "Service Acceptance–Work Evidence Link",
       "staticPath": "/generated/patterns/F.12"
     },
     {
@@ -1373,7 +1378,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "F.14",
-      "title": "Anti‑Explosion Control (Roles & Statuses)",
+      "title": "Anti-Explosion Control for System-Role and Status Name Families",
       "staticPath": "/generated/patterns/F.14"
     },
     {
@@ -1383,7 +1388,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "F.16",
-      "title": "Worked‑Example Template (Cross‑Domain)",
+      "title": "Worked-Example Template (Cross-Domain)",
       "staticPath": "/generated/patterns/F.16"
     },
     {
