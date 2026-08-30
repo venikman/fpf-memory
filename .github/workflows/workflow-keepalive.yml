@@ -1,0 +1,233 @@
+name: Workflow Keepalive
+
+# In a public repository GitHub automatically disables EVERY scheduled
+# workflow after 60 days without repository activity
+# (docs.github.com → events-that-trigger-workflows#schedule). This repo's
+# only routine activity is bot sync squash-merges to main, which stop
+# exactly when upstream goes quiet or a sync PR sticks on red CI — so the
+# disable fires precisely when the sentinels are most needed, and it takes
+# the alarms down with the workers: publication sync, sync SLO monitor,
+# content-quality monitor, spend monitor, and the weekly review all go
+# silent at once, with no issue opened by anything.
+#
+# Two independent legs, either of which keeps the fleet alive:
+#
+#   1. Re-enable every active or auto-disabled workflow via the REST
+#      enable endpoint. Re-enabling resets that workflow's inactivity
+#      clock (the mechanism the ecosystem-standard keepalive actions rely
+#      on) and also un-disables anything the 60-day rule already caught,
+#      so a single live keepalive run cures a fleet-wide disable.
+#   2. If no branch of this repo has been pushed for KEEPALIVE_MAX_QUIET_DAYS,
+#      refresh a marker file on the dedicated keepalive branch through the
+#      contents API — a real push that resets the repository-activity
+#      clock even if leg 1's enable-resets-the-timer semantics ever
+#      change. Never on main: main pushes run the full CI pipeline, which
+#      is waste for a timestamp file.
+#
+# Manually disabled workflows are deliberately left alone: switching a
+# workflow off on purpose must stay effective.
+#
+# Residual risk, accepted: if BOTH legs' assumptions fail (enable does not
+# reset the timer AND non-default-branch pushes do not count as activity),
+# everything including this workflow disables at day 60. The recovery is
+# one manual action — re-enable any workflow from the Actions tab or
+# `gh workflow enable workflow-keepalive.yml` — after which the next
+# keepalive run re-enables the rest of the fleet.
+
+on:
+  schedule:
+    # Weekly, offset from every other cron in this repo. Weekly cadence
+    # gives ~8x margin against the 60-day cliff, and the parity test pins
+    # quiet-threshold + two missed slots under 60 days.
+    - cron: '23 3 * * 3'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Log what would be re-enabled or pushed without mutating anything'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  actions: write
+  contents: write
+  issues: write
+
+concurrency:
+  group: workflow-keepalive
+  cancel-in-progress: false
+
+env:
+  # Leg 2 threshold. 45 leaves 15 days of slack after the marker push and
+  # still tolerates two missed weekly slots before the 60-day cliff.
+  KEEPALIVE_MAX_QUIET_DAYS: '45'
+  KEEPALIVE_BRANCH: automation/keepalive
+  KEEPALIVE_MARKER_PATH: .github/KEEPALIVE
+  DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+
+jobs:
+  keepalive:
+    name: Keep scheduled workflows enabled
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # No checkout, no package install, on purpose: this is the last line
+    # of defense and must not inherit failure modes from the toolchain,
+    # the lockfile, or the registry. Everything below is gh + jq, which
+    # ship on the runner image. GH_REPO replaces the repo context gh
+    # would otherwise read from a checkout's git remote.
+    #
+    # Each API leg carries its own step timeout well under the job's: a
+    # hung call must FAIL the step (so the failure-issue step below still
+    # runs) rather than burn the job timeout, which cancels everything
+    # including the escalation.
+    steps:
+      - name: Re-enable scheduled workflows (leg 1)
+        timeout-minutes: 3
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # Path filter: the workflows API also lists dynamic pseudo-
+          # workflows (Copilot/Codex agent surfaces under `dynamic/...`)
+          # that must not be PUT against. State filter: `active` gets its
+          # inactivity clock reset, `disabled_inactivity` gets cured;
+          # `disabled_manually` is excluded so a deliberate off stays off.
+          WORKFLOWS="$(
+            gh api --paginate "repos/$GH_REPO/actions/workflows?per_page=100" --jq '
+              .workflows[]
+              | select(.path | startswith(".github/workflows/"))
+              | select(.state == "active" or .state == "disabled_inactivity")
+              | [.id, .state, .path] | @tsv
+            '
+          )"
+
+          if [ -z "$WORKFLOWS" ]; then
+            echo "::error::Workflow enumeration returned nothing; refusing to treat an empty fleet as success."
+            exit 1
+          fi
+
+          while IFS=$'\t' read -r id state path; do
+            [ -n "$id" ] || continue
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "[dry-run] would re-enable $path (state: $state)"
+              continue
+            fi
+            gh api --silent -X PUT "repos/$GH_REPO/actions/workflows/$id/enable"
+            if [ "$state" = "disabled_inactivity" ]; then
+              echo "::warning::$path had been auto-disabled by the 60-day inactivity rule; re-enabled. Its schedule was silent while disabled — check what it missed."
+            else
+              echo "re-enabled $path (inactivity clock reset)"
+            fi
+          done <<<"$WORKFLOWS"
+
+      - name: Refresh keepalive marker when the repo is quiet (leg 2)
+        timeout-minutes: 3
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          # pushed_at moves on a push to ANY branch, which is exactly the
+          # signal to refresh: sync PR branches, feature branches, and the
+          # marker push itself all count, so this leg fires only in real
+          # multi-week silence.
+          PUSHED_AT="$(gh api "repos/$GH_REPO" --jq .pushed_at)"
+          QUIET_DAYS=$(( ( $(date -u +%s) - $(date -u -d "$PUSHED_AT" +%s) ) / 86400 ))
+          echo "Last push to any branch: $PUSHED_AT (${QUIET_DAYS}d ago; threshold ${KEEPALIVE_MAX_QUIET_DAYS}d)."
+
+          if [ "$QUIET_DAYS" -lt "$KEEPALIVE_MAX_QUIET_DAYS" ]; then
+            echo "Push activity is fresh enough; no marker commit needed."
+            exit 0
+          fi
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "[dry-run] would refresh $KEEPALIVE_MARKER_PATH on $KEEPALIVE_BRANCH."
+            exit 0
+          fi
+
+          if ! gh api "repos/$GH_REPO/git/ref/heads/$KEEPALIVE_BRANCH" --jq .object.sha >/dev/null 2>&1; then
+            DEFAULT_SHA="$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq .object.sha)"
+            gh api --silent -X POST "repos/$GH_REPO/git/refs" \
+              -f ref="refs/heads/$KEEPALIVE_BRANCH" \
+              -f sha="$DEFAULT_SHA"
+          fi
+
+          EXISTING_SHA="$(gh api "repos/$GH_REPO/contents/$KEEPALIVE_MARKER_PATH?ref=$KEEPALIVE_BRANCH" --jq .sha 2>/dev/null || true)"
+          CONTENT="$(
+            printf 'Repository keepalive marker.\nRefreshed because no branch had been pushed in %sd (threshold %sd).\nRun: %s\n' \
+              "$QUIET_DAYS" "$KEEPALIVE_MAX_QUIET_DAYS" "$RUN_URL" | base64 | tr -d '\n'
+          )"
+          args=(
+            -f message="chore: keepalive marker — no push in ${QUIET_DAYS}d"
+            -f content="$CONTENT"
+            -f branch="$KEEPALIVE_BRANCH"
+          )
+          if [ -n "$EXISTING_SHA" ]; then
+            args+=(-f sha="$EXISTING_SHA")
+          fi
+          gh api --silent -X PUT "repos/$GH_REPO/contents/$KEEPALIVE_MARKER_PATH" "${args[@]}"
+          echo "Pushed keepalive marker to $KEEPALIVE_BRANCH; repository push clock reset."
+
+      # The keepalive is the alarm of last resort, so its own failure must
+      # not be silent. Same open/close pair every monitor here uses.
+      - name: Open or update keepalive failure issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TITLE: Workflow keepalive is failing — scheduled automation may go dark
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          # Exact-title match, not --search: the search index is
+          # eventually consistent and tokenizes, so a search miss would
+          # create duplicates.
+          existing="$(
+            gh issue list --state open --limit 100 --json number,title |
+            jq -r --arg t "$TITLE" 'map(select(.title == $t)) | .[0].number // ""'
+          )"
+
+          body_file="$(mktemp)"
+          {
+            printf '%s\n' \
+              'The workflow keepalive failed. If this persists, GitHub will disable every scheduled workflow in this public repository 60 days after the last repository activity — including the sync worker and all monitors, silently.' \
+              '' \
+              "- Run: $RUN_URL" \
+              '' \
+              'Recovery: fix the failing step, or re-enable workflows by hand from the Actions tab (`gh workflow enable <file>`) once anything auto-disables.'
+          } > "$body_file"
+
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file "$body_file"
+          else
+            gh issue create --title "$TITLE" --body-file "$body_file"
+          fi
+
+      - name: Close keepalive failure issue after clean run
+        # Not on dry runs: a dry run repairs nothing, so a green one is no
+        # evidence that a previously reported failure is fixed.
+        if: success() && env.DRY_RUN != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TITLE: Workflow keepalive is failing — scheduled automation may go dark
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          existing="$(
+            gh issue list --state open --limit 100 --json number,title |
+            jq -r --arg t "$TITLE" 'map(select(.title == $t)) | .[0].number // ""'
+          )"
+
+          if [ -z "$existing" ]; then
+            exit 0
+          fi
+
+          gh issue comment "$existing" --body "Keepalive completed cleanly; closing. Run: $RUN_URL"
+          gh issue close "$existing" --reason completed
