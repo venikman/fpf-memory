@@ -195,7 +195,7 @@ jobs:
         if: steps.detect.outputs.changed == 'false' && github.ref == 'refs/heads/main'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          FPF_VERCEL_SCOPE: team_CnO1I5xd2OS0lzbbc4RkW7Ym
+          FPF_VERCEL_SCOPE: venikmans-projects
         run: |
           set -euo pipefail
 
@@ -306,7 +306,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          FPF_VERCEL_SCOPE: team_CnO1I5xd2OS0lzbbc4RkW7Ym
+          FPF_VERCEL_SCOPE: venikmans-projects
           PR_NUMBER: ${{ steps.pr.outputs.pull-request-number }}
         run: |
           set -euo pipefail
