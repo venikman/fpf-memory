@@ -307,6 +307,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.10"
     },
     {
+      "id": "A.10.1",
+      "title": "Revalidate Affected Uses When a Relied-on Source Changes",
+      "staticPath": "/generated/patterns/A.10.1"
+    },
+    {
       "id": "A.11",
       "title": "Ontological Parsimony",
       "staticPath": "/generated/patterns/A.11"
@@ -1012,6 +1017,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.36.P"
     },
     {
+      "id": "C.37",
+      "title": "Use-Bounded Representation Selection and Co-Use",
+      "staticPath": "/generated/patterns/C.37"
+    },
+    {
       "id": "D.1",
       "title": "Ethical Value Plurality and FPF Boundary",
       "staticPath": "/generated/patterns/D.1"
@@ -1193,7 +1203,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.11.DSG",
-      "title": "DPF Suite Guide",
+      "title": "DPF Suite Reference",
       "staticPath": "/generated/patterns/E.11.DSG"
     },
     {
