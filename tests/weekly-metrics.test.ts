@@ -3,11 +3,13 @@ import { describe, expect, it } from '@rstest/core';
 import {
   buildWeeklyMetricsReport,
   formatWeeklyMetricsMarkdown,
+  interpretTokenMetadataResponse,
   interpretWebAnalyticsResponse,
   isoWeekId,
   resolveReviewWeekId,
   summarizeDeployments,
   summarizeGitActivity,
+  tokenLedgerEntryError,
   unavailableFreshnessSection,
   webAnalyticsSectionError,
   withPreviousWindow,
@@ -226,6 +228,159 @@ describe('web analytics interpretation', () => {
     expect(degraded.previous).toEqual({});
     expect(degraded.detail).toContain('Week-over-week comparison unavailable');
     expect(degraded.detail).toContain('error');
+  });
+});
+
+describe('token ledger interpretation', () => {
+  const tokenBody = (expiresAt?: number) => JSON.stringify({
+    token: {
+      id: 'abc123',
+      name: 'fpf spend monitor',
+      type: 'token',
+      activeAt: 1756400000000,
+      createdAt: 1740000000000,
+      ...(expiresAt === undefined ? {} : { expiresAt }),
+    },
+  });
+
+  it('reports ok with days left for a token expiring beyond the horizon', () => {
+    const entry = interpretTokenMetadataResponse({
+      secret: 'VERCEL_SPEND_MONITOR_TOKEN',
+      status: 200,
+      bodyText: tokenBody(NOW.getTime() + 200 * 86_400_000),
+      now: NOW,
+    });
+    expect(entry).toMatchObject({
+      state: 'ok',
+      tokenName: 'fpf spend monitor',
+      daysLeft: 200,
+    });
+  });
+
+  it('flags a token inside the 30-day warning window', () => {
+    const entry = interpretTokenMetadataResponse({
+      secret: 'VERCEL_TOKEN',
+      status: 200,
+      bodyText: tokenBody(NOW.getTime() + 12 * 86_400_000),
+      now: NOW,
+    });
+    expect(entry.state).toBe('expiring_soon');
+    expect(entry.daysLeft).toBe(12);
+  });
+
+  it('reports never-expiring tokens as ok with a null expiry', () => {
+    const entry = interpretTokenMetadataResponse({
+      secret: 'VERCEL_TOKEN',
+      status: 200,
+      bodyText: tokenBody(),
+      now: NOW,
+    });
+    expect(entry.state).toBe('ok');
+    expect(entry.expiresAt).toBeNull();
+  });
+
+  it('marks a past expiry as expired even when metadata still answers', () => {
+    const entry = interpretTokenMetadataResponse({
+      secret: 'VERCEL_TOKEN',
+      status: 200,
+      bodyText: tokenBody(NOW.getTime() - 86_400_000),
+      now: NOW,
+    });
+    expect(entry.state).toBe('expired');
+  });
+
+  it('maps a rejected probe to invalid — the loudest verdict, not an error', () => {
+    const entry = interpretTokenMetadataResponse({
+      secret: 'VERCEL_TOKEN',
+      status: 401,
+      bodyText: '{"error":{"code":"forbidden"}}',
+      now: NOW,
+    });
+    expect(entry.state).toBe('invalid');
+    expect(entry.detail).toContain('expired or revoked');
+  });
+
+  it('marks unrecognized 200 bodies as error instead of guessing', () => {
+    const entry = interpretTokenMetadataResponse({
+      secret: 'VERCEL_TOKEN',
+      status: 200,
+      bodyText: '{"shape":"unexpected"}',
+      now: NOW,
+    });
+    expect(entry.state).toBe('error');
+  });
+
+  it('promotes dead, expiring, and missing tokens to findings and renders the section', () => {
+    const report = buildWeeklyMetricsReport({
+      now: NOW,
+      window: {
+        label: '7d',
+        start: '2026-07-31T06:00:00.000Z',
+        end: '2026-08-07T06:00:00.000Z',
+      },
+      freshness: { state: 'ok', summary: 'published matches upstream head' },
+      git: summarizeGitActivity([
+        'abcdef1234\t2026-08-01T09:00:00+00:00\tpublish: sync FPF spec from ailev/FPF (aaaa · 2026-08-01) (#1)',
+      ]),
+      deployments: [],
+      webAnalytics: [],
+      tokenLedger: [
+        interpretTokenMetadataResponse({
+          secret: 'VERCEL_SPEND_MONITOR_TOKEN',
+          status: 200,
+          bodyText: tokenBody(NOW.getTime() + 200 * 86_400_000),
+          now: NOW,
+        }),
+        interpretTokenMetadataResponse({
+          secret: 'VERCEL_TOKEN',
+          status: 401,
+          bodyText: '{"error":{"code":"forbidden"}}',
+          now: NOW,
+        }),
+        interpretTokenMetadataResponse({
+          secret: 'FPF_USAGE_REPORT_VERCEL_TOKEN',
+          status: 200,
+          bodyText: tokenBody(NOW.getTime() + 5 * 86_400_000),
+          now: NOW,
+        }),
+        tokenLedgerEntryError('VERCEL_GHOST_TOKEN', 'not_configured', 'FPF_TOKEN_LEDGER_VERCEL_GHOST_TOKEN was empty — the repo secret is missing or the workflow stopped passing it.'),
+      ],
+    });
+
+    expect(report.operatorActionRequired).toBe(true);
+    const findings = report.findings.join('\n');
+    expect(findings).toContain('Vercel token VERCEL_TOKEN is dead (invalid)');
+    expect(findings).toContain('Vercel token FPF_USAGE_REPORT_VERCEL_TOKEN expires in 5 days');
+    expect(findings).toContain('Repo secret VERCEL_GHOST_TOKEN is not configured');
+    expect(findings).not.toContain('VERCEL_SPEND_MONITOR_TOKEN');
+    expect(report.summary).toContain('tokens 1/4 ok');
+
+    const markdown = formatWeeklyMetricsMarkdown(report);
+    expect(markdown).toContain('## Vercel token ledger');
+    expect(markdown).toContain('| VERCEL_SPEND_MONITOR_TOKEN | ok | fpf spend monitor |');
+    expect(markdown).toContain('| VERCEL_TOKEN | invalid |');
+    expect(markdown).toContain('`GET /v5/user/tokens/current`');
+  });
+
+  it('omits the ledger section and caveat entirely when no probe was requested', () => {
+    const report = buildWeeklyMetricsReport({
+      now: NOW,
+      window: {
+        label: '7d',
+        start: '2026-07-31T06:00:00.000Z',
+        end: '2026-08-07T06:00:00.000Z',
+      },
+      freshness: { state: 'ok', summary: 'published matches upstream head' },
+      git: summarizeGitActivity([
+        'abcdef1234\t2026-08-01T09:00:00+00:00\tpublish: sync FPF spec from ailev/FPF (aaaa · 2026-08-01) (#1)',
+      ]),
+      deployments: [],
+      webAnalytics: [],
+    });
+    expect(report.findings).toHaveLength(0);
+    const markdown = formatWeeklyMetricsMarkdown(report);
+    expect(markdown).not.toContain('## Vercel token ledger');
+    expect(markdown).not.toContain('tokens/current');
   });
 });
 

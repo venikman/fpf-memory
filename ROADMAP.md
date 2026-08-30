@@ -71,6 +71,13 @@ the delivery is what let a 16-day outage report "within SLO" (see #253).
    confirm on the first run that analytics enablement + beacon actually
    collect, then swap the 24h usage sample for durable Web Analytics custom
    events emitted server-side from the MCP runtime.
+   2026-08-30 absence-hardening shipped under this item: a weekly workflow
+   keepalive against GitHub's 60-day scheduled-workflow auto-disable (public
+   repos lose ALL crons — monitors and alarms included — after 60 quiet
+   days), a true-history fix for the sync monitor's recovery-dispatch budget
+   (the old 100-run window made a 3-4-week outage look recovered), and a
+   credential/renewal ledger in the automation playbook with weekly
+   token-expiry findings from `GET /v5/user/tokens/current`.
 
 ## Shipped
 
