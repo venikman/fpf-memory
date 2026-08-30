@@ -196,11 +196,18 @@ describe('docs projection', () => {
     // renderer emits when there is no intro text and no first-child excerpt.
     const stubId = 'I.2';
     const synthetic = structuredClone(snapshot);
-    const catalogDescription = synthetic.patternGraph.nodes[stubId]?.description;
     expect(
-      catalogDescription,
-      'expected the stub fixture pattern to carry a catalog description',
+      synthetic.patternGraph.nodes[stubId],
+      'expected the stub fixture pattern to exist',
     ).toBeTruthy();
+    // The 2026-08 upstream catalog restructure replaced the description
+    // column with keywords/queries, so no published pattern carries a catalog
+    // description any more. The renderer's description-only fallback
+    // (pattern.description ?? root index description) still exists, so the
+    // fixture synthesizes the description along with the stripped body.
+    const catalogDescription =
+      'Synthetic catalog description for the stub-page reminder fallback.';
+    synthetic.patternGraph.nodes[stubId].description = catalogDescription;
 
     // Remove body content so the renderer falls through to the reminder.
     if (synthetic.anchorMap[stubId]) synthetic.anchorMap[stubId].text = '';
@@ -211,7 +218,7 @@ describe('docs projection', () => {
       projection.pagesByMarkdownPath[`docs/generated/patterns/${stubId}.md`]?.markdown ?? '';
 
     expect(stubPage).not.toContain('## Content');
-    expect(stubPage).toContain(catalogDescription!);
+    expect(stubPage).toContain(catalogDescription);
   });
 
   it('preserves keyword cells that contain pipes inside code spans', () => {

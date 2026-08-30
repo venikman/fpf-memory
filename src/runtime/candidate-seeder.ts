@@ -159,11 +159,14 @@ function addIndexDescriptionCandidates(
     ) {
       score += 18;
     }
-    if (indexNode.metadata.routeBearing) {
-      score += 2;
-    }
     if (score <= 0) {
       continue;
+    }
+    // Tiebreak only: routeBearing must not create candidacy on its own, or
+    // every route-bearing index node becomes a candidate for every query and
+    // unresolvable questions come back `ok` instead of `not_found`.
+    if (indexNode.metadata.routeBearing) {
+      score += 2;
     }
 
     const existing = bestByTarget.get(targetId);

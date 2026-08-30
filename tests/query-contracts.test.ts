@@ -40,6 +40,14 @@ import type {
  * these patterns, update the IDs here to match.
  */
 
+/**
+ * Sentinel for "matches nothing in the spec". Every token must stay
+ * out-of-vocabulary: no English words, no digits. The previous sentinel
+ * (`__FPFTEST_NONSENSE_999__`) started resolving with status `ok` when
+ * the 2026-08 upstream spec added prose containing "nonsense" and "999".
+ */
+const UNRESOLVABLE_QUERY = '__FPFTEST_ZQQXVWJKF_XKVQZH__';
+
 let cachedSnapshot: Snapshot | undefined;
 let cachedRouteFixtureSnapshot: Snapshot | undefined;
 
@@ -288,7 +296,7 @@ describe('Query / Normalizer stage', () => {
 
   it('returns empty signals for a nonsense question', async () => {
     const snapshot = await getSnapshot();
-    const normalized = normalizeQuery('__FPFTEST_NONSENSE_999__', snapshot);
+    const normalized = normalizeQuery(UNRESOLVABLE_QUERY, snapshot);
 
     expect(normalized.detected.ids).toEqual([]);
     expect(normalized.detected.routeNames).toEqual([]);
@@ -385,7 +393,7 @@ describe('Query / Seed coverage stage', () => {
 
   it('produces few or low-scoring candidates for a completely unrelated question', async () => {
     const snapshot = await getSnapshot();
-    const normalized = normalizeQuery('__FPFTEST_NONSENSE_999__', snapshot);
+    const normalized = normalizeQuery(UNRESOLVABLE_QUERY, snapshot);
     const seeding = seedCandidates(normalized, snapshot);
 
     const highScoring = Array.from(seeding.candidateMap.values()).filter((c) => c.score >= 100);
@@ -816,7 +824,7 @@ describe('Query / Projection stability stage', () => {
 
   it('returns low confidence for completely unresolvable questions', async () => {
     const snapshot = await getSnapshot();
-    const trace = assembleTrace('__FPFTEST_NONSENSE_999__', 'compact', snapshot);
+    const trace = assembleTrace(UNRESOLVABLE_QUERY, 'compact', snapshot);
 
     expect(['not_found', 'ambiguous']).toContain(trace.status);
     expect(confidenceFromTrace(trace)).toBeLessThan(0.7);
