@@ -190,17 +190,19 @@ describe('docs projection', () => {
 
   it('renders catalog reminders for stub pages with no body content', () => {
     // The published spec no longer ships any pattern that is a pure catalog
-    // stub (every pattern now has body sections), so synthesize one from a
-    // real pattern: strip its anchor text and child sections but keep its
+    // stub, and since the 2026-08-28 upstream sync (ref 72222c13) every
+    // catalog row uses the Keywords/Queries format, so no pattern carries a
+    // prose catalog description either. Synthesize the whole stub from a
+    // real pattern: strip its anchor text and child sections and inject a
     // catalog description. The reminder is the description-only fallback the
     // renderer emits when there is no intro text and no first-child excerpt.
     const stubId = 'I.2';
     const synthetic = structuredClone(snapshot);
-    const catalogDescription = synthetic.patternGraph.nodes[stubId]?.description;
-    expect(
-      catalogDescription,
-      'expected the stub fixture pattern to carry a catalog description',
-    ).toBeTruthy();
+    const stubNode = synthetic.patternGraph.nodes[stubId];
+    expect(stubNode, 'expected the stub fixture pattern to exist').toBeTruthy();
+    const catalogDescription =
+      'Synthetic catalog description used to exercise the stub-page reminder fallback.';
+    stubNode!.description = catalogDescription;
 
     // Remove body content so the renderer falls through to the reminder.
     if (synthetic.anchorMap[stubId]) synthetic.anchorMap[stubId].text = '';
@@ -437,9 +439,11 @@ describe('docs projection', () => {
       expect(result.ownerContext).toBe('Ctx.Docs');
       expect(result.lifecycleState).toBe('evidence');
       expect(result.generatedFiles).toBeGreaterThan(100);
+      // Upstream (2026-08-28 sync, ref 72222c13) renamed A.2 from
+      // "Role Taxonomy" to "System-Role Kinds and Assignments".
       expect(
         await readFile(resolve(docsRoot, 'generated/patterns/A.2.md'), 'utf8'),
-      ).toContain('# Role Taxonomy');
+      ).toContain('# System-Role Kinds and Assignments');
       const firstRoute = Object.values(snapshot.routeGraph.nodes)[0];
       if (firstRoute) {
         expect(
@@ -640,15 +644,16 @@ describe('docs projection', () => {
       expect(indexHtml).not.toContain('Part A –');
 
       // `/patterns` is the short-URL Pattern Catalog. Verify it lists Part A
-      // Role Taxonomy and points back at the orientation page.
+      // System-Role Kinds (renamed from "Role Taxonomy" by the 2026-08-28
+      // upstream sync, ref 72222c13) and points back at the orientation page.
       const patternsHtml = await readFile(resolve(outDir, 'patterns.html'), 'utf8');
       expect(patternsHtml).toContain('Pattern Catalog');
-      expect(patternsHtml).toContain('Role Taxonomy');
+      expect(patternsHtml).toContain('System-Role Kinds and Assignments');
       expect(patternsHtml).toContain('orientation page');
 
       expect(
         await readFile(resolve(outDir, 'generated/patterns/A.2.html'), 'utf8'),
-      ).toContain('Role Taxonomy');
+      ).toContain('System-Role Kinds and Assignments');
       const firstRoute = Object.values(snapshot.routeGraph.nodes)[0];
       if (firstRoute) {
         expect(

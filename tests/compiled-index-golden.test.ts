@@ -105,16 +105,22 @@ describe('compiled index golden snapshot', () => {
         titlePrefix: 'Bounded Model-Use Structure',
         part: 'Part A - Kernel Architecture Cluster',
       },
+      // Upstream (2026-08-28 sync, ref 72222c13) renamed the A.2 role subtree:
+      // A.2.1 "U.RoleAssignment - System Role Assignment" became
+      // "U.SystemRoleAssignment - Contextual System-Role Assignment".
       'A.2.1': {
         kind: 'pattern',
-        titlePrefix: 'U.RoleAssignment',
+        titlePrefix: 'U.SystemRoleAssignment',
         part: 'Part A - Kernel Architecture Cluster',
       },
       // Upstream (2026-07-03 sync, ref f7c7e93f) renamed A.2.5 from
-      // "U.RoleStateGraph" to "RoleStateRelation@BoundedContext".
+      // "U.RoleStateGraph" to "RoleStateRelation@BoundedContext"; the
+      // 2026-08-28 sync (ref 72222c13) renamed it again to
+      // "SystemRoleAssignmentStateRelation - Assignment-State Recognition
+      // and Work Admission".
       'A.2.5': {
         kind: 'pattern',
-        titlePrefix: 'RoleStateRelation',
+        titlePrefix: 'SystemRoleAssignmentStateRelation',
         part: 'Part A - Kernel Architecture Cluster',
       },
       // Part J ("Indexes & Navigation Aids", incl. J.1 "Concept") was removed
