@@ -12,9 +12,11 @@ import {
   deploymentsSectionError,
   freshnessFromSyncMonitor,
   formatWeeklyMetricsMarkdown,
+  interpretTokenMetadataResponse,
   interpretWebAnalyticsResponse,
   summarizeDeployments,
   summarizeGitActivity,
+  tokenLedgerEntryError,
   unavailableFreshnessSection,
   unavailableGitSection,
   webAnalyticsSectionError,
@@ -22,6 +24,7 @@ import {
   type WeeklyDeploymentsSection,
   type WeeklyMetricsProjectRef,
   type WeeklyMetricsReport,
+  type WeeklyTokenLedgerEntry,
   type WeeklyWebAnalyticsSection,
 } from '../src/build/weekly-metrics.js';
 import { parseFlagMap, readOptionalString, readOutputFormat, readString } from './_args.js';
@@ -84,6 +87,18 @@ const usageSample = usageState === undefined ? undefined : {
     readString(flags, 'usage-export-capped', process.env.FPF_WEEKLY_USAGE_EXPORT_CAPPED ?? 'false') === 'true',
 };
 
+// Credential-expiry ledger, only wired in when a secrets list is present
+// (the workflow always passes one; local runs without it omit the section
+// instead of drowning in not_configured findings). Each named repo secret is
+// expected under FPF_TOKEN_LEDGER_<NAME> — the plain VERCEL_TOKEN env cannot
+// be reused because the workflow already binds it to a fallback CHAIN, which
+// would silently probe the wrong token.
+const tokenLedgerSecretsRaw = readOptionalString(
+  flags,
+  'token-ledger-secrets',
+  process.env.FPF_TOKEN_LEDGER_SECRETS,
+);
+
 const now = new Date();
 const window = resolveUsageWindow(windowLabel, now);
 
@@ -95,6 +110,9 @@ for (const project of projects) {
   deployments.push(await loadDeployments(project));
   webAnalytics.push(await loadWebAnalytics(project));
 }
+const tokenLedger = tokenLedgerSecretsRaw === undefined
+  ? undefined
+  : await loadTokenLedger(tokenLedgerSecretsRaw);
 
 const report = buildWeeklyMetricsReport({
   now,
@@ -104,6 +122,7 @@ const report = buildWeeklyMetricsReport({
   deployments,
   webAnalytics,
   usageSample,
+  tokenLedger,
 });
 const rendered = format === 'json'
   ? `${JSON.stringify(report, null, 2)}\n`
@@ -270,6 +289,42 @@ function vercelFetch(url: URL): Promise<Response> {
     headers: { Authorization: `Bearer ${vercelToken}` },
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
+}
+
+async function loadTokenLedger(rawSecrets: string): Promise<WeeklyTokenLedgerEntry[]> {
+  const secretNames = rawSecrets
+    .split(',')
+    .map((name) => name.trim())
+    .filter(Boolean);
+  const entries: WeeklyTokenLedgerEntry[] = [];
+  for (const secret of secretNames) {
+    const value = process.env[`FPF_TOKEN_LEDGER_${secret}`];
+    if (!value) {
+      entries.push(tokenLedgerEntryError(
+        secret,
+        'not_configured',
+        `FPF_TOKEN_LEDGER_${secret} was empty — the repo secret is missing or the workflow stopped passing it.`,
+      ));
+      continue;
+    }
+    try {
+      // tokens/current identifies the probing token itself, so the mapping
+      // from repo secret to Vercel token needs no name conventions.
+      const response = await fetch(new URL('/v5/user/tokens/current', VERCEL_API_BASE), {
+        headers: { Authorization: `Bearer ${value}` },
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
+      entries.push(interpretTokenMetadataResponse({
+        secret,
+        status: response.status,
+        bodyText: await response.text(),
+        now,
+      }));
+    } catch (error) {
+      entries.push(tokenLedgerEntryError(secret, 'error', errorMessage(error)));
+    }
+  }
+  return entries;
 }
 
 function parseProjects(raw: string | undefined): WeeklyMetricsProjectRef[] {

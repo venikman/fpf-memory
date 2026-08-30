@@ -105,6 +105,36 @@ export interface WeeklyUsageSampleSection {
   exportCapped?: boolean;
 }
 
+export type WeeklyTokenLedgerState =
+  | 'ok'
+  | 'expiring_soon'
+  | 'expired'
+  | 'invalid'
+  | 'not_configured'
+  | 'error';
+
+/**
+ * One row of the credential-expiry ledger: the verdict of probing a single
+ * repo secret against `GET /v5/user/tokens/current`. Vercel tokens carry a
+ * creation-time expiration that is recorded nowhere in this repo, so without
+ * this probe the first symptom of an expired token is whichever workflow
+ * happened to depend on it going red (or worse, silently falling back to a
+ * different token). Values never enter the report — only name and expiry.
+ */
+export interface WeeklyTokenLedgerEntry {
+  /** Repo secret name, e.g. VERCEL_SPEND_MONITOR_TOKEN. */
+  secret: string;
+  state: WeeklyTokenLedgerState;
+  /** Vercel-side token name, for finding it in the dashboard when renewing. */
+  tokenName?: string;
+  /** ISO expiry; null when the token has no creation-time expiration. */
+  expiresAt?: string | null;
+  daysLeft?: number;
+  detail?: string;
+}
+
+export const DEFAULT_TOKEN_EXPIRY_WARN_DAYS = 30;
+
 export interface WeeklyMetricsReport {
   generatedAt: string;
   window: WeeklyMetricsWindow;
@@ -113,6 +143,7 @@ export interface WeeklyMetricsReport {
   deployments: WeeklyDeploymentsSection[];
   webAnalytics: WeeklyWebAnalyticsSection[];
   usageSample?: WeeklyUsageSampleSection;
+  tokenLedger?: WeeklyTokenLedgerEntry[];
   findings: string[];
   operatorActionRequired: boolean;
   summary: string;
@@ -361,6 +392,84 @@ export function withPreviousWindow(
   };
 }
 
+/**
+ * Interprets one `GET /v5/user/tokens/current` response for the credential
+ * ledger. 401/403 means the probing token itself was rejected — the secret
+ * is dead, which is the loudest possible verdict, not an error to swallow.
+ */
+export function interpretTokenMetadataResponse(input: {
+  secret: string;
+  status: number;
+  bodyText: string;
+  now: Date;
+  warnDays?: number;
+}): WeeklyTokenLedgerEntry {
+  const warnDays = input.warnDays ?? DEFAULT_TOKEN_EXPIRY_WARN_DAYS;
+  if (input.status === 401 || input.status === 403) {
+    return {
+      secret: input.secret,
+      state: 'invalid',
+      detail: `Vercel rejected the token with HTTP ${input.status}; the secret is expired or revoked, and every workflow using it is broken or silently on a fallback.`,
+    };
+  }
+  if (input.status !== 200) {
+    return {
+      secret: input.secret,
+      state: 'error',
+      detail: `Token metadata query failed with HTTP ${input.status}: ${excerpt(input.bodyText)}`,
+    };
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(input.bodyText);
+  } catch {
+    parsed = undefined;
+  }
+  const token = asRecord(asRecord(parsed)?.token);
+  if (!token) {
+    return {
+      secret: input.secret,
+      state: 'error',
+      detail: `Token metadata responded 200 but no token object was recognized: ${excerpt(input.bodyText)}`,
+    };
+  }
+  const tokenName = optionalString(token.name);
+  const expiresMs = numeric(token.expiresAt);
+  if (expiresMs === undefined) {
+    return {
+      secret: input.secret,
+      state: 'ok',
+      ...(tokenName === undefined ? {} : { tokenName }),
+      expiresAt: null,
+      detail: 'No creation-time expiration; renew on compromise or scope change only.',
+    };
+  }
+  const expiresAt = new Date(expiresMs).toISOString();
+  const daysLeft = Math.floor((expiresMs - input.now.getTime()) / 86_400_000);
+  const base = {
+    secret: input.secret,
+    ...(tokenName === undefined ? {} : { tokenName }),
+    expiresAt,
+    daysLeft,
+  };
+  if (daysLeft < 0) {
+    // Metadata can still answer for a just-expired token; the state must not.
+    return { ...base, state: 'expired', detail: `Expired ${expiresAt}.` };
+  }
+  if (daysLeft <= warnDays) {
+    return { ...base, state: 'expiring_soon' };
+  }
+  return { ...base, state: 'ok' };
+}
+
+export function tokenLedgerEntryError(
+  secret: string,
+  state: WeeklyTokenLedgerState,
+  detail: string,
+): WeeklyTokenLedgerEntry {
+  return { secret, state, detail };
+}
+
 export function buildWeeklyMetricsReport(input: {
   now: Date;
   window: { label: string; start: string; end: string };
@@ -369,6 +478,7 @@ export function buildWeeklyMetricsReport(input: {
   deployments: WeeklyDeploymentsSection[];
   webAnalytics: WeeklyWebAnalyticsSection[];
   usageSample?: WeeklyUsageSampleSection;
+  tokenLedger?: WeeklyTokenLedgerEntry[];
 }): WeeklyMetricsReport {
   const findings: string[] = [];
 
@@ -457,6 +567,26 @@ export function buildWeeklyMetricsReport(input: {
     }
   }
 
+  for (const entry of input.tokenLedger ?? []) {
+    if (entry.state === 'invalid' || entry.state === 'expired') {
+      findings.push(
+        `Vercel token ${entry.secret} is dead (${entry.state}): ${entry.detail ?? 'renew it and update the repo secret.'} See the credential ledger in the automation playbook for scope and renewal steps.`,
+      );
+    } else if (entry.state === 'expiring_soon') {
+      findings.push(
+        `Vercel token ${entry.secret} expires in ${entry.daysLeft ?? '?'} day${entry.daysLeft === 1 ? '' : 's'} (${entry.expiresAt ?? 'unknown date'}); renew before the workflows that depend on it go dark. See the credential ledger in the automation playbook.`,
+      );
+    } else if (entry.state === 'not_configured') {
+      findings.push(
+        `Repo secret ${entry.secret} is not configured; whatever references it is broken or silently running on a fallback token.${entry.detail ? ` ${entry.detail}` : ''}`,
+      );
+    } else if (entry.state === 'error') {
+      findings.push(
+        `Vercel token ${entry.secret} expiry could not be verified: ${entry.detail ?? 'unknown error'}`,
+      );
+    }
+  }
+
   const window: WeeklyMetricsWindow = {
     ...input.window,
     reviewWeekId: resolveReviewWeekId(input.window),
@@ -469,6 +599,7 @@ export function buildWeeklyMetricsReport(input: {
     deployments: input.deployments,
     webAnalytics: input.webAnalytics,
     ...(input.usageSample ? { usageSample: input.usageSample } : {}),
+    ...(input.tokenLedger ? { tokenLedger: input.tokenLedger } : {}),
     findings,
     operatorActionRequired: findings.length > 0,
     summary: '',
@@ -476,6 +607,9 @@ export function buildWeeklyMetricsReport(input: {
       'Deployment counts include preview deployments created for pull-request branches.',
       'Web Analytics counts are Vercel-reported visitors and pageviews for the window, not unique humans across devices.',
       'MCP tool-usage telemetry comes from the separate usage report (`bun run usage:report`); Vercel runtime-log retention is much shorter than this window, so that report samples the trailing hours, not the full week.',
+      ...(input.tokenLedger
+        ? ['Token ledger verdicts come from `GET /v5/user/tokens/current` probed with each repo secret; token values never appear in this report.']
+        : []),
     ],
   };
   report.summary = buildSummary(report);
@@ -519,7 +653,7 @@ ${webAnalyticsTable(report.webAnalytics)}
 
 ${webAnalyticsNotes(report.webAnalytics)}
 
-${usageSampleSection(report.usageSample)}## Caveats
+${tokenLedgerSection(report.tokenLedger)}${usageSampleSection(report.usageSample)}## Caveats
 
 ${report.caveats.map((item) => `- ${item}`).join('\n')}
 `;
@@ -545,6 +679,9 @@ function buildSummary(report: WeeklyMetricsReport): string {
     `${report.git.totalCommits} commits (${report.git.syncCommits} syncs)`,
     `${deploymentsTotal} deployments`,
     analyticsSummary,
+    report.tokenLedger
+      ? `tokens ${report.tokenLedger.filter((entry) => entry.state === 'ok').length}/${report.tokenLedger.length} ok`
+      : '',
     report.operatorActionRequired
       ? `${report.findings.length} finding${report.findings.length === 1 ? '' : 's'} need review`
       : 'no findings',
@@ -631,6 +768,35 @@ function webAnalyticsNotes(sections: WeeklyWebAnalyticsSection[]): string {
     .filter((section) => section.detail)
     .map((section) => `- ${section.project}: ${section.detail}`);
   return notes.join('\n');
+}
+
+function tokenLedgerSection(entries: WeeklyTokenLedgerEntry[] | undefined): string {
+  if (!entries) {
+    return '';
+  }
+  if (entries.length === 0) {
+    return '## Vercel token ledger\n\n_No secrets configured for the ledger probe._\n\n';
+  }
+  const rows = [
+    '| Repo secret | State | Vercel token name | Expires | Days left |',
+    '| --- | --- | --- | --- | ---: |',
+    ...entries.map((entry) => {
+      const expires = entry.expiresAt === null
+        ? 'never'
+        : entry.expiresAt === undefined
+          ? '—'
+          : entry.expiresAt.slice(0, 10);
+      return `| ${entry.secret} | ${entry.state} | ${entry.tokenName ?? '—'} | ${expires} | ${entry.daysLeft ?? '—'} |`;
+    }),
+  ];
+  const notes = entries
+    .filter((entry) => entry.detail)
+    .map((entry) => `- ${entry.secret}: ${entry.detail}`);
+  return `## Vercel token ledger
+
+${[...rows, ...(notes.length > 0 ? ['', ...notes] : [])].join('\n')}
+
+`;
 }
 
 function usageSampleSection(sample: WeeklyUsageSampleSection | undefined): string {

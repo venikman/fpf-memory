@@ -104,6 +104,19 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_WEEKLY_METRICS_TOKEN || secrets.VERCEL_SPEND_MONITOR_TOKEN || secrets.VERCEL_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
+          # Credential-expiry ledger: each repo secret rides under its own
+          # FPF_TOKEN_LEDGER_* name (VERCEL_TOKEN above is already bound to a
+          # fallback chain, so probing it would identify the wrong token).
+          # The report probes each one read-only against
+          # /v5/user/tokens/current and raises a finding when a token is
+          # dead, missing, or expiring within 30 days — the only expiry alarm
+          # these tokens have, since their expirations are recorded nowhere
+          # in the repo. Keep this list in sync with the credential ledger in
+          # docs/automation-playbook.md.
+          FPF_TOKEN_LEDGER_SECRETS: VERCEL_TOKEN,VERCEL_SPEND_MONITOR_TOKEN,FPF_USAGE_REPORT_VERCEL_TOKEN
+          FPF_TOKEN_LEDGER_VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          FPF_TOKEN_LEDGER_VERCEL_SPEND_MONITOR_TOKEN: ${{ secrets.VERCEL_SPEND_MONITOR_TOKEN }}
+          FPF_TOKEN_LEDGER_FPF_USAGE_REPORT_VERCEL_TOKEN: ${{ secrets.FPF_USAGE_REPORT_VERCEL_TOKEN }}
           # Usage-report verdict from its GITHUB_OUTPUT, so a failing or
           # breaching sample becomes a top-level finding in the weekly state
           # instead of hiding inside the collapsed details block. `absent`
