@@ -162,9 +162,10 @@ jobs:
           # the page tiny however long the history grows; the newest success
           # is on this first page, and the client-side sort stays as a guard
           # against within-page ordering surprises.
-          SUCCESSES="$(gh api "repos/${{ github.repository }}/actions/workflows/sync-fpf.yml/runs?status=success&per_page=100" || true)"
-          if [ -z "$SUCCESSES" ] || ! jq -e .workflow_runs >/dev/null 2>&1 <<<"$SUCCESSES"; then
-            fail_open "Could not read sync-fpf success history"
+          SUCCESSES="$(gh api "repos/${{ github.repository }}/actions/workflows/sync-fpf.yml/runs?status=success&per_page=100")" \
+            || fail_open "Could not read sync-fpf success history"
+          if ! jq -e .workflow_runs >/dev/null 2>&1 <<<"$SUCCESSES"; then
+            fail_open "Sync-fpf success history did not parse"
           fi
           LAST_SUCCESS="$(jq -r '
             [.workflow_runs[].created_at] | sort | last // ""
@@ -182,10 +183,12 @@ jobs:
           if [ -n "$LAST_SUCCESS" ]; then
             QUERY="$QUERY&created=%3E%3D${LAST_SUCCESS%%T*}"
           fi
-          FAILED_PAGES="$(gh api --paginate "repos/${{ github.repository }}/actions/workflows/sync-fpf.yml/runs?$QUERY" || true)"
-          if [ -z "$FAILED_PAGES" ]; then
-            fail_open "Could not read sync-fpf dispatch-failure history"
-          fi
+          # No `|| true` here: a mid-walk pagination failure leaves earlier
+          # pages on stdout, and counting that partial history silently would
+          # be the same bug shape this change removes. gh exits nonzero on
+          # any failed page, so the whole read fails open instead.
+          FAILED_PAGES="$(gh api --paginate "repos/${{ github.repository }}/actions/workflows/sync-fpf.yml/runs?$QUERY")" \
+            || fail_open "Could not read the full sync-fpf dispatch-failure history"
           # --paginate concatenates page objects; jq -s folds them into one
           # array before counting.
           FAILED_STREAK="$(jq -s -r --arg since "$LAST_SUCCESS" '
