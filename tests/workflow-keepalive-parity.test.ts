@@ -85,4 +85,17 @@ describe('workflow keepalive guards the scheduled fleet', () => {
     expect(yaml).toContain('if: failure()');
     expect(yaml).toContain('gh issue create');
   });
+
+  it('keeps the escalation reachable and honest', () => {
+    // A hung API call must fail its step, not eat the job timeout — a job
+    // cancellation would take the failure-issue step down with it.
+    const stepTimeouts = [...yaml.matchAll(/^ {8}timeout-minutes: (\d+)$/gmu)]
+      .map((m) => Number(m[1]));
+    const jobTimeout = Number(/^ {4}timeout-minutes: (\d+)$/mu.exec(yaml)?.[1]);
+    expect(stepTimeouts.length).toBeGreaterThanOrEqual(2);
+    expect(Math.max(...stepTimeouts) * 2).toBeLessThanOrEqual(jobTimeout);
+    // A green dry run repairs nothing, so it must not close a live
+    // failure issue.
+    expect(yaml).toContain("if: success() && env.DRY_RUN != 'true'");
+  });
 });

@@ -69,14 +69,20 @@ jobs:
   keepalive:
     name: Keep scheduled workflows enabled
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     # No checkout, no package install, on purpose: this is the last line
     # of defense and must not inherit failure modes from the toolchain,
     # the lockfile, or the registry. Everything below is gh + jq, which
     # ship on the runner image. GH_REPO replaces the repo context gh
     # would otherwise read from a checkout's git remote.
+    #
+    # Each API leg carries its own step timeout well under the job's: a
+    # hung call must FAIL the step (so the failure-issue step below still
+    # runs) rather than burn the job timeout, which cancels everything
+    # including the escalation.
     steps:
       - name: Re-enable scheduled workflows (leg 1)
+        timeout-minutes: 3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
@@ -117,6 +123,7 @@ jobs:
           done <<<"$WORKFLOWS"
 
       - name: Refresh keepalive marker when the repo is quiet (leg 2)
+        timeout-minutes: 3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
@@ -202,7 +209,9 @@ jobs:
           fi
 
       - name: Close keepalive failure issue after clean run
-        if: success()
+        # Not on dry runs: a dry run repairs nothing, so a green one is no
+        # evidence that a previously reported failure is fixed.
+        if: success() && env.DRY_RUN != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
