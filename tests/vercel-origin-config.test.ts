@@ -76,6 +76,14 @@ describe('Vercel deployment configs', () => {
     expect(packageJson.scripts['vercel:website:build']).toBe(
       'bun run docs:build && bun run build:vercel-website',
     );
+    // The V8 heap cap is load-bearing for the Vercel preview/production
+    // build: uncapped, rspress peaks past the build container's memory
+    // ceiling on the current spec size and the deployment dies on SIGKILL
+    // (exit 137). Measured 2026-08-30: uncapped 7.5 GB peak RSS, capped
+    // 6.7 GB; the remainder is native Rspack memory the cap cannot bound.
+    expect(packageJson.scripts['docs:build']).toContain(
+      'NODE_OPTIONS=--max-old-space-size=4096 rspress build',
+    );
     expect(packageJson.scripts['vercel:mcp:link']).toBe(
       'vercel link --project fpf-reference-mcp',
     );

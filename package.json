@@ -44,7 +44,7 @@
     "docs:generate": "bun scripts/generate-docs.ts",
     "docs:dev": "bun run docs:generate && rspress",
     "docs:dev:fresh": "bun run docs:generate && RSPRESS_PERSISTENT_CACHE=false rspress",
-    "docs:build": "bun run docs:generate && RSPRESS_PERSISTENT_CACHE=false rspress build",
+    "docs:build": "bun run docs:generate && RSPRESS_PERSISTENT_CACHE=false NODE_OPTIONS=--max-old-space-size=4096 rspress build",
     "docs:preview": "RSPRESS_PERSISTENT_CACHE=false rspress preview",
     "hooks:install": "bun scripts/install-hooks.ts",
     "lint": "rslint --type-check src tests scripts/*.ts *.config.ts",
