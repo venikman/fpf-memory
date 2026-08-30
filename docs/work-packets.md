@@ -120,8 +120,8 @@ Goal: separate ability, promise, responsibility, and performed work.
 
 Use:
 
-- [A.2 Role Taxonomy](/generated/patterns/A.2)
-- [A.2.1 U.RoleAssignment](/generated/patterns/A.2.1)
+- [A.2 System-Role Kinds and Assignments](/generated/patterns/A.2)
+- [A.2.1 U.SystemRoleAssignment](/generated/patterns/A.2.1)
 - [A.2.2 U.Capability](/generated/patterns/A.2.2)
 - [A.2.3 U.PromiseContent](/generated/patterns/A.2.3)
 - [A.2.8 U.Commitment](/generated/patterns/A.2.8)

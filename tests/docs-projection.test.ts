@@ -445,8 +445,10 @@ describe('docs projection', () => {
       expect(result.lifecycleState).toBe('evidence');
       expect(result.generatedFiles).toBeGreaterThan(100);
       expect(
+        // Upstream (2026-08 sync, ref 72222c13) renamed A.2 from
+        // "Role Taxonomy" to "System-Role Kinds and Assignments".
         await readFile(resolve(docsRoot, 'generated/patterns/A.2.md'), 'utf8'),
-      ).toContain('# Role Taxonomy');
+      ).toContain('# System-Role Kinds and Assignments');
       const firstRoute = Object.values(snapshot.routeGraph.nodes)[0];
       if (firstRoute) {
         expect(
@@ -646,16 +648,18 @@ describe('docs projection', () => {
       expect(indexHtml).toContain('Published from');
       expect(indexHtml).not.toContain('Part A –');
 
-      // `/patterns` is the short-URL Pattern Catalog. Verify it lists Part A
-      // Role Taxonomy and points back at the orientation page.
+      // `/patterns` is the short-URL Pattern Catalog. Verify it lists Part A's
+      // A.2 entry (upstream renamed it from "Role Taxonomy" to "System-Role
+      // Kinds and Assignments" in the 2026-08 sync) and points back at the
+      // orientation page.
       const patternsHtml = await readFile(resolve(outDir, 'patterns.html'), 'utf8');
       expect(patternsHtml).toContain('Pattern Catalog');
-      expect(patternsHtml).toContain('Role Taxonomy');
+      expect(patternsHtml).toContain('System-Role Kinds and Assignments');
       expect(patternsHtml).toContain('orientation page');
 
       expect(
         await readFile(resolve(outDir, 'generated/patterns/A.2.html'), 'utf8'),
-      ).toContain('Role Taxonomy');
+      ).toContain('System-Role Kinds and Assignments');
       const firstRoute = Object.values(snapshot.routeGraph.nodes)[0];
       if (firstRoute) {
         expect(
