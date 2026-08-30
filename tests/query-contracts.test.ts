@@ -215,14 +215,32 @@ function assembleTrace(
     .map((c) => c.nodeId)
     .filter((nodeId) => !selectedNodeIds.includes(nodeId))
     .slice(0, MAX_EXCLUDED);
+  // Mirrors QueryEngine's status pipeline, including the thin-query
+  // `unsupported` guard (#118): two-token / no-FPF-term questions must not
+  // ride stray token overlaps into a confident `ok`.
+  const meaningfulTokens = question
+    .trim()
+    .split(/\s+/)
+    .filter((token) => token.length > 1);
+  const recognizedFpfTerm =
+    normalized.detected.ids.length > 0 ||
+    normalized.detected.lexemes.length > 0 ||
+    normalized.detected.routeNames.length > 0 ||
+    normalized.detected.familyTerms.length > 0 ||
+    normalized.detected.statusTerms.length > 0;
+  const thinQuery =
+    meaningfulTokens.length < 3 ||
+    (!recognizedFpfTerm && meaningfulTokens.length < 6);
   const status =
-    selectedNodeIds.length === 0
-      ? 'not_found'
-      : ranking.routeWins
-        ? 'ok'
-        : isAmbiguous(question, ranking.candidates)
-          ? 'ambiguous'
-          : 'ok';
+    thinQuery
+      ? 'unsupported'
+      : selectedNodeIds.length === 0
+        ? 'not_found'
+        : ranking.routeWins
+          ? 'ok'
+          : isAmbiguous(question, ranking.candidates)
+            ? 'ambiguous'
+            : 'ok';
 
   return {
     mode,
@@ -818,8 +836,16 @@ describe('Query / Projection stability stage', () => {
     const snapshot = await getSnapshot();
     const trace = assembleTrace('__FPFTEST_NONSENSE_999__', 'compact', snapshot);
 
-    expect(['not_found', 'ambiguous']).toContain(trace.status);
-    expect(confidenceFromTrace(trace)).toBeLessThan(0.7);
+    // Production semantics: a single-blob gibberish question is a thin query,
+    // so QueryEngine reports `unsupported` (never a confident `ok`). Until
+    // the 2026-08-28 upstream sync (ref 72222c13) this accidentally passed as
+    // `ambiguous`: the stray token "nonsense" appeared in exactly two
+    // patterns (A.14, C.21) whose tie triggered the ambiguity guard; the
+    // restructure broke the tie and exposed that this helper lacked the
+    // engine's thin-query branch. Confidence is asserted the way the engine
+    // calls it — with the question — so the thin-query cap applies.
+    expect(['not_found', 'ambiguous', 'unsupported']).toContain(trace.status);
+    expect(confidenceFromTrace(trace, trace.question)).toBeLessThan(0.7);
   });
 
   it('computes confidence via confidenceFromTrace without QueryEngine', async () => {

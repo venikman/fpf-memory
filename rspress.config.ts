@@ -314,6 +314,33 @@ document.addEventListener('keydown',function(e){
         index: '/404.html',
       },
     },
+    // Skip the end-of-build file-size report. Computing it gzips every one
+    // of the ~1500 emitted assets (including the SSG HTML tree) in parallel
+    // rspack native threads, which adds a ~25s tail whose native allocations
+    // peak 2-3GB ABOVE the bundling phase — that tail is what OOM-killed the
+    // Vercel git-preview build container (8GB) once the 2026-08-28 upstream
+    // sync grew the spec (exit 137 right after "ready built in"). The report
+    // is display-only; the emitted artifact is byte-identical without it.
+    //
+    // The shared-level `performance.printFileSize: false` alone is not
+    // enough: rspress pins `printFileSize: { compressed: true }` at the
+    // ENVIRONMENT level for its SSG environments, and environment-level
+    // config outranks shared config, so the override must land on the same
+    // environment keys. Gated to the CLI `rspress build` command because the
+    // internal `node` environment only exists when SSG is enabled —
+    // declaring it during `rspress dev` (or programmatic test builds) would
+    // conjure a phantom rsbuild environment.
+    performance: {
+      printFileSize: false,
+    },
+    ...(process.argv[2] === 'build'
+      ? {
+          environments: {
+            web: { performance: { printFileSize: false } },
+            node: { performance: { printFileSize: false } },
+          },
+        }
+      : {}),
   },
   // Custom search hooks — afterSearch reorders FlexSearch results so
   // exact FPF-ID queries (`A.1`, `E.10.D2`, `route:project-alignment`)
