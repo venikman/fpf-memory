@@ -95,6 +95,12 @@ describe('compiled index golden snapshot', () => {
     );
     expect(snapshot.indexRoots.length).toBeGreaterThanOrEqual(5);
 
+    // These stable IDs are load-bearing retrieval/docs anchors. Keep their
+    // existence pinned while allowing upstream editors to rename their titles.
+    for (const id of ['A.1', 'A.1.1', 'A.2.1', 'A.2.5']) {
+      expect(snapshot.patternGraph.nodes[id], `pattern ${id} missing`).toBeDefined();
+    }
+
     // Every pattern projection must preserve the source graph's identity and
     // metadata. This checks the complete compiler boundary without treating
     // legitimate upstream title edits as runtime regressions.

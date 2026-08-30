@@ -65,14 +65,6 @@ export const MAX_EXCLUDED = 5;
 
 export const PART_C_LABEL = 'Part C - Kernel Extension Specifications';
 
-/**
- * Canonical Vercel team identity. The slug and team id are live equivalent
- * aliases for the same team (confirmed 2026-08-29 via Vercel list_teams).
- * Workflows may use either literal; they must not invent a third value.
- */
-export const FPF_VERCEL_TEAM_SLUG = 'venikmans-projects';
-export const FPF_VERCEL_TEAM_ID = 'team_CnO1I5xd2OS0lzbbc4RkW7Ym';
-
 export const PART_C_CLUSTER_LABELS = [
   'Cluster C.I - Core CALs / LOGs / CHRs',
   'Cluster C.II - Domain-Specific Patterns',

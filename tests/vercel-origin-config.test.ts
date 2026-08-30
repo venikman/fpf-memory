@@ -27,9 +27,6 @@ interface VercelConfig {
   buildCommand?: string | null;
   framework?: string | null;
   installCommand?: string | null;
-  git?: {
-    deploymentEnabled?: boolean | Record<string, boolean>;
-  };
 }
 
 describe('Vercel deployment configs', () => {
@@ -48,10 +45,6 @@ describe('Vercel deployment configs', () => {
     expect(config.framework).toBeNull();
     expect(config.installCommand).toBe('bun install --frozen-lockfile');
     expect(config.buildCommand).toBe('bun run vercel:git:build');
-    // fpf-sh Git previews OOM on Vercel's 8GB builder (~1032 generated HTML
-    // files, docs:build SIGKILL / 137). CI prebuilds on GitHub and deploys
-    // that artifact as the preview instead of buying a larger builder.
-    expect(config.git?.deploymentEnabled).toBe(false);
     expect(packageJson.scripts['vercel:git:build']).toBe(
       'bun scripts/build-vercel-git-preview.ts',
     );
@@ -403,33 +396,4 @@ describe('Vercel deployment configs', () => {
     expect(build).toContain("WEBSITE_ROBOTS_FILENAME = 'robots.txt'");
     expect(build).toContain('writeWebsiteSeoFiles(staticDir)');
   });
-
-  it('prebuilds website previews on GitHub instead of Vercel Git', async () => {
-    const ci = await readFile(resolve(process.cwd(), '.github/workflows/ci.yml'), 'utf8');
-    const sync = await readFile(
-      resolve(process.cwd(), '.github/workflows/sync-fpf.yml'),
-      'utf8',
-    );
-    const rspress = await readFile(resolve(process.cwd(), 'rspress.config.ts'), 'utf8');
-    const deployHelper = await readFile(
-      resolve(process.cwd(), 'scripts/deploy-vercel-prebuilt.ts'),
-      'utf8',
-    );
-
-    expect(ci).toContain('name: Preview (GitHub-prebuilt Vercel + Playwright)');
-    expect(ci).toContain('bun scripts/deploy-vercel-prebuilt.ts --project fpf-sh --config vercel.json');
-    expect(ci).not.toContain(
-      'deploy-vercel-prebuilt.ts --project fpf-sh --config vercel.json --prod',
-    );
-    expect(ci).toContain('website-vercel-output');
-    expect(ci).toContain('FPF_E2E_BASE_URL');
-    expect(sync).toContain(
-      'Preview (GitHub-prebuilt Vercel + Playwright)',
-    );
-    expect(sync).not.toContain('"Vercel","Playwright on Vercel preview"');
-    expect(rspress).toContain('printFileSize: false');
-    expect(deployHelper).toContain('writeGitHubOutput');
-    expect(deployHelper).toContain('deployment_url');
-  });
-
 });

@@ -1,10 +1,7 @@
 import { spawnSync } from 'node:child_process';
-import { appendFileSync } from 'node:fs';
 import { cp, mkdtemp, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-
-import { extractStagedDeploymentUrl } from '../src/build/vercel-deploy-output.js';
 
 interface DeployArgs {
   project: string;
@@ -37,7 +34,7 @@ try {
 
   await cp(outputDir, resolve(tempRoot, '.vercel/output'), { recursive: true });
 
-  const deployOutput = runVercelCapture([
+  runVercel([
     'deploy',
     tempRoot,
     '--prebuilt',
@@ -47,22 +44,12 @@ try {
     ...vercelScopeArgs(args.scope),
     ...(args.prod ? ['--prod'] : []),
   ]);
-  const deploymentUrl = extractStagedDeploymentUrl(
-    deployOutput,
-    args.prod ? 'production deployment' : 'preview deployment',
-  );
-  process.stdout.write(`Staged ${args.prod ? 'production' : 'preview'} deployment: ${deploymentUrl}\n`);
-  writeGitHubOutput('deployment_url', deploymentUrl);
 } finally {
   await rm(tempRoot, { recursive: true, force: true });
 }
 
 function runVercel(args: string[]): void {
   run('npx', ['--yes', 'vercel@54.7.1', ...args]);
-}
-
-function runVercelCapture(args: string[]): string {
-  return run('npx', ['--yes', 'vercel@54.7.1', ...args], { capture: true });
 }
 
 function parseArgs(rawArgs: string[], env: NodeJS.ProcessEnv): DeployArgs {
@@ -141,27 +128,11 @@ async function assertFile(path: string, label: string): Promise<void> {
   }
 }
 
-function writeGitHubOutput(key: string, value: string): void {
-  const outputFile = process.env.GITHUB_OUTPUT;
-  if (!outputFile) {
-    return;
-  }
-  appendFileSync(outputFile, `${key}=${value}\n`);
-}
-
-function run(command: string, args: string[], options?: { capture?: boolean }): string {
+function run(command: string, args: string[]): void {
   const result = spawnSync(command, args, {
     cwd: rootDir,
-    encoding: 'utf8',
-    stdio: options?.capture ? 'pipe' : 'inherit',
+    stdio: 'inherit',
   });
-
-  const stdout = result.stdout ?? '';
-  const stderr = result.stderr ?? '';
-  if (options?.capture) {
-    process.stdout.write(stdout);
-    process.stderr.write(stderr);
-  }
 
   if (result.error) {
     throw result.error;
@@ -169,5 +140,4 @@ function run(command: string, args: string[], options?: { capture?: boolean }): 
   if (result.status !== 0) {
     throw new Error(`${command} ${args.join(' ')} exited with code ${result.status ?? 'unknown'}`);
   }
-  return `${stdout}${stderr}`;
 }

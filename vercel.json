@@ -4,6 +4,8 @@
   "installCommand": "bun install --frozen-lockfile",
   "buildCommand": "bun run vercel:git:build",
   "git": {
-    "deploymentEnabled": false
+    "deploymentEnabled": {
+      "main": false
+    }
   }
 }
