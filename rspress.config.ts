@@ -1,59 +1,18 @@
-import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { defineConfig } from '@rspress/core';
 
-import { DEFAULT_SOURCE_PATH } from './src/core/constants.js';
-import {
-  buildDocsNavigation,
-  buildSearchIdRegistry,
-  renderSearchIdRegistryModule,
-} from './src/core/documents.js';
-import { compileFpfSource } from './src/runtime/compiler.js';
+import { buildDocsNavigationFromRegistry } from './src/core/documents.js';
+import { SEARCH_ID_REGISTRY } from './src/docs/generated-search-id-registry.js';
 
 const docsRoot = process.env.FPF_DOCS_ROOT ?? 'docs';
 const outDir = process.env.FPF_DOCS_OUT_DIR ?? 'doc_build';
 
-const sourcePath = resolve(
-  process.cwd(),
-  process.env.FPF_SPEC_SOURCE_PATH ?? DEFAULT_SOURCE_PATH,
-);
-const sourceText = readFileSync(sourcePath, 'utf8');
-const sourceHash = `sha256:${createHash('sha256').update(sourceText).digest('hex')}`;
-const snapshot = compileFpfSource({
-  sourcePath,
-  sourceHash,
-  builtAt: 'docs-nav',
-  sourceText,
-}).snapshot;
-const navigation = buildDocsNavigation(snapshot);
-
-// Search-hook registry — a small TS module the hook imports so the
-// bundled client search code has the canonical ID/title/path table at
-// runtime. Generated from the spec snapshot, written to
-// `src/docs/generated-search-id-registry.ts` so the bundler resolves
-// it through the normal TS module graph.
-//
-// The committed registry is the source of truth at build time. We only
-// rewrite it when the content actually differs (idempotent) so config
-// loads with the current spec leave the working tree clean. A drift
-// test (`tests/search-id-registry-drift.test.ts`) re-derives the
-// registry from `published/current/FPF-Spec.md` and fails if the
-// committed file is stale, so a forgotten regeneration after a spec
-// update is caught in CI.
-const searchIdRegistry = buildSearchIdRegistry(snapshot);
-const searchIdRegistryPath = resolve(
-  process.cwd(),
-  'src/docs/generated-search-id-registry.ts',
-);
-const nextRegistrySource = renderSearchIdRegistryModule(searchIdRegistry);
-const currentRegistrySource = existsSync(searchIdRegistryPath)
-  ? readFileSync(searchIdRegistryPath, 'utf8')
-  : '';
-if (currentRegistrySource !== nextRegistrySource) {
-  writeFileSync(searchIdRegistryPath, nextRegistrySource);
-}
+// `docs:generate` has already compiled the spec and refreshed this compact
+// projection before Rspress starts. Reusing it avoids retaining a second full
+// compiler snapshot for the lifetime of the build.
+const navigation = buildDocsNavigationFromRegistry(SEARCH_ID_REGISTRY);
 
 // Read the publication manifest so we can surface a "Published from"
 // byline on the home page (PR #72 design review). rspress's `pageType:
@@ -308,6 +267,23 @@ document.addEventListener('keydown',function(e){
   // Disabling it lets the historyApiFallback take over and route to
   // `/404.html` instead.
   builderConfig: {
+    // The generated site contains more than 1,000 large HTML assets. Rsbuild's
+    // post-build reporter retains them while calculating gzip sizes in parallel,
+    // which can exhaust Vercel's build memory after rendering has completed.
+    // Deployment validation supplies the useful evidence without that
+    // diagnostic-only allocation. Override both environments because Rspress
+    // explicitly enables compressed reporting for its node build.
+    performance: {
+      printFileSize: false,
+    },
+    environments: {
+      web: {
+        performance: { printFileSize: false },
+      },
+      node: {
+        performance: { printFileSize: false },
+      },
+    },
     server: {
       htmlFallback: false,
       historyApiFallback: {

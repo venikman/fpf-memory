@@ -15,11 +15,11 @@ import { compileFpfSource } from '../src/runtime/compiler.js';
  * R5-P1-005 drift guard.
  *
  * `src/docs/generated-search-id-registry.ts` is generated from the
- * committed FPF spec snapshot at config-load time and at
- * `bun run docs:generate`. The committed file is the source of truth at
+ * committed FPF spec snapshot by `bun run docs:generate`. The committed file
+ * is the source of truth at
  * build time so:
  *   - dev workflows don't need to run docs:generate before tests
- *   - rspress.config.ts can write idempotently (no working-tree churn)
+ *   - rspress.config.ts can reuse it without compiling the spec again
  *
  * This test ensures the committed file stays in sync with the spec.
  * If someone updates `published/current/FPF-Spec.md` without

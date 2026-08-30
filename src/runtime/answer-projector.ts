@@ -6,6 +6,7 @@ import {
 import {
   unique,
 } from './text.js';
+import type { DetectedSignals } from './query-normalizer.js';
 import type {
   AnchorRef,
   AnswerMode,
@@ -64,7 +65,10 @@ function shapeSatisfiedByDefaultProjection(
  * with no FPF terms detected. These should not return high-confidence
  * answers regardless of how the retriever scored.
  */
-export function isThinQuery(question: string, trace: TraceResult): boolean {
+export function isThinQuery(
+  question: string,
+  detected: DetectedSignals,
+): boolean {
   const meaningfulTokens = question
     .trim()
     .split(/\s+/)
@@ -72,7 +76,6 @@ export function isThinQuery(question: string, trace: TraceResult): boolean {
   if (meaningfulTokens.length < 3) {
     return true;
   }
-  const detected = trace.detected;
   const recognizedAnyFpfTerm =
     detected.ids.length > 0 ||
     detected.lexemes.length > 0 ||
@@ -375,7 +378,7 @@ export function confidenceFromTrace(
   // High retrieval scores against a 2-token query are usually false
   // confidence — the retriever picked the closest pattern, not the
   // right one. Drop the floor so callers see "this is a guess."
-  if (question && isThinQuery(question, trace)) {
+  if (question && isThinQuery(question, trace.detected)) {
     adjusted = Math.min(adjusted, 0.4);
   }
 

@@ -19,6 +19,7 @@ import {
   buildRouteAnswer,
   confidenceFromTrace,
   gapsFromTrace,
+  isThinQuery,
 } from '../src/runtime/answer-projector.js';
 import { MAX_EXCLUDED } from '../src/runtime/constants.js';
 import type {
@@ -216,7 +217,9 @@ function assembleTrace(
     .filter((nodeId) => !selectedNodeIds.includes(nodeId))
     .slice(0, MAX_EXCLUDED);
   const status =
-    selectedNodeIds.length === 0
+    isThinQuery(question, normalized.detected)
+      ? 'unsupported'
+      : selectedNodeIds.length === 0
       ? 'not_found'
       : ranking.routeWins
         ? 'ok'
@@ -816,10 +819,11 @@ describe('Query / Projection stability stage', () => {
 
   it('returns low confidence for completely unresolvable questions', async () => {
     const snapshot = await getSnapshot();
-    const trace = assembleTrace('__FPFTEST_NONSENSE_999__', 'compact', snapshot);
+    const question = '__FPFTEST_NONSENSE_999__';
+    const trace = assembleTrace(question, 'compact', snapshot);
 
-    expect(['not_found', 'ambiguous']).toContain(trace.status);
-    expect(confidenceFromTrace(trace)).toBeLessThan(0.7);
+    expect(trace.status).toBe('unsupported');
+    expect(confidenceFromTrace(trace, question)).toBeLessThan(0.7);
   });
 
   it('computes confidence via confidenceFromTrace without QueryEngine', async () => {

@@ -337,7 +337,11 @@ jobs:
           # REST check runs (where the dispatched CI reports); on a name
           # collision the REST entry wins because the check-runs API returns
           # the latest run per check.
-          REQUIRED_CHECK_NAMES='["Build (docs + MCP + Vercel dry-runs)","Vercel","Playwright on Vercel preview"]'
+          # Website Git previews OOM on Vercel's 8GB builder. CI builds the
+          # website on GitHub and deploys that prebuilt artifact as the preview,
+          # then runs Playwright against it. Do not require the Vercel GitHub-app
+          # check named "Vercel" — git.deploymentEnabled is false on fpf-sh.
+          REQUIRED_CHECK_NAMES='["Build (docs + MCP + Vercel dry-runs)","Preview (GitHub-prebuilt Vercel + Playwright)"]'
           DEADLINE=$(( $(date -u +%s) + 2700 ))
           while :; do
             ROLLUP_CHECKS=$(gh pr checks "$PR_NUMBER" --json name,bucket,state,link || true)

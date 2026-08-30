@@ -32,6 +32,7 @@ import {
   answerPartCDrafts,
   buildPatternAnswer,
   buildRouteAnswer,
+  isThinQuery,
 } from './answer-projector.js';
 import { type RetrievalSessionState } from './session-cache.js';
 import {
@@ -210,19 +211,7 @@ export class QueryEngine {
     // confident "ok"; mark them `unsupported` so callers can ask the
     // user to clarify instead of treating the closest-pattern guess
     // as a real answer.
-    const meaningfulTokens = question
-      .trim()
-      .split(/\s+/)
-      .filter((token) => token.length > 1);
-    const recognizedFpfTerm =
-      normalized.detected.ids.length > 0 ||
-      normalized.detected.lexemes.length > 0 ||
-      normalized.detected.routeNames.length > 0 ||
-      normalized.detected.familyTerms.length > 0 ||
-      normalized.detected.statusTerms.length > 0;
-    const thinQuery =
-      meaningfulTokens.length < 3 ||
-      (!recognizedFpfTerm && meaningfulTokens.length < 6);
+    const thinQuery = isThinQuery(question, normalized.detected);
 
     const status =
       thinQuery

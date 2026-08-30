@@ -41,6 +41,23 @@ function routeGeneratedHtmlPath(routeId: string) {
   return `generated/routes/route_${slug}.html`;
 }
 
+function representativePatternPage(snapshot: Snapshot) {
+  const page = buildDocsProjection(snapshot).pages.find(
+    (candidate) =>
+      candidate.kind === 'pattern' &&
+      Boolean(candidate.nodeId) &&
+      !/[&<>]/u.test(candidate.title),
+  );
+  if (!page) {
+    throw new Error('expected at least one generated pattern page');
+  }
+  return page;
+}
+
+function generatedHtmlPath(markdownPath: string) {
+  return markdownPath.replace(/^docs\//, '').replace(/\.md$/u, '.html');
+}
+
 async function copyNonGeneratedDocs(srcRoot: string, dstRoot: string) {
   let entries;
   try {
@@ -194,24 +211,28 @@ describe('docs projection', () => {
     // real pattern: strip its anchor text and child sections but keep its
     // catalog description. The reminder is the description-only fallback the
     // renderer emits when there is no intro text and no first-child excerpt.
-    const stubId = 'I.2';
     const synthetic = structuredClone(snapshot);
-    const catalogDescription = synthetic.patternGraph.nodes[stubId]?.description;
-    expect(
-      catalogDescription,
-      'expected the stub fixture pattern to carry a catalog description',
-    ).toBeTruthy();
+    const stubPattern = Object.values(synthetic.patternGraph.nodes).find(
+      (pattern) => synthetic.anchorMap[pattern.id] && synthetic.indexMap[pattern.id],
+    );
+    if (!stubPattern) {
+      throw new Error('expected a pattern with root anchor and index entries');
+    }
+    const stubId = stubPattern.id;
+    const catalogDescription = 'Synthetic catalog-only reminder';
+    stubPattern.description = catalogDescription;
 
     // Remove body content so the renderer falls through to the reminder.
-    if (synthetic.anchorMap[stubId]) synthetic.anchorMap[stubId].text = '';
-    if (synthetic.indexMap[stubId]) synthetic.indexMap[stubId].childIds = [];
+    synthetic.anchorMap[stubId]!.text = '';
+    synthetic.anchorMap[stubId]!.plainText = '';
+    synthetic.indexMap[stubId]!.childIds = [];
 
     const projection = buildDocsProjection(synthetic);
     const stubPage =
       projection.pagesByMarkdownPath[`docs/generated/patterns/${stubId}.md`]?.markdown ?? '';
 
     expect(stubPage).not.toContain('## Content');
-    expect(stubPage).toContain(catalogDescription!);
+    expect(stubPage).toContain(catalogDescription);
   });
 
   it('preserves keyword cells that contain pipes inside code spans', () => {
@@ -437,16 +458,20 @@ describe('docs projection', () => {
       expect(result.ownerContext).toBe('Ctx.Docs');
       expect(result.lifecycleState).toBe('evidence');
       expect(result.generatedFiles).toBeGreaterThan(100);
+      const patternPage = representativePatternPage(result.snapshot);
       expect(
-        await readFile(resolve(docsRoot, 'generated/patterns/A.2.md'), 'utf8'),
-      ).toContain('# Role Taxonomy');
-      const firstRoute = Object.values(snapshot.routeGraph.nodes)[0];
+        await readFile(
+          resolve(docsRoot, patternPage.markdownPath.replace(/^docs\//, '')),
+          'utf8',
+        ),
+      ).toContain(`# ${patternPage.title}`);
+      const firstRoute = Object.values(result.snapshot.routeGraph.nodes)[0];
       if (firstRoute) {
         expect(
           await readFile(resolve(docsRoot, routeGeneratedMarkdownPath(firstRoute.id)), 'utf8'),
         ).toContain(`# ${firstRoute.name}`);
       }
-      const generatedProjection = buildDocsProjection(snapshot);
+      const generatedProjection = buildDocsProjection(result.snapshot);
       const prefacePage = generatedProjection.pages.find(
         (page) => page.kind === 'preface'
           && page.markdownPath.startsWith('docs/generated/preface/heading_'),
@@ -600,7 +625,7 @@ describe('docs projection', () => {
       const docsRoot = resolve(tempRoot, 'docs');
       const outDir = resolve(tempRoot, 'doc_build');
 
-      await generateDocsSite({
+      const generated = await generateDocsSite({
         sourcePath: canonicalSourcePath,
         docsRoot,
         builtAt: '2026-04-11T19:34:21.498Z',
@@ -639,17 +664,20 @@ describe('docs projection', () => {
       expect(indexHtml).toContain('Published from');
       expect(indexHtml).not.toContain('Part A –');
 
-      // `/patterns` is the short-URL Pattern Catalog. Verify it lists Part A
-      // Role Taxonomy and points back at the orientation page.
+      // `/patterns` is the short-URL Pattern Catalog. Verify it lists a
+      // generated pattern and points back at the orientation page without
+      // pinning a mutable upstream title.
+      const patternPage = representativePatternPage(generated.snapshot);
       const patternsHtml = await readFile(resolve(outDir, 'patterns.html'), 'utf8');
       expect(patternsHtml).toContain('Pattern Catalog');
-      expect(patternsHtml).toContain('Role Taxonomy');
+      expect(patternsHtml).toContain(patternPage.title);
+      expect(patternsHtml).toContain(patternPage.staticPath);
       expect(patternsHtml).toContain('orientation page');
 
       expect(
-        await readFile(resolve(outDir, 'generated/patterns/A.2.html'), 'utf8'),
-      ).toContain('Role Taxonomy');
-      const firstRoute = Object.values(snapshot.routeGraph.nodes)[0];
+        await readFile(resolve(outDir, generatedHtmlPath(patternPage.markdownPath)), 'utf8'),
+      ).toContain(patternPage.title);
+      const firstRoute = Object.values(generated.snapshot.routeGraph.nodes)[0];
       if (firstRoute) {
         expect(
           await readFile(
@@ -658,12 +686,6 @@ describe('docs projection', () => {
           ),
         ).toContain(firstRoute.name);
       }
-      // The upstream spec (2026-07-03 sync) dropped the specification change
-      // log pattern (was I.3), so its generated page no longer exists. Verify
-      // a representative generated pattern page builds instead.
-      expect(
-        await readFile(resolve(outDir, 'generated/patterns/A.1.html'), 'utf8'),
-      ).toContain('Holon Ontic Foundation');
       expect(
         await readFile(resolve(outDir, 'generated/routes/index.html'), 'utf8'),
       ).toContain('They are not website routes');
