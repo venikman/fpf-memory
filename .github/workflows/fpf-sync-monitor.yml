@@ -139,34 +139,67 @@ jobs:
 
           # Fail open: a transient API 5xx must not silently suppress the
           # recovery dispatch this step guards.
-          RUNS="$(gh api "repos/${{ github.repository }}/actions/workflows/sync-fpf.yml/runs?per_page=100" || true)"
-          if [ -z "$RUNS" ]; then
-            echo "::warning::Could not read sync-fpf run history; failing open and allowing a dispatch."
+          fail_open() {
+            echo "::warning::$1; failing open and allowing a dispatch."
             echo "failed_streak=0" >> "$GITHUB_OUTPUT"
             echo "exhausted=false" >> "$GITHUB_OUTPUT"
             exit 0
-          fi
+          }
+
+          # Two server-filtered queries instead of one 100-run page. The
+          # single page held ~4-5 weeks at 2+ runs/day, so in any longer
+          # outage the last-success anchor and then the counted failed
+          # dispatches scrolled out of the window: FAILED_STREAK spuriously
+          # dropped, the escalation issue auto-closed with a false "retries
+          # resumed" comment, and the budget re-armed for 3 more doomed
+          # dispatches — repeating every few weeks for as long as the outage
+          # lasted.
 
           # Reset anchor: the newest sync-fpf run of ANY event/actor that
           # succeeded. Anchoring to the bot-dispatch stream instead would be a
           # one-way latch — this workflow is its only producer, so once
-          # dispatch stops the streak could never fall.
+          # dispatch stops the streak could never fall. status=success keeps
+          # the page tiny however long the history grows; the newest success
+          # is on this first page, and the client-side sort stays as a guard
+          # against within-page ordering surprises.
+          SUCCESSES="$(gh api "repos/${{ github.repository }}/actions/workflows/sync-fpf.yml/runs?status=success&per_page=100")" \
+            || fail_open "Could not read sync-fpf success history"
+          if ! jq -e .workflow_runs >/dev/null 2>&1 <<<"$SUCCESSES"; then
+            fail_open "Sync-fpf success history did not parse"
+          fi
           LAST_SUCCESS="$(jq -r '
-            [.workflow_runs[] | select(.conclusion == "success") | .created_at] | sort | last // ""
-          ' <<<"$RUNS")"
+            [.workflow_runs[].created_at] | sort | last // ""
+          ' <<<"$SUCCESSES")"
 
           # Count only automated recovery dispatches since that success. The
           # event+actor filter matters: without it the two daily SCHEDULED
           # worker failures would burn the budget within a day and the monitor
-          # would never retry at all.
-          FAILED_STREAK="$(jq -r --arg since "$LAST_SUCCESS" '
-            [ .workflow_runs[]
-              | select(.event == "workflow_dispatch")
+          # would never retry at all. event+status are filtered server-side
+          # and --paginate walks every remaining page, so the count covers the
+          # TRUE history since the anchor; `created` narrows the walk to the
+          # anchor's day onward (search-qualifier syntax is only reliable at
+          # date granularity — the exact timestamp cut stays in jq below).
+          QUERY="event=workflow_dispatch&status=failure&per_page=100"
+          if [ -n "$LAST_SUCCESS" ]; then
+            QUERY="$QUERY&created=%3E%3D${LAST_SUCCESS%%T*}"
+          fi
+          # No `|| true` here: a mid-walk pagination failure leaves earlier
+          # pages on stdout, and counting that partial history silently would
+          # be the same bug shape this change removes. gh exits nonzero on
+          # any failed page, so the whole read fails open instead.
+          FAILED_PAGES="$(gh api --paginate "repos/${{ github.repository }}/actions/workflows/sync-fpf.yml/runs?$QUERY")" \
+            || fail_open "Could not read the full sync-fpf dispatch-failure history"
+          # --paginate concatenates page objects; jq -s folds them into one
+          # array before counting.
+          FAILED_STREAK="$(jq -s -r --arg since "$LAST_SUCCESS" '
+            [ .[].workflow_runs[]
               | select(.triggering_actor.login == "github-actions[bot]")
-              | select(.conclusion == "failure")
               | select($since == "" or .created_at > $since)
             ] | length
-          ' <<<"$RUNS")"
+          ' <<<"$FAILED_PAGES" 2>/dev/null || true)"
+          case "$FAILED_STREAK" in
+            ''|*[!0-9]*) fail_open "Dispatch-failure history did not parse" ;;
+          esac
 
           echo "failed_streak=$FAILED_STREAK" >> "$GITHUB_OUTPUT"
           echo "last_success=$LAST_SUCCESS" >> "$GITHUB_OUTPUT"
