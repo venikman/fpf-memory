@@ -7,7 +7,8 @@ import type { Retriever } from './types.js';
  * check determinism).
  */
 export const CANDIDATE_FACTORIES: Record<string, () => Promise<Retriever>> = {
-  // 'example-name': async () => new (await import('../candidates/example-name/index.js')).default(),
+  'baseline-search': async () => new (await import('../candidates/baseline-search/index.js')).default(),
+  'baseline-trace': async () => new (await import('../candidates/baseline-trace/index.js')).default(),
 };
 
 export async function createCandidates(filter?: string[]): Promise<Retriever[]> {
