@@ -95,7 +95,7 @@ export interface CandidateReport {
     recallAt10: number;
     mrrAt10: number;
     ndcgAt10: number;
-    /** Negative-case discipline: fraction of negative cases with empty or sub-threshold results. */
+    /** Negative-case discipline: fraction of negative cases answered with an EMPTY result list. */
     negativeCleanRate: number | null;
     latency: { p50Ms: number; p95Ms: number; meanMs: number };
     perCategory: Record<string, { n: number; recallAt5: number; mrrAt10: number }>;

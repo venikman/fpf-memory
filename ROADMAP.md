@@ -47,20 +47,31 @@ the delivery is what let a 16-day outage report "within SLO" (see #253).
    > Framework (FPF) by Anatoly Levenchuk. Bounded, vectorless retrieval
    > over the full pattern catalog and curated routes — addressable by
    > stable FPF IDs, synced daily from ailev/FPF.
-3. **Publish to `registry.modelcontextprotocol.io`.** Zero listings today and no
+3. **Retrieval core replacement (evidence in hand).** The 2026-08-31 bake-off
+   (`experiments/retrieval-bakeoff/`, packet
+   `plans/2026-08-31-retrieval-bakeoff-review-packet.md`) measured the
+   production ranking on a held-out gold set: trace pipeline MRR .596 / R@5
+   67.1% at 516ms p50 with zero nonsense-query abstention; `search_fpf` scan
+   1.3–3.2s p50. A deterministic, dependency-free fusion stack built in that
+   branch scores .832 / 88.6% at 12ms (solo BM25F: .817 / 85.0% at 0.55ms).
+   Next: board go/no-go on integrating it behind the exact-ID fast path
+   (bounded PR, P3 verification); independent of the go/no-go, retire the
+   O(N·text) search scan. Ranked above registry publication because it changes
+   what every adopter *gets*, not just who finds it.
+4. **Publish to `registry.modelcontextprotocol.io`.** Zero listings today and no
    publication was ever attempted. The freshness gate cleared 2026-07-28 (see
    Shipped); what remains is the board go/no-go. Note repo-root `server.json`
    is a contributor stdio launcher currently occupying the filename the registry
    reserves.
-4. **Contribution surface.** `CONTRIBUTING.md`, issue templates, and a
+5. **Contribution surface.** `CONTRIBUTING.md`, issue templates, and a
    `CODE_OF_CONDUCT.md`. GitHub community health is 42%; there is no entry point
    for an outside contributor even once a LICENSE exists.
 
-5. **Route catalog recovery.** Curated routes regressed 23 → 3 on 2026-06-09
+6. **Route catalog recovery.** Curated routes regressed 23 → 3 on 2026-06-09
    (adoption surface restructure, #210). Audit which curated routes carried real
    query traffic and restore the high-value ones. The P4 boundary-route
    re-activation below belongs to this item when it un-defers.
-6. **Monitor hardening & telemetry revival.** Content-quality monitor back to a
+7. **Monitor hardening & telemetry revival.** Content-quality monitor back to a
    green path (#273 open). The weekly-review half shipped 2026-08-07:
    `weekly-metrics.yml` posts a Monday "Weekly metrics review \<ISO week\>"
    issue combining freshness vs the 26h SLO (reusing the sync monitor), main
