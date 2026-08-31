@@ -9,6 +9,7 @@ import type { Retriever } from './types.js';
 export const CANDIDATE_FACTORIES: Record<string, () => Promise<Retriever>> = {
   'baseline-search': async () => new (await import('../candidates/baseline-search/index.js')).default(),
   'bm25f': async () => new (await import('../candidates/bm25f/index.js')).default(),
+  'fusion': async () => new (await import('../candidates/fusion/index.js')).default(),
   'baseline-trace': async () => new (await import('../candidates/baseline-trace/index.js')).default(),
   'gramset': async () => new (await import('../candidates/gramset/index.js')).default(),
   'graph-ppr': async () => new (await import('../candidates/graph-ppr/index.js')).default(),
