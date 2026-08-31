@@ -11,6 +11,7 @@ export const CANDIDATE_FACTORIES: Record<string, () => Promise<Retriever>> = {
   'baseline-trace': async () => new (await import('../candidates/baseline-trace/index.js')).default(),
   'gramset': async () => new (await import('../candidates/gramset/index.js')).default(),
   'graph-ppr': async () => new (await import('../candidates/graph-ppr/index.js')).default(),
+  'rri': async () => new (await import('../candidates/rri/index.js')).default(),
 };
 
 export async function createCandidates(filter?: string[]): Promise<Retriever[]> {
