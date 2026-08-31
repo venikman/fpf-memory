@@ -21,6 +21,8 @@ const K = 10;
 interface CliOptions {
   gold: string;
   candidates?: string[];
+  /** Paths to unregistered candidate modules (default-exporting a Retriever class). */
+  factories?: string[];
   out?: string;
   quiet: boolean;
 }
@@ -38,6 +40,8 @@ function parseArgs(argv: string[]): CliOptions {
     else if (arg.startsWith('--gold=')) options.gold = arg.slice('--gold='.length);
     else if (arg === '--candidates') options.candidates = next().split(',').map((s) => s.trim());
     else if (arg.startsWith('--candidates=')) options.candidates = arg.slice('--candidates='.length).split(',').map((s) => s.trim());
+    else if (arg === '--factory') (options.factories ??= []).push(next());
+    else if (arg.startsWith('--factory=')) (options.factories ??= []).push(arg.slice('--factory='.length));
     else if (arg === '--out') options.out = next();
     else if (arg.startsWith('--out=')) options.out = arg.slice('--out='.length);
     else if (arg === '--quiet') options.quiet = true;
@@ -82,7 +86,16 @@ async function main(): Promise<void> {
     }
   }
 
-  const candidates = await createCandidates(options.candidates);
+  const candidates =
+    options.factories && options.factories.length > 0
+      ? await Promise.all(
+          options.factories.map(async (modulePath) => {
+            const resolved = path.resolve(EXPERIMENT_ROOT, modulePath);
+            const CandidateClass = (await import(resolved)).default as new () => import('./types.js').Retriever;
+            return new CandidateClass();
+          }),
+        )
+      : await createCandidates(options.candidates);
   if (candidates.length === 0) {
     throw new Error('no candidates registered — add entries to harness/registry.ts');
   }
