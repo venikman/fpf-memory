@@ -307,6 +307,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.10"
     },
     {
+      "id": "A.10.1",
+      "title": "Revalidate Affected Uses When a Relied-on Source Changes",
+      "staticPath": "/generated/patterns/A.10.1"
+    },
+    {
       "id": "A.11",
       "title": "Ontological Parsimony",
       "staticPath": "/generated/patterns/A.11"
@@ -370,6 +375,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "A.15.8",
       "title": "Work-Performance Configuration and Recovery Testing",
       "staticPath": "/generated/patterns/A.15.8"
+    },
+    {
+      "id": "A.15.9",
+      "title": "Request and Use a Bounded Result from Another Practice",
+      "staticPath": "/generated/patterns/A.15.9"
     },
     {
       "id": "A.15.PROD",
@@ -1012,6 +1022,16 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.36.P"
     },
     {
+      "id": "C.37",
+      "title": "Use-Bounded Representation Selection and Co-Use",
+      "staticPath": "/generated/patterns/C.37"
+    },
+    {
+      "id": "C.38",
+      "title": "Construct Comparable Ways to Obtain One Result",
+      "staticPath": "/generated/patterns/C.38"
+    },
+    {
       "id": "D.1",
       "title": "Ethical Value Plurality and FPF Boundary",
       "staticPath": "/generated/patterns/D.1"
@@ -1193,7 +1213,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.11.DSG",
-      "title": "DPF Suite Guide",
+      "title": "DPF Suite Reference",
       "staticPath": "/generated/patterns/E.11.DSG"
     },
     {
