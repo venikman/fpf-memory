@@ -1352,6 +1352,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/E.23"
     },
     {
+      "id": "E.23.CAE",
+      "title": "Capability Access and Expression Differential Probe",
+      "staticPath": "/generated/patterns/E.23.CAE"
+    },
+    {
       "id": "E.23.CDI",
       "title": "Developing Capability for a Named Work Family",
       "staticPath": "/generated/patterns/E.23.CDI"
