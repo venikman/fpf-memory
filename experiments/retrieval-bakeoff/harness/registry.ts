@@ -12,6 +12,7 @@ export const CANDIDATE_FACTORIES: Record<string, () => Promise<Retriever>> = {
   'gramset': async () => new (await import('../candidates/gramset/index.js')).default(),
   'graph-ppr': async () => new (await import('../candidates/graph-ppr/index.js')).default(),
   'rri': async () => new (await import('../candidates/rri/index.js')).default(),
+  'trigram-fuzzy': async () => new (await import('../candidates/trigram-fuzzy/index.js')).default(),
 };
 
 export async function createCandidates(filter?: string[]): Promise<Retriever[]> {
