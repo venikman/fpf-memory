@@ -1187,6 +1187,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/E.10.D2"
     },
     {
+      "id": "E.10.DEV",
+      "title": "Recovering What Development or Evolution Means in the Current Claim",
+      "staticPath": "/generated/patterns/E.10.DEV"
+    },
+    {
       "id": "E.10.LRN",
       "title": "Recovering What “Learning” Means in the Current Claim",
       "staticPath": "/generated/patterns/E.10.LRN"
@@ -1350,6 +1355,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "E.23",
       "title": "Quality Improvement Loop Method",
       "staticPath": "/generated/patterns/E.23"
+    },
+    {
+      "id": "E.23.CAE",
+      "title": "Capability Access and Expression Differential Probe",
+      "staticPath": "/generated/patterns/E.23.CAE"
     },
     {
       "id": "E.23.CDI",
