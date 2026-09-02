@@ -317,6 +317,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.11"
     },
     {
+      "id": "A.11.OP",
+      "title": "Decision-Relevant Least Action and Operational Parsimony",
+      "staticPath": "/generated/patterns/A.11.OP"
+    },
+    {
       "id": "A.12",
       "title": "Acting-Side Externalization and Reflexive Split",
       "staticPath": "/generated/patterns/A.12"
