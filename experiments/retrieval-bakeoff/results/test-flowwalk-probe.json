@@ -1,0 +1,2722 @@
+{
+ "sourceHash": "sha256:1169ef3f20b0c89c005b07c33ddb20210039ae9b4a75dfab5255752c20317d37",
+ "goldSet": "test",
+ "k": 10,
+ "reports": [
+  {
+   "name": "ppr-puref-r00",
+   "build": {
+    "buildMs": 706.260042,
+    "docCount": 9155,
+    "approxIndexBytes": 14825516,
+    "notes": "bm25f(k1=1.2,b=0.75,wT=4,wA=3,wX=1,terms=60383) + ppr(alpha=0.5,iters=20,seeds=32,rho=0,edges=61934,foldPairs=16957) combine=pure(lambda=0.75,beta=1,gamma=1) tau=6 walkScore=flow useSpec=true uniformEdges=false walkForIsolated=false"
+   },
+   "goldSet": "test",
+   "k": 10,
+   "cases": [
+    {
+     "caseId": "id-lookup-1",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 8.34308400000009,
+     "topIds": [
+      "A.6.3.CSC",
+      "A.6.3.CR",
+      "E.17",
+      "E.17.ID.CR",
+      "E.17.EFP",
+      "A.6.3.NAR",
+      "A.10",
+      "C.2.P",
+      "E.10",
+      "A.6.4"
+     ]
+    },
+    {
+     "caseId": "id-lookup-2",
+     "category": "id-lookup",
+     "rank": 10,
+     "latencyMs": 2.9517090000000508,
+     "topIds": [
+      "C.3",
+      "C.3.1",
+      "C.3.2",
+      "A.2",
+      "A.2.1",
+      "F.6",
+      "A.2.6",
+      "C.2.2",
+      "A.8",
+      "C.3.3"
+     ]
+    },
+    {
+     "caseId": "id-lookup-3",
+     "category": "id-lookup",
+     "rank": null,
+     "latencyMs": 2.498499999999922,
+     "topIds": [
+      "E.24",
+      "E.10",
+      "A.14",
+      "A.1",
+      "B.1.5",
+      "A.10",
+      "B.1",
+      "B.3",
+      "B.5.2",
+      "B.2.P"
+     ]
+    },
+    {
+     "caseId": "id-lookup-4",
+     "category": "id-lookup",
+     "rank": null,
+     "latencyMs": 2.224166999999966,
+     "topIds": [
+      "C.22.1",
+      "G.5",
+      "C.22",
+      "G.11",
+      "C.18",
+      "C.29",
+      "C.19",
+      "C.22.2",
+      "E.23",
+      "C.19.1"
+     ]
+    },
+    {
+     "caseId": "id-lookup-5",
+     "category": "id-lookup",
+     "rank": 5,
+     "latencyMs": 2.6036249999999654,
+     "topIds": [
+      "F.18",
+      "F.9",
+      "E.10",
+      "F.0.1",
+      "F.1",
+      "F.17",
+      "F.0.2",
+      "E.10.D1",
+      "E.8",
+      "C.2.1"
+     ]
+    },
+    {
+     "caseId": "id-lookup-6",
+     "category": "id-lookup",
+     "rank": 6,
+     "latencyMs": 2.3915000000000646,
+     "topIds": [
+      "A.13",
+      "E.10",
+      "D.3",
+      "D.1",
+      "D.4",
+      "D.2",
+      "D.5",
+      "A.6.3.NAR",
+      "A.1.CSD",
+      "A.10"
+     ]
+    },
+    {
+     "caseId": "id-lookup-7",
+     "category": "id-lookup",
+     "rank": 2,
+     "latencyMs": 2.6332499999999754,
+     "topIds": [
+      "E.10",
+      "E.8",
+      "F.18",
+      "C.2.P",
+      "E.19",
+      "A.10",
+      "E.10.ARCH",
+      "E.21",
+      "C.2.1",
+      "E.17"
+     ]
+    },
+    {
+     "caseId": "id-lookup-8",
+     "category": "id-lookup",
+     "rank": 5,
+     "latencyMs": 2.502707999999984,
+     "topIds": [
+      "C.2.LS",
+      "C.2.2a",
+      "A.16",
+      "A.16.1",
+      "A.16.0",
+      "B.4.1",
+      "E.10",
+      "B.5.2.0",
+      "C.2.5",
+      "C.2.4"
+     ]
+    },
+    {
+     "caseId": "id-lookup-9",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 2.309333000000038,
+     "topIds": [
+      "C.30.ILC",
+      "C.30",
+      "C.32",
+      "C.30.ASV",
+      "E.10",
+      "C.30.AD",
+      "A.22",
+      "C.32.MLAO",
+      "D.3",
+      "C.30.P"
+     ]
+    },
+    {
+     "caseId": "id-lookup-10",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 2.2361669999999094,
+     "topIds": [
+      "B.3",
+      "A.10",
+      "B.5.2",
+      "B.5",
+      "B.4",
+      "C.29",
+      "E.2",
+      "C.2.1",
+      "B.3.5",
+      "A.15"
+     ]
+    },
+    {
+     "caseId": "id-lookup-11",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 2.406333000000018,
+     "topIds": [
+      "G.0",
+      "G.3",
+      "G.2",
+      "A.19.ULSAM",
+      "G.4",
+      "E.10",
+      "A.19.CPM",
+      "A.19.USCM",
+      "F.9",
+      "A.19.SelectorMechanism"
+     ]
+    },
+    {
+     "caseId": "id-lookup-12",
+     "category": "id-lookup",
+     "rank": 5,
+     "latencyMs": 2.0704170000000204,
+     "topIds": [
+      "E.10",
+      "A.6.RSIG",
+      "E.19",
+      "E.17.AUD.LHR",
+      "F.18",
+      "F.17",
+      "F.9",
+      "E.17",
+      "A.6.P",
+      "C.2.1"
+     ]
+    },
+    {
+     "caseId": "id-lookup-13",
+     "category": "id-lookup",
+     "rank": 4,
+     "latencyMs": 2.208791999999903,
+     "topIds": [
+      "D.3",
+      "D.1",
+      "D.2",
+      "D.4",
+      "D.5",
+      "A.6.3.NAR",
+      "C.30.ILC",
+      "E.10",
+      "A.1.CSD",
+      "C.36.P"
+     ]
+    },
+    {
+     "caseId": "id-lookup-14",
+     "category": "id-lookup",
+     "rank": 5,
+     "latencyMs": 2.5711659999999483,
+     "topIds": [
+      "E.11",
+      "E.10",
+      "E.4",
+      "C.2.P",
+      "E.4.FPF",
+      "E.2.DA",
+      "E.11.PFP",
+      "E.4.PFIP",
+      "F.18",
+      "E.21"
+     ]
+    },
+    {
+     "caseId": "id-lookup-15",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 2.1953750000000127,
+     "topIds": [
+      "A.19.CHR",
+      "A.19.ULSAM",
+      "A.19.SelectorMechanism",
+      "A.19.UNM",
+      "A.19.UINDM",
+      "A.19.CPM",
+      "A.19.USCM",
+      "G.3",
+      "A.19",
+      "G.5"
+     ]
+    },
+    {
+     "caseId": "id-lookup-16",
+     "category": "id-lookup",
+     "rank": null,
+     "latencyMs": 2.393542000000025,
+     "topIds": [
+      "C.30",
+      "A.22",
+      "E.10",
+      "A.6.M",
+      "C.30.AD",
+      "C.31.ASAP",
+      "C.31",
+      "E.10.ARCH",
+      "C.30.ASV",
+      "C.30.P"
+     ]
+    },
+    {
+     "caseId": "id-lookup-17",
+     "category": "id-lookup",
+     "rank": null,
+     "latencyMs": 2.3891250000000355,
+     "topIds": [
+      "B.1",
+      "B.2.2",
+      "A.1.CSD",
+      "B.5.2",
+      "B.5",
+      "A.10",
+      "B.3",
+      "E.2",
+      "C.29",
+      "B.4"
+     ]
+    },
+    {
+     "caseId": "title-1",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.6332910000000993,
+     "topIds": [
+      "A.3.4.P",
+      "E.10",
+      "E.10.ARCH",
+      "F.18",
+      "E.17",
+      "C.29",
+      "A.6.P",
+      "A.10",
+      "C.2.1",
+      "A.6.F"
+     ]
+    },
+    {
+     "caseId": "title-2",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.140083000000004,
+     "topIds": [
+      "F.13",
+      "F.5",
+      "F.8",
+      "F.18",
+      "F.9",
+      "F.7",
+      "F.3",
+      "F.1",
+      "F.2",
+      "F.11"
+     ]
+    },
+    {
+     "caseId": "title-3",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.499166999999943,
+     "topIds": [
+      "F.15",
+      "E.17.0",
+      "F.18",
+      "F.17",
+      "F.4",
+      "G.11",
+      "F.14",
+      "F.9",
+      "F.8",
+      "A.1.1"
+     ]
+    },
+    {
+     "caseId": "title-4",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.466250000000059,
+     "topIds": [
+      "E.17.1",
+      "E.17.2",
+      "C.30.ASV",
+      "E.17.0",
+      "E.17",
+      "A.22",
+      "A.16.0",
+      "C.2.2a",
+      "C.2.1",
+      "C.29"
+     ]
+    },
+    {
+     "caseId": "title-5",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.535874999999919,
+     "topIds": [
+      "A.6.RSIG",
+      "A.6",
+      "E.11",
+      "E.10",
+      "E.17",
+      "C.16.Q",
+      "E.17.0",
+      "F.18",
+      "A.6.P",
+      "C.25"
+     ]
+    },
+    {
+     "caseId": "title-6",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.2138329999999087,
+     "topIds": [
+      "A.4",
+      "C.18",
+      "B.4",
+      "C.32.MLAO",
+      "A.13",
+      "A.3",
+      "C.29",
+      "C.27",
+      "B.3.3",
+      "E.10"
+     ]
+    },
+    {
+     "caseId": "title-7",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.2406659999999192,
+     "topIds": [
+      "A.15.4",
+      "E.17",
+      "A.6",
+      "A.6.3.CR",
+      "E.8",
+      "A.2.8.PER",
+      "A.15.5",
+      "A.15.2",
+      "E.10",
+      "A.15"
+     ]
+    },
+    {
+     "caseId": "title-8",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.5089590000000044,
+     "topIds": [
+      "A.6.F",
+      "A.6.M",
+      "C.30.ASV",
+      "E.10.ROLE",
+      "E.10",
+      "C.30.AD",
+      "F.18",
+      "C.30",
+      "A.6.RSIR",
+      "E.10.ARCH"
+     ]
+    },
+    {
+     "caseId": "title-9",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.2542080000000624,
+     "topIds": [
+      "A.6.M",
+      "E.10",
+      "A.10",
+      "F.18",
+      "A.6.F",
+      "E.10.ARCH",
+      "A.6.P",
+      "C.29",
+      "C.30",
+      "C.30.ASV"
+     ]
+    },
+    {
+     "caseId": "title-10",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.711667000000034,
+     "topIds": [
+      "C.5",
+      "C.1",
+      "C.6",
+      "A.10",
+      "C.16",
+      "A.15.1",
+      "B.3",
+      "B.1.6",
+      "C.24",
+      "A.15.2"
+     ]
+    },
+    {
+     "caseId": "title-11",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.12012500000003,
+     "topIds": [
+      "E.5.1",
+      "E.5",
+      "A.13",
+      "E.23",
+      "E.5.2",
+      "E.5.3",
+      "E.5.4",
+      "E.6",
+      "E.2",
+      "E.8"
+     ]
+    },
+    {
+     "caseId": "title-12",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.480042000000026,
+     "topIds": [
+      "C.28",
+      "D.5",
+      "G.11",
+      "C.11",
+      "B.3",
+      "C.29",
+      "C.19",
+      "A.10",
+      "G.5",
+      "C.24"
+     ]
+    },
+    {
+     "caseId": "title-13",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.17775000000006,
+     "topIds": [
+      "B.5.2.1",
+      "A.0",
+      "C.17",
+      "B.5.2",
+      "G.5",
+      "C.19",
+      "C.18",
+      "A.17",
+      "A.18",
+      "B.4"
+     ]
+    },
+    {
+     "caseId": "title-14",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.403500000000008,
+     "topIds": [
+      "E.23",
+      "E.22",
+      "E.17.0",
+      "E.2.DA",
+      "E.10",
+      "E.9.DA",
+      "E.8",
+      "E.10.MOVE",
+      "E.21",
+      "E.19"
+     ]
+    },
+    {
+     "caseId": "title-15",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.5192499999999427,
+     "topIds": [
+      "C.30",
+      "C.32",
+      "C.30.AD",
+      "C.30.LCA",
+      "A.22",
+      "C.32.FAIL",
+      "C.30.P",
+      "C.30.ASV",
+      "E.10",
+      "C.29"
+     ]
+    },
+    {
+     "caseId": "title-16",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.4647919999999885,
+     "topIds": [
+      "F.14",
+      "F.17",
+      "F.18",
+      "F.8",
+      "A.15.1",
+      "A.2",
+      "F.4",
+      "A.2.1",
+      "F.6",
+      "F.5"
+     ]
+    },
+    {
+     "caseId": "title-17",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 2.138500000000022,
+     "topIds": [
+      "C.22.2",
+      "E.18.1",
+      "A.6.P.WMR",
+      "E.24.CD",
+      "E.8",
+      "E.18",
+      "A.10",
+      "E.11",
+      "E.19",
+      "C.22"
+     ]
+    },
+    {
+     "caseId": "alias-1",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 2.2842500000000427,
+     "topIds": [
+      "E.4.PFIP",
+      "C.2.1",
+      "E.4.DPF.DA",
+      "E.11",
+      "E.8",
+      "E.21",
+      "E.4.FPF",
+      "E.4.DPF",
+      "E.10",
+      "E.17"
+     ]
+    },
+    {
+     "caseId": "alias-2",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 2.419416999999953,
+     "topIds": [
+      "E.10",
+      "A.6.S",
+      "E.10.MOVE",
+      "E.11",
+      "A.1",
+      "E.10.ARCH",
+      "E.21",
+      "F.18",
+      "E.19",
+      "E.4.DPF.DA"
+     ]
+    },
+    {
+     "caseId": "alias-3",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 2.141124999999988,
+     "topIds": [
+      "E.16",
+      "E.10.ARCH",
+      "F.11",
+      "E.10",
+      "A.2",
+      "A.15",
+      "F.18",
+      "A.2.1",
+      "F.6",
+      "E.10.ROLE"
+     ]
+    },
+    {
+     "caseId": "alias-4",
+     "category": "alias",
+     "rank": 2,
+     "latencyMs": 2.1295000000000073,
+     "topIds": [
+      "E.8",
+      "C.2.LS",
+      "C.30",
+      "A.2.6",
+      "A.1.1",
+      "E.10",
+      "E.13",
+      "A.10",
+      "E.19",
+      "C.2.P"
+     ]
+    },
+    {
+     "caseId": "alias-5",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 2.162249999999972,
+     "topIds": [
+      "C.26",
+      "C.26.2",
+      "E.22",
+      "B.3",
+      "A.10",
+      "C.16",
+      "F.9",
+      "C.11",
+      "A.15",
+      "C.26.1"
+     ]
+    },
+    {
+     "caseId": "alias-6",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 2.3101669999999785,
+     "topIds": [
+      "E.10",
+      "F.18",
+      "C.2.1",
+      "E.8",
+      "E.10.ARCH",
+      "C.29",
+      "A.10",
+      "F.17",
+      "B.3",
+      "E.17"
+     ]
+    },
+    {
+     "caseId": "alias-7",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 2.035582999999974,
+     "topIds": [
+      "E.21",
+      "E.19",
+      "E.10",
+      "E.8",
+      "E.17",
+      "A.10",
+      "F.18",
+      "A.16",
+      "C.2.2a",
+      "E.11"
+     ]
+    },
+    {
+     "caseId": "alias-8",
+     "category": "alias",
+     "rank": 3,
+     "latencyMs": 2.3061250000000655,
+     "topIds": [
+      "A.15.PROD",
+      "A.15.1",
+      "A.1.1",
+      "A.3.4",
+      "C.2.1",
+      "E.10",
+      "A.6.P.WMR",
+      "A.10",
+      "A.3.1",
+      "A.15.2"
+     ]
+    },
+    {
+     "caseId": "alias-9",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 2.1887919999999212,
+     "topIds": [
+      "E.10",
+      "E.8",
+      "E.19",
+      "E.13",
+      "E.11",
+      "E.21",
+      "F.18",
+      "C.2.P",
+      "C.2.1",
+      "E.10.ARCH"
+     ]
+    },
+    {
+     "caseId": "alias-10",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 2.0274590000000217,
+     "topIds": [
+      "A.6.A",
+      "E.24.UK",
+      "E.10",
+      "A.2.6",
+      "C.16.Q",
+      "C.2.2a",
+      "A.16",
+      "B.4.1",
+      "A.16.1",
+      "A.16.0"
+     ]
+    },
+    {
+     "caseId": "alias-11",
+     "category": "alias",
+     "rank": 2,
+     "latencyMs": 2.2564160000000584,
+     "topIds": [
+      "C.30",
+      "E.17",
+      "E.10",
+      "A.10",
+      "F.9",
+      "F.18",
+      "B.3",
+      "C.29",
+      "C.2.1",
+      "F.17"
+     ]
+    },
+    {
+     "caseId": "alias-12",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 2.157332999999994,
+     "topIds": [
+      "C.23",
+      "E.10",
+      "G.5",
+      "B.2",
+      "C.36.P",
+      "B.3",
+      "B.2.P",
+      "C.19",
+      "G.11",
+      "B.2.2"
+     ]
+    },
+    {
+     "caseId": "alias-13",
+     "category": "alias",
+     "rank": null,
+     "latencyMs": 2.101332999999954,
+     "topIds": [
+      "E.10",
+      "E.4.DPF",
+      "C.2.1",
+      "E.11",
+      "E.17",
+      "E.4.DPF.DA",
+      "E.4",
+      "E.24.PUB",
+      "E.4.FPF",
+      "E.21"
+     ]
+    },
+    {
+     "caseId": "alias-14",
+     "category": "alias",
+     "rank": 2,
+     "latencyMs": 2.077042000000006,
+     "topIds": [
+      "E.8",
+      "E.18.1",
+      "C.30",
+      "A.1.1",
+      "A.2.6",
+      "E.10",
+      "B.5",
+      "A.10",
+      "F.18",
+      "B.5.2"
+     ]
+    },
+    {
+     "caseId": "alias-15",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 2.279916999999955,
+     "topIds": [
+      "A.10",
+      "E.10",
+      "C.2.1",
+      "E.17",
+      "E.19",
+      "C.26",
+      "C.29",
+      "E.8",
+      "E.11",
+      "E.21"
+     ]
+    },
+    {
+     "caseId": "alias-16",
+     "category": "alias",
+     "rank": null,
+     "latencyMs": 2.3694580000000087,
+     "topIds": [
+      "E.8",
+      "E.10.LRN",
+      "E.10",
+      "E.4.DPF",
+      "F.0.1",
+      "F.1",
+      "F.0.2",
+      "E.10.D1",
+      "F.18",
+      "E.21"
+     ]
+    },
+    {
+     "caseId": "typo-1",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 2.1113749999999527,
+     "topIds": [
+      "E.17.1",
+      "E.17.2",
+      "C.30.ASV",
+      "E.17.0",
+      "C.2.P",
+      "A.22",
+      "E.17",
+      "A.16.0",
+      "C.2.2a",
+      "C.29"
+     ]
+    },
+    {
+     "caseId": "typo-2",
+     "category": "typo",
+     "rank": null,
+     "latencyMs": 2.371250000000032,
+     "topIds": [
+      "E.10",
+      "B.3",
+      "A.10",
+      "A.19.CHR",
+      "A.6.1",
+      "F.18",
+      "A.6.5",
+      "A.19",
+      "C.29",
+      "C.2.1"
+     ]
+    },
+    {
+     "caseId": "typo-3",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 2.6984579999999596,
+     "topIds": [
+      "F.15",
+      "F.18",
+      "F.17",
+      "F.4",
+      "G.11",
+      "F.14",
+      "A.1.1",
+      "F.9",
+      "F.8",
+      "E.10"
+     ]
+    },
+    {
+     "caseId": "typo-4",
+     "category": "typo",
+     "rank": null,
+     "latencyMs": 2.1517499999999927,
+     "topIds": [
+      "E.10",
+      "B.3",
+      "A.10",
+      "C.16",
+      "F.18",
+      "C.2.1",
+      "E.13",
+      "C.2.P",
+      "A.15.1",
+      "E.19"
+     ]
+    },
+    {
+     "caseId": "typo-5",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 2.218582999999967,
+     "topIds": [
+      "C.23",
+      "B.2",
+      "G.5",
+      "A.19.CHR",
+      "E.10",
+      "B.3",
+      "E.8",
+      "C.19",
+      "G.11",
+      "G.4"
+     ]
+    },
+    {
+     "caseId": "typo-6",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 2.515792000000033,
+     "topIds": [
+      "C.28",
+      "A.6",
+      "D.5",
+      "G.11",
+      "C.11",
+      "B.3",
+      "C.29",
+      "C.19",
+      "A.10",
+      "G.5"
+     ]
+    },
+    {
+     "caseId": "typo-7",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 2.100708999999938,
+     "topIds": [
+      "A.4",
+      "B.4",
+      "C.18",
+      "C.32.MLAO",
+      "E.2.DA",
+      "A.3",
+      "A.13",
+      "C.29",
+      "C.27",
+      "B.3.3"
+     ]
+    },
+    {
+     "caseId": "typo-8",
+     "category": "typo",
+     "rank": null,
+     "latencyMs": 2.0794160000000375,
+     "topIds": [
+      "E.10",
+      "B.3",
+      "A.10",
+      "C.16",
+      "F.18",
+      "C.2.1",
+      "E.13",
+      "C.2.P",
+      "A.15.1",
+      "E.19"
+     ]
+    },
+    {
+     "caseId": "typo-9",
+     "category": "typo",
+     "rank": null,
+     "latencyMs": 2.2070830000000115,
+     "topIds": [
+      "A.2",
+      "E.10",
+      "A.4",
+      "F.18",
+      "A.2.1",
+      "A.15",
+      "F.6",
+      "F.9",
+      "F.5",
+      "A.10"
+     ]
+    },
+    {
+     "caseId": "typo-10",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 2.19887499999993,
+     "topIds": [
+      "A.6.RSIG",
+      "C.16.Q",
+      "C.25",
+      "E.10",
+      "E.17",
+      "E.11",
+      "A.6",
+      "E.21",
+      "A.6.P",
+      "A.6.0"
+     ]
+    },
+    {
+     "caseId": "typo-11",
+     "category": "typo",
+     "rank": 4,
+     "latencyMs": 2.2305410000000165,
+     "topIds": [
+      "A.15.PROD",
+      "A.15.1",
+      "A.3.4",
+      "A.1.1",
+      "A.3.1.MR",
+      "E.18.1",
+      "A.3.1",
+      "C.2.1",
+      "E.10",
+      "A.10"
+     ]
+    },
+    {
+     "caseId": "typo-12",
+     "category": "typo",
+     "rank": 7,
+     "latencyMs": 2.1445420000000013,
+     "topIds": [
+      "E.11.PUA",
+      "A.6.P",
+      "E.6",
+      "B.3.5",
+      "E.8",
+      "E.11",
+      "E.10",
+      "C.2.1",
+      "C.2.P",
+      "A.15.1"
+     ]
+    },
+    {
+     "caseId": "typo-13",
+     "category": "typo",
+     "rank": 7,
+     "latencyMs": 2.059750000000008,
+     "topIds": [
+      "E.10",
+      "E.8",
+      "E.11",
+      "E.19",
+      "E.2.DA",
+      "E.10.D1",
+      "C.22.2",
+      "I.2",
+      "E.8.ECSPF",
+      "A.6.RSIG"
+     ]
+    },
+    {
+     "caseId": "typo-14",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 2.5856670000000577,
+     "topIds": [
+      "C.5",
+      "C.16",
+      "A.10",
+      "A.15.1",
+      "C.24",
+      "B.1.6",
+      "A.15.2",
+      "C.1",
+      "B.3",
+      "C.14"
+     ]
+    },
+    {
+     "caseId": "typo-15",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 2.3453329999999823,
+     "topIds": [
+      "A.6.F",
+      "A.6.M",
+      "C.30.ASV",
+      "E.18",
+      "E.10",
+      "C.30.AD",
+      "F.18",
+      "C.30",
+      "A.2.8",
+      "A.6.RSIR"
+     ]
+    },
+    {
+     "caseId": "typo-16",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 2.4892500000000837,
+     "topIds": [
+      "C.30",
+      "C.30.AD",
+      "A.22",
+      "C.30.P",
+      "C.32.PAD",
+      "C.35",
+      "C.30.ASV",
+      "C.32.FAIL",
+      "C.32.MLAO",
+      "C.32.ADR"
+     ]
+    },
+    {
+     "caseId": "typo-17",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 2.1779169999999795,
+     "topIds": [
+      "C.26",
+      "C.26.2",
+      "A.6.P",
+      "E.6",
+      "A.2.3",
+      "G.0",
+      "C.2.2",
+      "E.8",
+      "A.10",
+      "F.9"
+     ]
+    },
+    {
+     "caseId": "definition-1",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 2.3118749999999864,
+     "topIds": [
+      "E.17",
+      "E.10",
+      "A.2.6",
+      "C.16.Q",
+      "A.19",
+      "C.25",
+      "A.10",
+      "A.18",
+      "C.2.3",
+      "C.2.1"
+     ]
+    },
+    {
+     "caseId": "definition-2",
+     "category": "definition",
+     "rank": null,
+     "latencyMs": 2.2054170000000113,
+     "topIds": [
+      "E.10",
+      "B.1",
+      "D.3",
+      "A.1.CSD",
+      "D.2",
+      "E.17",
+      "A.19",
+      "C.16",
+      "C.16.Q",
+      "B.3"
+     ]
+    },
+    {
+     "caseId": "definition-3",
+     "category": "definition",
+     "rank": null,
+     "latencyMs": 2.291334000000006,
+     "topIds": [
+      "E.10",
+      "A.10",
+      "C.2.1",
+      "A.15.1",
+      "F.17",
+      "E.17",
+      "A.2",
+      "A.15",
+      "F.18",
+      "B.3"
+     ]
+    },
+    {
+     "caseId": "definition-4",
+     "category": "definition",
+     "rank": null,
+     "latencyMs": 2.2374170000000504,
+     "topIds": [
+      "E.10",
+      "F.18",
+      "E.10.ARCH",
+      "E.8",
+      "E.24.UK",
+      "E.21",
+      "C.29",
+      "C.3",
+      "E.19",
+      "C.2.1"
+     ]
+    },
+    {
+     "caseId": "definition-5",
+     "category": "definition",
+     "rank": 2,
+     "latencyMs": 2.3474579999999605,
+     "topIds": [
+      "E.18.NET",
+      "C.30.P",
+      "E.18.3",
+      "E.18",
+      "A.22",
+      "A.3.4",
+      "E.10",
+      "E.17",
+      "C.29",
+      "C.2.1"
+     ]
+    },
+    {
+     "caseId": "definition-6",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 2.0420409999999265,
+     "topIds": [
+      "B.2.P",
+      "E.10",
+      "E.8",
+      "E.10.D1",
+      "B.3",
+      "A.10",
+      "E.2",
+      "F.18",
+      "C.29",
+      "C.16"
+     ]
+    },
+    {
+     "caseId": "definition-7",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 2.055125000000089,
+     "topIds": [
+      "A.6.0",
+      "E.10",
+      "E.10.D1",
+      "E.8",
+      "F.18",
+      "F.0.1",
+      "A.1",
+      "A.6.1",
+      "A.3.4",
+      "A.1.1"
+     ]
+    },
+    {
+     "caseId": "definition-8",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 2.1761249999999563,
+     "topIds": [
+      "B.5.2",
+      "B.5",
+      "B.5.2.0",
+      "B.4.1",
+      "A.16.0",
+      "A.16",
+      "C.2.2a",
+      "C.16.Q",
+      "A.10",
+      "E.17.ID.CR"
+     ]
+    },
+    {
+     "caseId": "definition-9",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 2.233167000000094,
+     "topIds": [
+      "E.10",
+      "C.2.1",
+      "A.10",
+      "A.7.CP",
+      "E.8",
+      "A.15.1",
+      "F.18",
+      "E.17",
+      "G.11",
+      "E.10.ARCH"
+     ]
+    },
+    {
+     "caseId": "definition-10",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 2.217708000000016,
+     "topIds": [
+      "E.12",
+      "E.13",
+      "E.2",
+      "E.10",
+      "C.2.P",
+      "E.8",
+      "E.19",
+      "A.10",
+      "B.3",
+      "B.4.1"
+     ]
+    },
+    {
+     "caseId": "definition-11",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 2.158708000000047,
+     "topIds": [
+      "A.3.4.P",
+      "E.10.ARCH",
+      "E.10",
+      "A.3.4",
+      "A.6.RSIR",
+      "E.10.MOVE",
+      "A.3.1",
+      "C.2.P.DR",
+      "A.15.5",
+      "A.3.3"
+     ]
+    },
+    {
+     "caseId": "definition-12",
+     "category": "definition",
+     "rank": null,
+     "latencyMs": 2.119207999999958,
+     "topIds": [
+      "E.10",
+      "E.8",
+      "F.18",
+      "E.10.D1",
+      "F.0.1",
+      "A.1.1",
+      "A.2.6",
+      "A.3.3",
+      "B.3",
+      "A.10"
+     ]
+    },
+    {
+     "caseId": "definition-13",
+     "category": "definition",
+     "rank": null,
+     "latencyMs": 2.2097499999999854,
+     "topIds": [
+      "E.10",
+      "E.8",
+      "E.21",
+      "E.13",
+      "E.19",
+      "B.5",
+      "F.18",
+      "E.2.DA",
+      "E.10.ARCH",
+      "C.2.P"
+     ]
+    },
+    {
+     "caseId": "definition-14",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 2.2722499999999854,
+     "topIds": [
+      "E.10",
+      "A.2",
+      "A.15.6",
+      "E.24.CD",
+      "A.10",
+      "F.9",
+      "C.2.1",
+      "F.18",
+      "E.10.ARCH",
+      "A.15.1"
+     ]
+    },
+    {
+     "caseId": "definition-15",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 2.3152919999999995,
+     "topIds": [
+      "E.18",
+      "A.15.PROD",
+      "E.10",
+      "F.18",
+      "E.18.1",
+      "E.10.ARCH",
+      "A.6.P.WMR",
+      "A.15.2",
+      "A.6.RCD",
+      "E.18.NET"
+     ]
+    },
+    {
+     "caseId": "definition-16",
+     "category": "definition",
+     "rank": null,
+     "latencyMs": 2.297290999999973,
+     "topIds": [
+      "E.10",
+      "B.5",
+      "A.22",
+      "B.3",
+      "C.16",
+      "C.36",
+      "C.2.1",
+      "B.5.2",
+      "C.35",
+      "A.19"
+     ]
+    },
+    {
+     "caseId": "definition-17",
+     "category": "definition",
+     "rank": null,
+     "latencyMs": 2.2342080000000806,
+     "topIds": [
+      "F.17",
+      "E.10",
+      "C.2.1",
+      "F.18",
+      "A.10",
+      "B.5",
+      "F.9",
+      "E.8",
+      "E.17.0",
+      "C.29"
+     ]
+    },
+    {
+     "caseId": "multi-hop-1",
+     "category": "multi-hop",
+     "rank": 7,
+     "latencyMs": 2.733457999999928,
+     "topIds": [
+      "A.2.9",
+      "A.2.8.PER",
+      "A.6",
+      "A.2.8",
+      "A.6.P",
+      "A.10",
+      "A.2",
+      "A.15.1",
+      "E.10",
+      "F.6"
+     ]
+    },
+    {
+     "caseId": "multi-hop-2",
+     "category": "multi-hop",
+     "rank": 3,
+     "latencyMs": 2.083582999999976,
+     "topIds": [
+      "E.5.2",
+      "E.10.P",
+      "E.5",
+      "E.8",
+      "G.0",
+      "A.2.6",
+      "A.12",
+      "B.3.5",
+      "E.5.1",
+      "E.5.3"
+     ]
+    },
+    {
+     "caseId": "multi-hop-3",
+     "category": "multi-hop",
+     "rank": 2,
+     "latencyMs": 2.4958330000000615,
+     "topIds": [
+      "B.1.5",
+      "B.1.4",
+      "A.15.1",
+      "A.3",
+      "A.7",
+      "A.3.1",
+      "B.1",
+      "A.15.PROD",
+      "B.1.6",
+      "A.3.2"
+     ]
+    },
+    {
+     "caseId": "multi-hop-4",
+     "category": "multi-hop",
+     "rank": 5,
+     "latencyMs": 2.162208000000078,
+     "topIds": [
+      "A.2.3",
+      "E.10",
+      "A.2.8",
+      "A.17",
+      "A.2.2",
+      "F.12",
+      "A.6.P",
+      "A.6",
+      "A.2",
+      "A.6.C"
+     ]
+    },
+    {
+     "caseId": "multi-hop-5",
+     "category": "multi-hop",
+     "rank": 6,
+     "latencyMs": 2.062999999999988,
+     "topIds": [
+      "C.18.1",
+      "A.6.1",
+      "E.8",
+      "C.29",
+      "C.31.ASAP",
+      "C.18",
+      "C.16",
+      "C.31",
+      "C.31.RSA",
+      "G.5"
+     ]
+    },
+    {
+     "caseId": "multi-hop-6",
+     "category": "multi-hop",
+     "rank": 4,
+     "latencyMs": 2.417874999999981,
+     "topIds": [
+      "C.32.HCS",
+      "C.32.ACS",
+      "C.32.ACE",
+      "C.32",
+      "C.32.P2S",
+      "C.32.FAIL",
+      "C.32.MLAO",
+      "C.32.PAD",
+      "C.32.ADA",
+      "C.30"
+     ]
+    },
+    {
+     "caseId": "multi-hop-7",
+     "category": "multi-hop",
+     "rank": 3,
+     "latencyMs": 2.089917000000014,
+     "topIds": [
+      "E.22",
+      "E.23",
+      "E.2.DA",
+      "A.19.ECS",
+      "E.21",
+      "E.9.DA",
+      "E.19",
+      "E.10",
+      "E.13",
+      "C.19"
+     ]
+    },
+    {
+     "caseId": "multi-hop-8",
+     "category": "multi-hop",
+     "rank": 4,
+     "latencyMs": 2.456542000000013,
+     "topIds": [
+      "A.6.RCD",
+      "E.4.PFR",
+      "A.6.P",
+      "C.2.1",
+      "F.6",
+      "A.6.1",
+      "A.6.5",
+      "A.6.0",
+      "A.6.RSIR",
+      "E.10"
+     ]
+    },
+    {
+     "caseId": "multi-hop-9",
+     "category": "multi-hop",
+     "rank": 3,
+     "latencyMs": 2.3121660000000475,
+     "topIds": [
+      "A.9",
+      "C.29",
+      "A.1",
+      "A.8",
+      "B.1",
+      "E.10",
+      "E.5",
+      "C.16",
+      "A.10",
+      "B.3"
+     ]
+    },
+    {
+     "caseId": "multi-hop-10",
+     "category": "multi-hop",
+     "rank": 2,
+     "latencyMs": 2.217416999999955,
+     "topIds": [
+      "A.16.2",
+      "A.16",
+      "A.16.0",
+      "A.16.1",
+      "C.2.2a",
+      "B.4.1",
+      "A.6.A",
+      "C.16.Q",
+      "B.5.2.0",
+      "E.8"
+     ]
+    },
+    {
+     "caseId": "multi-hop-11",
+     "category": "multi-hop",
+     "rank": 8,
+     "latencyMs": 2.252666999999974,
+     "topIds": [
+      "E.2",
+      "E.3",
+      "E.5",
+      "C.29",
+      "E.8",
+      "E.2.DA",
+      "C.2.P",
+      "E.1",
+      "E.19",
+      "A.10"
+     ]
+    },
+    {
+     "caseId": "multi-hop-12",
+     "category": "multi-hop",
+     "rank": 3,
+     "latencyMs": 2.4410420000000386,
+     "topIds": [
+      "C.3.4",
+      "C.3.3",
+      "C.3.2",
+      "C.3",
+      "C.3.1",
+      "A.2.6",
+      "C.3.5",
+      "C.3.A",
+      "C.2.1",
+      "E.24.UK"
+     ]
+    },
+    {
+     "caseId": "multi-hop-13",
+     "category": "multi-hop",
+     "rank": null,
+     "latencyMs": 2.2496669999999312,
+     "topIds": [
+      "E.6",
+      "A.3.1",
+      "E.8",
+      "E.5.4",
+      "E.5.3",
+      "C.2.P",
+      "E.5.2",
+      "E.5.1",
+      "E.5",
+      "E.10"
+     ]
+    },
+    {
+     "caseId": "multi-hop-14",
+     "category": "multi-hop",
+     "rank": 8,
+     "latencyMs": 2.2633330000001024,
+     "topIds": [
+      "E.5",
+      "E.5.4",
+      "E.5.3",
+      "E.5.2",
+      "E.5.1",
+      "E.9",
+      "E.7",
+      "E.2",
+      "E.3",
+      "E.6"
+     ]
+    },
+    {
+     "caseId": "multi-hop-15",
+     "category": "multi-hop",
+     "rank": 2,
+     "latencyMs": 2.206790999999953,
+     "topIds": [
+      "B.1.6",
+      "A.15.1",
+      "A.14",
+      "G.6",
+      "A.6.H",
+      "B.1.5",
+      "B.1",
+      "B.1.4",
+      "A.15.PROD",
+      "A.15.5"
+     ]
+    },
+    {
+     "caseId": "multi-hop-16",
+     "category": "multi-hop",
+     "rank": 2,
+     "latencyMs": 2.114749999999958,
+     "topIds": [
+      "F.0.1",
+      "E.10.D1",
+      "F.1",
+      "F.17",
+      "B.5.3",
+      "F.18",
+      "F.0.2",
+      "F.3",
+      "F.8",
+      "G.7"
+     ]
+    },
+    {
+     "caseId": "negative-1",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.017084000000068045,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-2",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 2.0383750000000873,
+     "topIds": [
+      "A.10",
+      "C.29",
+      "A.15",
+      "B.3",
+      "E.17",
+      "C.16",
+      "C.26",
+      "F.9",
+      "F.18",
+      "E.10"
+     ]
+    },
+    {
+     "caseId": "negative-3",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.011124999999992724,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-4",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 2.031833000000006,
+     "topIds": [
+      "A.10",
+      "C.29",
+      "A.15",
+      "B.3",
+      "E.17",
+      "C.16",
+      "C.26",
+      "F.9",
+      "F.18",
+      "E.10"
+     ]
+    },
+    {
+     "caseId": "negative-5",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.008916999999996733,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-6",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 2.5621249999999236,
+     "topIds": [
+      "E.10",
+      "A.10",
+      "B.3",
+      "C.2.1",
+      "E.13",
+      "E.8",
+      "C.16",
+      "A.15",
+      "C.29",
+      "F.18"
+     ]
+    },
+    {
+     "caseId": "negative-7",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.004375000000095497,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-8",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 2.0153329999999414,
+     "topIds": [
+      "A.10",
+      "C.29",
+      "A.15",
+      "B.3",
+      "E.17",
+      "C.16",
+      "C.26",
+      "F.9",
+      "F.18",
+      "E.10"
+     ]
+    },
+    {
+     "caseId": "negative-9",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.004167000000052212,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-10",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 2.1159169999999676,
+     "topIds": [
+      "E.24",
+      "A.1",
+      "A.10",
+      "A.8",
+      "B.3",
+      "B.5.2",
+      "B.5.2.1",
+      "F.9",
+      "B.4",
+      "A.19"
+     ]
+    },
+    {
+     "caseId": "hc-test-1",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.4483750000000555,
+     "topIds": [
+      "E.10",
+      "A.10",
+      "E.17",
+      "C.11",
+      "B.3",
+      "C.2.1",
+      "A.15",
+      "C.29",
+      "F.18",
+      "C.16"
+     ]
+    },
+    {
+     "caseId": "hc-test-2",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.7562090000000126,
+     "topIds": [
+      "A.10",
+      "E.10",
+      "A.15.1",
+      "C.2.1",
+      "A.15",
+      "B.3",
+      "F.6",
+      "A.3.1",
+      "A.13",
+      "F.18"
+     ]
+    },
+    {
+     "caseId": "hc-test-3",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 2.405750000000012,
+     "topIds": [
+      "E.10",
+      "A.10",
+      "C.2.1",
+      "A.15",
+      "E.8",
+      "F.18",
+      "B.3",
+      "F.9",
+      "E.19",
+      "E.13"
+     ]
+    },
+    {
+     "caseId": "hc-test-4",
+     "category": "task",
+     "rank": 8,
+     "latencyMs": 2.2821669999999585,
+     "topIds": [
+      "B.3",
+      "A.10",
+      "E.10",
+      "C.2.1",
+      "A.15.1",
+      "A.1",
+      "A.15",
+      "A.14",
+      "E.17",
+      "B.3.5"
+     ]
+    },
+    {
+     "caseId": "hc-test-5",
+     "category": "paraphrase",
+     "rank": 9,
+     "latencyMs": 2.3490410000000566,
+     "topIds": [
+      "E.8",
+      "C.2.1",
+      "A.10",
+      "C.2.P",
+      "A.15.1",
+      "A.3.1",
+      "E.10",
+      "E.11",
+      "A.14",
+      "B.3"
+     ]
+    },
+    {
+     "caseId": "hc-test-6",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 2.3899580000000924,
+     "topIds": [
+      "A.10",
+      "C.2.1",
+      "A.15.1",
+      "E.10",
+      "B.5",
+      "B.3",
+      "A.3.4",
+      "C.29",
+      "E.17",
+      "A.22"
+     ]
+    },
+    {
+     "caseId": "hc-test-7",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 2.502749999999992,
+     "topIds": [
+      "E.10",
+      "A.10",
+      "A.15",
+      "A.15.1",
+      "F.18",
+      "C.2.1",
+      "B.3",
+      "C.29",
+      "E.8",
+      "E.10.ARCH"
+     ]
+    },
+    {
+     "caseId": "hc-test-8",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.371040999999991,
+     "topIds": [
+      "A.10",
+      "B.5",
+      "B.3",
+      "B.4",
+      "B.5.2",
+      "E.10",
+      "E.8",
+      "A.15",
+      "E.5",
+      "C.2.1"
+     ]
+    },
+    {
+     "caseId": "hc-test-9",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 2.522874999999999,
+     "topIds": [
+      "A.10",
+      "C.2.1",
+      "E.10",
+      "A.15.1",
+      "F.18",
+      "A.15",
+      "B.3",
+      "F.9",
+      "E.17",
+      "E.4.DPF"
+     ]
+    },
+    {
+     "caseId": "hc-test-10",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.514499999999998,
+     "topIds": [
+      "C.2.2a",
+      "A.16",
+      "C.2.LS",
+      "A.16.0",
+      "E.10",
+      "A.6.A",
+      "A.16.1",
+      "B.5.2.0",
+      "B.4.1",
+      "C.16.Q"
+     ]
+    },
+    {
+     "caseId": "hc-test-11",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.750750000000039,
+     "topIds": [
+      "A.10",
+      "A.15.1",
+      "B.3",
+      "C.2.1",
+      "E.10",
+      "A.3.1",
+      "F.6",
+      "A.13",
+      "A.15",
+      "F.18"
+     ]
+    },
+    {
+     "caseId": "hc-test-12",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 2.12179100000003,
+     "topIds": [
+      "A.10",
+      "B.3",
+      "E.10",
+      "C.2.1",
+      "F.9",
+      "C.11",
+      "A.15",
+      "A.15.1",
+      "F.6",
+      "C.16"
+     ]
+    },
+    {
+     "caseId": "hc-test-13",
+     "category": "task",
+     "rank": 1,
+     "latencyMs": 2.2344590000000153,
+     "topIds": [
+      "A.6.6",
+      "E.10",
+      "C.2.1",
+      "A.2.6",
+      "E.17.0",
+      "A.6.5",
+      "A.22",
+      "A.10",
+      "C.29",
+      "A.6.P.WMR"
+     ]
+    },
+    {
+     "caseId": "hc-test-14",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.1849589999999353,
+     "topIds": [
+      "E.10",
+      "F.9",
+      "C.2.1",
+      "F.17",
+      "A.10",
+      "F.18",
+      "A.3.1",
+      "A.15.1",
+      "E.4.DPF",
+      "A.22"
+     ]
+    },
+    {
+     "caseId": "hc-test-15",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 2.3477920000000267,
+     "topIds": [
+      "A.10",
+      "A.15.1",
+      "B.3",
+      "C.2.1",
+      "A.3.1",
+      "E.10",
+      "A.15",
+      "E.17",
+      "A.1",
+      "A.14"
+     ]
+    },
+    {
+     "caseId": "hc-test-16",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 2.4005409999999756,
+     "topIds": [
+      "C.2.1",
+      "F.9",
+      "E.10",
+      "A.10",
+      "F.17",
+      "F.18",
+      "B.3",
+      "C.29",
+      "A.15",
+      "E.17"
+     ]
+    },
+    {
+     "caseId": "hc-test-17",
+     "category": "task",
+     "rank": 3,
+     "latencyMs": 2.2743329999998423,
+     "topIds": [
+      "A.10",
+      "C.2.1",
+      "B.3",
+      "E.10",
+      "E.17",
+      "C.16",
+      "A.15",
+      "A.15.1",
+      "F.9",
+      "E.21"
+     ]
+    },
+    {
+     "caseId": "hc-test-18",
+     "category": "paraphrase",
+     "rank": 1,
+     "latencyMs": 2.3514999999999873,
+     "topIds": [
+      "B.3",
+      "A.10",
+      "E.10",
+      "F.9",
+      "C.2.1",
+      "E.17",
+      "C.16",
+      "A.15",
+      "C.29",
+      "A.15.1"
+     ]
+    },
+    {
+     "caseId": "hc-test-19",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 2.5178750000000036,
+     "topIds": [
+      "E.10",
+      "B.5",
+      "A.10",
+      "C.2.1",
+      "B.3",
+      "B.5.2",
+      "E.17",
+      "A.0",
+      "B.4",
+      "A.15"
+     ]
+    },
+    {
+     "caseId": "hc-test-20",
+     "category": "task",
+     "rank": 5,
+     "latencyMs": 2.6138750000000073,
+     "topIds": [
+      "G.5",
+      "E.10",
+      "C.19",
+      "B.5",
+      "C.18",
+      "A.10",
+      "B.5.2",
+      "A.15",
+      "C.17",
+      "C.11"
+     ]
+    },
+    {
+     "caseId": "hc-test-21",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.5127919999999904,
+     "topIds": [
+      "E.2",
+      "A.10",
+      "E.10",
+      "B.3",
+      "A.15.1",
+      "C.2.1",
+      "A.15",
+      "E.8",
+      "C.29",
+      "E.13"
+     ]
+    },
+    {
+     "caseId": "hc-test-22",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 2.187249999999949,
+     "topIds": [
+      "B.3",
+      "A.10",
+      "E.10",
+      "F.9",
+      "C.16",
+      "C.26",
+      "C.2.1",
+      "A.15",
+      "E.17",
+      "A.19"
+     ]
+    },
+    {
+     "caseId": "hc-test-23",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.3367500000001655,
+     "topIds": [
+      "A.10",
+      "B.3",
+      "C.2.1",
+      "A.15",
+      "C.11",
+      "C.26",
+      "E.10",
+      "A.15.1",
+      "F.9",
+      "C.16"
+     ]
+    },
+    {
+     "caseId": "hc-test-24",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 2.7973749999998745,
+     "topIds": [
+      "B.5",
+      "B.3",
+      "A.10",
+      "B.5.2",
+      "B.4",
+      "E.10",
+      "C.2.P",
+      "E.8",
+      "F.13",
+      "F.9"
+     ]
+    },
+    {
+     "caseId": "hc-test-25",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.2077500000000327,
+     "topIds": [
+      "A.10",
+      "A.15.1",
+      "C.2.1",
+      "E.10",
+      "B.3",
+      "A.3.1",
+      "A.15",
+      "C.16",
+      "C.29",
+      "A.13"
+     ]
+    },
+    {
+     "caseId": "hc-test-26",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.5158329999999296,
+     "topIds": [
+      "E.10",
+      "A.10",
+      "C.11",
+      "C.16",
+      "C.30",
+      "C.19",
+      "C.2.1",
+      "G.5",
+      "B.3",
+      "C.29"
+     ]
+    },
+    {
+     "caseId": "hc-test-27",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 2.355624999999918,
+     "topIds": [
+      "A.10",
+      "B.3",
+      "C.2.1",
+      "E.10",
+      "C.29",
+      "C.16",
+      "A.15.1",
+      "E.17",
+      "D.3",
+      "D.1"
+     ]
+    },
+    {
+     "caseId": "hc-test-28",
+     "category": "task",
+     "rank": 5,
+     "latencyMs": 2.3450419999999212,
+     "topIds": [
+      "D.1",
+      "D.4",
+      "E.5",
+      "D.3",
+      "D.5",
+      "D.2",
+      "B.3",
+      "A.10",
+      "A.6.3.NAR",
+      "C.28"
+     ]
+    },
+    {
+     "caseId": "hc-test-29",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 2.474042000000054,
+     "topIds": [
+      "E.2",
+      "E.4.DPF",
+      "E.8",
+      "E.4",
+      "E.11",
+      "E.10",
+      "E.21",
+      "B.5",
+      "E.13",
+      "E.4.DPF.DA"
+     ]
+    },
+    {
+     "caseId": "hc-test-30",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.2999170000000504,
+     "topIds": [
+      "A.10",
+      "E.2",
+      "E.10",
+      "B.3",
+      "E.8",
+      "E.13",
+      "C.2.1",
+      "C.29",
+      "F.18",
+      "C.2.P"
+     ]
+    },
+    {
+     "caseId": "hc-test-31",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.2418750000001637,
+     "topIds": [
+      "E.8",
+      "E.11",
+      "E.10",
+      "C.2.1",
+      "A.10",
+      "E.17",
+      "E.4.DPF",
+      "A.15.1",
+      "E.24.PUB",
+      "C.2.P"
+     ]
+    },
+    {
+     "caseId": "hc-test-32",
+     "category": "task",
+     "rank": 6,
+     "latencyMs": 2.496708000000126,
+     "topIds": [
+      "E.8",
+      "C.2.P",
+      "E.10",
+      "F.18",
+      "E.11",
+      "E.19",
+      "A.10",
+      "E.21",
+      "E.13",
+      "E.2"
+     ]
+    },
+    {
+     "caseId": "hc-test-33",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.282207999999855,
+     "topIds": [
+      "A.10",
+      "B.3",
+      "B.5",
+      "B.5.2",
+      "E.10",
+      "B.4",
+      "A.15",
+      "F.18",
+      "A.19",
+      "C.16"
+     ]
+    },
+    {
+     "caseId": "hc-test-34",
+     "category": "paraphrase",
+     "rank": 6,
+     "latencyMs": 2.44987500000002,
+     "topIds": [
+      "E.10",
+      "E.8",
+      "E.21",
+      "E.19",
+      "E.22",
+      "E.23",
+      "E.9.DA",
+      "F.18",
+      "A.19.ECS",
+      "E.2.DA"
+     ]
+    },
+    {
+     "caseId": "hc-test-35",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.7578329999998914,
+     "topIds": [
+      "A.10",
+      "B.3",
+      "B.5",
+      "C.2.1",
+      "B.4",
+      "B.5.2",
+      "A.15",
+      "C.11",
+      "G.11",
+      "E.10"
+     ]
+    },
+    {
+     "caseId": "hc-test-36",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 2.5208330000000387,
+     "topIds": [
+      "B.5",
+      "A.10",
+      "B.5.2",
+      "B.3",
+      "F.9",
+      "B.4",
+      "E.10",
+      "F.17",
+      "B.5.1",
+      "A.15"
+     ]
+    },
+    {
+     "caseId": "hc-test-37",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 2.092875000000049,
+     "topIds": [
+      "A.10",
+      "E.10",
+      "C.2.1",
+      "F.18",
+      "A.15",
+      "F.17",
+      "F.9",
+      "A.15.1",
+      "B.3",
+      "C.11"
+     ]
+    },
+    {
+     "caseId": "hc-test-38",
+     "category": "task",
+     "rank": 1,
+     "latencyMs": 2.364166999999952,
+     "topIds": [
+      "G.5",
+      "C.19",
+      "F.9",
+      "A.10",
+      "E.10",
+      "G.2",
+      "C.18",
+      "C.2.1",
+      "B.5.2.1",
+      "G.0"
+     ]
+    },
+    {
+     "caseId": "hc-test-39",
+     "category": "paraphrase",
+     "rank": 7,
+     "latencyMs": 2.4105420000000777,
+     "topIds": [
+      "A.10",
+      "B.3",
+      "G.2",
+      "F.18",
+      "F.9",
+      "E.10",
+      "G.11",
+      "G.5",
+      "C.2.1",
+      "F.17"
+     ]
+    },
+    {
+     "caseId": "hc-test-40",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 2.307916999999861,
+     "topIds": [
+      "C.2.1",
+      "F.9",
+      "F.17",
+      "A.10",
+      "E.10",
+      "F.18",
+      "A.15.1",
+      "B.3",
+      "A.15",
+      "F.0.1"
+     ]
+    }
+   ],
+   "metrics": {
+    "n": 150,
+    "recallAt1": 0.38571428571428573,
+    "recallAt5": 0.5714285714285714,
+    "recallAt10": 0.6642857142857143,
+    "mrrAt10": 0.46231575963718835,
+    "ndcgAt10": 0.5100263942798783,
+    "negativeCleanRate": 0.5,
+    "latency": {
+     "p50Ms": 2.2842500000000427,
+     "p95Ms": 2.711667000000034,
+     "meanMs": 2.2850722200000004
+    },
+    "perCategory": {
+     "id-lookup": {
+      "n": 17,
+      "recallAt5": 0.6470588235294118,
+      "mrrAt10": 0.40098039215686276
+     },
+     "title": {
+      "n": 17,
+      "recallAt5": 1,
+      "mrrAt10": 1
+     },
+     "alias": {
+      "n": 16,
+      "recallAt5": 0.875,
+      "mrrAt10": 0.7395833333333333
+     },
+     "typo": {
+      "n": 17,
+      "recallAt5": 0.6470588235294118,
+      "mrrAt10": 0.6197478991596639
+     },
+     "definition": {
+      "n": 17,
+      "recallAt5": 0.5882352941176471,
+      "mrrAt10": 0.5588235294117647
+     },
+     "multi-hop": {
+      "n": 16,
+      "recallAt5": 0.6875,
+      "mrrAt10": 0.28705357142857146
+     },
+     "task": {
+      "n": 22,
+      "recallAt5": 0.22727272727272727,
+      "mrrAt10": 0.13749999999999998
+     },
+     "paraphrase": {
+      "n": 18,
+      "recallAt5": 0.05555555555555555,
+      "mrrAt10": 0.0789241622574956
+     }
+    }
+   },
+   "deterministic": true
+  }
+ ]
+}

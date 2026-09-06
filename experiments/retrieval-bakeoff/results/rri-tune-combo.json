@@ -1,0 +1,5305 @@
+{
+ "sourceHash": "sha256:1169ef3f20b0c89c005b07c33ddb20210039ae9b4a75dfab5255752c20317d37",
+ "goldSet": "dev",
+ "k": 10,
+ "reports": [
+  {
+   "name": "rri-combo",
+   "build": {
+    "buildMs": 2353.4755,
+    "docCount": 9155,
+    "approxIndexBytes": 114961420,
+    "notes": "RRI d=1024 s=8 reflectivePasses=1 lambdaDirect=0.5 gammaIndex=0.25 fields(title/alias/body)=6/4/1 fieldsR=2/2/1 k1=1.2 queryIdfPow=1.5 kindMult(lexeme/preface)=0.7/0.85 tau(cos/sem/idf/mass)=0.25/0.5/1.5/0.7 V=32871 nnz=424256 trainNnz=325769 typoBridgeEntries=180479"
+   },
+   "goldSet": "dev",
+   "k": 10,
+   "cases": [
+    {
+     "caseId": "id-lookup-1",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 18.33483299999989,
+     "topIds": [
+      "B.5.3",
+      "B.4",
+      "A.16.0",
+      "E.17.AUD.OOTD",
+      "E.2",
+      "C.2.5",
+      "B.4.1",
+      "C.25",
+      "B.5",
+      "E.15"
+     ]
+    },
+    {
+     "caseId": "id-lookup-2",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 7.298917000000074,
+     "topIds": [
+      "I.2",
+      "E.6",
+      "E.8",
+      "E.9",
+      "A.6.RSIG",
+      "G.9",
+      "E.2.DA",
+      "E.11",
+      "E.8.ECSPF",
+      "C.1"
+     ]
+    },
+    {
+     "caseId": "id-lookup-3",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 7.06045899999981,
+     "topIds": [
+      "D.3",
+      "D.5",
+      "D.1",
+      "D.4",
+      "D.2",
+      "C.30.ILC",
+      "E.17.AUD.OOTD",
+      "A.1.CSD",
+      "B.4",
+      "C.36.P"
+     ]
+    },
+    {
+     "caseId": "id-lookup-4",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 6.932667000000038,
+     "topIds": [
+      "E.11",
+      "E.6",
+      "E.8",
+      "E.4",
+      "E.11.PUA",
+      "E.11.PUR",
+      "E.11.DSG",
+      "E.4.FPF",
+      "I.2",
+      "C.32.MWA"
+     ]
+    },
+    {
+     "caseId": "id-lookup-5",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 16.54629100000011,
+     "topIds": [
+      "C.3.2",
+      "lex:c-3-2-kindsignature",
+      "C.3.1",
+      "E.10.ROLE",
+      "A.1",
+      "A.2",
+      "A.2.1",
+      "C.2.1",
+      "A.2.7",
+      "E.9.DA"
+     ]
+    },
+    {
+     "caseId": "id-lookup-6",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 7.156292000000121,
+     "topIds": [
+      "F.16",
+      "lex:f-16",
+      "E.8",
+      "E.14",
+      "E.19",
+      "E.6",
+      "C.2.2a",
+      "A.16",
+      "F.7",
+      "A.16.0"
+     ]
+    },
+    {
+     "caseId": "id-lookup-7",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 6.919166000000132,
+     "topIds": [
+      "A.2.5",
+      "E.10.ROLE",
+      "A.19.SPR",
+      "A.2",
+      "A.15.4",
+      "A.2.1",
+      "E.10.D1",
+      "A.15.9",
+      "A.3.3",
+      "E.10.MOVE"
+     ]
+    },
+    {
+     "caseId": "id-lookup-8",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 7.000958000000082,
+     "topIds": [
+      "G.1",
+      "B.3",
+      "G.11",
+      "F.18",
+      "A.6.3.CSC",
+      "G.3",
+      "G.5",
+      "lex:g-1-cg-frame-card",
+      "G.0",
+      "C.30.ASV"
+     ]
+    },
+    {
+     "caseId": "id-lookup-9",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 6.987707999999657,
+     "topIds": [
+      "B.3.3",
+      "lex:b-3-3",
+      "B.5.1",
+      "B.3.4",
+      "B.5",
+      "B.5.3",
+      "A.20",
+      "lex:b-3-3-assurance-subtypes-levels",
+      "A.18",
+      "C.26.3"
+     ]
+    },
+    {
+     "caseId": "id-lookup-10",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 6.851166000000376,
+     "topIds": [
+      "D.5",
+      "D.1",
+      "D.4",
+      "D.2",
+      "A.6.3.NAR",
+      "A.1.CSD",
+      "D.3",
+      "lex:d-5",
+      "C.28",
+      "C.17"
+     ]
+    },
+    {
+     "caseId": "id-lookup-11",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 6.850917000000209,
+     "topIds": [
+      "E.24.PUB",
+      "A.11",
+      "E.24.CD",
+      "E.22",
+      "C.30.ILC",
+      "C.32.MWA",
+      "E.4.PFAD",
+      "A.6.REL",
+      "A.22",
+      "C.27.TA"
+     ]
+    },
+    {
+     "caseId": "id-lookup-12",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 5.876666999999998,
+     "topIds": [
+      "C.19",
+      "C.26.3",
+      "C.11.CRC",
+      "C.26",
+      "A.6.3.CSC",
+      "B.5.2.1",
+      "A.15.7",
+      "C.11",
+      "A.6.3",
+      "C.35"
+     ]
+    },
+    {
+     "caseId": "id-lookup-13",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 5.877457999999933,
+     "topIds": [
+      "F.0.2",
+      "lex:f-0-2-f-0-1-f-1-f-0-2",
+      "E.10.LRN",
+      "F.0.1",
+      "E.10.D1",
+      "F.1",
+      "E.4.DPF",
+      "E.8",
+      "lex:f-0-2",
+      "E.15"
+     ]
+    },
+    {
+     "caseId": "id-lookup-14",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 5.866665999999896,
+     "topIds": [
+      "A.7.CP",
+      "lex:a-7-cp",
+      "A.7.1",
+      "A.7.2",
+      "E.11.PFP",
+      "lex:cc-a7cp-1",
+      "lex:cc-a7cp-2",
+      "lex:cc-a7cp-3",
+      "lex:cc-a7cp-4",
+      "lex:cc-a7cp-5"
+     ]
+    },
+    {
+     "caseId": "id-lookup-15",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 5.917207999999846,
+     "topIds": [
+      "G.2",
+      "G.1",
+      "lex:g-2-sota-pack",
+      "E.4.FPF",
+      "lex:g-2-sota-synthesis-pack",
+      "E.20",
+      "F.0.2",
+      "E.8",
+      "E.7",
+      "E.4.DPF.DA"
+     ]
+    },
+    {
+     "caseId": "id-lookup-16",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 5.744625000000269,
+     "topIds": [
+      "B.1.3",
+      "A.14",
+      "B.1.6",
+      "A.1",
+      "B.1",
+      "B.4",
+      "C.2.2",
+      "C.2",
+      "A.6.H",
+      "E.7"
+     ]
+    },
+    {
+     "caseId": "id-lookup-17",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 5.7502910000002885,
+     "topIds": [
+      "D.1",
+      "D.5",
+      "D.4",
+      "D.2",
+      "D.3",
+      "lex:d-1",
+      "A.1.CSD",
+      "A.6.3.NAR",
+      "route:project-alignment",
+      "E.8.ECSPF"
+     ]
+    },
+    {
+     "caseId": "title-1",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 5.8215000000000146,
+     "topIds": [
+      "C.9",
+      "A.13",
+      "E.17",
+      "E.10",
+      "E.7",
+      "lex:agency-characteristic-profile",
+      "A.18",
+      "E.24.PUB",
+      "C.30.STRAT",
+      "B.1"
+     ]
+    },
+    {
+     "caseId": "title-2",
+     "category": "title",
+     "rank": 2,
+     "latencyMs": 5.904624999999669,
+     "topIds": [
+      "lex:architecture-decision-adequacy-scales",
+      "C.32.ADA",
+      "C.32.ADR",
+      "C.30.P",
+      "A.7",
+      "C.30.AD",
+      "D.4",
+      "E.10.D2",
+      "C.16.P",
+      "A.6.P"
+     ]
+    },
+    {
+     "caseId": "title-3",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 5.821541999999681,
+     "topIds": [
+      "A.6.REL",
+      "lex:relation-obtaining-and-individuated-relation-occurrences",
+      "A.6.5",
+      "A.2.5",
+      "F.9",
+      "A.6.P",
+      "lex:holder-system",
+      "F.6",
+      "lex:description-of-relation-occurrence-designator",
+      "C.2.1"
+     ]
+    },
+    {
+     "caseId": "title-4",
+     "category": "title",
+     "rank": 3,
+     "latencyMs": 5.894584000000123,
+     "topIds": [
+      "lex:r",
+      "lex:tevb-project-local-typical-engineering-viewpoint-bundle-template-for-holons",
+      "E.17.2",
+      "lex:l-local",
+      "lex:entityofconcern-e",
+      "lex:d-module",
+      "lex:s-module",
+      "lex:d-functional",
+      "lex:s-functional",
+      "lex:the-four"
+     ]
+    },
+    {
+     "caseId": "title-5",
+     "category": "title",
+     "rank": 3,
+     "latencyMs": 18.340416000000005,
+     "topIds": [
+      "lex:u-commitment-deontic-commitment-relation",
+      "lex:c-u-commitment",
+      "A.2.8",
+      "A.6.B",
+      "lex:the-record-is-not-the-relation",
+      "lex:map-to",
+      "lex:maps-to",
+      "E.10",
+      "A.6",
+      "E.17"
+     ]
+    },
+    {
+     "caseId": "title-6",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 6.98333300000013,
+     "topIds": [
+      "C.19.1",
+      "lex:bitter-lesson-preference-blp",
+      "lex:bitter-lesson",
+      "lex:blp-4",
+      "lex:scale-audit",
+      "heading:the-bitter-lesson-stance:1043",
+      "lex:e-3",
+      "lex:blp-policy-context",
+      "lex:blp-waiver",
+      "lex:no-scale-based-preference"
+     ]
+    },
+    {
+     "caseId": "title-7",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 6.660750000000007,
+     "topIds": [
+      "C.3.5",
+      "lex:kindat-intentional-abstraction-facet-for-kinds-k0-k3",
+      "lex:j-candidate-kind-signatureedition-slice",
+      "lex:accountusgaap2025q1-cohort",
+      "lex:u-formality",
+      "lex:cl-k",
+      "lex:u-subkindof",
+      "F.8",
+      "A.17",
+      "F.0.2"
+     ]
+    },
+    {
+     "caseId": "title-8",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 6.901667000000089,
+     "topIds": [
+      "E.17.AUD",
+      "lex:publicationunit-stability-discipline",
+      "lex:this-review",
+      "C.2.P",
+      "lex:publicationunit-stability-discipline-and-local-head-restoration",
+      "E.17.AUD.LHR",
+      "lex:this-interpretation",
+      "E.17.AUD.OOTD",
+      "lex:stable-for-current-use",
+      "lex:publication-unit-stability-family"
+     ]
+    },
+    {
+     "caseId": "title-9",
+     "category": "title",
+     "rank": null,
+     "latencyMs": 6.964832999999999,
+     "topIds": [
+      "lex:s-s",
+      "lex:l-l",
+      "lex:s-i",
+      "lex:unified-scope-mechanism-usm-context-slices-scopes",
+      "lex:operation",
+      "lex:or-b-3",
+      "lex:30-c",
+      "lex:for-the-same-bounded-use-with",
+      "lex:detail-d",
+      "lex:formality-f-k"
+     ]
+    },
+    {
+     "caseId": "title-10",
+     "category": "title",
+     "rank": 3,
+     "latencyMs": 6.881332999999813,
+     "topIds": [
+      "lex:unified-indicatorization-mechanism-uindm",
+      "lex:id-uindm",
+      "A.19.UINDM",
+      "lex:cs-s",
+      "lex:indicator-policy",
+      "lex:abstain-degrade",
+      "lex:indicatorize",
+      "lex:indicatorsetslot",
+      "lex:s-indicatorsetslot",
+      "A.19.ULSAM"
+     ]
+    },
+    {
+     "caseId": "title-11",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 6.920333000000028,
+     "topIds": [
+      "E.11.PUR",
+      "lex:pattern-use-applicability-recommendation-and-coordination",
+      "E.7",
+      "E.10",
+      "E.19",
+      "E.17",
+      "C.30.STRAT",
+      "A.6.S",
+      "E.15",
+      "E.10.MOVE"
+     ]
+    },
+    {
+     "caseId": "title-12",
+     "category": "title",
+     "rank": 2,
+     "latencyMs": 5.9784169999998085,
+     "topIds": [
+      "lex:emergence-and-mht-precision-restoration",
+      "B.2.P",
+      "lex:meta-system",
+      "lex:meta-functional",
+      "lex:meta-epistemic",
+      "lex:post",
+      "lex:cc-b2p-1",
+      "lex:cc-b2p-2",
+      "lex:cc-b2p-3",
+      "lex:cc-b2p-4"
+     ]
+    },
+    {
+     "caseId": "title-13",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 5.83633299999974,
+     "topIds": [
+      "C.32.MWA",
+      "lex:practice-architecture-synthesis-from-several-structures",
+      "C.32.PAD",
+      "B.2.P",
+      "C.33",
+      "heading:method-recovery-explain-what-reusable-way-several-performances-may-show:457",
+      "C.30.AD.BA",
+      "C.32.ACS",
+      "A.15.9",
+      "D.4"
+     ]
+    },
+    {
+     "caseId": "title-14",
+     "category": "title",
+     "rank": 2,
+     "latencyMs": 5.832459000000199,
+     "topIds": [
+      "lex:control-structure-view-adequacy-lca",
+      "C.30.LCA",
+      "lex:control-layer",
+      "lex:use-either",
+      "lex:or-an-honest",
+      "lex:for-safety-and-assurance",
+      "lex:to-recover-the-source-label",
+      "lex:for-evidence",
+      "C.30.P",
+      "lex:enter-c-30-lca-only-after"
+     ]
+    },
+    {
+     "caseId": "title-15",
+     "category": "title",
+     "rank": 2,
+     "latencyMs": 5.781791000000339,
+     "topIds": [
+      "lex:work-performance-configuration-and-recovery-testing",
+      "A.15.8",
+      "A.3.1.MR",
+      "lex:researcher-17",
+      "C.11.CRC",
+      "E.8.ECSPF",
+      "A.7",
+      "F.11",
+      "A.20",
+      "A.19.SPR"
+     ]
+    },
+    {
+     "caseId": "title-16",
+     "category": "title",
+     "rank": 3,
+     "latencyMs": 5.8328749999996035,
+     "topIds": [
+      "lex:publicationunit-primary-subject-discipline",
+      "E.17.AUD",
+      "E.17.AUD.OOTD",
+      "E.17.AUD.LHR",
+      "C.2.P",
+      "F.10",
+      "lex:publicationunit-primary-entityofconcern-discipline",
+      "B.4",
+      "E.10.D1",
+      "A.19.SPR"
+     ]
+    },
+    {
+     "caseId": "title-17",
+     "category": "title",
+     "rank": null,
+     "latencyMs": 5.954874999999902,
+     "topIds": [
+      "lex:and-as",
+      "lex:for-a",
+      "lex:in-a",
+      "lex:multi-method-dispatcher-methodfamily-registry",
+      "lex:methodfamily-registry",
+      "lex:local-l",
+      "lex:this-is-a-positive",
+      "lex:members",
+      "lex:close-with",
+      "lex:identity-and-continuity"
+     ]
+    },
+    {
+     "caseId": "alias-1",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 5.938125000000127,
+     "topIds": [
+      "lex:support-force",
+      "I.2",
+      "E.5.3",
+      "heading:consequence-bearers-find-omitted-systems-before-closing-a-decision:637",
+      "E.17",
+      "E.4.DPF",
+      "D.1",
+      "F.1",
+      "E.4.PFAD",
+      "A.15.9"
+     ]
+    },
+    {
+     "caseId": "alias-2",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 5.880374999999731,
+     "topIds": [
+      "lex:reconciliation-process",
+      "A.7.2",
+      "lex:fpf-ontology-premise-reconciliation",
+      "I.2",
+      "F.1",
+      "heading:consequence-bearers-find-omitted-systems-before-closing-a-decision:637",
+      "A.15.6",
+      "heading:c-contrast-process:94323",
+      "A.7.CP",
+      "C.32.MWA"
+     ]
+    },
+    {
+     "caseId": "alias-3",
+     "category": "alias",
+     "rank": 4,
+     "latencyMs": 5.735584000000017,
+     "topIds": [
+      "heading:practical-entries:443",
+      "I.2",
+      "lex:first-practical-entry",
+      "lex:practical-entries",
+      "heading:practical-use-cards:79474",
+      "heading:consequence-bearers-find-omitted-systems-before-closing-a-decision:637",
+      "E.11.PFP",
+      "heading:practical-use-cards:523",
+      "D.5",
+      "lex:first-entry"
+     ]
+    },
+    {
+     "caseId": "alias-4",
+     "category": "alias",
+     "rank": 6,
+     "latencyMs": 6.047041999999692,
+     "topIds": [
+      "C.32.FAIL",
+      "C.32.MLAO",
+      "C.19.1",
+      "E.8.ECSPF",
+      "E.22",
+      "A.19.SelectorMechanism",
+      "E.23.CDI",
+      "E.4.PFIP",
+      "C.20",
+      "E.11.PFP"
+     ]
+    },
+    {
+     "caseId": "alias-5",
+     "category": "alias",
+     "rank": 2,
+     "latencyMs": 5.854832999999871,
+     "topIds": [
+      "I.2",
+      "lex:returns-process",
+      "heading:consequence-bearers-find-omitted-systems-before-closing-a-decision:637",
+      "A.15.6",
+      "E.5.3",
+      "heading:c-contrast-process:94323",
+      "F.1",
+      "E.4.DPF",
+      "E.11.PFP",
+      "G.6"
+     ]
+    },
+    {
+     "caseId": "alias-6",
+     "category": "alias",
+     "rank": 2,
+     "latencyMs": 6.074959000000035,
+     "topIds": [
+      "heading:4-2-publication-telemetry-duties-where-these-terms-show-up:1285",
+      "E.12",
+      "E.5",
+      "E.14",
+      "A.0",
+      "E.2",
+      "A.6.3.CR",
+      "A.18",
+      "E.5.4",
+      "E.7"
+     ]
+    },
+    {
+     "caseId": "alias-7",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 5.937124999999924,
+     "topIds": [
+      "lex:material-flow-bottleneck-bearer",
+      "E.6",
+      "B.1.2",
+      "A.6.P",
+      "C.32.P2S",
+      "E.9",
+      "G.12",
+      "A.6.F",
+      "A.6.7",
+      "A.10.1"
+     ]
+    },
+    {
+     "caseId": "alias-8",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 6.032958000000235,
+     "topIds": [
+      "lex:lab-owner",
+      "C.19.1",
+      "A.15.5",
+      "E.23.CDI",
+      "A.2.6",
+      "E.4.PFIP",
+      "E.11.PFP",
+      "B.1.2",
+      "E.8.ECSPF",
+      "B.1.6"
+     ]
+    },
+    {
+     "caseId": "alias-9",
+     "category": "alias",
+     "rank": 2,
+     "latencyMs": 6.108291000000008,
+     "topIds": [
+      "B.5.3",
+      "B.1.6",
+      "A.6.RCD",
+      "A.6.5",
+      "A.2.1",
+      "F.10",
+      "C.30.AD.BA",
+      "A.6.3",
+      "F.18",
+      "F.8"
+     ]
+    },
+    {
+     "caseId": "alias-10",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 5.941707999999835,
+     "topIds": [
+      "lex:recognition-shell",
+      "lex:assurance-shell",
+      "E.8",
+      "I.2",
+      "E.5.3",
+      "F.4",
+      "E.17",
+      "A.8",
+      "E.4.PFAD",
+      "E.15"
+     ]
+    },
+    {
+     "caseId": "alias-11",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 6.092666999999892,
+     "topIds": [
+      "lex:cooling-guide",
+      "lex:cooling-guide-edition-3-rule-7",
+      "E.6",
+      "C.3.1",
+      "C.16",
+      "C.3.2",
+      "lex:required-cooling-effect-followed-by-actual-cooling-requirement-episteme",
+      "C.30.ASV",
+      "E.5.4",
+      "E.14"
+     ]
+    },
+    {
+     "caseId": "alias-12",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 6.1062080000001515,
+     "topIds": [
+      "lex:tc-mwh-factually-unsupported",
+      "E.18",
+      "lex:tc-mwh-missing-governor",
+      "lex:tc-mwh-missing-information",
+      "A.6.6",
+      "E.18.1",
+      "A.6.4",
+      "A.20",
+      "A.3.3",
+      "E.4.PFIP"
+     ]
+    },
+    {
+     "caseId": "alias-13",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 5.99979200000007,
+     "topIds": [
+      "lex:control-sketch",
+      "C.30.P",
+      "C.30.LCA",
+      "E.1",
+      "B.2.5",
+      "A.2.5",
+      "E.2",
+      "E.6",
+      "C.26.3",
+      "A.6.7"
+     ]
+    },
+    {
+     "caseId": "alias-14",
+     "category": "alias",
+     "rank": null,
+     "latencyMs": 6.166459000000032,
+     "topIds": [
+      "I.2",
+      "D.5",
+      "C.32.MWA",
+      "heading:consequence-bearers-find-omitted-systems-before-closing-a-decision:637",
+      "D.4",
+      "D.2",
+      "C.32.MLAO",
+      "E.11.PFP",
+      "E.4.DPF",
+      "E.4.FPF"
+     ]
+    },
+    {
+     "caseId": "alias-15",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 6.1245420000000195,
+     "topIds": [
+      "I.2",
+      "lex:initial-uncertainty",
+      "E.19",
+      "B.1.6",
+      "A.6.P",
+      "E.4.DPF.DA",
+      "A.10.1",
+      "A.6.3",
+      "C.16",
+      "A.6.4"
+     ]
+    },
+    {
+     "caseId": "alias-16",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 6.1190419999998085,
+     "topIds": [
+      "lex:result-row-shape",
+      "A.19.ECS",
+      "heading:consequence-bearers-find-omitted-systems-before-closing-a-decision:637",
+      "E.4.FPF",
+      "F.16",
+      "A.15.9",
+      "B.5.1",
+      "I.2",
+      "E.4.DPF",
+      "A.6.C"
+     ]
+    },
+    {
+     "caseId": "typo-1",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 28.87420800000018,
+     "topIds": [
+      "lex:exact-policy",
+      "A.6.3",
+      "C.18",
+      "F.4",
+      "A.8",
+      "A.6.5",
+      "E.5.4",
+      "A.3.1.MR",
+      "C.29",
+      "A.7.CP"
+     ]
+    },
+    {
+     "caseId": "typo-2",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 7.75320899999997,
+     "topIds": [
+      "C.9",
+      "lex:agency-characteristic-profile",
+      "A.13",
+      "E.6",
+      "F.11",
+      "C.2.1",
+      "A.1",
+      "A.7.CP",
+      "E.17",
+      "A.18"
+     ]
+    },
+    {
+     "caseId": "typo-3",
+     "category": "typo",
+     "rank": 2,
+     "latencyMs": 7.069667000000209,
+     "topIds": [
+      "lex:work-performance-configuration-and-recovery-testing",
+      "A.15.8",
+      "lex:researcher-17",
+      "A.3.1.MR",
+      "C.11.CRC",
+      "A.7",
+      "lex:u-attention",
+      "lex:u-memory",
+      "B.4",
+      "heading:actual-temporal-structure-recover-what-actually-obtains-before-testing-coordination:583"
+     ]
+    },
+    {
+     "caseId": "typo-4",
+     "category": "typo",
+     "rank": null,
+     "latencyMs": 7.034666999999899,
+     "topIds": [
+      "C.32.MWA",
+      "C.19",
+      "E.6",
+      "C.32.ACE",
+      "C.32.ACS",
+      "E.8",
+      "A.19.ECS",
+      "C.32.MLAO",
+      "C.18",
+      "E.8.ECSPF"
+     ]
+    },
+    {
+     "caseId": "typo-5",
+     "category": "typo",
+     "rank": null,
+     "latencyMs": 7.047833000000082,
+     "topIds": [
+      "E.6",
+      "C.2.1",
+      "lex:architecture-decision-adequacy-scales",
+      "F.3",
+      "F.11",
+      "C.16.P",
+      "A.1",
+      "E.4.PFIP",
+      "A.9",
+      "C.35"
+     ]
+    },
+    {
+     "caseId": "typo-6",
+     "category": "typo",
+     "rank": null,
+     "latencyMs": 6.911833999999999,
+     "topIds": [
+      "lex:l-l",
+      "lex:s-i",
+      "lex:unified-scope-mechanism-usm-context-slices-scopes",
+      "lex:s-s",
+      "lex:operation",
+      "lex:or-b-3",
+      "lex:30-c",
+      "lex:for-the-same-bounded-use-with",
+      "lex:detail-d",
+      "lex:over-exact-scope-extensions"
+     ]
+    },
+    {
+     "caseId": "typo-7",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 6.9543749999998,
+     "topIds": [
+      "lex:reconciliation-process",
+      "A.7.2",
+      "lex:fpf-ontology-premise-reconciliation",
+      "F.1",
+      "heading:c-contrast-process:94323",
+      "A.7.CP",
+      "A.20",
+      "A.15.6",
+      "B.1.4",
+      "A.3.4.P"
+     ]
+    },
+    {
+     "caseId": "typo-8",
+     "category": "typo",
+     "rank": null,
+     "latencyMs": 6.029583000000002,
+     "topIds": [
+      "A.3.1.MR",
+      "E.6",
+      "C.6",
+      "G.5",
+      "A.3.3",
+      "A.6.S",
+      "A.3.2",
+      "G.6",
+      "G.4",
+      "F.9"
+     ]
+    },
+    {
+     "caseId": "typo-9",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 6.003250000000207,
+     "topIds": [
+      "B.2.P",
+      "lex:emergence-and-mht-precision-restoration",
+      "lex:meta-system",
+      "lex:meta-functional",
+      "lex:meta-epistemic",
+      "B.2.2",
+      "B.2.4",
+      "lex:post",
+      "C.32.MWA",
+      "lex:higher-level-property"
+     ]
+    },
+    {
+     "caseId": "typo-10",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 6.025709000000006,
+     "topIds": [
+      "lex:initial-uncertainty",
+      "I.2",
+      "A.10.1",
+      "F.16",
+      "E.19",
+      "A.2.9",
+      "A.6.P",
+      "E.1",
+      "A.6.4",
+      "C.26.2"
+     ]
+    },
+    {
+     "caseId": "typo-11",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 5.763209000000188,
+     "topIds": [
+      "lex:rationale-mandate",
+      "E.12",
+      "E.5",
+      "E.5.4",
+      "A.0",
+      "E.7",
+      "E.2",
+      "E.3",
+      "A.19.CHR",
+      "A.6.7"
+     ]
+    },
+    {
+     "caseId": "typo-12",
+     "category": "typo",
+     "rank": null,
+     "latencyMs": 0.036750000000211,
+     "topIds": []
+    },
+    {
+     "caseId": "typo-13",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 5.986332999999831,
+     "topIds": [
+      "lex:cooling-guide",
+      "lex:cooling-guide-edition-3-rule-7",
+      "C.3.1",
+      "lex:required-cooling-effect-followed-by-actual-cooling-requirement-episteme",
+      "C.3.2",
+      "A.2.7",
+      "lex:cooling-pump-is-a-pump",
+      "F.19",
+      "E.21",
+      "E.24.CD"
+     ]
+    },
+    {
+     "caseId": "typo-14",
+     "category": "typo",
+     "rank": 10,
+     "latencyMs": 5.768790999999965,
+     "topIds": [
+      "lex:r",
+      "lex:tevb-project-local-typical-engineering-viewpoint-bundle-template-for-holons",
+      "lex:l-local",
+      "lex:entityofconcern-e",
+      "lex:d-module",
+      "lex:s-module",
+      "lex:d-functional",
+      "lex:s-functional",
+      "lex:the-four",
+      "E.17.2"
+     ]
+    },
+    {
+     "caseId": "typo-15",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 5.961917000000085,
+     "topIds": [
+      "lex:tc-mwh-factually-unsupported",
+      "lex:tc-mwh-missing-governor",
+      "lex:tc-mwh-missing-information",
+      "E.18",
+      "A.6.6",
+      "lex:tc-17",
+      "A.6.4",
+      "A.20",
+      "C.3.3",
+      "A.3.4.P"
+     ]
+    },
+    {
+     "caseId": "typo-16",
+     "category": "typo",
+     "rank": 3,
+     "latencyMs": 5.942082999999911,
+     "topIds": [
+      "lex:u-commitment-deontic-commitment-relation",
+      "lex:c-u-commitment",
+      "A.2.8",
+      "lex:the-record-is-not-the-relation",
+      "lex:map-to",
+      "lex:maps-to",
+      "A.6.B",
+      "lex:incidentresponsecommitment-2026-u-commitment",
+      "lex:do-not-normalize-into",
+      "heading:a-2-9-4-4-separation-rules-with-u-commitment-grantedpermissionrelation-context-and-u-promisecontent-normative:7518"
+     ]
+    },
+    {
+     "caseId": "typo-17",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 5.9535829999999805,
+     "topIds": [
+      "lex:material-flow-bottleneck-bearer",
+      "E.6",
+      "C.2.1",
+      "A.6.F",
+      "E.10.D2",
+      "C.16",
+      "F.16",
+      "E.9",
+      "A.15.8",
+      "E.17.2"
+     ]
+    },
+    {
+     "caseId": "definition-1",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.9404169999997976,
+     "topIds": [
+      "lex:transformation-flow-structure",
+      "lex:t-d-t-r",
+      "lex:flow-of-flows",
+      "lex:is-current-1",
+      "lex:network-of-transformation-flow-structures",
+      "lex:and-apply",
+      "heading:c-30-tfs-rel-architecture-transformation-flow-structure-relation:61638",
+      "lex:for-bounded-transformation-under-conditions",
+      "lex:design-t-d",
+      "lex:run-t-r"
+     ]
+    },
+    {
+     "caseId": "definition-2",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.796708999999737,
+     "topIds": [
+      "lex:review-happened",
+      "F.8",
+      "A.6.6",
+      "E.17.AUD.LHR",
+      "A.11",
+      "C.11",
+      "E.10.ROLE",
+      "B.4",
+      "B.1.4",
+      "A.7"
+     ]
+    },
+    {
+     "caseId": "definition-3",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.804125000000113,
+     "topIds": [
+      "lex:front-door",
+      "A.6.RSIG",
+      "C.28",
+      "F.2",
+      "E.4.DPF.DA",
+      "route:boundary-unpacking",
+      "E.4.FPF",
+      "E.13",
+      "E.11.PFP",
+      "E.2.DA"
+     ]
+    },
+    {
+     "caseId": "definition-4",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.739542000000256,
+     "topIds": [
+      "lex:epistemic-precision-restoration-required",
+      "C.2.P",
+      "B.2.P",
+      "lex:epistemic-precision-restoration",
+      "B.3.4",
+      "A.19.SPR",
+      "A.6.3.CR",
+      "E.17",
+      "E.17.AUD.LHR",
+      "lex:combined-precision-restoration-required"
+     ]
+    },
+    {
+     "caseId": "definition-5",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 7.0768750000002,
+     "topIds": [
+      "lex:incident-owner",
+      "D.1",
+      "A.6.6",
+      "lex:incident-process",
+      "A.6.3.CR",
+      "B.4",
+      "D.5",
+      "A.3.1.MR",
+      "lex:field-owner",
+      "D.4"
+     ]
+    },
+    {
+     "caseId": "definition-6",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 6.43166599999995,
+     "topIds": [
+      "lex:false-platform",
+      "lex:open-platform-claim",
+      "A.6.M",
+      "B.1.2",
+      "C.36",
+      "C.32.FAIL",
+      "C.36.P",
+      "C.35",
+      "E.10.ROLE",
+      "A.6.REL"
+     ]
+    },
+    {
+     "caseId": "definition-7",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 6.484124999999949,
+     "topIds": [
+      "lex:safety-journal",
+      "C.20",
+      "F.0.1",
+      "F.7",
+      "B.5.3",
+      "F.6",
+      "B.3.3",
+      "C.2.1",
+      "B.2.3",
+      "E.10.D1"
+     ]
+    },
+    {
+     "caseId": "definition-8",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 7.3650000000002365,
+     "topIds": [
+      "lex:state-changing-communication",
+      "heading:communication-for-use-make-communication-useful-then-learn-from-what-happens:556",
+      "C.26.1",
+      "A.2.9",
+      "E.10.LRN",
+      "A.15.9",
+      "B.3",
+      "E.18.NET",
+      "lex:communication-for-use",
+      "A.6.P"
+     ]
+    },
+    {
+     "caseId": "definition-9",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 17.59670899999992,
+     "topIds": [
+      "lex:architecture-characteristic-eval-programs",
+      "C.32.ACE",
+      "lex:kind-and-not-by-its",
+      "lex:and-the-obtaining-program-use-relation-in",
+      "lex:for-eval-programs-or-eval-results",
+      "lex:intact",
+      "lex:occurrence-add",
+      "lex:for-candidate-synthesis",
+      "lex:for-residual-input-and",
+      "C.32.HCS"
+     ]
+    },
+    {
+     "caseId": "definition-10",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 6.159958000000188,
+     "topIds": [
+      "lex:risk-condition",
+      "C.32.MLAO",
+      "C.32.FAIL",
+      "C.32.HCS",
+      "C.32.ACE",
+      "C.32.ACS",
+      "C.35",
+      "F.11",
+      "A.6.0",
+      "A.2.8"
+     ]
+    },
+    {
+     "caseId": "definition-11",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 6.4574579999998605,
+     "topIds": [
+      "lex:presentation-form-label",
+      "E.17.AUD",
+      "E.11.PFP",
+      "E.24.PUB",
+      "A.2.2",
+      "C.3.2",
+      "E.4.FPF",
+      "F.2",
+      "C.38",
+      "E.17.ID.CR"
+     ]
+    },
+    {
+     "caseId": "definition-12",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.904791999999816,
+     "topIds": [
+      "lex:architecture-map",
+      "F.0.1",
+      "E.10.MOVE",
+      "B.2",
+      "C.2",
+      "E.19",
+      "E.18.1",
+      "C.2.2a",
+      "C.26",
+      "A.1.STM"
+     ]
+    },
+    {
+     "caseId": "definition-13",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.912790999999743,
+     "topIds": [
+      "lex:module-relation-repair",
+      "lex:open-architecture",
+      "lex:work-package",
+      "lex:names-an-admitted-direct-module-relation-occurrence-the-disposition-is",
+      "lex:stays-with-the-module-holon-or-selected-dependency-structure-a",
+      "C.32.FAIL",
+      "A.6.M",
+      "E.17.2",
+      "lex:team-boundary",
+      "lex:when-module-interface-relation-repair-is-current"
+     ]
+    },
+    {
+     "caseId": "definition-14",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.800584000000072,
+     "topIds": [
+      "lex:whole-unit-stabilization",
+      "E.17.AUD",
+      "A.6.3.CR",
+      "E.17.AUD.LHR",
+      "E.11.PFP",
+      "A.16",
+      "C.27",
+      "E.10.D1",
+      "E.9",
+      "E.5.3"
+     ]
+    },
+    {
+     "caseId": "definition-15",
+     "category": "definition",
+     "rank": 3,
+     "latencyMs": 5.850542000000132,
+     "topIds": [
+      "heading:existing-framework:70495",
+      "lex:pattern-framework-relation-and-edition-discipline",
+      "lex:framework-edition",
+      "E.11.PFP",
+      "E.4.PFR",
+      "E.4.FPF",
+      "E.4.PFIP",
+      "heading:first-principles-framework-fpf-core-conceptual-specification:1",
+      "E.4.PFAD",
+      "E.23.CDI"
+     ]
+    },
+    {
+     "caseId": "definition-16",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.9072909999999865,
+     "topIds": [
+      "C.19.1",
+      "C.24",
+      "E.5.4",
+      "D.5",
+      "A.7.CP",
+      "A.7",
+      "E.5",
+      "C.30.ILC",
+      "F.2",
+      "C.30"
+     ]
+    },
+    {
+     "caseId": "definition-17",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.957458000000315,
+     "topIds": [
+      "lex:account-owner",
+      "D.1",
+      "lex:model-owner",
+      "lex:field-owner",
+      "A.6.C",
+      "A.16.0",
+      "lex:service-owner",
+      "lex:data-owner",
+      "D.5",
+      "B.1.2"
+     ]
+    },
+    {
+     "caseId": "multi-hop-1",
+     "category": "multi-hop",
+     "rank": null,
+     "latencyMs": 5.948750000000018,
+     "topIds": [
+      "lex:0-x-y",
+      "lex:x-z-x-z",
+      "lex:y",
+      "lex:x-y",
+      "lex:advanced-mereology-components-portions-aspects-phases",
+      "lex:x-z",
+      "A.14",
+      "lex:phaseof-y-y",
+      "lex:portionof-x-z-y",
+      "lex:portionof-y"
+     ]
+    },
+    {
+     "caseId": "multi-hop-2",
+     "category": "multi-hop",
+     "rank": null,
+     "latencyMs": 5.81970900000033,
+     "topIds": [
+      "lex:or-3",
+      "lex:u-workplan-the-schedule-of-intent",
+      "lex:tool-13",
+      "lex:tool-42",
+      "lex:tool-13-calibration",
+      "A.15.2",
+      "C.3",
+      "lex:or-service-system-12-u-system",
+      "lex:deploy-service-a",
+      "lex:service-a-operations-system-u-system"
+     ]
+    },
+    {
+     "caseId": "multi-hop-3",
+     "category": "multi-hop",
+     "rank": 7,
+     "latencyMs": 6.06775000000016,
+     "topIds": [
+      "A.16.1",
+      "lex:contrasts",
+      "B.4",
+      "A.16.0",
+      "A.16.2",
+      "lex:exemplars",
+      "A.16",
+      "C.2.2a",
+      "B.4.1",
+      "lex:a-16-1-u-prearticulationcuepack"
+     ]
+    },
+    {
+     "caseId": "multi-hop-4",
+     "category": "multi-hop",
+     "rank": null,
+     "latencyMs": 5.963541999999961,
+     "topIds": [
+      "lex:revalidate-affected-uses-when-a-relied-on-source-changes",
+      "A.10.1",
+      "lex:not-found",
+      "lex:50-c",
+      "lex:a-10-reliancedisposition",
+      "E.15",
+      "lex:reliance-withdrawn",
+      "lex:mentions-only",
+      "lex:ts-2",
+      "A.6.B"
+     ]
+    },
+    {
+     "caseId": "multi-hop-5",
+     "category": "multi-hop",
+     "rank": null,
+     "latencyMs": 6.162249999999858,
+     "topIds": [
+      "lex:principle-framework-publication-integration-and-preservation",
+      "E.4.PFIP",
+      "lex:missing-form-comparison-basis",
+      "E.4.FPF",
+      "lex:cc-pfip-1",
+      "lex:cc-pfip-2",
+      "lex:cc-pfip-3",
+      "lex:cc-pfip-4",
+      "lex:cc-pfip-5",
+      "lex:cc-pfip-6"
+     ]
+    },
+    {
+     "caseId": "multi-hop-6",
+     "category": "multi-hop",
+     "rank": null,
+     "latencyMs": 6.365041000000019,
+     "topIds": [
+      "E.7",
+      "lex:archetypal-grounding-principle",
+      "E.4.DPF.DA",
+      "E.4.FPF",
+      "E.4.PFAD",
+      "lex:archetypal-grounding",
+      "A.8",
+      "F.0.2",
+      "E.8",
+      "E.4.PFR"
+     ]
+    },
+    {
+     "caseId": "multi-hop-7",
+     "category": "multi-hop",
+     "rank": 8,
+     "latencyMs": 6.265249999999924,
+     "topIds": [
+      "C.37",
+      "lex:use-bounded-representation-selection-and-co-use",
+      "lex:co-use",
+      "E.15",
+      "E.10.D2",
+      "A.15.7",
+      "F.7",
+      "C.2.1",
+      "F.0.2",
+      "F.16"
+     ]
+    },
+    {
+     "caseId": "multi-hop-8",
+     "category": "multi-hop",
+     "rank": 6,
+     "latencyMs": 6.392457999999806,
+     "topIds": [
+      "C.6",
+      "lex:proof-and-inference-use-calculus-log-cal",
+      "C.5",
+      "C.14",
+      "C.1",
+      "B.3",
+      "E.10.D2",
+      "E.10.LRN",
+      "C.27",
+      "F.16"
+     ]
+    },
+    {
+     "caseId": "multi-hop-9",
+     "category": "multi-hop",
+     "rank": 8,
+     "latencyMs": 6.156083000000308,
+     "topIds": [
+      "lex:drr-decision-adequacy-evaluation-characteristicspace",
+      "E.9.DA",
+      "lex:an-optional",
+      "E.4.DPF.DA",
+      "E.4.FPF",
+      "lex:drr-role-trigger-03-2",
+      "E.11.PFP",
+      "A.19.ECS",
+      "E.4.PFR",
+      "E.4.DPF"
+     ]
+    },
+    {
+     "caseId": "multi-hop-10",
+     "category": "multi-hop",
+     "rank": 3,
+     "latencyMs": 6.0812919999998485,
+     "topIds": [
+      "lex:fpf-pillar-adequacy-evaluation-characteristicspace",
+      "E.2.DA",
+      "E.2",
+      "E.4.DPF.DA",
+      "E.5",
+      "A.19.ECS",
+      "lex:as-a-defect-a",
+      "E.6",
+      "E.4.FPF",
+      "E.11.PUR"
+     ]
+    },
+    {
+     "caseId": "multi-hop-11",
+     "category": "multi-hop",
+     "rank": 3,
+     "latencyMs": 6.992792000000009,
+     "topIds": [
+      "B.5.1",
+      "lex:explore-shape-evidence-operate",
+      "B.5",
+      "lex:b-5-1-explore-shape-evidence-operate",
+      "lex:b-4-canonical-evolution-loop",
+      "B.4",
+      "lex:b-5-canonical-reasoning-cycle",
+      "F.12",
+      "B.5.2.1",
+      "A.3.1.MR"
+     ]
+    },
+    {
+     "caseId": "multi-hop-12",
+     "category": "multi-hop",
+     "rank": 3,
+     "latencyMs": 6.148999999999887,
+     "topIds": [
+      "G.6",
+      "lex:evidence-graph-provenance-ledger",
+      "A.10",
+      "lex:cc-g6-10",
+      "lex:cc-g6-07",
+      "B.1.6",
+      "lex:cc-g6-02",
+      "F.12",
+      "lex:cc-g6-01",
+      "lex:cc-g6-09"
+     ]
+    },
+    {
+     "caseId": "multi-hop-13",
+     "category": "multi-hop",
+     "rank": 9,
+     "latencyMs": 5.997624999999971,
+     "topIds": [
+      "B.1.4",
+      "lex:contextual-and-temporal-aggregation",
+      "C.27",
+      "B.1.6",
+      "B.4",
+      "C.2.1",
+      "C.3.4",
+      "G.6",
+      "C.27.TA",
+      "E.11"
+     ]
+    },
+    {
+     "caseId": "multi-hop-14",
+     "category": "multi-hop",
+     "rank": null,
+     "latencyMs": 6.034208000000035,
+     "topIds": [
+      "lex:p2w-problem-to-work-carry-through",
+      "lex:episteme-or",
+      "F.12",
+      "E.10.D2",
+      "B.4",
+      "E.8",
+      "I.2",
+      "F.9.1",
+      "C.27",
+      "E.18.1"
+     ]
+    },
+    {
+     "caseId": "multi-hop-15",
+     "category": "multi-hop",
+     "rank": 6,
+     "latencyMs": 5.864207999999962,
+     "topIds": [
+      "lex:slotfillingsplanitem-declaration-local-planned-designation",
+      "A.15.3",
+      "lex:through-a",
+      "lex:in-that-operation-declaration",
+      "lex:robot-8-u-system",
+      "A.6.5",
+      "lex:accepts-exactly-one",
+      "A.6.0",
+      "lex:missing-governor-planned-part-relation-participant-designation-for-bearingc-pumpp",
+      "lex:robot-8"
+     ]
+    },
+    {
+     "caseId": "multi-hop-16",
+     "category": "multi-hop",
+     "rank": 8,
+     "latencyMs": 5.749333999999635,
+     "topIds": [
+      "C.2.7",
+      "lex:u-languagestaterepresentationfactorbundle",
+      "lex:cc-c-2-7-1",
+      "lex:cc-c-2-7-2",
+      "lex:cc-c-2-7-3",
+      "lex:cc-c-2-7-4",
+      "C.2.6",
+      "C.2.LS",
+      "lex:u-sparsity",
+      "lex:u-symbolicity"
+     ]
+    },
+    {
+     "caseId": "negative-1",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.05812500000001819,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-2",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.03625000000010914,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-3",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.020207999999911408,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-4",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.020582999999987805,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-5",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.01908400000002075,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-6",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.025500000000192813,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-7",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.03054199999996854,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-8",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.011500000000069122,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-9",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.02029199999969933,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-10",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.009583000000020547,
+     "topIds": []
+    },
+    {
+     "caseId": "hc-dev-1",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 5.766292000000249,
+     "topIds": [
+      "F.12",
+      "A.2.1",
+      "A.6.RSIR",
+      "A.6.9",
+      "F.6",
+      "C.30.STRAT",
+      "E.10.ROLE",
+      "C.16",
+      "A.15.7",
+      "A.14"
+     ]
+    },
+    {
+     "caseId": "hc-dev-2",
+     "category": "paraphrase",
+     "rank": 1,
+     "latencyMs": 6.129165999999714,
+     "topIds": [
+      "A.2.3",
+      "E.11.PUA",
+      "A.7.CP",
+      "C.26.3",
+      "F.12",
+      "B.4",
+      "A.2.7",
+      "E.11.DSG",
+      "A.2.4",
+      "E.4.PFR"
+     ]
+    },
+    {
+     "caseId": "hc-dev-3",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 5.887249999999767,
+     "topIds": [
+      "C.32.MWA",
+      "B.3.3",
+      "E.17",
+      "A.2.2",
+      "A.8",
+      "E.23",
+      "F.9.1",
+      "C.22.2",
+      "E.18.1",
+      "E.4.FPF"
+     ]
+    },
+    {
+     "caseId": "hc-dev-4",
+     "category": "task",
+     "rank": 5,
+     "latencyMs": 6.015665999999783,
+     "topIds": [
+      "A.3.2",
+      "A.2.2",
+      "A.2",
+      "C.38",
+      "A.7",
+      "A.15",
+      "E.4.FPF",
+      "A.12",
+      "E.23",
+      "E.8.ECSPF"
+     ]
+    },
+    {
+     "caseId": "hc-dev-5",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 6.08095800000001,
+     "topIds": [
+      "E.8.ECSPF",
+      "E.11",
+      "I.2",
+      "E.4",
+      "C.32.ADR",
+      "A.19.ECS",
+      "E.8",
+      "E.11.DSG",
+      "C.22.1",
+      "E.10.ARCH"
+     ]
+    },
+    {
+     "caseId": "hc-dev-6",
+     "category": "paraphrase",
+     "rank": 7,
+     "latencyMs": 6.04583300000013,
+     "topIds": [
+      "F.7",
+      "A.18",
+      "heading:existing-framework:70495",
+      "E.4.PFIP",
+      "A.8",
+      "A.10.1",
+      "A.11",
+      "B.5.3",
+      "C.20",
+      "B.3.5"
+     ]
+    },
+    {
+     "caseId": "hc-dev-7",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 6.145375000000058,
+     "topIds": [
+      "F.4",
+      "D.2",
+      "A.3.2",
+      "A.3.1.MR",
+      "B.2.P",
+      "D.4",
+      "A.6.RSIR",
+      "C.3",
+      "E.10.D2",
+      "A.6.9"
+     ]
+    },
+    {
+     "caseId": "hc-dev-8",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 5.9474999999997635,
+     "topIds": [
+      "C.26.2",
+      "C.26.1",
+      "F.9",
+      "C.35",
+      "A.6.5",
+      "C.26.3",
+      "F.4",
+      "C.26",
+      "A.21",
+      "E.10.D2"
+     ]
+    },
+    {
+     "caseId": "hc-dev-9",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 5.8449170000003505,
+     "topIds": [
+      "C.3.5",
+      "F.1",
+      "E.14",
+      "F.0.2",
+      "A.6.4",
+      "B.1.6",
+      "B.3.5",
+      "E.9",
+      "B.5",
+      "E.15"
+     ]
+    },
+    {
+     "caseId": "hc-dev-10",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 5.932792000000063,
+     "topIds": [
+      "C.16",
+      "E.8",
+      "C.22.PFR",
+      "B.2.P",
+      "F.18",
+      "E.19",
+      "I.2",
+      "C.32.P2S",
+      "A.8",
+      "C.3"
+     ]
+    },
+    {
+     "caseId": "hc-dev-11",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 5.917875000000095,
+     "topIds": [
+      "A.3.1.MR",
+      "E.19",
+      "C.3.5",
+      "E.14",
+      "C.3",
+      "C.3.2",
+      "A.7.CP",
+      "A.10",
+      "F.16",
+      "E.10.D2"
+     ]
+    },
+    {
+     "caseId": "hc-dev-12",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 5.99933400000009,
+     "topIds": [
+      "F.3",
+      "F.8",
+      "A.6.3",
+      "A.6.H",
+      "E.10.D2",
+      "C.37",
+      "F.0.1",
+      "E.10.D1",
+      "A.7",
+      "C.2.1"
+     ]
+    },
+    {
+     "caseId": "hc-dev-13",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 6.31970900000033,
+     "topIds": [
+      "A.3",
+      "F.11",
+      "C.26.2",
+      "A.1.STM",
+      "C.32.ADR",
+      "C.16",
+      "A.6.H",
+      "E.17.1",
+      "C.30",
+      "C.33"
+     ]
+    },
+    {
+     "caseId": "hc-dev-14",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 6.167583999999806,
+     "topIds": [
+      "A.1.STM",
+      "C.38",
+      "B.1",
+      "B.2.P",
+      "E.11.PUR",
+      "F.16",
+      "A.15.7",
+      "B.2.4",
+      "C.32.P2S",
+      "C.35"
+     ]
+    },
+    {
+     "caseId": "hc-dev-15",
+     "category": "paraphrase",
+     "rank": 1,
+     "latencyMs": 6.339042000000063,
+     "topIds": [
+      "B.3.4",
+      "F.1",
+      "E.2.DA",
+      "A.6.4",
+      "B.3",
+      "A.3.3",
+      "A.15.7",
+      "E.4.FPF",
+      "E.21",
+      "F.9.1"
+     ]
+    },
+    {
+     "caseId": "hc-dev-16",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 6.298000000000229,
+     "topIds": [
+      "A.6.4",
+      "B.1.4",
+      "A.21",
+      "A.2.4",
+      "F.16",
+      "C.27",
+      "B.1.3",
+      "C.38",
+      "E.10.D2",
+      "G.12"
+     ]
+    },
+    {
+     "caseId": "hc-dev-17",
+     "category": "paraphrase",
+     "rank": 3,
+     "latencyMs": 6.244290999999976,
+     "topIds": [
+      "E.10.LRN",
+      "C.19.1",
+      "B.4",
+      "A.6.7",
+      "C.25",
+      "A.2.2",
+      "A.18",
+      "A.2",
+      "A.2.7",
+      "C.27.TA"
+     ]
+    },
+    {
+     "caseId": "hc-dev-18",
+     "category": "paraphrase",
+     "rank": 4,
+     "latencyMs": 6.20983299999989,
+     "topIds": [
+      "A.6.6",
+      "B.5",
+      "A.17",
+      "B.5.2",
+      "B.4",
+      "E.4.PFIP",
+      "B.5.1",
+      "C.30.STRAT",
+      "A.15.9",
+      "A.18"
+     ]
+    },
+    {
+     "caseId": "hc-dev-19",
+     "category": "paraphrase",
+     "rank": 5,
+     "latencyMs": 6.200834000000214,
+     "topIds": [
+      "B.5.1",
+      "C.2",
+      "F.9.1",
+      "A.2.4",
+      "C.2.2",
+      "A.15.7",
+      "B.1.3",
+      "G.6",
+      "A.6.RSIR",
+      "F.4"
+     ]
+    },
+    {
+     "caseId": "hc-dev-20",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 6.553291000000172,
+     "topIds": [
+      "C.2",
+      "B.5.1",
+      "B.1.3",
+      "C.2.3",
+      "route:boundary-unpacking",
+      "G.6",
+      "E.17",
+      "A.18",
+      "C.2.P.DR",
+      "B.2.3"
+     ]
+    },
+    {
+     "caseId": "hc-dev-21",
+     "category": "task",
+     "rank": 5,
+     "latencyMs": 6.052417000000332,
+     "topIds": [
+      "E.9",
+      "C.22.2",
+      "B.5.2.1",
+      "A.2.5",
+      "C.11",
+      "F.7",
+      "E.11.DSG",
+      "A.1.STM",
+      "C.19.2",
+      "A.11"
+     ]
+    },
+    {
+     "caseId": "hc-dev-22",
+     "category": "paraphrase",
+     "rank": 2,
+     "latencyMs": 5.913250000000062,
+     "topIds": [
+      "F.7",
+      "C.11",
+      "B.5.2",
+      "E.19",
+      "A.6.P",
+      "E.17.AUD",
+      "A.6.H",
+      "C.34",
+      "A.3.4.P",
+      "A.15.7"
+     ]
+    },
+    {
+     "caseId": "hc-dev-23",
+     "category": "paraphrase",
+     "rank": 1,
+     "latencyMs": 6.013833999999861,
+     "topIds": [
+      "C.19",
+      "E.4.PFAD",
+      "F.8",
+      "A.6.4",
+      "E.14",
+      "F.0.1",
+      "F.16",
+      "C.25",
+      "F.7",
+      "B.5.3"
+     ]
+    },
+    {
+     "caseId": "hc-dev-24",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 6.123417000000245,
+     "topIds": [
+      "A.0",
+      "B.2.3",
+      "C.38",
+      "E.17.AUD.LHR",
+      "A.9",
+      "A.6.P",
+      "A.15.6",
+      "B.4.1",
+      "A.15.9",
+      "E.10.ROLE"
+     ]
+    },
+    {
+     "caseId": "hc-dev-25",
+     "category": "paraphrase",
+     "rank": 1,
+     "latencyMs": 5.909290999999939,
+     "topIds": [
+      "C.25",
+      "C.32.MWA",
+      "E.23.CDI",
+      "A.14",
+      "C.11.CRC",
+      "C.16.P",
+      "C.29",
+      "A.3.1.MR",
+      "E.4.PFAD",
+      "C.35"
+     ]
+    },
+    {
+     "caseId": "hc-dev-26",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 5.887749999999869,
+     "topIds": [
+      "A.10.1",
+      "B.5.3",
+      "C.27",
+      "F.16",
+      "E.15",
+      "E.4.PFAD",
+      "A.6.S",
+      "C.38",
+      "E.4.DPF",
+      "F.7"
+     ]
+    },
+    {
+     "caseId": "hc-dev-27",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 5.792915999999877,
+     "topIds": [
+      "F.12",
+      "E.4.DPF.DA",
+      "C.33",
+      "C.32.FAIL",
+      "A.3.1.MR",
+      "F.19",
+      "E.10.D2",
+      "E.17.AUD.LHR",
+      "C.38",
+      "C.27"
+     ]
+    },
+    {
+     "caseId": "hc-dev-28",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 5.949832999999671,
+     "topIds": [
+      "A.6.RCD",
+      "A.6.RSIR",
+      "E.10.ROLE",
+      "C.30.STRAT",
+      "F.9.1",
+      "E.4.PFAD",
+      "A.6.0",
+      "E.10.ARCH",
+      "F.18",
+      "F.14"
+     ]
+    },
+    {
+     "caseId": "hc-dev-29",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 5.853041999999732,
+     "topIds": [
+      "A.18",
+      "E.18.2",
+      "B.1",
+      "B.2.4",
+      "F.1",
+      "E.11.DSG",
+      "E.8.ECSPF",
+      "C.32.MWA",
+      "C.19.1",
+      "A.6.7"
+     ]
+    },
+    {
+     "caseId": "hc-dev-30",
+     "category": "task",
+     "rank": 2,
+     "latencyMs": 6.045540999999957,
+     "topIds": [
+      "E.8",
+      "E.5.1",
+      "lex:ci-cd",
+      "E.4.PFIP",
+      "E.17",
+      "E.2.DA",
+      "E.4.FPF",
+      "E.4.PFAD",
+      "E.5.4",
+      "A.10.1"
+     ]
+    },
+    {
+     "caseId": "hc-dev-31",
+     "category": "paraphrase",
+     "rank": 4,
+     "latencyMs": 5.964750000000095,
+     "topIds": [
+      "E.15",
+      "C.38",
+      "F.12",
+      "E.9",
+      "A.8",
+      "E.19",
+      "A.3.1",
+      "A.6",
+      "A.18",
+      "B.2.3"
+     ]
+    },
+    {
+     "caseId": "hc-dev-32",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 6.017499999999927,
+     "topIds": [
+      "F.9.1",
+      "F.7",
+      "C.22",
+      "F.3",
+      "C.16",
+      "E.10.D2",
+      "F.0.1",
+      "C.38",
+      "E.17.AUD",
+      "A.7"
+     ]
+    },
+    {
+     "caseId": "hc-dev-33",
+     "category": "task",
+     "rank": 3,
+     "latencyMs": 6.034708000000137,
+     "topIds": [
+      "E.17",
+      "route:boundary-unpacking",
+      "E.15",
+      "A.18",
+      "G.9",
+      "E.21",
+      "E.4",
+      "C.18",
+      "F.19",
+      "E.10.D2"
+     ]
+    },
+    {
+     "caseId": "hc-dev-34",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 5.952624999999898,
+     "topIds": [
+      "E.2",
+      "B.1.3",
+      "E.3",
+      "A.15.7",
+      "C.19.1",
+      "E.15",
+      "F.3",
+      "C.11",
+      "E.20",
+      "A.20"
+     ]
+    },
+    {
+     "caseId": "hc-dev-35",
+     "category": "task",
+     "rank": 1,
+     "latencyMs": 6.070374999999785,
+     "topIds": [
+      "E.16",
+      "B.2.4",
+      "A.15.6",
+      "E.17.AUD",
+      "C.32.MWA",
+      "C.38",
+      "E.23.CDI",
+      "C.32.ACE",
+      "C.32.CONWAY",
+      "F.1"
+     ]
+    },
+    {
+     "caseId": "hc-dev-36",
+     "category": "task",
+     "rank": 9,
+     "latencyMs": 5.972334000000046,
+     "topIds": [
+      "F.14",
+      "B.5.3",
+      "E.19",
+      "C.26.1",
+      "E.17.AUD.LHR",
+      "E.23",
+      "F.4",
+      "A.6.4",
+      "F.8",
+      "A.15.6"
+     ]
+    },
+    {
+     "caseId": "hc-dev-37",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 6.027042000000165,
+     "topIds": [
+      "A.17",
+      "C.2.P",
+      "A.18",
+      "A.10",
+      "E.17.AUD",
+      "E.17.AUD.LHR",
+      "A.6.5",
+      "C.26.3",
+      "A.6.REL",
+      "E.17.AUD.OOTD"
+     ]
+    },
+    {
+     "caseId": "hc-dev-38",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 6.049874999999702,
+     "topIds": [
+      "F.3",
+      "E.9.DA",
+      "C.38",
+      "F.7",
+      "F.16",
+      "E.11.DSG",
+      "E.17.AUD.LHR",
+      "A.15.9",
+      "A.22.CGUS",
+      "A.6.0"
+     ]
+    },
+    {
+     "caseId": "hc-dev-39",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 6.093374999999924,
+     "topIds": [
+      "G.6",
+      "F.0.2",
+      "B.5.3",
+      "G.9",
+      "C.3.5",
+      "A.17",
+      "E.17.AUD.LHR",
+      "F.1",
+      "F.4",
+      "E.21"
+     ]
+    },
+    {
+     "caseId": "hc-dev-40",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 5.919167000000016,
+     "topIds": [
+      "A.6.C",
+      "B.4",
+      "A.16.0",
+      "A.7.CP",
+      "A.16",
+      "E.10.ARCH",
+      "A.13",
+      "A.6",
+      "E.9",
+      "E.15"
+     ]
+    }
+   ],
+   "metrics": {
+    "n": 150,
+    "recallAt1": 0.45714285714285713,
+    "recallAt5": 0.65,
+    "recallAt10": 0.7285714285714285,
+    "mrrAt10": 0.5392828798185941,
+    "ndcgAt10": 0.5845335236259438,
+    "negativeCleanRate": 1,
+    "latency": {
+     "p50Ms": 6.015665999999783,
+     "p95Ms": 7.298917000000074,
+     "meanMs": 6.191308339999999
+    },
+    "perCategory": {
+     "id-lookup": {
+      "n": 17,
+      "recallAt5": 1,
+      "mrrAt10": 1
+     },
+     "title": {
+      "n": 17,
+      "recallAt5": 0.8823529411764706,
+      "mrrAt10": 0.607843137254902
+     },
+     "alias": {
+      "n": 16,
+      "recallAt5": 0.875,
+      "mrrAt10": 0.7447916666666666
+     },
+     "typo": {
+      "n": 17,
+      "recallAt5": 0.6470588235294118,
+      "mrrAt10": 0.5843137254901961
+     },
+     "definition": {
+      "n": 17,
+      "recallAt5": 1,
+      "mrrAt10": 0.9607843137254903
+     },
+     "multi-hop": {
+      "n": 16,
+      "recallAt5": 0.1875,
+      "mrrAt10": 0.1226438492063492
+     },
+     "task": {
+      "n": 19,
+      "recallAt5": 0.2631578947368421,
+      "mrrAt10": 0.12339181286549708
+     },
+     "paraphrase": {
+      "n": 21,
+      "recallAt5": 0.42857142857142855,
+      "mrrAt10": 0.2702947845804989
+     }
+    }
+   },
+   "deterministic": true
+  },
+  {
+   "name": "rri-rw221",
+   "build": {
+    "buildMs": 4407.387417,
+    "docCount": 9155,
+    "approxIndexBytes": 114961420,
+    "notes": "RRI d=1024 s=8 reflectivePasses=1 lambdaDirect=0.5 gammaIndex=0.25 fields(title/alias/body)=6/4/1 fieldsR=2/2/1 k1=1.2 queryIdfPow=1 kindMult(lexeme/preface)=0.7/0.85 tau(cos/sem/idf/mass)=0.25/0.5/1.5/0.7 V=32871 nnz=424256 trainNnz=325769 typoBridgeEntries=180479"
+   },
+   "goldSet": "dev",
+   "k": 10,
+   "cases": [
+    {
+     "caseId": "id-lookup-1",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 36.58324999999968,
+     "topIds": [
+      "B.5.3",
+      "B.4",
+      "E.17.AUD.OOTD",
+      "A.16.0",
+      "E.2",
+      "C.2.5",
+      "B.5",
+      "B.4.1",
+      "C.25",
+      "B.5.2.0"
+     ]
+    },
+    {
+     "caseId": "id-lookup-2",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 15.444542000000183,
+     "topIds": [
+      "I.2",
+      "E.6",
+      "E.8",
+      "G.9",
+      "E.9",
+      "A.6.RSIG",
+      "E.8.ECSPF",
+      "C.32.MWA",
+      "A.3.3",
+      "E.11"
+     ]
+    },
+    {
+     "caseId": "id-lookup-3",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 14.933624999999665,
+     "topIds": [
+      "D.3",
+      "D.5",
+      "D.1",
+      "D.4",
+      "D.2",
+      "C.30.ILC",
+      "A.5",
+      "E.17.AUD.OOTD",
+      "B.4",
+      "A.1.CSD"
+     ]
+    },
+    {
+     "caseId": "id-lookup-4",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 15.146083999999973,
+     "topIds": [
+      "E.11",
+      "E.6",
+      "E.8",
+      "E.4",
+      "E.11.PUR",
+      "C.32.MWA",
+      "E.11.DSG",
+      "E.11.PUA",
+      "E.4.FPF",
+      "I.2"
+     ]
+    },
+    {
+     "caseId": "id-lookup-5",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 153.79312500000015,
+     "topIds": [
+      "C.3.2",
+      "lex:c-3-2-kindsignature",
+      "E.10.ROLE",
+      "C.3.1",
+      "A.1",
+      "A.2",
+      "A.2.1",
+      "C.2.1",
+      "A.2.7",
+      "C.3"
+     ]
+    },
+    {
+     "caseId": "id-lookup-6",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 5.9803330000013375,
+     "topIds": [
+      "F.16",
+      "E.8",
+      "lex:f-16",
+      "E.14",
+      "E.19",
+      "E.6",
+      "C.2.2a",
+      "A.16",
+      "A.16.0",
+      "A.6.7"
+     ]
+    },
+    {
+     "caseId": "id-lookup-7",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 6.004833999999391,
+     "topIds": [
+      "A.2.5",
+      "E.10.ROLE",
+      "A.19.SPR",
+      "A.2",
+      "A.2.1",
+      "A.15.4",
+      "E.10.D1",
+      "A.15.9",
+      "heading:a-2-9-12-relations:7698",
+      "A.3.3"
+     ]
+    },
+    {
+     "caseId": "id-lookup-8",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 6.077959000000192,
+     "topIds": [
+      "G.1",
+      "B.3",
+      "F.18",
+      "A.6.3.CSC",
+      "G.11",
+      "A.18",
+      "E.11.DSG",
+      "G.3",
+      "A.22.CGUS",
+      "B.5.2.1"
+     ]
+    },
+    {
+     "caseId": "id-lookup-9",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 6.038416999999754,
+     "topIds": [
+      "B.3.3",
+      "lex:b-3-3",
+      "B.5.1",
+      "B.3.4",
+      "B.5.3",
+      "B.5",
+      "A.20",
+      "A.18",
+      "C.26.3",
+      "C.26.2"
+     ]
+    },
+    {
+     "caseId": "id-lookup-10",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 5.886082999999417,
+     "topIds": [
+      "D.5",
+      "D.1",
+      "D.4",
+      "D.2",
+      "A.6.3.NAR",
+      "D.3",
+      "A.1.CSD",
+      "C.28",
+      "lex:d-5",
+      "C.17"
+     ]
+    },
+    {
+     "caseId": "id-lookup-11",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 6.097667000000001,
+     "topIds": [
+      "E.24.PUB",
+      "A.11",
+      "E.24.CD",
+      "C.30.ILC",
+      "C.32.MWA",
+      "E.22",
+      "A.6.REL",
+      "E.4.PFAD",
+      "A.22",
+      "C.27.TA"
+     ]
+    },
+    {
+     "caseId": "id-lookup-12",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 6.038334000000759,
+     "topIds": [
+      "C.19",
+      "C.26.3",
+      "C.11.CRC",
+      "C.26",
+      "B.5.2.1",
+      "A.6.3.CSC",
+      "A.15.7",
+      "C.38",
+      "C.11",
+      "C.35"
+     ]
+    },
+    {
+     "caseId": "id-lookup-13",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 6.065166999998837,
+     "topIds": [
+      "F.0.2",
+      "lex:f-0-2-f-0-1-f-1-f-0-2",
+      "E.10.LRN",
+      "E.10.D1",
+      "F.0.1",
+      "F.1",
+      "E.4.DPF",
+      "E.8",
+      "E.15",
+      "lex:f-0-2"
+     ]
+    },
+    {
+     "caseId": "id-lookup-14",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 5.942332999999053,
+     "topIds": [
+      "A.7.CP",
+      "lex:a-7-cp",
+      "A.7.1",
+      "A.7.2",
+      "E.11.PFP",
+      "lex:cc-a7cp-1",
+      "lex:cc-a7cp-2",
+      "lex:cc-a7cp-3",
+      "lex:cc-a7cp-4",
+      "lex:cc-a7cp-5"
+     ]
+    },
+    {
+     "caseId": "id-lookup-15",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 6.05199999999968,
+     "topIds": [
+      "G.2",
+      "G.1",
+      "lex:g-2-sota-pack",
+      "lex:g-2-sota-synthesis-pack",
+      "E.4.FPF",
+      "E.20",
+      "F.0.2",
+      "E.8",
+      "E.7",
+      "E.4.DPF.DA"
+     ]
+    },
+    {
+     "caseId": "id-lookup-16",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 5.9198749999995925,
+     "topIds": [
+      "B.1.3",
+      "A.14",
+      "B.1.6",
+      "B.1",
+      "A.1",
+      "B.4",
+      "A.6.H",
+      "A.3.1",
+      "C.2",
+      "C.2.2"
+     ]
+    },
+    {
+     "caseId": "id-lookup-17",
+     "category": "id-lookup",
+     "rank": 1,
+     "latencyMs": 5.791458000001512,
+     "topIds": [
+      "D.1",
+      "D.5",
+      "D.4",
+      "D.2",
+      "D.3",
+      "A.1.CSD",
+      "lex:d-1",
+      "route:project-alignment",
+      "A.6.3.NAR",
+      "E.8.ECSPF"
+     ]
+    },
+    {
+     "caseId": "title-1",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 5.973667000000205,
+     "topIds": [
+      "C.9",
+      "A.13",
+      "lex:agency-characteristic-profile",
+      "E.17",
+      "E.10",
+      "E.7",
+      "A.18",
+      "B.1",
+      "E.24.PUB",
+      "C.30.STRAT"
+     ]
+    },
+    {
+     "caseId": "title-2",
+     "category": "title",
+     "rank": 2,
+     "latencyMs": 6.02245799999946,
+     "topIds": [
+      "lex:architecture-decision-adequacy-scales",
+      "C.32.ADA",
+      "C.32.ADR",
+      "C.30.P",
+      "C.30.AD",
+      "A.7",
+      "D.4",
+      "A.9",
+      "C.16.P",
+      "E.4.PFIP"
+     ]
+    },
+    {
+     "caseId": "title-3",
+     "category": "title",
+     "rank": 2,
+     "latencyMs": 6.023917000000438,
+     "topIds": [
+      "lex:relation-obtaining-and-individuated-relation-occurrences",
+      "A.6.REL",
+      "lex:description-of-relation-occurrence-designator",
+      "lex:holder-system",
+      "A.6.5",
+      "A.2.5",
+      "F.9",
+      "C.2.1",
+      "A.6.P",
+      "F.6"
+     ]
+    },
+    {
+     "caseId": "title-4",
+     "category": "title",
+     "rank": 4,
+     "latencyMs": 6.029166999998779,
+     "topIds": [
+      "lex:r",
+      "lex:tevb-project-local-typical-engineering-viewpoint-bundle-template-for-holons",
+      "lex:l-local",
+      "E.17.2",
+      "lex:entityofconcern-e",
+      "lex:d-module",
+      "lex:s-module",
+      "lex:d-functional",
+      "lex:s-functional",
+      "lex:the-four"
+     ]
+    },
+    {
+     "caseId": "title-5",
+     "category": "title",
+     "rank": 3,
+     "latencyMs": 5.971125000000029,
+     "topIds": [
+      "lex:u-commitment-deontic-commitment-relation",
+      "lex:c-u-commitment",
+      "A.2.8",
+      "lex:the-record-is-not-the-relation",
+      "lex:map-to",
+      "lex:maps-to",
+      "A.6.B",
+      "heading:a-6-b-5-3-quadrant-d-deontics-commitments:11237",
+      "lex:incidentresponsecommitment-2026-u-commitment",
+      "E.10"
+     ]
+    },
+    {
+     "caseId": "title-6",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 5.926916999998866,
+     "topIds": [
+      "C.19.1",
+      "lex:bitter-lesson-preference-blp",
+      "lex:bitter-lesson",
+      "lex:blp-4",
+      "lex:scale-audit",
+      "lex:e-3",
+      "heading:the-bitter-lesson-stance:1043",
+      "lex:blp-policy-context",
+      "lex:no-scale-based-preference",
+      "lex:blp-waiver"
+     ]
+    },
+    {
+     "caseId": "title-7",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 5.900792000000365,
+     "topIds": [
+      "C.3.5",
+      "lex:kindat-intentional-abstraction-facet-for-kinds-k0-k3",
+      "lex:j-candidate-kind-signatureedition-slice",
+      "lex:accountusgaap2025q1-cohort",
+      "lex:u-formality",
+      "lex:cl-k",
+      "lex:u-subkindof",
+      "F.8",
+      "A.17",
+      "F.0.2"
+     ]
+    },
+    {
+     "caseId": "title-8",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 5.930500000000393,
+     "topIds": [
+      "E.17.AUD",
+      "lex:publicationunit-stability-discipline",
+      "lex:this-review",
+      "lex:publicationunit-stability-discipline-and-local-head-restoration",
+      "lex:this-interpretation",
+      "E.17.AUD.LHR",
+      "lex:publication-unit-stability-family",
+      "lex:stable-for-current-use",
+      "lex:outside-boundary",
+      "C.2.P"
+     ]
+    },
+    {
+     "caseId": "title-9",
+     "category": "title",
+     "rank": null,
+     "latencyMs": 6.016083000000435,
+     "topIds": [
+      "lex:unified-scope-mechanism-usm-context-slices-scopes",
+      "lex:l-l",
+      "lex:s-i",
+      "lex:s-s",
+      "lex:operation",
+      "lex:or-b-3",
+      "lex:30-c",
+      "lex:for-the-same-bounded-use-with",
+      "lex:detail-d",
+      "lex:formality-f-k"
+     ]
+    },
+    {
+     "caseId": "title-10",
+     "category": "title",
+     "rank": 3,
+     "latencyMs": 6.017125000000306,
+     "topIds": [
+      "lex:unified-indicatorization-mechanism-uindm",
+      "lex:id-uindm",
+      "A.19.UINDM",
+      "lex:cs-s",
+      "lex:indicator-policy",
+      "lex:abstain-degrade",
+      "A.19.ULSAM",
+      "lex:indicatorize",
+      "lex:a-6-5-slot-discipline",
+      "A.19.CPM"
+     ]
+    },
+    {
+     "caseId": "title-11",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 5.865624999998545,
+     "topIds": [
+      "E.11.PUR",
+      "lex:pattern-use-applicability-recommendation-and-coordination",
+      "lex:values-yield",
+      "E.19",
+      "E.10",
+      "E.10.MOVE",
+      "lex:is-absent-in",
+      "E.17",
+      "C.30.STRAT",
+      "E.15"
+     ]
+    },
+    {
+     "caseId": "title-12",
+     "category": "title",
+     "rank": 2,
+     "latencyMs": 5.958792000001267,
+     "topIds": [
+      "lex:emergence-and-mht-precision-restoration",
+      "B.2.P",
+      "lex:meta-system",
+      "lex:meta-functional",
+      "lex:meta-epistemic",
+      "lex:post",
+      "lex:cc-b2p-1",
+      "lex:cc-b2p-2",
+      "lex:cc-b2p-3",
+      "lex:cc-b2p-4"
+     ]
+    },
+    {
+     "caseId": "title-13",
+     "category": "title",
+     "rank": 1,
+     "latencyMs": 6.043041000000812,
+     "topIds": [
+      "C.32.MWA",
+      "lex:practice-architecture-synthesis-from-several-structures",
+      "C.32.PAD",
+      "B.2.P",
+      "C.33",
+      "C.30.AD.BA",
+      "A.15.9",
+      "C.32.ACS",
+      "D.4",
+      "C.32.HCS"
+     ]
+    },
+    {
+     "caseId": "title-14",
+     "category": "title",
+     "rank": 2,
+     "latencyMs": 6.028500000000349,
+     "topIds": [
+      "lex:control-structure-view-adequacy-lca",
+      "C.30.LCA",
+      "lex:control-layer",
+      "lex:use-either",
+      "lex:or-an-honest",
+      "lex:for-safety-and-assurance",
+      "lex:for-evidence",
+      "lex:to-recover-the-source-label",
+      "C.30.P",
+      "lex:for-authored-temporal-claim-adequacy-and"
+     ]
+    },
+    {
+     "caseId": "title-15",
+     "category": "title",
+     "rank": 2,
+     "latencyMs": 6.012666000000536,
+     "topIds": [
+      "lex:work-performance-configuration-and-recovery-testing",
+      "A.15.8",
+      "A.3.1.MR",
+      "lex:researcher-17",
+      "C.11.CRC",
+      "E.8.ECSPF",
+      "F.11",
+      "A.7",
+      "I.2",
+      "A.19.SPR"
+     ]
+    },
+    {
+     "caseId": "title-16",
+     "category": "title",
+     "rank": 3,
+     "latencyMs": 6.023874999998952,
+     "topIds": [
+      "lex:publicationunit-primary-subject-discipline",
+      "E.17.AUD",
+      "E.17.AUD.OOTD",
+      "E.17.AUD.LHR",
+      "C.2.P",
+      "F.10",
+      "E.10.D2",
+      "E.24.PUB",
+      "C.20",
+      "E.10.D1"
+     ]
+    },
+    {
+     "caseId": "title-17",
+     "category": "title",
+     "rank": null,
+     "latencyMs": 6.117833000000246,
+     "topIds": [
+      "lex:and-as",
+      "lex:for-a",
+      "lex:in-a",
+      "lex:multi-method-dispatcher-methodfamily-registry",
+      "lex:methodfamily-registry",
+      "lex:local-l",
+      "lex:this-is-a-positive",
+      "lex:members",
+      "lex:close-with",
+      "lex:identity-and-continuity"
+     ]
+    },
+    {
+     "caseId": "alias-1",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 5.914833000000726,
+     "topIds": [
+      "lex:support-force",
+      "I.2",
+      "D.1",
+      "E.5.3",
+      "E.17",
+      "E.4.DPF",
+      "F.1",
+      "A.6.6",
+      "E.4.PFAD",
+      "A.15.9"
+     ]
+    },
+    {
+     "caseId": "alias-2",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 6.0179580000003625,
+     "topIds": [
+      "lex:reconciliation-process",
+      "A.7.2",
+      "I.2",
+      "F.1",
+      "lex:fpf-ontology-premise-reconciliation",
+      "heading:c-contrast-process:94323",
+      "A.15.6",
+      "C.32.MWA",
+      "heading:consequence-bearers-find-omitted-systems-before-closing-a-decision:637",
+      "E.11.PFP"
+     ]
+    },
+    {
+     "caseId": "alias-3",
+     "category": "alias",
+     "rank": 4,
+     "latencyMs": 6.012624999999389,
+     "topIds": [
+      "heading:practical-entries:443",
+      "I.2",
+      "lex:first-practical-entry",
+      "lex:practical-entries",
+      "heading:practical-use-cards:79474",
+      "lex:first-entry",
+      "heading:practical-use-cards:523",
+      "E.11.PFP",
+      "E.11",
+      "heading:consequence-bearers-find-omitted-systems-before-closing-a-decision:637"
+     ]
+    },
+    {
+     "caseId": "alias-4",
+     "category": "alias",
+     "rank": 3,
+     "latencyMs": 6.105208000000857,
+     "topIds": [
+      "C.32.FAIL",
+      "C.32.MLAO",
+      "A.19.SelectorMechanism",
+      "C.19.1",
+      "E.8.ECSPF",
+      "E.22",
+      "E.23.CDI",
+      "C.20",
+      "E.11.PFP",
+      "C.32"
+     ]
+    },
+    {
+     "caseId": "alias-5",
+     "category": "alias",
+     "rank": 2,
+     "latencyMs": 5.943708000000697,
+     "topIds": [
+      "I.2",
+      "lex:returns-process",
+      "A.15.6",
+      "E.5.3",
+      "heading:c-contrast-process:94323",
+      "heading:consequence-bearers-find-omitted-systems-before-closing-a-decision:637",
+      "F.1",
+      "E.11.PFP",
+      "G.6",
+      "E.4.DPF"
+     ]
+    },
+    {
+     "caseId": "alias-6",
+     "category": "alias",
+     "rank": 3,
+     "latencyMs": 5.940000000000509,
+     "topIds": [
+      "heading:4-2-publication-telemetry-duties-where-these-terms-show-up:1285",
+      "E.5",
+      "E.12",
+      "E.14",
+      "A.6.3.CR",
+      "E.2",
+      "A.0",
+      "A.18",
+      "E.5.4",
+      "E.7"
+     ]
+    },
+    {
+     "caseId": "alias-7",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 6.013834000001225,
+     "topIds": [
+      "lex:material-flow-bottleneck-bearer",
+      "E.6",
+      "B.1.2",
+      "A.6.7",
+      "A.6.P",
+      "A.6.F",
+      "E.7",
+      "C.32.P2S",
+      "C.1",
+      "C.11.CRC"
+     ]
+    },
+    {
+     "caseId": "alias-8",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 6.069042000000991,
+     "topIds": [
+      "lex:lab-owner",
+      "A.2.6",
+      "E.23.CDI",
+      "C.19.1",
+      "B.1.2",
+      "E.11.PFP",
+      "A.15.5",
+      "B.1.6",
+      "E.4.PFIP",
+      "E.8.ECSPF"
+     ]
+    },
+    {
+     "caseId": "alias-9",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 5.978791999999885,
+     "topIds": [
+      "B.1.6",
+      "A.6.5",
+      "B.5.3",
+      "A.6.RCD",
+      "C.30.AD.BA",
+      "F.10",
+      "A.2.1",
+      "A.6.3",
+      "route:writing-or-reviewing-patterns",
+      "A.6.6"
+     ]
+    },
+    {
+     "caseId": "alias-10",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 5.966666000000259,
+     "topIds": [
+      "lex:recognition-shell",
+      "lex:assurance-shell",
+      "I.2",
+      "E.8",
+      "E.5.3",
+      "E.17",
+      "C.30.LCA",
+      "F.4",
+      "E.4.PFAD",
+      "E.11.PFP"
+     ]
+    },
+    {
+     "caseId": "alias-11",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 5.900167000001602,
+     "topIds": [
+      "lex:cooling-guide",
+      "lex:cooling-guide-edition-3-rule-7",
+      "E.6",
+      "C.3.1",
+      "C.16",
+      "E.5.4",
+      "C.3.2",
+      "E.14",
+      "C.30.ASV",
+      "E.5"
+     ]
+    },
+    {
+     "caseId": "alias-12",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 5.916417000000365,
+     "topIds": [
+      "lex:tc-mwh-factually-unsupported",
+      "E.18",
+      "lex:tc-mwh-missing-governor",
+      "lex:tc-mwh-missing-information",
+      "A.6.6",
+      "A.6.4",
+      "E.18.1",
+      "A.20",
+      "A.3.3",
+      "A.10"
+     ]
+    },
+    {
+     "caseId": "alias-13",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 5.997875000000931,
+     "topIds": [
+      "lex:control-sketch",
+      "C.30.P",
+      "C.30.LCA",
+      "E.6",
+      "C.26.3",
+      "E.1",
+      "A.6.7",
+      "B.2.5",
+      "A.2.5",
+      "E.16"
+     ]
+    },
+    {
+     "caseId": "alias-14",
+     "category": "alias",
+     "rank": null,
+     "latencyMs": 6.032750000000306,
+     "topIds": [
+      "I.2",
+      "D.5",
+      "D.4",
+      "C.32.MWA",
+      "D.2",
+      "E.11.PFP",
+      "C.32.MLAO",
+      "C.18",
+      "E.4.DPF",
+      "heading:consequence-bearers-find-omitted-systems-before-closing-a-decision:637"
+     ]
+    },
+    {
+     "caseId": "alias-15",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 5.984458000000814,
+     "topIds": [
+      "I.2",
+      "lex:initial-uncertainty",
+      "E.19",
+      "B.1.6",
+      "route:writing-or-reviewing-patterns",
+      "C.16",
+      "A.6.P",
+      "E.4.DPF.DA",
+      "A.6.3",
+      "A.10.1"
+     ]
+    },
+    {
+     "caseId": "alias-16",
+     "category": "alias",
+     "rank": 1,
+     "latencyMs": 5.9944999999988795,
+     "topIds": [
+      "lex:result-row-shape",
+      "A.19.ECS",
+      "I.2",
+      "A.15.9",
+      "E.4.FPF",
+      "F.16",
+      "heading:consequence-bearers-find-omitted-systems-before-closing-a-decision:637",
+      "A.6.C",
+      "B.5.1",
+      "E.4.DPF"
+     ]
+    },
+    {
+     "caseId": "typo-1",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 50.706709000000046,
+     "topIds": [
+      "lex:exact-policy",
+      "A.6.3",
+      "F.4",
+      "C.18",
+      "A.6.5",
+      "A.8",
+      "E.5.4",
+      "C.29",
+      "A.3.1.MR",
+      "A.7.CP"
+     ]
+    },
+    {
+     "caseId": "typo-2",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 13.076707999998689,
+     "topIds": [
+      "C.9",
+      "lex:agency-characteristic-profile",
+      "A.13",
+      "E.6",
+      "F.11",
+      "C.2.1",
+      "E.17",
+      "A.1",
+      "A.18",
+      "A.6.7"
+     ]
+    },
+    {
+     "caseId": "typo-3",
+     "category": "typo",
+     "rank": 2,
+     "latencyMs": 13.83508299999994,
+     "topIds": [
+      "lex:work-performance-configuration-and-recovery-testing",
+      "A.15.8",
+      "A.3.1.MR",
+      "lex:researcher-17",
+      "A.7",
+      "C.11.CRC",
+      "heading:method-recovery-explain-what-reusable-way-several-performances-may-show:457",
+      "B.4",
+      "lex:u-attention",
+      "lex:u-memory"
+     ]
+    },
+    {
+     "caseId": "typo-4",
+     "category": "typo",
+     "rank": null,
+     "latencyMs": 13.348500000000058,
+     "topIds": [
+      "C.32.MWA",
+      "C.19",
+      "E.6",
+      "C.32.ACE",
+      "E.8",
+      "C.18",
+      "A.19.ECS",
+      "C.32.ACS",
+      "D.5",
+      "C.32.ADA"
+     ]
+    },
+    {
+     "caseId": "typo-5",
+     "category": "typo",
+     "rank": null,
+     "latencyMs": 13.541000000001077,
+     "topIds": [
+      "E.6",
+      "lex:architecture-decision-adequacy-scales",
+      "C.2.1",
+      "A.9",
+      "C.16.P",
+      "F.3",
+      "E.4.PFIP",
+      "F.11",
+      "C.30.STRAT",
+      "C.35"
+     ]
+    },
+    {
+     "caseId": "typo-6",
+     "category": "typo",
+     "rank": null,
+     "latencyMs": 12.978290999999444,
+     "topIds": [
+      "lex:unified-scope-mechanism-usm-context-slices-scopes",
+      "lex:l-l",
+      "lex:s-i",
+      "lex:s-s",
+      "lex:operation",
+      "lex:or-b-3",
+      "lex:30-c",
+      "lex:for-the-same-bounded-use-with",
+      "lex:detail-d",
+      "lex:over-exact-scope-extensions"
+     ]
+    },
+    {
+     "caseId": "typo-7",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 6.180500000000393,
+     "topIds": [
+      "lex:reconciliation-process",
+      "A.7.2",
+      "lex:fpf-ontology-premise-reconciliation",
+      "F.1",
+      "heading:c-contrast-process:94323",
+      "A.20",
+      "A.15.6",
+      "B.1.4",
+      "A.3.4.P",
+      "A.7.CP"
+     ]
+    },
+    {
+     "caseId": "typo-8",
+     "category": "typo",
+     "rank": null,
+     "latencyMs": 6.150166999999783,
+     "topIds": [
+      "A.3.1.MR",
+      "C.6",
+      "E.6",
+      "G.5",
+      "C.32.MWA",
+      "A.3.2",
+      "G.6",
+      "B.3.3",
+      "A.3.3",
+      "A.6.S"
+     ]
+    },
+    {
+     "caseId": "typo-9",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 5.908417000000554,
+     "topIds": [
+      "B.2.P",
+      "lex:emergence-and-mht-precision-restoration",
+      "lex:meta-system",
+      "lex:meta-functional",
+      "lex:meta-epistemic",
+      "B.2.2",
+      "C.32.MWA",
+      "B.2.4",
+      "lex:post",
+      "B.2"
+     ]
+    },
+    {
+     "caseId": "typo-10",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 6.038625000001048,
+     "topIds": [
+      "lex:initial-uncertainty",
+      "I.2",
+      "A.2.9",
+      "A.10.1",
+      "E.19",
+      "F.16",
+      "A.6.P",
+      "B.1.6",
+      "A.6.4",
+      "E.1"
+     ]
+    },
+    {
+     "caseId": "typo-11",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 6.085875000000669,
+     "topIds": [
+      "lex:rationale-mandate",
+      "E.12",
+      "E.5.4",
+      "E.5",
+      "E.7",
+      "A.0",
+      "A.19.CHR",
+      "E.3",
+      "E.2",
+      "A.6.7"
+     ]
+    },
+    {
+     "caseId": "typo-12",
+     "category": "typo",
+     "rank": null,
+     "latencyMs": 0.016707999999198364,
+     "topIds": []
+    },
+    {
+     "caseId": "typo-13",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 5.97662500000115,
+     "topIds": [
+      "lex:cooling-guide",
+      "lex:cooling-guide-edition-3-rule-7",
+      "C.3.1",
+      "lex:required-cooling-effect-followed-by-actual-cooling-requirement-episteme",
+      "F.19",
+      "C.3.2",
+      "A.2.7",
+      "E.21",
+      "E.24.CD",
+      "C.26.2"
+     ]
+    },
+    {
+     "caseId": "typo-14",
+     "category": "typo",
+     "rank": 10,
+     "latencyMs": 5.899708999999348,
+     "topIds": [
+      "lex:r",
+      "lex:tevb-project-local-typical-engineering-viewpoint-bundle-template-for-holons",
+      "lex:l-local",
+      "lex:entityofconcern-e",
+      "lex:d-module",
+      "lex:s-module",
+      "lex:d-functional",
+      "lex:s-functional",
+      "lex:the-four",
+      "E.17.2"
+     ]
+    },
+    {
+     "caseId": "typo-15",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 6.033333999999741,
+     "topIds": [
+      "lex:tc-mwh-factually-unsupported",
+      "lex:tc-mwh-missing-governor",
+      "lex:tc-mwh-missing-information",
+      "E.18",
+      "A.6.6",
+      "A.6.4",
+      "A.20",
+      "A.3.4.P",
+      "C.3.3",
+      "B.3"
+     ]
+    },
+    {
+     "caseId": "typo-16",
+     "category": "typo",
+     "rank": 4,
+     "latencyMs": 6.0418750000008,
+     "topIds": [
+      "lex:u-commitment-deontic-commitment-relation",
+      "lex:c-u-commitment",
+      "lex:the-record-is-not-the-relation",
+      "A.2.8",
+      "lex:map-to",
+      "lex:maps-to",
+      "A.6.B",
+      "lex:incidentresponsecommitment-2026-u-commitment",
+      "lex:do-not-normalize-into",
+      "heading:a-2-9-4-4-separation-rules-with-u-commitment-grantedpermissionrelation-context-and-u-promisecontent-normative:7518"
+     ]
+    },
+    {
+     "caseId": "typo-17",
+     "category": "typo",
+     "rank": 1,
+     "latencyMs": 5.988250000000335,
+     "topIds": [
+      "lex:material-flow-bottleneck-bearer",
+      "E.6",
+      "C.2.1",
+      "A.6.F",
+      "E.10.D2",
+      "C.16",
+      "A.15.8",
+      "F.16",
+      "E.9",
+      "E.17.2"
+     ]
+    },
+    {
+     "caseId": "definition-1",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.919583999999304,
+     "topIds": [
+      "lex:transformation-flow-structure",
+      "lex:t-d-t-r",
+      "lex:flow-of-flows",
+      "lex:is-current-1",
+      "lex:and-apply",
+      "heading:c-30-tfs-rel-architecture-transformation-flow-structure-relation:61638",
+      "lex:network-of-transformation-flow-structures",
+      "lex:for-bounded-transformation-under-conditions",
+      "lex:design-t-d",
+      "lex:run-t-r"
+     ]
+    },
+    {
+     "caseId": "definition-2",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 6.075333000000683,
+     "topIds": [
+      "lex:review-happened",
+      "F.8",
+      "A.6.6",
+      "E.17.AUD.LHR",
+      "A.7",
+      "F.9.1",
+      "C.11",
+      "E.11.PFP",
+      "A.19.SPR",
+      "E.10.ROLE"
+     ]
+    },
+    {
+     "caseId": "definition-3",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.932333999999173,
+     "topIds": [
+      "lex:front-door",
+      "A.6.RSIG",
+      "F.2",
+      "C.28",
+      "E.4.DPF.DA",
+      "route:boundary-unpacking",
+      "E.4.FPF",
+      "E.13",
+      "E.11.PFP",
+      "E.22"
+     ]
+    },
+    {
+     "caseId": "definition-4",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.8989999999994325,
+     "topIds": [
+      "lex:epistemic-precision-restoration-required",
+      "C.2.P",
+      "B.2.P",
+      "lex:epistemic-precision-restoration",
+      "A.19.SPR",
+      "B.3.4",
+      "A.6.3.CR",
+      "E.17.AUD.LHR",
+      "E.17",
+      "lex:combined-precision-restoration-required"
+     ]
+    },
+    {
+     "caseId": "definition-5",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.966000000000349,
+     "topIds": [
+      "lex:incident-owner",
+      "A.6.3.CR",
+      "D.1",
+      "A.6.6",
+      "B.4",
+      "D.5",
+      "lex:incident-process",
+      "C.26.2",
+      "D.4",
+      "A.3.1.MR"
+     ]
+    },
+    {
+     "caseId": "definition-6",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 6.003875000000335,
+     "topIds": [
+      "lex:false-platform",
+      "lex:open-platform-claim",
+      "B.1.2",
+      "A.6.M",
+      "C.36",
+      "C.32.FAIL",
+      "C.36.P",
+      "E.10.ROLE",
+      "C.35",
+      "C.30"
+     ]
+    },
+    {
+     "caseId": "definition-7",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 6.0609170000007,
+     "topIds": [
+      "lex:safety-journal",
+      "C.20",
+      "F.0.1",
+      "F.7",
+      "B.3.3",
+      "B.5.3",
+      "F.6",
+      "A.6",
+      "A.14",
+      "C.30.STRAT"
+     ]
+    },
+    {
+     "caseId": "definition-8",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.961374999998952,
+     "topIds": [
+      "lex:state-changing-communication",
+      "heading:communication-for-use-make-communication-useful-then-learn-from-what-happens:556",
+      "C.26.1",
+      "A.2.9",
+      "B.3",
+      "A.6.P",
+      "B.1.2",
+      "E.10.LRN",
+      "E.10.MOVE",
+      "A.6.3"
+     ]
+    },
+    {
+     "caseId": "definition-9",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 6.016083000000435,
+     "topIds": [
+      "lex:architecture-characteristic-eval-programs",
+      "C.32.ACE",
+      "lex:kind-and-not-by-its",
+      "lex:and-the-obtaining-program-use-relation-in",
+      "lex:for-eval-programs-or-eval-results",
+      "lex:intact",
+      "lex:occurrence-add",
+      "lex:for-candidate-synthesis",
+      "C.32.HCS",
+      "lex:for-residual-input-and"
+     ]
+    },
+    {
+     "caseId": "definition-10",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 6.042916999998852,
+     "topIds": [
+      "lex:risk-condition",
+      "C.32.MLAO",
+      "C.32.FAIL",
+      "C.32.ACE",
+      "C.35",
+      "C.32.ACS",
+      "C.32.HCS",
+      "E.8.ECSPF",
+      "F.11",
+      "A.2.8"
+     ]
+    },
+    {
+     "caseId": "definition-11",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.958499999998821,
+     "topIds": [
+      "lex:presentation-form-label",
+      "E.17.AUD",
+      "E.11.PFP",
+      "F.2",
+      "E.24.PUB",
+      "A.2.2",
+      "C.3.2",
+      "E.4.FPF",
+      "E.17.ID.CR",
+      "C.38"
+     ]
+    },
+    {
+     "caseId": "definition-12",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.99474999999984,
+     "topIds": [
+      "lex:architecture-map",
+      "F.0.1",
+      "E.10.MOVE",
+      "B.2",
+      "C.26",
+      "E.19",
+      "C.2",
+      "E.17",
+      "E.18.1",
+      "C.26.3"
+     ]
+    },
+    {
+     "caseId": "definition-13",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.9959579999995185,
+     "topIds": [
+      "lex:module-relation-repair",
+      "lex:open-architecture",
+      "lex:work-package",
+      "lex:names-an-admitted-direct-module-relation-occurrence-the-disposition-is",
+      "C.32.FAIL",
+      "A.6.M",
+      "lex:stays-with-the-module-holon-or-selected-dependency-structure-a",
+      "E.17.2",
+      "A.6.3.CR",
+      "E.10.D1"
+     ]
+    },
+    {
+     "caseId": "definition-14",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 6.044208999999682,
+     "topIds": [
+      "lex:whole-unit-stabilization",
+      "E.17.AUD",
+      "A.6.3.CR",
+      "E.11.PFP",
+      "E.17.AUD.LHR",
+      "E.10.D1",
+      "A.16",
+      "E.5.3",
+      "E.17",
+      "E.4"
+     ]
+    },
+    {
+     "caseId": "definition-15",
+     "category": "definition",
+     "rank": 3,
+     "latencyMs": 5.9539999999997235,
+     "topIds": [
+      "heading:existing-framework:70495",
+      "lex:pattern-framework-relation-and-edition-discipline",
+      "lex:framework-edition",
+      "E.11.PFP",
+      "E.4.PFR",
+      "E.4.FPF",
+      "E.4.PFIP",
+      "heading:first-principles-framework-fpf-core-conceptual-specification:1",
+      "E.23.CDI",
+      "E.4"
+     ]
+    },
+    {
+     "caseId": "definition-16",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 5.964583000000857,
+     "topIds": [
+      "C.19.1",
+      "C.24",
+      "E.5.4",
+      "A.7.CP",
+      "D.5",
+      "A.7",
+      "C.30.ILC",
+      "E.5",
+      "C.30",
+      "F.2"
+     ]
+    },
+    {
+     "caseId": "definition-17",
+     "category": "definition",
+     "rank": 1,
+     "latencyMs": 6.097917000000962,
+     "topIds": [
+      "lex:account-owner",
+      "D.1",
+      "A.16.0",
+      "A.6.C",
+      "lex:model-owner",
+      "lex:field-owner",
+      "lex:service-owner",
+      "C.9",
+      "D.5",
+      "B.1.2"
+     ]
+    },
+    {
+     "caseId": "multi-hop-1",
+     "category": "multi-hop",
+     "rank": null,
+     "latencyMs": 6.042417000000569,
+     "topIds": [
+      "lex:0-x-y",
+      "lex:x-z-x-z",
+      "lex:y",
+      "lex:x-y",
+      "lex:advanced-mereology-components-portions-aspects-phases",
+      "lex:x-z",
+      "A.14",
+      "lex:phaseof-y-y",
+      "lex:portionof-x-z-y",
+      "lex:portionof-y"
+     ]
+    },
+    {
+     "caseId": "multi-hop-2",
+     "category": "multi-hop",
+     "rank": null,
+     "latencyMs": 6.052625000000262,
+     "topIds": [
+      "lex:or-3",
+      "lex:u-workplan-the-schedule-of-intent",
+      "lex:tool-13",
+      "lex:tool-42",
+      "lex:tool-13-calibration",
+      "A.15.2",
+      "C.3",
+      "lex:deploy-service-a",
+      "lex:or-service-system-12-u-system",
+      "lex:service-a-operations-system-u-system"
+     ]
+    },
+    {
+     "caseId": "multi-hop-3",
+     "category": "multi-hop",
+     "rank": 6,
+     "latencyMs": 6.004667000001064,
+     "topIds": [
+      "A.16.1",
+      "lex:contrasts",
+      "B.4",
+      "A.16.0",
+      "A.16.2",
+      "A.16",
+      "C.2.2a",
+      "lex:exemplars",
+      "B.4.1",
+      "A.6.RSIG"
+     ]
+    },
+    {
+     "caseId": "multi-hop-4",
+     "category": "multi-hop",
+     "rank": null,
+     "latencyMs": 6.042124999999942,
+     "topIds": [
+      "lex:revalidate-affected-uses-when-a-relied-on-source-changes",
+      "A.10.1",
+      "lex:not-found",
+      "E.15",
+      "lex:a-10-reliancedisposition",
+      "lex:50-c",
+      "lex:reliance-withdrawn",
+      "lex:mentions-only",
+      "F.0.2",
+      "F.0.1"
+     ]
+    },
+    {
+     "caseId": "multi-hop-5",
+     "category": "multi-hop",
+     "rank": null,
+     "latencyMs": 5.968709000000672,
+     "topIds": [
+      "lex:principle-framework-publication-integration-and-preservation",
+      "E.4.PFIP",
+      "E.4.FPF",
+      "lex:missing-form-comparison-basis",
+      "lex:cc-pfip-1",
+      "lex:cc-pfip-2",
+      "lex:cc-pfip-3",
+      "lex:cc-pfip-4",
+      "lex:cc-pfip-5",
+      "lex:cc-pfip-6"
+     ]
+    },
+    {
+     "caseId": "multi-hop-6",
+     "category": "multi-hop",
+     "rank": null,
+     "latencyMs": 6.0769580000014685,
+     "topIds": [
+      "E.7",
+      "lex:archetypal-grounding-principle",
+      "E.4.DPF.DA",
+      "E.4.FPF",
+      "E.4.PFAD",
+      "A.8",
+      "lex:archetypal-grounding",
+      "E.4.PFR",
+      "F.0.2",
+      "route:writing-or-reviewing-patterns"
+     ]
+    },
+    {
+     "caseId": "multi-hop-7",
+     "category": "multi-hop",
+     "rank": null,
+     "latencyMs": 5.9284999999999854,
+     "topIds": [
+      "lex:use-bounded-representation-selection-and-co-use",
+      "C.37",
+      "lex:co-use",
+      "E.15",
+      "E.10.D2",
+      "A.15.7",
+      "F.7",
+      "E.11.PUR",
+      "F.0.2",
+      "E.11"
+     ]
+    },
+    {
+     "caseId": "multi-hop-8",
+     "category": "multi-hop",
+     "rank": 6,
+     "latencyMs": 5.976125000001048,
+     "topIds": [
+      "C.6",
+      "lex:proof-and-inference-use-calculus-log-cal",
+      "C.5",
+      "C.14",
+      "C.1",
+      "B.3",
+      "E.10.D2",
+      "E.10.LRN",
+      "A.15.9",
+      "F.16"
+     ]
+    },
+    {
+     "caseId": "multi-hop-9",
+     "category": "multi-hop",
+     "rank": 6,
+     "latencyMs": 6.013582999999926,
+     "topIds": [
+      "lex:drr-decision-adequacy-evaluation-characteristicspace",
+      "E.9.DA",
+      "lex:an-optional",
+      "E.4.DPF.DA",
+      "E.4.FPF",
+      "A.19.ECS",
+      "E.11.PFP",
+      "E.4.PFR",
+      "lex:drr-role-trigger-03-2",
+      "E.4.DPF"
+     ]
+    },
+    {
+     "caseId": "multi-hop-10",
+     "category": "multi-hop",
+     "rank": 3,
+     "latencyMs": 6.039875000000393,
+     "topIds": [
+      "lex:fpf-pillar-adequacy-evaluation-characteristicspace",
+      "E.2.DA",
+      "E.2",
+      "A.19.ECS",
+      "E.4.DPF.DA",
+      "lex:as-a-defect-a",
+      "E.5",
+      "E.4.FPF",
+      "lex:fpf-pattern-quality-evaluation-characteristicspace",
+      "E.11.PFP"
+     ]
+    },
+    {
+     "caseId": "multi-hop-11",
+     "category": "multi-hop",
+     "rank": 3,
+     "latencyMs": 5.987624999999753,
+     "topIds": [
+      "B.5.1",
+      "lex:explore-shape-evidence-operate",
+      "B.5",
+      "lex:b-5-1-explore-shape-evidence-operate",
+      "lex:b-4-canonical-evolution-loop",
+      "F.12",
+      "A.3.1.MR",
+      "B.4",
+      "A.19.ECS",
+      "B.5.2.1"
+     ]
+    },
+    {
+     "caseId": "multi-hop-12",
+     "category": "multi-hop",
+     "rank": 3,
+     "latencyMs": 6.029292000001078,
+     "topIds": [
+      "G.6",
+      "lex:evidence-graph-provenance-ledger",
+      "A.10",
+      "F.12",
+      "lex:cc-g6-10",
+      "B.1.6",
+      "lex:cc-g6-07",
+      "I.2",
+      "F.10",
+      "lex:cc-g6-02"
+     ]
+    },
+    {
+     "caseId": "multi-hop-13",
+     "category": "multi-hop",
+     "rank": 9,
+     "latencyMs": 5.938125000000582,
+     "topIds": [
+      "B.1.4",
+      "lex:contextual-and-temporal-aggregation",
+      "C.27",
+      "B.1.6",
+      "B.4",
+      "G.6",
+      "E.11",
+      "C.2.1",
+      "C.27.TA",
+      "C.3.4"
+     ]
+    },
+    {
+     "caseId": "multi-hop-14",
+     "category": "multi-hop",
+     "rank": null,
+     "latencyMs": 6.262416999999914,
+     "topIds": [
+      "lex:p2w-problem-to-work-carry-through",
+      "lex:episteme-or",
+      "F.12",
+      "B.4",
+      "E.10.D2",
+      "I.2",
+      "E.8",
+      "F.9.1",
+      "B.1.6",
+      "C.27"
+     ]
+    },
+    {
+     "caseId": "multi-hop-15",
+     "category": "multi-hop",
+     "rank": 5,
+     "latencyMs": 6.04858299999978,
+     "topIds": [
+      "A.15.3",
+      "lex:slotfillingsplanitem-declaration-local-planned-designation",
+      "lex:through-a",
+      "lex:in-that-operation-declaration",
+      "A.6.5",
+      "lex:robot-8-u-system",
+      "lex:accepts-exactly-one",
+      "A.6.0",
+      "A.6.RSIG",
+      "G.1"
+     ]
+    },
+    {
+     "caseId": "multi-hop-16",
+     "category": "multi-hop",
+     "rank": 4,
+     "latencyMs": 5.859583999999813,
+     "topIds": [
+      "C.2.7",
+      "lex:u-languagestaterepresentationfactorbundle",
+      "C.2.6",
+      "C.2.LS",
+      "lex:cc-c-2-7-1",
+      "lex:cc-c-2-7-2",
+      "lex:cc-c-2-7-3",
+      "lex:cc-c-2-7-4",
+      "lex:u-sparsity",
+      "lex:u-symbolicity"
+     ]
+    },
+    {
+     "caseId": "negative-1",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.054499999998370185,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-2",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.029624999999214197,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-3",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.03583299999991141,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-4",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.029791999999360996,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-5",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.03758399999969697,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-6",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.025958000000173342,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-7",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.02466699999968114,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-8",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.01224999999976717,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-9",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.02508300000044983,
+     "topIds": []
+    },
+    {
+     "caseId": "negative-10",
+     "category": "negative",
+     "rank": null,
+     "latencyMs": 0.010416999999506515,
+     "topIds": []
+    },
+    {
+     "caseId": "hc-dev-1",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 6.032917000000452,
+     "topIds": [
+      "F.12",
+      "A.6.9",
+      "A.6.RSIR",
+      "A.15.7",
+      "A.2.1",
+      "E.10.ROLE",
+      "C.30.STRAT",
+      "C.16",
+      "A.3.3",
+      "F.6"
+     ]
+    },
+    {
+     "caseId": "hc-dev-2",
+     "category": "paraphrase",
+     "rank": 1,
+     "latencyMs": 6.010167000000365,
+     "topIds": [
+      "A.2.3",
+      "E.11.PUA",
+      "A.7.CP",
+      "F.12",
+      "C.26.3",
+      "A.2.7",
+      "B.4",
+      "E.4.PFR",
+      "E.11.DSG",
+      "A.6"
+     ]
+    },
+    {
+     "caseId": "hc-dev-3",
+     "category": "paraphrase",
+     "rank": 10,
+     "latencyMs": 6.0362499999992,
+     "topIds": [
+      "C.32.MWA",
+      "B.3.3",
+      "A.2.2",
+      "E.17",
+      "F.9.1",
+      "E.4.FPF",
+      "C.22.2",
+      "A.8",
+      "E.18.1",
+      "A.7"
+     ]
+    },
+    {
+     "caseId": "hc-dev-4",
+     "category": "task",
+     "rank": 8,
+     "latencyMs": 5.901332999999795,
+     "topIds": [
+      "A.2.2",
+      "A.3.2",
+      "C.38",
+      "A.2",
+      "A.15",
+      "A.3.1",
+      "E.4.FPF",
+      "A.7",
+      "E.17.AUD",
+      "C.19"
+     ]
+    },
+    {
+     "caseId": "hc-dev-5",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 5.896250000001601,
+     "topIds": [
+      "E.8.ECSPF",
+      "C.32.ADR",
+      "E.11",
+      "E.4",
+      "I.2",
+      "A.19.ECS",
+      "E.11.DSG",
+      "E.8",
+      "C.22.1",
+      "E.10.ARCH"
+     ]
+    },
+    {
+     "caseId": "hc-dev-6",
+     "category": "paraphrase",
+     "rank": 6,
+     "latencyMs": 5.963958999998795,
+     "topIds": [
+      "F.7",
+      "heading:existing-framework:70495",
+      "E.4.PFIP",
+      "A.18",
+      "A.8",
+      "A.11",
+      "A.10.1",
+      "B.1.3",
+      "E.4.DPF",
+      "B.5.3"
+     ]
+    },
+    {
+     "caseId": "hc-dev-7",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 5.942041000000245,
+     "topIds": [
+      "F.4",
+      "A.3.2",
+      "D.2",
+      "A.3.1.MR",
+      "B.2.P",
+      "A.6.RSIR",
+      "D.4",
+      "C.3",
+      "B.2",
+      "A.6.9"
+     ]
+    },
+    {
+     "caseId": "hc-dev-8",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 6.018874999999753,
+     "topIds": [
+      "C.26.2",
+      "C.26.1",
+      "F.9",
+      "A.6.5",
+      "C.35",
+      "F.4",
+      "C.26",
+      "A.21",
+      "C.26.3",
+      "A.2.4"
+     ]
+    },
+    {
+     "caseId": "hc-dev-9",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 5.956124999998792,
+     "topIds": [
+      "C.3.5",
+      "E.14",
+      "B.1.6",
+      "F.1",
+      "E.15",
+      "F.0.2",
+      "A.6.4",
+      "E.9",
+      "B.3.5",
+      "E.17.AUD.LHR"
+     ]
+    },
+    {
+     "caseId": "hc-dev-10",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 6.113166999999521,
+     "topIds": [
+      "C.16",
+      "C.22.PFR",
+      "E.8",
+      "F.18",
+      "E.19",
+      "I.2",
+      "C.32.P2S",
+      "B.2.P",
+      "A.15.9",
+      "A.8"
+     ]
+    },
+    {
+     "caseId": "hc-dev-11",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 6.107458000000406,
+     "topIds": [
+      "A.3.1.MR",
+      "E.19",
+      "C.3",
+      "E.14",
+      "C.3.2",
+      "A.7.CP",
+      "E.10.D2",
+      "A.10",
+      "C.3.5",
+      "F.9.1"
+     ]
+    },
+    {
+     "caseId": "hc-dev-12",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 6.095499999999447,
+     "topIds": [
+      "F.8",
+      "E.10.D2",
+      "A.6.3",
+      "F.3",
+      "A.6.H",
+      "E.10.D1",
+      "C.37",
+      "A.7",
+      "F.0.1",
+      "C.2.1"
+     ]
+    },
+    {
+     "caseId": "hc-dev-13",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 6.128124999999272,
+     "topIds": [
+      "A.3",
+      "F.11",
+      "C.26.2",
+      "A.1.STM",
+      "C.32.ADR",
+      "A.6.H",
+      "C.16",
+      "E.17.1",
+      "E.9",
+      "C.30"
+     ]
+    },
+    {
+     "caseId": "hc-dev-14",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 6.049707999998645,
+     "topIds": [
+      "A.1.STM",
+      "C.38",
+      "A.15.7",
+      "B.2.4",
+      "F.16",
+      "B.1",
+      "B.2.P",
+      "B.3",
+      "E.11.PUR",
+      "C.35"
+     ]
+    },
+    {
+     "caseId": "hc-dev-15",
+     "category": "paraphrase",
+     "rank": 1,
+     "latencyMs": 5.989082999998573,
+     "topIds": [
+      "B.3.4",
+      "F.1",
+      "A.6.4",
+      "A.3.3",
+      "C.6",
+      "B.3",
+      "A.15.7",
+      "E.2.DA",
+      "F.9.1",
+      "E.4.FPF"
+     ]
+    },
+    {
+     "caseId": "hc-dev-16",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 6.0743750000001455,
+     "topIds": [
+      "A.21",
+      "A.6.4",
+      "B.1.4",
+      "C.38",
+      "A.2.4",
+      "F.16",
+      "C.27",
+      "G.12",
+      "B.1.3",
+      "E.10.D2"
+     ]
+    },
+    {
+     "caseId": "hc-dev-17",
+     "category": "paraphrase",
+     "rank": 3,
+     "latencyMs": 5.988707999998951,
+     "topIds": [
+      "E.10.LRN",
+      "C.19.1",
+      "B.4",
+      "A.6.7",
+      "A.18",
+      "C.25",
+      "A.2.2",
+      "E.6",
+      "C.27",
+      "F.0.2"
+     ]
+    },
+    {
+     "caseId": "hc-dev-18",
+     "category": "paraphrase",
+     "rank": 3,
+     "latencyMs": 6.031000000000859,
+     "topIds": [
+      "A.6.6",
+      "B.5",
+      "B.5.2",
+      "E.24.CD",
+      "A.17",
+      "C.30.STRAT",
+      "F.4",
+      "B.4",
+      "E.4.PFIP",
+      "B.5.1"
+     ]
+    },
+    {
+     "caseId": "hc-dev-19",
+     "category": "paraphrase",
+     "rank": 8,
+     "latencyMs": 6.007917000000816,
+     "topIds": [
+      "B.5.1",
+      "C.2",
+      "F.9.1",
+      "A.2.4",
+      "A.15.7",
+      "G.6",
+      "A.6.RSIR",
+      "C.2.2",
+      "B.1.3",
+      "F.4"
+     ]
+    },
+    {
+     "caseId": "hc-dev-20",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 6.197207999999591,
+     "topIds": [
+      "C.2",
+      "B.5.1",
+      "B.1.3",
+      "C.2.3",
+      "E.17",
+      "G.6",
+      "C.2.P.DR",
+      "B.2.3",
+      "B.3",
+      "A.6.H"
+     ]
+    },
+    {
+     "caseId": "hc-dev-21",
+     "category": "task",
+     "rank": 6,
+     "latencyMs": 6.00879200000054,
+     "topIds": [
+      "E.9",
+      "A.2.5",
+      "C.22.2",
+      "F.7",
+      "B.5.2.1",
+      "C.11",
+      "E.11.DSG",
+      "A.15.6",
+      "C.19.2",
+      "A.11"
+     ]
+    },
+    {
+     "caseId": "hc-dev-22",
+     "category": "paraphrase",
+     "rank": 2,
+     "latencyMs": 5.995875000000524,
+     "topIds": [
+      "F.7",
+      "C.11",
+      "E.19",
+      "B.5.2",
+      "A.6.P",
+      "E.17.AUD",
+      "A.6.H",
+      "A.3.4.P",
+      "C.38",
+      "A.15.7"
+     ]
+    },
+    {
+     "caseId": "hc-dev-23",
+     "category": "paraphrase",
+     "rank": 1,
+     "latencyMs": 6.018667000000278,
+     "topIds": [
+      "C.19",
+      "E.4.PFAD",
+      "F.0.1",
+      "A.6.4",
+      "F.8",
+      "E.14",
+      "C.25",
+      "B.5.3",
+      "F.7",
+      "C.32.MWA"
+     ]
+    },
+    {
+     "caseId": "hc-dev-24",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 5.910167000000001,
+     "topIds": [
+      "A.0",
+      "B.2.3",
+      "C.38",
+      "E.17.AUD.LHR",
+      "A.6.P",
+      "A.15.6",
+      "A.15.9",
+      "A.9",
+      "A.6.3",
+      "A.10.1"
+     ]
+    },
+    {
+     "caseId": "hc-dev-25",
+     "category": "paraphrase",
+     "rank": 1,
+     "latencyMs": 5.970875000000888,
+     "topIds": [
+      "C.25",
+      "C.32.MWA",
+      "E.23.CDI",
+      "A.14",
+      "C.16.P",
+      "C.29",
+      "C.11.CRC",
+      "E.4.PFAD",
+      "A.3.1.MR",
+      "C.35"
+     ]
+    },
+    {
+     "caseId": "hc-dev-26",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 5.99383300000045,
+     "topIds": [
+      "A.10.1",
+      "C.27",
+      "E.15",
+      "F.16",
+      "B.5.3",
+      "E.4.PFAD",
+      "C.38",
+      "A.6.S",
+      "E.4.DPF",
+      "C.32.FAIL"
+     ]
+    },
+    {
+     "caseId": "hc-dev-27",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 6.028542000000016,
+     "topIds": [
+      "F.12",
+      "E.4.DPF.DA",
+      "A.3.1.MR",
+      "C.33",
+      "E.10.D2",
+      "C.27",
+      "C.32.FAIL",
+      "E.17.AUD.LHR",
+      "F.19",
+      "C.38"
+     ]
+    },
+    {
+     "caseId": "hc-dev-28",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 5.984541999998328,
+     "topIds": [
+      "A.6.RCD",
+      "A.6.RSIR",
+      "E.10.ROLE",
+      "F.14",
+      "F.18",
+      "E.4.PFAD",
+      "C.30.STRAT",
+      "E.10.ARCH",
+      "A.2.5",
+      "F.9.1"
+     ]
+    },
+    {
+     "caseId": "hc-dev-29",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 5.980083999998897,
+     "topIds": [
+      "A.18",
+      "B.1",
+      "B.2.4",
+      "E.18.2",
+      "E.11.DSG",
+      "F.1",
+      "E.8.ECSPF",
+      "A.6.7",
+      "D.2",
+      "E.17"
+     ]
+    },
+    {
+     "caseId": "hc-dev-30",
+     "category": "task",
+     "rank": 2,
+     "latencyMs": 6.100709000000279,
+     "topIds": [
+      "E.8",
+      "E.5.1",
+      "E.4.PFIP",
+      "E.17",
+      "E.2.DA",
+      "E.4.FPF",
+      "E.4.PFAD",
+      "E.19",
+      "E.4.PFR",
+      "A.10.1"
+     ]
+    },
+    {
+     "caseId": "hc-dev-31",
+     "category": "paraphrase",
+     "rank": 4,
+     "latencyMs": 5.987415999999939,
+     "topIds": [
+      "E.15",
+      "C.38",
+      "F.12",
+      "E.9",
+      "E.19",
+      "A.8",
+      "A.6",
+      "F.9.1",
+      "A.6.3",
+      "A.20"
+     ]
+    },
+    {
+     "caseId": "hc-dev-32",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 5.958709000000454,
+     "topIds": [
+      "F.9.1",
+      "F.7",
+      "F.3",
+      "C.16",
+      "F.0.1",
+      "E.10.D2",
+      "C.22",
+      "E.15",
+      "C.38",
+      "F.11"
+     ]
+    },
+    {
+     "caseId": "hc-dev-33",
+     "category": "task",
+     "rank": 4,
+     "latencyMs": 5.981707999999344,
+     "topIds": [
+      "E.17",
+      "A.18",
+      "route:boundary-unpacking",
+      "E.15",
+      "G.9",
+      "E.4",
+      "F.19",
+      "E.21",
+      "F.0.1",
+      "E.10.D2"
+     ]
+    },
+    {
+     "caseId": "hc-dev-34",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 5.966625000000931,
+     "topIds": [
+      "E.2",
+      "B.1.3",
+      "E.3",
+      "A.15.7",
+      "F.3",
+      "C.19.1",
+      "E.15",
+      "A.20",
+      "C.11",
+      "B.4"
+     ]
+    },
+    {
+     "caseId": "hc-dev-35",
+     "category": "task",
+     "rank": 1,
+     "latencyMs": 6.03754200000003,
+     "topIds": [
+      "E.16",
+      "C.38",
+      "A.15.6",
+      "B.2.4",
+      "E.17.AUD",
+      "C.32.MWA",
+      "E.23.CDI",
+      "F.1",
+      "F.9.1",
+      "E.11.DSG"
+     ]
+    },
+    {
+     "caseId": "hc-dev-36",
+     "category": "task",
+     "rank": 10,
+     "latencyMs": 6.347667000000001,
+     "topIds": [
+      "F.14",
+      "B.5.3",
+      "E.19",
+      "E.17.AUD.LHR",
+      "F.4",
+      "heading:existing-framework:70495",
+      "A.6.4",
+      "C.26.1",
+      "F.7",
+      "F.8"
+     ]
+    },
+    {
+     "caseId": "hc-dev-37",
+     "category": "task",
+     "rank": null,
+     "latencyMs": 5.936249999998836,
+     "topIds": [
+      "A.17",
+      "C.2.P",
+      "E.17.AUD.LHR",
+      "E.17.AUD",
+      "A.18",
+      "A.6.5",
+      "A.10",
+      "E.17.AUD.OOTD",
+      "C.26.3",
+      "A.6.REL"
+     ]
+    },
+    {
+     "caseId": "hc-dev-38",
+     "category": "paraphrase",
+     "rank": 9,
+     "latencyMs": 5.949874999998428,
+     "topIds": [
+      "F.3",
+      "F.7",
+      "C.38",
+      "E.9.DA",
+      "F.16",
+      "A.15.9",
+      "E.17.AUD.LHR",
+      "E.11.DSG",
+      "F.13",
+      "A.6.0"
+     ]
+    },
+    {
+     "caseId": "hc-dev-39",
+     "category": "paraphrase",
+     "rank": null,
+     "latencyMs": 6.051959000000352,
+     "topIds": [
+      "G.6",
+      "F.0.2",
+      "B.5.3",
+      "C.3.5",
+      "E.17.AUD.LHR",
+      "G.9",
+      "A.17",
+      "F.1",
+      "F.4",
+      "E.21"
+     ]
+    },
+    {
+     "caseId": "hc-dev-40",
+     "category": "task",
+     "rank": 9,
+     "latencyMs": 6.013707999998587,
+     "topIds": [
+      "A.6.C",
+      "A.16.0",
+      "E.10.ARCH",
+      "A.7.CP",
+      "B.4",
+      "A.16",
+      "A.6",
+      "F.7",
+      "G.6",
+      "C.9"
+     ]
+    }
+   ],
+   "metrics": {
+    "n": 150,
+    "recallAt1": 0.45714285714285713,
+    "recallAt5": 0.65,
+    "recallAt10": 0.7428571428571429,
+    "mrrAt10": 0.5398809523809524,
+    "ndcgAt10": 0.5880823578062512,
+    "negativeCleanRate": 1,
+    "latency": {
+     "p50Ms": 6.007917000000816,
+     "p95Ms": 13.541000000001077,
+     "meanMs": 7.483068953333344
+    },
+    "perCategory": {
+     "id-lookup": {
+      "n": 17,
+      "recallAt5": 1,
+      "mrrAt10": 1
+     },
+     "title": {
+      "n": 17,
+      "recallAt5": 0.8823529411764706,
+      "mrrAt10": 0.573529411764706
+     },
+     "alias": {
+      "n": 16,
+      "recallAt5": 0.9375,
+      "mrrAt10": 0.7760416666666667
+     },
+     "typo": {
+      "n": 17,
+      "recallAt5": 0.6470588235294118,
+      "mrrAt10": 0.5794117647058823
+     },
+     "definition": {
+      "n": 17,
+      "recallAt5": 1,
+      "mrrAt10": 0.9607843137254903
+     },
+     "multi-hop": {
+      "n": 16,
+      "recallAt5": 0.3125,
+      "mrrAt10": 0.12881944444444443
+     },
+     "task": {
+      "n": 19,
+      "recallAt5": 0.15789473684210525,
+      "mrrAt10": 0.11856725146198831
+     },
+     "paraphrase": {
+      "n": 21,
+      "recallAt5": 0.38095238095238093,
+      "mrrAt10": 0.2818783068783069
+     }
+    }
+   },
+   "deterministic": true
+  }
+ ]
+}
