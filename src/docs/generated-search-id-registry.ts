@@ -747,6 +747,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.11.CRC"
     },
     {
+      "id": "C.11.DUA",
+      "title": "Decision-Useful Advice and Evidence Demands",
+      "staticPath": "/generated/patterns/C.11.DUA"
+    },
+    {
       "id": "C.13",
       "title": "Constructional Mereology (Compose‑CAL)",
       "staticPath": "/generated/patterns/C.13"
