@@ -1,0 +1,322 @@
+[
+  {
+    "id": "hc-dev-1",
+    "question": "How do I write down what a customer can rely on from our service so a fulfilment claim stays checkable later?",
+    "expectedIds": ["A.2.3"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "A.2.3"
+  },
+  {
+    "id": "hc-dev-2",
+    "question": "Our SLA doc mixes together what we guarantee, who is on the hook, and the tickets that delivered it — which pattern untangles that?",
+    "expectedIds": ["A.2.3"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "A.2.3"
+  },
+  {
+    "id": "hc-dev-3",
+    "question": "One diagram in our docs is being read as the procedure, the tool's ability, and the record of a run all at once. What helps me pull those apart?",
+    "expectedIds": ["A.7"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "A.7"
+  },
+  {
+    "id": "hc-dev-4",
+    "question": "Our team keeps treating an SOP document as if it were the capability to do the job — what helps separate the doc, the way of doing, and the ability?",
+    "expectedIds": ["A.7"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "A.7"
+  },
+  {
+    "id": "hc-dev-5",
+    "question": "A standard we cited got superseded — how do I figure out which of our existing decisions actually depended on the old claim?",
+    "expectedIds": ["A.10.1"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "A.10.1"
+  },
+  {
+    "id": "hc-dev-6",
+    "question": "Someone wants to add yet another core concept to our framework — how do we check that the existing kinds can't already express it?",
+    "expectedIds": ["A.11"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "A.11"
+  },
+  {
+    "id": "hc-dev-7",
+    "question": "Instead of a binary switch for whether something counts as an autonomous actor, is there a graded way to assess how much self-directed capacity a system has?",
+    "expectedIds": ["A.13"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "A.13"
+  },
+  {
+    "id": "hc-dev-8",
+    "question": "The board says a ticket is 'good to start' — how do I check we truly have everything in place before committing, without treating the green label as an approval?",
+    "expectedIds": ["A.15.5"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "A.15.5"
+  },
+  {
+    "id": "hc-dev-9",
+    "question": "Everything for the job looks lined up on paper, but nobody confirmed the inputs are actually on hand — where does FPF stop us from starting on hope?",
+    "expectedIds": ["A.15.5"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "A.15.5"
+  },
+  {
+    "id": "hc-dev-10",
+    "question": "We have several pass/fail signals feeding one go/no-go call — how should the worst signal drive whether the action may proceed?",
+    "expectedIds": ["A.21"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "A.21"
+  },
+  {
+    "id": "hc-dev-11",
+    "question": "One required verification came back unknown rather than pass — should the go/no-go call hold the action or let it through?",
+    "expectedIds": ["A.21"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "A.21"
+  },
+  {
+    "id": "hc-dev-12",
+    "question": "Two teams claim their terms mean the same thing across their glossaries — what discipline stops us hand-waving that the two senses match?",
+    "expectedIds": ["A.6.9", "F.9"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "A.6.9,F.9"
+  },
+  {
+    "id": "hc-dev-13",
+    "question": "A bunch of coordinated parts now behaves like a regulated system with its own goals — when do we stop calling it the old thing and recognize something new?",
+    "expectedIds": ["B.2"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "B.2"
+  },
+  {
+    "id": "hc-dev-14",
+    "question": "When a commissioning project crosses into live operation, do we restart the assurance case for a newly identified whole or keep the old one?",
+    "expectedIds": ["B.2"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "B.2"
+  },
+  {
+    "id": "hc-dev-15",
+    "question": "A certification from decades ago still anchors our trust in this component — how does FPF treat proof that has gone stale?",
+    "expectedIds": ["B.3.4"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "B.3.4"
+  },
+  {
+    "id": "hc-dev-16",
+    "question": "How do I account for test results losing their weight over time when I aggregate assurance?",
+    "expectedIds": ["B.3.4"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "B.3.4"
+  },
+  {
+    "id": "hc-dev-17",
+    "question": "Our run-time system keeps drifting away from its design docs, and lessons learned never make it back into the spec — which pattern gives the cycle that closes that gap?",
+    "expectedIds": ["B.4", "B.4.1"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "B.4"
+  },
+  {
+    "id": "hc-dev-18",
+    "question": "We hit a surprising anomaly and need a disciplined way to propose candidate explanations without locking onto the first plausible guess — where is that covered?",
+    "expectedIds": ["B.5.2"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "B.5.2"
+  },
+  {
+    "id": "hc-dev-19",
+    "question": "How strongly is a claim actually warranted by its linked evidence, and how does that strength travel along a justification path without being silently averaged?",
+    "expectedIds": ["C.2.2"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "C.2.2"
+  },
+  {
+    "id": "hc-dev-20",
+    "question": "Two pieces of evidence with different strength support one claim across a scope translation — how do I carry the warrant along the path without averaging?",
+    "expectedIds": ["C.2.2"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "C.2.2"
+  },
+  {
+    "id": "hc-dev-21",
+    "question": "I have a set of options in hand — when is it right to pick now versus paying for another probe or more computation first?",
+    "expectedIds": ["C.11"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "C.11"
+  },
+  {
+    "id": "hc-dev-22",
+    "question": "Is it worth gathering more information before committing to one of the choices on the table, given that probing costs something?",
+    "expectedIds": ["C.11"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "C.11"
+  },
+  {
+    "id": "hc-dev-23",
+    "question": "Several candidate research lines are still active — how do we decide whether to widen the frontier, keep it, narrow to a subset, or retire a line?",
+    "expectedIds": ["C.19"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "C.19"
+  },
+  {
+    "id": "hc-dev-24",
+    "question": "How do we keep several promising alternatives alive under one policy instead of prematurely collapsing to the single best scorer?",
+    "expectedIds": ["C.19"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "C.19"
+  },
+  {
+    "id": "hc-dev-25",
+    "question": "Terms like resilience or maintainability get squashed into a single score — how does FPF keep an -ility from being treated as one scalar?",
+    "expectedIds": ["C.25"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "C.25"
+  },
+  {
+    "id": "hc-dev-26",
+    "question": "Our org's team boundaries keep forcing every release into cross-team coordination, and the product structure mirrors it — which pattern handles deciding what to change on which side?",
+    "expectedIds": ["C.32.CONWAY"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "C.32.CONWAY"
+  },
+  {
+    "id": "hc-dev-27",
+    "question": "We want the service boundaries to stop mirroring the org chart — do we change the teams or the architecture first, and what counts as evidence either way?",
+    "expectedIds": ["C.32.CONWAY"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "C.32.CONWAY"
+  },
+  {
+    "id": "hc-dev-28",
+    "question": "A project's interests clash with the surrounding community's — how do I write down each side's claim and the tension between them before anyone tries to mediate?",
+    "expectedIds": ["D.3"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "D.3"
+  },
+  {
+    "id": "hc-dev-29",
+    "question": "Part of the system serves the whole while harming its own members — where do I lay out both sides' stakes at their different levels?",
+    "expectedIds": ["D.3"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "D.3"
+  },
+  {
+    "id": "hc-dev-30",
+    "question": "Can I mention CI/CD or file formats in a core normative pattern, or do tool-specific terms have to stay out?",
+    "expectedIds": ["E.5.1"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "E.5.1"
+  },
+  {
+    "id": "hc-dev-31",
+    "question": "When we amend several patterns together, where do we capture why the change was chosen and which alternatives were rejected, so reviewers don't have to dig through patch history?",
+    "expectedIds": ["E.9"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "E.9"
+  },
+  {
+    "id": "hc-dev-32",
+    "question": "Several sections must change together as one coordinated set — where do I record the shared decision so the pieces don't drift apart during the rewrite?",
+    "expectedIds": ["E.9"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "E.9"
+  },
+  {
+    "id": "hc-dev-33",
+    "question": "We're about to rework an existing spec section — how do I tell which downstream uses must be reopened and which can safely continue?",
+    "expectedIds": ["E.15"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "E.15"
+  },
+  {
+    "id": "hc-dev-34",
+    "question": "An agent is allowed to act without a human approving each step — how do we declare hard limits, an override path, and an audit trail for that leeway?",
+    "expectedIds": ["E.16"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "E.16"
+  },
+  {
+    "id": "hc-dev-35",
+    "question": "How do I set an explicit budget for what an unsupervised process may do on its own, with a standard way to pause or de-scope it?",
+    "expectedIds": ["E.16"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "E.16"
+  },
+  {
+    "id": "hc-dev-36",
+    "question": "A new role-ish word showed up in our docs — how do I decide whether it deserves a durable name or should stay a local phrase reusing an existing row?",
+    "expectedIds": ["F.8"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "F.8"
+  },
+  {
+    "id": "hc-dev-37",
+    "question": "We want to rename a long-standing term without breaking what older documents meant — what's the discipline for that?",
+    "expectedIds": ["F.13"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "F.13"
+  },
+  {
+    "id": "hc-dev-38",
+    "question": "Old documents still use the previous label for a concept we split in two — how do we keep readers able to connect past texts to the new senses?",
+    "expectedIds": ["F.13"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "F.13"
+  },
+  {
+    "id": "hc-dev-39",
+    "question": "We're surveying a fast-moving literature with rival schools that disagree on basics — how do we assemble a comparable, citable view without collapsing the plurality?",
+    "expectedIds": ["G.2"],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "G.2"
+  },
+  {
+    "id": "hc-dev-40",
+    "question": "Multiple downstream consumers need to cite and replay the same chain of established results — what should we build so each doesn't redo the full source account?",
+    "expectedIds": ["G.6"],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "G.6"
+  }
+]
