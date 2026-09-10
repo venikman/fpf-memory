@@ -667,6 +667,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.2.7"
     },
     {
+      "id": "C.2.8",
+      "title": "U.ExtractableStructuralInformation",
+      "staticPath": "/generated/patterns/C.2.8"
+    },
+    {
       "id": "C.2.2a",
       "title": "U.LanguageStateSpace - Language-state chart over U.CharacteristicSpace",
       "staticPath": "/generated/patterns/C.2.2a"
