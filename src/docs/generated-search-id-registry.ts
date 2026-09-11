@@ -203,7 +203,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.9",
-      "title": "Cross-Context Sameness Disambiguation - Repairing cross-context \"same / equivalent / align\" via explicit Bridges (RPR-XCTX)",
+      "title": "Cross-Context Sameness Disambiguation - Restoring the concrete claim behind \"same / equivalent / align\" (RPR-XCTX)",
       "staticPath": "/generated/patterns/A.6.9"
     },
     {
@@ -665,6 +665,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "C.2.7",
       "title": "U.LanguageStateRepresentationFactorBundle",
       "staticPath": "/generated/patterns/C.2.7"
+    },
+    {
+      "id": "C.2.8",
+      "title": "U.ExtractableStructuralInformation",
+      "staticPath": "/generated/patterns/C.2.8"
     },
     {
       "id": "C.2.2a",
