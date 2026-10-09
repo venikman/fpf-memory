@@ -1,6 +1,6 @@
 # FPF publication recovery — evidence and release handoff
 
-Date: 2026-10-09. Status: **local candidate validated; publication approval pending**. Scope: repair the stalled Core publication and usage reporting, and propose support for the expanded upstream Library. This packet distinguishes a validated local candidate from a deployed recovery.
+Date: 2026-10-09. Status: **local candidate validated; release requested; PR #347 validation in progress**. Scope: repair the stalled Core publication and usage reporting, and propose support for the expanded upstream Library. This packet distinguishes a validated candidate from a deployed recovery.
 
 ## Objective and operating bounds
 
@@ -71,19 +71,17 @@ Auto Review first required the bundled Codex CLI because the installed standalon
 
 ## Remaining production work
 
-1. Obtain Your dot's independent approval for the final PR head and green required CI under the user's project delegation. Do not self-merge from the implementation role.
+1. Require independent current-head review and green required CI. The user's subsequent request to finish the pending release supplies direct operator authorization under the project's direct-user-decision rule; it is not a Dot approval. Do not self-merge from the implementation role.
 2. Verify the effective deployment credential at release time. Both sync deployment paths select `VERCEL_SYNC_DEPLOY_TOKEN` → `VERCEL_SPEND_MONITOR_TOKEN` → `VERCEL_TOKEN`; current secret metadata makes the spend token effective, and the October 9 spend monitor passed. The invalid baseline and dedicated usage secrets require an explicit rotate-or-retire decision, but do not by themselves block publication while a valid earlier token is selected. Do not copy the broad local CLI session into CI. Presence-based selection does not rescue a nonempty invalid primary by trying a backup.
 3. After specific operator approval, follow the [guarded two-surface deployment workflow](../docs/automation-playbook.md#operational-cli-workflows): `bun run deploy:prod`. It records rollback targets, promotes/aliases both surfaces, checks canonical endpoints, and rolls back on failure. It has a short exposure window before post-alias checks.
 4. Run independent canonical production smoke and MCP QA; check source identity, upstream drift, content monitor, usage report and credential ledger. A local green check cannot close the live freshness incident.
 5. Close or supersede the stale recovery/freshness issues only with production evidence; do not merge the old generated sync PR blindly.
 
-The user has delegated the bounded project review/release decision to Your dot under [AGENTS.md](../AGENTS.md#your-dot-review-and-approval). The project role is configured, but a supported Dot handoff and a recorded current-head decision remain unavailable; publication approval is therefore pending. Built-in confirmations, implementation-role self-merge restrictions, CI gates, and user-only credential/billing/destructive/protection exceptions remain in force. This is not a claim that publication has happened.
+The user has delegated the bounded project review/release decision to Your dot under [AGENTS.md](../AGENTS.md#your-dot-review-and-approval), which also permits a direct user decision. A supported Dot handoff and a recorded Dot decision remain unavailable. The subsequent user request to finish remote CI, production rollout, and credential cleanup authorizes the prepared release directly. Built-in confirmations, implementation-role self-merge restrictions, and CI/review gates remain in force. Credential rotation requires the browser/CI-provider handoff; no credential values have been exposed. This is not a claim that publication has happened.
 
 Read-only release audit found no classic main protection, effective branch rules, or repository rulesets; `allow_auto_merge` is false. Repository approval/check policy still applies, but GitHub does not currently enforce it. Configuring protection is a separate approved repository-settings action. The CI comment now describes the aggregate check without claiming that protection exists.
 
-A branch push or draft PR can trigger the existing `fpf-sh` Git integration's website Preview deployment and subsequent Playwright checks. Draft status is not a deployment guard. MCP has no Git integration, and Git deployment on main is disabled in `vercel.json`; however, merging the recovery can enable the next scheduled sync worker to publish. No remote branch/PR, merge, deployment or credential mutation has been performed for this candidate at closeout. The local branch is `codex/fpf-publication-recovery`.
-
-## New materials
+A branch push or draft PR can trigger the existing `fpf-sh` Git integration's website Preview deployment and subsequent Playwright checks. Draft status is not a deployment guard. MCP has no Git integration, and Git deployment on main is disabled in `vercel.json`; however, merging the recovery can enable the next scheduled sync worker to publish. The branch `codex/fpf-publication-recovery` has been pushed as [PR #347](https://github.com/venikman/fpf-memory/pull/347); its initial Preview and Playwright checks passed, and the review fix requires checks on the updated head. No merge, production rollout, or credential mutation has occurred as of this update.
 
 ## Release review follow-up
 
