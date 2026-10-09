@@ -1,6 +1,6 @@
 # FPF publication recovery — evidence and release handoff
 
-Date: 2026-10-09. Status: **PR #347 merged; guarded production recovery completed; post-release checks passed**. Scope: repair the stalled Core publication and usage reporting, and propose support for the expanded upstream Library. Credential cleanup and the Your dot connection remain separate follow-ups; the Library remains a proposal.
+Date: 2026-10-09. Status: **PR #347 merged; guarded production recovery completed; post-release checks passed**. Scope: repair the stalled Core publication and usage reporting, and propose support for the expanded upstream Library. Credential cleanup and future exact-commit release decisions remain separate follow-ups; the Library remains a proposal. The later supported Your dot handoff is recorded in the [open-item closeout](2026-10-09-open-items-closeout.md#your-dot-handoff).
 
 ## Objective and operating bounds
 
@@ -87,12 +87,12 @@ The durable release record is [PR #347](https://github.com/venikman/fpf-memory/p
 | Incident disposition | [#336](https://github.com/venikman/fpf-memory/issues/336) and [#342](https://github.com/venikman/fpf-memory/issues/342) closed by the workflows; stale September [PR #340](https://github.com/venikman/fpf-memory/pull/340) closed without merging |
 | Bounded live usage sample | The release record reports 17 valid schema-v3 events, 0 invalid events and 0 tool errors via existing local CLI authentication. The ten-minute sample includes automated checks and time before promotion; it proves neither unique users nor validity of CI secrets |
 
-The user supplied direct authorization for this release under [AGENTS.md](../AGENTS.md#your-dot-review-and-approval). Your dot's configured authority remains distinct from a working connection: no supported Dot handoff or returned approval was recorded. This completed release does not authorize future commits or credential changes.
+The user supplied direct authorization for this release under [AGENTS.md](../AGENTS.md#your-dot-review-and-approval). At the time of that release, no supported Dot handoff or returned approval had been recorded. The subsequent October 9 Dot decision covers publication of the exact documentation heads named in the [open-item closeout](2026-10-09-open-items-closeout.md#your-dot-handoff); it does not retroactively supply this release's authorization. This completed release does not authorize future commits or credential changes.
 
 ## Remaining follow-ups
 
 1. Resolve the invalid baseline and dedicated usage credentials in [#304](https://github.com/venikman/fpf-memory/issues/304) through an explicit rotate-or-retire decision. Both sync deployment paths select `VERCEL_SYNC_DEPLOY_TOKEN` → `VERCEL_SPEND_MONITOR_TOKEN` → `VERCEL_TOKEN`; successful fallback-backed deployment does not prove that every secret works. Presence-based selection does not retry a later credential after rejection. Do not copy the broad local CLI session into CI.
-2. Establish a supported Your dot handoff and returned decision before claiming that review route is operational. The [configuration evidence](2026-10-09-dot-review-configuration.md) records the connection limit.
+2. Resolve review findings and obtain the further exact-candidate decisions required for merge/release. A supported Your dot handoff and returned branch/PR/Preview decision were subsequently completed; the [open-item closeout](2026-10-09-open-items-closeout.md#your-dot-handoff) records their scope and source. The [configuration evidence](2026-10-09-dot-review-configuration.md) preserves the earlier connection limit.
 
 [Weekly metrics #346](https://github.com/venikman/fpf-memory/issues/346) was subsequently closed as reviewed after [main-branch run 37923186748](https://github.com/venikman/fpf-memory/actions/runs/37923186748). Its actual CI usage step passed with 50 valid events, zero invalid events and no operator action, using `VERCEL_SPEND_MONITOR_TOKEN`. The report retained exactly two credential findings: baseline and dedicated usage metadata probes returned HTTP 403/invalid. Those findings remain in #304; closing the weekly review does not claim they were repaired. See the [open-item closeout](2026-10-09-open-items-closeout.md) for the current bounded evidence and next actions.
 

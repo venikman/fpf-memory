@@ -12,13 +12,18 @@ Date: 2026-10-09. Repository: `venikman/fpf-memory`. Released main inspected: `9
 
 ## Disposition
 
-| Item | Performed work / present status | Remaining action |
+Publication follow-up on October 9: the statuses below describe the initially
+approved heads `f805566ab2c67d31c78d6b39e2c592c5cc16e026` (A) and
+`5075f7262670600ce070720fa39b6e5304862414` (B). Later review-fix commits require
+their own exact-commit decision and applicable checks.
+
+| Item | Performed work / status at this follow-up | Remaining action |
 | --- | --- | --- |
-| Recovery record | Corrected the obsolete “release pending” status in the [recovery packet](2026-10-09-publication-recovery-evidence.md), using merged PR #347 and actual production/monitor runs | Publish this documentation correction only after an exact-commit independent decision |
+| Recovery record | Corrected the obsolete “release pending” status in the [recovery packet](2026-10-09-publication-recovery-evidence.md); approved head A was published in [PR #348](https://github.com/venikman/fpf-memory/pull/348) | Resolve subsequent review findings; renewed exact-commit review and checks before any merge/release |
 | [Weekly metrics #346](https://github.com/venikman/fpf-memory/issues/346) | Closed as reviewed on October 9; original W40 figures preserved, recovered findings reconciled, credential work linked to #304 | None for that historical review; subsequent scheduled reports remain authoritative for their own windows |
 | [Credentials #304](https://github.com/venikman/fpf-memory/issues/304) | Updated with the fresh CI ledger and exact rotation/retirement dependencies; remains open | User credential handoff, then per-credential capability and CI verification |
-| [Retrieval PR #309](https://github.com/venikman/fpf-memory/pull/309) | Existing experiment assessed; documentation corrections prepared separately against its actual head | Independent decision on publishing the correction and retaining the experiment as an archive; current CI/preview before any merge |
-| Your dot | Supported tool/thread discovery found no verified recipient or callable handoff endpoint | User relay through the documented Dot conversation, with the final exact-commit packet and an actual returned decision |
+| [Retrieval PR #309](https://github.com/venikman/fpf-memory/pull/309) | Approved head B was published with historical-archive wording | Full archive acceptance, subsequent review fixes and merge/release remain held; no later local fixes are claimed published here |
+| Your dot | Authenticated supported web conversation received the packet and returned an independent branch/PR/Preview decision for both exact heads | Further exact-candidate decision for merge/release after applicable checks and blocking findings are resolved |
 | Expanded FPF Library | [Proposal](2026-10-09-new-fpf-materials-proposal.md) remains separate from recovery and cleanup | A separate implementation/release decision; no Library delivery claim is made here |
 
 ## Current operational evidence
@@ -64,10 +69,34 @@ The credential creation/update step requires the user handoff described by the c
 
 ## Your dot handoff
 
-The current supported tool catalog has no Dot-addressable messaging endpoint. Bounded supported conversation discovery returned no verified Dot recipient; plugin discovery and the inspected connected messaging directory did not establish one. This is a connection/identity blocker, not proof that the user has no Dot and not a request to expand app permissions. No review request was delivered or decision received.
+The initial October 9 discovery, before the 09:51 America/New_York review
+request, found no verified Dot recipient through the inspected tools and
+directories. That bounded check was superseded by successful delivery through
+the authenticated [Your dot web conversation](https://chatgpt.com/dots/home).
 
-The documented manual route is the user's [Your dot conversation](https://learn.chatgpt.com/docs/dots/channels). Dot can also [continue an existing local Codex task](https://learn.chatgpt.com/docs/dots/tasks-and-memory#assigned-work) when its computer is connected. Provide the final exact commit, diff, evidence, requested actions and unresolved risks; preserve the actual returned decision reference. Do not treat this packet, the repository role assignment, a substitute review or silence as approval.
+Your dot's returned October 9 decision approved A
+`f805566ab2c67d31c78d6b39e2c592c5cc16e026` and B
+`5075f7262670600ce070720fa39b6e5304862414` for branch/PR publication and the
+existing automatic website Preview only. It explicitly held merge/release
+for both and full archive acceptance for B. The supplied diff, local build
+and advisory review evidence were reviewed; this does not mean Dot reran
+those checks. The initially omitted retrieval validator source was delivered
+in a follow-up.
+
+Decision source: the conversation above, visible message reference
+`d94bd92e7b548198b7195b5429fac1de~d94bd92e7b548198b7195b5429fac1de~CalpicoMessage~Sentinel_8d1973771fa48191bd25f1fdfad35238`.
+The captured transcript and screenshot are retained outside the repository
+as `dot-decision-2026-10-09.txt` and `.jpg` in the local closeout evidence bundle.
+
+Both approved heads were subsequently published. A's [CI run](https://github.com/venikman/fpf-memory/actions/runs/37940538663)
+and [Preview E2E](https://github.com/venikman/fpf-memory/actions/runs/37940771095)
+passed for `f805566ab2c67d31c78d6b39e2c592c5cc16e026`; PR #348 was marked ready.
+Later automated review findings still require fixes and a further independent
+decision. Ready status and green checks alone do not lift the merge hold.
+Any successor commit, including this record correction, requires renewed
+exact-commit approval and applicable checks; the earlier decision does not
+cover it. Credentials remain outside this release delegation.
 
 ## Validation scope
 
-This branch changes repository-only planning/evidence Markdown. It changes no runtime, public setup instructions, generated publication artifacts, workflow or credential selection. The docs build checks the unchanged published surface; focused source/diff inspection validates the planning-record edits. Local verification and independent review results accompany the exact-commit handoff. New publication remains pending that decision.
+This branch changes repository-only planning/evidence Markdown. It changes no runtime, public setup instructions, generated publication artifacts, workflow or credential selection. The docs build checks the unchanged published surface; focused source/diff inspection validates the planning-record edits. Local verification and independent review results accompany each exact-commit handoff. The original approved heads were published as recorded above; successor commits and merge/release need their own decisions and applicable verification.
