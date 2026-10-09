@@ -28,9 +28,9 @@ source (snapshot `sha256:1169ef3f…`, upstream e400eab3, 2026-08-30).
 
 | ID | Atomic claim | Evidence | Status |
 | --- | --- | --- | --- |
-| CR-1 | On the 150-case test split, the fusion candidate scores MRR@10 0.832 / R@5 88.6% vs the production trace pipeline's 0.596 / 67.1%, at p50 11.9ms vs 515.9ms | `results/test-final.json`; independently re-run per-case byte-identically by a read-only audit agent (`results/adversarial-audit.md` §10) | [fact] |
-| CR-2 | Solo bm25f scores 0.817 / 85.0% at p50 0.55ms (~940× faster than production trace) with 10/10 negative abstention (production: 0/10) | same | [fact] |
-| CR-3 | Production trace's failure surface is localized: paraphrase 17% R@5, task 50%, typo 53% on test — exact-vocabulary-only heuristics | `results/test-final.json` per-category | [fact] |
+| CR-1 | On the 150-case test split, the fusion candidate scores MRR@10 0.832 / R@5 88.6% vs the raw trace candidate-list adapter's 0.596 / 67.1%, at warm local p50 11.9ms vs 515.9ms | `results/test-final.json`; independently re-run per-case byte-identically by a read-only audit agent (`results/adversarial-audit.md` §10) | [fact] |
+| CR-2 | Solo bm25f scores 0.817 / 85.0% at p50 0.55ms (~940× warm local timing ratio), with 10/10 empty negative-case lists vs the raw trace adapter's 0/10; production answer abstention was not measured | same; `candidates/baseline-trace/README.md` answer boundary | [fact] |
+| CR-3 | Raw trace candidate-list retrieval scores paraphrase 17% R@5, task 50%, typo 53% on test; these are ranking results, not final answer/status results | `results/test-final.json` per-category | [fact] |
 | CR-4 | Multi-hop relation questions are unsolved by all frozen candidates (13–31% test R@5); a pure flow-walk graph variant reaches 68.8% (probe labeled post-freeze); the frozen fusion under-weighted that lane because dev's multi-hop lexical hits were luck-inflated (source-quoting distribution differs dev vs test) | `results/test-flowwalk-probe.json`; diagnosis in `results/failure-analysis.md` | [fact] + [interpretation] |
 | CR-5 | The test split was held out **by convention, not by construction** (seed committed pre-freeze; handcrafted holdout world-readable in /tmp during fusion tuning). No peeking machinery exists in any candidate (exhaustive audit) and all dev→test deltas are negative (overfitting-shaped) | `results/adversarial-audit.md` §1, §10 | [fact]; hold-out strength [assumption: agent honesty] |
 | CR-6 | The gold sets are honest: 0 "expected answer wrong / too narrow" verdicts across all fusion misses; multi-hop equivalence sets exactly equal corpus `builds_on`/`refines` targets | `results/failure-analysis.md` §2; audit §10 | [fact] |
@@ -40,6 +40,13 @@ Dev-set numbers throughout the candidate READMEs are tuning-set numbers.
 in CR-5; it is not fresh generalization evidence for later candidate selection.
 There are 140 positive cases per split, so one positive case changes recall
 by about 0.7 percentage points; 10 negatives are scored separately.
+
+The trace adapter retains raw `candidateScores` regardless of trace status.
+Production `QueryEngine.answerFromTrace()` can instead return empty answer
+`ids` for `unsupported` or `not_found` traces. The historical ranking and
+empty-list metrics do not measure that answer-level boundary; the archived
+adapter and result JSONs remain unchanged. This correction supersedes any
+production-abstention interpretation in the retained original report narratives.
 
 ## Roles (A.15)
 

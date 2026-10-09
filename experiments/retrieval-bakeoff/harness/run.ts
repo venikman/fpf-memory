@@ -3,7 +3,7 @@
  *
  *   bun harness/run.ts --gold dev                 # all candidates, dev set
  *   bun harness/run.ts --gold dev --candidates bm25f,trigram
- *   bun harness/run.ts --gold all --out results/full.json
+ *   bun harness/run.ts --gold all --out .cache/runs/full.json
  *
  * Writes a JSON report and prints a markdown leaderboard.
  */
@@ -137,7 +137,7 @@ async function main(): Promise<void> {
 
   const outPath = path.resolve(
     EXPERIMENT_ROOT,
-    options.out ?? path.join('results', `${options.gold}-latest.json`),
+    options.out ?? path.join('.cache', 'runs', `${options.gold}-latest.json`),
   );
   mkdirSync(path.dirname(outPath), { recursive: true });
   await Bun.write(

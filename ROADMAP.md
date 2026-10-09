@@ -50,8 +50,9 @@ the delivery is what let a 16-day outage report "within SLO" (see #253).
 3. **Retrieval experiment archive and follow-up decision.** The 2026-08-31 bake-off
    (`experiments/retrieval-bakeoff/`, packet
    `plans/2026-08-31-retrieval-bakeoff-review-packet.md`) measured the
-   historical local runtime on a now-exposed test set: trace pipeline MRR .596 / R@5
-   67.1% at 516ms p50 with zero nonsense-query abstention; `search_fpf` scan
+   historical local runtime on a now-exposed test set: raw trace candidate-list
+   MRR .596 / R@5 67.1% at 516ms p50, with 0/10 empty negative-case lists.
+   This did not measure production answer abstention. The `search_fpf` scan took
    about 1.3–1.4s p50 and 3.2s p95. A deterministic, dependency-free fusion
    stack built in that branch scores .832 / 88.6% at 12ms
    (solo BM25F: .817 / 85.0% at 0.55ms).

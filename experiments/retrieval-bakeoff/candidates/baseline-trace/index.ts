@@ -1,7 +1,8 @@
 /**
- * baseline-trace — reference candidate wrapping the PRODUCTION ask/query
- * pipeline (`FpfRuntime.trace()`: candidate seeding + heuristic ranking +
- * frontier expansion) so the bake-off has the incumbent on the leaderboard.
+ * baseline-trace — raw candidate-list baseline from FpfRuntime.trace()
+ * (candidate seeding + heuristic ranking + frontier expansion). This adapter
+ * deliberately preserves the historical ranking comparison, not the public
+ * ask/query answer or its unsupported/not_found abstention verdict.
  *
  * The runtime is constructed against the committed publication surface
  * (`published/current/FPF-Spec.md`) and seeded from the published artifact
@@ -18,7 +19,8 @@
  * structural type: the experiment tsconfig enables noUncheckedIndexedAccess,
  * which the root tsconfig (that keeps src/ clean) does not, so a static
  * import would drag the whole production tree into this stricter program.
- * Runtime behavior is the real production runtime either way.
+ * The trace implementation is the production runtime's; answerFromTrace()
+ * and its answer-level status handling are outside this adapter.
  */
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -117,7 +119,8 @@ export default class BaselineTraceRetriever implements Retriever {
       return [];
     }
     try {
-      // Default 'compact' mode = exactly what the production ask tool runs.
+      // Same compact trace mode used inside production query(), but deliberately
+      // read raw candidates without answerFromTrace() or trace-status gating.
       // No sessionId: session-context boosts would break determinism.
       const trace = await (await this.runtime()).trace(question, 'compact');
       // candidateScores is the engine's ranked candidate list ({nodeId, kind,

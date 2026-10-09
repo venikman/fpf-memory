@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -7,6 +7,54 @@ import type { CandidateReport, GoldCase } from './types.js';
 
 const gold = JSON.parse(readFileSync(path.resolve(import.meta.dir, '../gold/dev.json'), 'utf8')) as GoldCase[];
 const target = gold.find((entry, index) => index % 7 !== 0 && entry.expectedIds.length > 0)!;
+
+test('default reports for dev, test, and all preserve archived results', async () => {
+  const directory = mkdtempSync(path.join(tmpdir(), 'fpf-default-reports-'));
+  const experiment = path.join(directory, 'experiments/retrieval-bakeoff');
+  const harness = path.join(experiment, 'harness');
+  try {
+    // Run the real CLI in an isolated checkout layout so a regression cannot
+    // overwrite this repository's historical evidence or existing local runs.
+    cpSync(import.meta.dir, harness, { recursive: true });
+    cpSync(path.resolve(import.meta.dir, '../gold'), path.join(experiment, 'gold'), { recursive: true });
+    const snapshotDirectory = path.join(directory, 'published/current/fpf-index');
+    mkdirSync(snapshotDirectory, { recursive: true });
+    symlinkSync(
+      path.resolve(import.meta.dir, '../../../published/current/fpf-index/snapshot.json'),
+      path.join(snapshotDirectory, 'snapshot.json'),
+    );
+    const archive = path.join(experiment, 'results/dev-latest.json');
+    mkdirSync(path.dirname(archive), { recursive: true });
+    const archivedBytes = readFileSync(path.resolve(import.meta.dir, '../results/dev-latest.json'));
+    writeFileSync(archive, archivedBytes);
+    const factory = path.join(directory, 'fixture.ts');
+    writeFileSync(factory, `
+      export default class Fixture {
+        name = 'default-output-fixture';
+        build(docs) { return { buildMs: 1, docCount: docs.length }; }
+        query() { return []; }
+      }
+    `);
+    for (const goldSet of ['dev', 'test', 'all']) {
+      const child = Bun.spawn([
+        process.execPath, path.join(harness, 'run.ts'),
+        '--gold', goldSet, '--factory', factory, '--quiet',
+      ], { stdout: 'pipe', stderr: 'pipe' });
+      const [exitCode, stdout, stderr] = await Promise.all([
+        child.exited, new Response(child.stdout).text(), new Response(child.stderr).text(),
+      ]);
+      expect({ exitCode, diagnostics: exitCode === 0 ? '' : stdout + stderr }).toEqual({ exitCode: 0, diagnostics: '' });
+      expect(readFileSync(archive)).toEqual(archivedBytes);
+      const output = path.join(experiment, '.cache/runs', `${goldSet}-latest.json`);
+      const packet = JSON.parse(readFileSync(output, 'utf8')) as { goldSet: string; reports: CandidateReport[] };
+      expect(packet.goldSet).toBe(goldSet);
+      expect(packet.reports[0]!.cases.length).toBe(goldSet === 'all' ? 300 : 150);
+      expect(stdout).toContain(`report: .cache/runs/${goldSet}-latest.json`);
+    }
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+}, 60_000);
 
 for (const { changesOnRepeat, goldSet } of [
   { changesOnRepeat: false, goldSet: 'dev' },

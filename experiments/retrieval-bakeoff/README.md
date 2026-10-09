@@ -12,6 +12,12 @@ performance on today's corpus or hosted endpoints. The committed test split
 is exposed and may be replayed for regression checks, but is no longer a
 fresh holdout for candidate selection or tuning.
 
+**Interpretation correction (2026-10-09):** `baseline-trace` measures raw
+retrieval candidates, not final production answers. Its 0/10 empty negative
+lists do not establish zero production abstention. This correction supersedes
+that interpretation in the retained historical report narratives; their
+original measurements and adapter behavior are unchanged.
+
 ## Question under test
 
 The runtime's retrieval core (`src/runtime/candidate-seeder.ts` +
@@ -70,17 +76,25 @@ Combined `--gold all` runs prefix case IDs with `dev:` or `test:` because the
 generated IDs overlap between splits. The historical runner rejected those
 duplicates; separate dev/test replay and the stored reports remain unchanged.
 
+The current runner writes new reports to gitignored
+`.cache/runs/<gold>-latest.json` by default for every gold set (including
+`dev`, `test`, and `all`). These disposable reports replace the previous local
+run for that set. Explicit `--out` paths are still honored; choose one outside
+the committed `results/` archive.
+
 To replay the archived experiment, use a separate checkout of PR #309 head
 `2113f630661f3c34b174308494ded4e9aa40199d`, which retains the matching
 runtime and publication source. The harness always reads that checkout's
 `published/current/**`; running it after a source refresh is a new experiment,
-not reproduction of these results. Keep new reports separate from the archive.
+not reproduction of these results. Keep new reports separate from the archive:
+the pinned historical runner requires explicit `--out` to avoid its old default
+of writing into `results/`.
 
 ```bash
 cd experiments/retrieval-bakeoff
-bun harness/run.ts --gold dev                    # everything on the dev set
-bun harness/run.ts --gold dev --candidates bm25f # one candidate while iterating
-bun harness/run.ts --gold test                   # replay the exposed historical split
+bun harness/run.ts --gold dev --out .cache/runs/dev-latest.json
+bun harness/run.ts --gold dev --candidates bm25f --out .cache/runs/dev-bm25f.json
+bun harness/run.ts --gold test --out .cache/runs/test-latest.json
 ```
 
 The corpus loader reads `published/current/fpf-index/snapshot.json` (run
@@ -102,16 +116,16 @@ audit agent.
 | **fusion** | 79.3% | 88.6% | 90.7% | **0.832** | 10/10 | 11.9 | −0.010 |
 | **bm25f** | 78.6% | 85.0% | 90.0% | 0.817 | 10/10 | 0.55 | −0.021 |
 | trigram-fuzzy | 57.9% | 71.4% | 77.9% | 0.645 | 9/10 | 0.33 | −0.029 |
-| baseline-trace (production) | 53.6% | 67.1% | 75.0% | 0.596 | 0/10 | 515.9 | −0.043 |
+| baseline-trace (raw trace candidates) | 53.6% | 67.1% | 75.0% | 0.596 | 0/10 | 515.9 | −0.043 |
 | graph-ppr | 48.6% | 70.7% | 76.4% | 0.585 | 5/10 | 2.3 | −0.080 |
 | rri | 37.1% | 60.7% | 67.1% | 0.469 | 10/10 | 6.0 | −0.070 |
 | baseline-search (production) | 25.0% | 38.6% | 45.0% | 0.301 | 4/10 | 1323.9 | −0.035 |
 | gramset | 22.1% | 30.7% | 35.0% | 0.260 | 10/10 | 0.39 | −0.092 |
 
-The untuned production baselines dropped more dev→test than the tuned winners:
+The untuned local baseline adapters dropped more dev→test than the tuned winners:
 the test set is genuinely harder, and the challengers widened their lead on it.
 
-### What the categories say (test R@5, winner vs production trace)
+### What the categories say (test R@5, winner vs raw trace candidates)
 
 | category | fusion | bm25f | baseline-trace |
 | --- | ---: | ---: | ---: |
@@ -120,16 +134,18 @@ the test set is genuinely harder, and the challengers widened their lead on it.
 | task | 91% | 86% | **50%** |
 | multi-hop | 31% | 13% | 31% |
 
-The hand-tuned production scorer only covers exact vocabulary: it collapses on
-paraphrase, task phrasing, and typos. Principled IR fixes all three at three
-orders of magnitude lower latency.
+The raw trace candidate-list baseline ranked worse on paraphrase, task phrasing,
+and typos in this archived split. These ranking metrics do not measure the
+production answer's grounding, status handling, or abstention.
 
 ### Key findings
 
-1. **A ~600-line fielded BM25+ implementation beats the production retrieval
-   pipeline by +17.9pt R@5 / +0.221 MRR on held-out data at ~940× lower
-   latency** (0.55ms vs 516ms p50), with perfect abstention on nonsense
-   queries (production: zero abstention).
+1. **A ~600-line fielded BM25+ implementation beats the raw trace candidate-list
+   baseline by +17.9pt R@5 / +0.221 MRR on the archived test split.** Warm local
+   p50 timings were 0.55ms vs 516ms (~940× ratio); 10/10 negative cases yielded
+   empty BM25F lists vs 0/10 raw trace lists. The adapter does not apply the
+   production answer's abstention/status handling, so this establishes no
+   production answer abstention rate or hosted speedup.
 2. **Fusion (bm25f backbone + graph lanes + RRI, convex min-max weights)
    strictly dominates solo bm25f on test** (rescues 5 cases inside rank 5,
    surrenders 0) and is the only candidate whose handcrafted-half score
@@ -179,3 +195,10 @@ orders of magnitude lower latency.
    These ratios do not establish hosted end-to-end speedups or cost savings.
    Any integration evaluation needs current-corpus baselines and a new
    holdout kept inaccessible until candidate freeze.
+6. `baseline-trace` maps raw `TraceResult.candidateScores` without checking
+   `trace.status` or calling `QueryEngine.answerFromTrace()`. That production
+   method's `unsupported` and `not_found` branches return empty answer `ids`,
+   even when retrieval candidates exist. The recorded 0/10 negative
+   clean rate is a raw-list property, not a production answer-abstention
+   measurement. The historical adapter and result JSONs are retained; any
+   answer-level comparison needs separately named evaluation results.
