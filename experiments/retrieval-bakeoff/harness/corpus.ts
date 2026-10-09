@@ -1,0 +1,136 @@
+import { createHash } from 'node:crypto';
+import { mkdirSync } from 'node:fs';
+import path from 'node:path';
+
+import type { CorpusDoc, NodeKind } from './types.js';
+
+const EXPERIMENT_ROOT = path.resolve(import.meta.dir, '..');
+const REPO_ROOT = path.resolve(EXPERIMENT_ROOT, '..', '..');
+const SNAPSHOT_PATH = path.join(REPO_ROOT, 'published', 'current', 'fpf-index', 'snapshot.json');
+const CACHE_DIR = path.join(EXPERIMENT_ROOT, '.cache');
+const CACHE_VERSION = 2;
+
+interface SnapshotNode {
+  id: string;
+  kind: NodeKind;
+  title: string;
+  status?: string;
+  part?: string;
+  aliases?: string[];
+  searchableText?: string;
+  neighborEdges?: Array<{ from: string; relation: string; to: string }>;
+}
+
+export interface Corpus {
+  sourceHash: string;
+  docs: CorpusDoc[];
+  byId: Map<string, CorpusDoc>;
+}
+
+/**
+ * Loads the corpus from the published snapshot, via a slim on-disk cache so
+ * repeated harness runs skip parsing the ~100MB snapshot. The cache key is the
+ * source and compiler identities plus projection version. If either identity
+ * is absent from the bounded header, read the full snapshot without caching.
+ */
+export async function loadCorpus(options: { snapshotPath?: string; cacheDir?: string } = {}): Promise<Corpus> {
+  const snapshotPath = options.snapshotPath ?? SNAPSHOT_PATH;
+  const cacheDir = options.cacheDir ?? CACHE_DIR;
+  const snapshotFile = Bun.file(snapshotPath);
+  if (!(await snapshotFile.exists())) {
+    throw new Error(
+      `snapshot not found at ${snapshotPath} — run \`bun run ensure:snapshot\` from the repo root first`,
+    );
+  }
+
+  const headSlice = await readHead(snapshotPath, 4096);
+  const hashFromHead = /"sourceHash"\s*:\s*"([^"]+)"/.exec(headSlice)?.[1];
+  const compilerFromHead = /"compilerFingerprint"\s*:\s*"([^"]+)"/.exec(headSlice)?.[1];
+  const cacheKey = hashFromHead && compilerFromHead
+    ? createHash('sha256').update(JSON.stringify([CACHE_VERSION, hashFromHead, compilerFromHead])).digest('hex').slice(0, 16)
+    : null;
+  const cachePath = cacheKey ? path.join(cacheDir, `corpus-v${CACHE_VERSION}-${cacheKey}.json`) : null;
+
+  if (cachePath) {
+    const cached = Bun.file(cachePath);
+    if (await cached.exists()) {
+      const parsed = (await cached.json()) as {
+        version: number; sourceHash: string; compilerFingerprint: string; docs: CorpusDoc[];
+      };
+      if (parsed.version === CACHE_VERSION && parsed.sourceHash === hashFromHead && parsed.compilerFingerprint === compilerFromHead) {
+        return withIndex(parsed.sourceHash, parsed.docs);
+      }
+    }
+  }
+
+  const snapshot = (await snapshotFile.json()) as {
+    sourceHash: string;
+    compilerFingerprint?: string;
+    compiledNodes: Record<string, SnapshotNode>;
+  };
+
+  const docs: CorpusDoc[] = [];
+  for (const node of Object.values(snapshot.compiledNodes)) {
+    docs.push({
+      id: node.id,
+      kind: node.kind,
+      title: node.title ?? '',
+      aliases: node.aliases ?? [],
+      part: node.part,
+      status: node.status,
+      text: node.searchableText ?? '',
+      neighbors: dedupeNeighbors(node.neighborEdges ?? [], node.id),
+    });
+  }
+  docs.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+
+  // Add reverse edges so graph candidates see incoming links too.
+  const byId = new Map(docs.map((doc) => [doc.id, doc]));
+  for (const doc of docs) {
+    for (const edge of doc.neighbors) {
+      if (edge.relation.startsWith('rev:')) continue;
+      const target = byId.get(edge.to);
+      if (!target) continue;
+      const reverse = { to: doc.id, relation: `rev:${edge.relation}` };
+      if (!target.neighbors.some((n) => n.to === reverse.to && n.relation === reverse.relation)) {
+        target.neighbors.push(reverse);
+      }
+    }
+  }
+
+  if (cachePath && snapshot.sourceHash === hashFromHead && snapshot.compilerFingerprint === compilerFromHead) {
+    mkdirSync(cacheDir, { recursive: true });
+    await Bun.write(cachePath, JSON.stringify({
+      version: CACHE_VERSION, sourceHash: snapshot.sourceHash,
+      compilerFingerprint: snapshot.compilerFingerprint, docs,
+    }));
+  }
+
+  return withIndex(snapshot.sourceHash, docs);
+}
+
+function withIndex(sourceHash: string, docs: CorpusDoc[]): Corpus {
+  return { sourceHash, docs, byId: new Map(docs.map((doc) => [doc.id, doc])) };
+}
+
+function dedupeNeighbors(
+  edges: Array<{ from: string; relation: string; to: string }>,
+  selfId: string,
+): Array<{ to: string; relation: string }> {
+  const seen = new Set<string>();
+  const result: Array<{ to: string; relation: string }> = [];
+  for (const edge of edges) {
+    const to = edge.from === selfId ? edge.to : edge.from;
+    const relation = edge.from === selfId ? edge.relation : `rev:${edge.relation}`;
+    const key = `${to}\u0000${relation}`;
+    if (to === selfId || seen.has(key)) continue;
+    seen.add(key);
+    result.push({ to, relation });
+  }
+  return result;
+}
+
+async function readHead(filePath: string, bytes: number): Promise<string> {
+  const slice = Bun.file(filePath).slice(0, bytes);
+  return await slice.text();
+}

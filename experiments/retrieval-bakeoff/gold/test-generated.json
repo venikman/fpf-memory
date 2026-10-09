@@ -1,0 +1,1148 @@
+[
+  {
+    "id": "id-lookup-1",
+    "question": "Give me a quick summary of A.6.3.CSC.",
+    "expectedIds": [
+      "A.6.3.CSC"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-2",
+    "question": "When should I reach for C.3.3?",
+    "expectedIds": [
+      "C.3.3"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-3",
+    "question": "Give me a quick summary of B.3.5.",
+    "expectedIds": [
+      "B.3.5"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-4",
+    "question": "What does pattern G.9 cover?",
+    "expectedIds": [
+      "G.9"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-5",
+    "question": "What is F.1 and when do I apply it?",
+    "expectedIds": [
+      "F.1"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-6",
+    "question": "Open D.2 — what problem does it solve?",
+    "expectedIds": [
+      "D.2"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-7",
+    "question": "What is E.8 and when do I apply it?",
+    "expectedIds": [
+      "E.8"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-8",
+    "question": "What is A.16.0 and when do I apply it?",
+    "expectedIds": [
+      "A.16.0"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-9",
+    "question": "Give me a quick summary of C.30.ILC.",
+    "expectedIds": [
+      "C.30.ILC"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-10",
+    "question": "Open B.3 — what problem does it solve?",
+    "expectedIds": [
+      "B.3"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-11",
+    "question": "What is G.0 and when do I apply it?",
+    "expectedIds": [
+      "G.0"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-12",
+    "question": "Open F.18 — what problem does it solve?",
+    "expectedIds": [
+      "F.18"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-13",
+    "question": "Give me a quick summary of D.4.",
+    "expectedIds": [
+      "D.4"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-14",
+    "question": "What is E.4.FPF and when do I apply it?",
+    "expectedIds": [
+      "E.4.FPF"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-15",
+    "question": "Open A.19.CHR — what problem does it solve?",
+    "expectedIds": [
+      "A.19.CHR"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-16",
+    "question": "What is C.30.STRAT and when do I apply it?",
+    "expectedIds": [
+      "C.30.STRAT"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-17",
+    "question": "Explain B.1.2 from the FPF spec.",
+    "expectedIds": [
+      "B.1.2"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "title-1",
+    "question": "Where is \"Transformation Ontic Precision Restoration\" defined and what is it for?",
+    "expectedIds": [
+      "A.3.4.P"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-2",
+    "question": "What does the \"Lexical Continuity & Deprecation\" pattern say?",
+    "expectedIds": [
+      "F.13"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-3",
+    "question": "I'm looking for the section titled \"Static and Regression Conformance Harness for Unification\".",
+    "expectedIds": [
+      "F.15"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-4",
+    "question": "Where is \"Viewpoint Bundle Library — Reusable Viewpoint Reference Bundles\" defined and what is it for?",
+    "expectedIds": [
+      "E.17.1"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-5",
+    "question": "Where is \"Recognition Signatures for Descriptions\" defined and what is it for?",
+    "expectedIds": [
+      "A.6.RSIG"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-6",
+    "question": "Explain the pattern called \"Temporal Duality & Open-Ended Evolution Principle\".",
+    "expectedIds": [
+      "A.4"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-7",
+    "question": "Explain the pattern called \"Work-Relevant Appearance-Based Reliance Repair\".",
+    "expectedIds": [
+      "A.15.4"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-8",
+    "question": "I'm looking for the section titled \"Function and Functional Precision Restoration (RPR-FUNCTION)\".",
+    "expectedIds": [
+      "A.6.F"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-9",
+    "question": "What does the \"Module Relation Repair\" pattern say?",
+    "expectedIds": [
+      "A.6.M"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-10",
+    "question": "Explain the pattern called \"Resource Use and Work-Cost Calculus (Resrc-CAL)\".",
+    "expectedIds": [
+      "C.5"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-11",
+    "question": "What does the \"DevOps Lexical Firewall\" pattern say?",
+    "expectedIds": [
+      "E.5.1"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-12",
+    "question": "Tell me about \"CausalUse-CAL: Causal-Use Questions, Identification, and Realizability\" in FPF.",
+    "expectedIds": [
+      "C.28"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-13",
+    "question": "Summarize \"Creative Abduction with NQD\" for me.",
+    "expectedIds": [
+      "B.5.2.1"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-14",
+    "question": "I'm looking for the section titled \"Quality Improvement Loop Method\".",
+    "expectedIds": [
+      "E.23"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-15",
+    "question": "Where is \"Grounded Architecture and Selected-Structure Adequacy\" defined and what is it for?",
+    "expectedIds": [
+      "C.30"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-16",
+    "question": "Summarize \"Anti-Explosion Control for System-Role and Status Name Families\" for me.",
+    "expectedIds": [
+      "F.14"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-17",
+    "question": "Explain the pattern called \"ProblemCard\".",
+    "expectedIds": [
+      "C.22.2"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "alias-1",
+    "question": "Which FPF pattern covers what's called \"missing form-comparison basis\"?",
+    "expectedIds": [
+      "lex:missing-form-comparison-basis",
+      "E.4.PFIP"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-2",
+    "question": "Find the FPF entry for \"Ledger Owner\".",
+    "expectedIds": [
+      "lex:ledger-owner",
+      "E.10"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-3",
+    "question": "Where does \"role perpendicular role\" come up in FPF?",
+    "expectedIds": [
+      "lex:role-perpendicular-role",
+      "E.16"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-4",
+    "question": "Which FPF pattern covers what's called \"simply early\"?",
+    "expectedIds": [
+      "lex:simply-early",
+      "C.2.LS"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-5",
+    "question": "Where does \"group mind\" come up in FPF?",
+    "expectedIds": [
+      "lex:group-mind",
+      "C.26"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-6",
+    "question": "What is \"method graph\" in the FPF spec?",
+    "expectedIds": [
+      "lex:method-graph",
+      "E.10"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-7",
+    "question": "People keep mentioning \"intentionally retired\" — where does FPF define that?",
+    "expectedIds": [
+      "lex:intentionally-retired",
+      "E.19",
+      "E.21"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-8",
+    "question": "People keep mentioning \"missing work-to-change governor\" — where does FPF define that?",
+    "expectedIds": [
+      "lex:missing-work-to-change-governor",
+      "A.1.1"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-9",
+    "question": "What is \"working reader\" in the FPF spec?",
+    "expectedIds": [
+      "lex:working-reader",
+      "E.10"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-10",
+    "question": "Where does \"ACT-INV\" come up in FPF?",
+    "expectedIds": [
+      "A.6.A"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-11",
+    "question": "Which FPF pattern covers what's called \"operative claim\"?",
+    "expectedIds": [
+      "lex:operative-claim",
+      "E.17"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-12",
+    "question": "People keep mentioning \"Heuristic meta-search\" — where does FPF define that?",
+    "expectedIds": [
+      "lex:heuristic-meta-search",
+      "C.23"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-13",
+    "question": "People keep mentioning \"selected episteme edition\" — where does FPF define that?",
+    "expectedIds": [
+      "lex:selected-episteme-edition",
+      "A.6.P.WMR"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-14",
+    "question": "Which FPF pattern covers what's called \"solution factory\"?",
+    "expectedIds": [
+      "lex:solution-factory",
+      "E.18.1"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-15",
+    "question": "Which FPF pattern covers what's called \"C-4\"?",
+    "expectedIds": [
+      "A.10"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-16",
+    "question": "What is \"Current use\" in the FPF spec?",
+    "expectedIds": [
+      "lex:current-use",
+      "C.2.P"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "typo-1",
+    "question": "Tell me about \"Viewpoint Bunndle Library — Reusable Viewpoint Reference Bundles\".",
+    "expectedIds": [
+      "E.17.1"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-2",
+    "question": "Where is \"Modulee Relation Repair\" covered in the spec?",
+    "expectedIds": [
+      "A.6.M"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-3",
+    "question": "What is \"Static and Regresion Conformance Harness for Unification\" in FPF?",
+    "expectedIds": [
+      "F.15"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-4",
+    "question": "What does FPF say about \"simpy eraly\"?",
+    "expectedIds": [
+      "lex:simply-early",
+      "C.2.LS"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-5",
+    "question": "Where is \"Heurisitc meta-search\" covered in the spec?",
+    "expectedIds": [
+      "lex:heuristic-meta-search",
+      "C.23"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-6",
+    "question": "Tell me about \"CausalUse-CAL: Causal-Use Questions, Identification, and Realziability\".",
+    "expectedIds": [
+      "C.28"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-7",
+    "question": "What does FPF say about \"Temporal Duallity & Open-Ended Evolution Principle\"?",
+    "expectedIds": [
+      "A.4"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-8",
+    "question": "What does FPF say about \"opeative clim\"?",
+    "expectedIds": [
+      "lex:operative-claim",
+      "E.17"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-9",
+    "question": "Where is \"role perpendiculra role\" covered in the spec?",
+    "expectedIds": [
+      "lex:role-perpendicular-role",
+      "E.16"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-10",
+    "question": "What is \"Recogniition Signatures for Descriptions\" in FPF?",
+    "expectedIds": [
+      "A.6.RSIG"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-11",
+    "question": "Tell me about \"missnig work-to-change gvoernor\".",
+    "expectedIds": [
+      "lex:missing-work-to-change-governor",
+      "A.1.1"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-12",
+    "question": "Explain \"working readr\" from the spec.",
+    "expectedIds": [
+      "lex:working-reader",
+      "E.10"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-13",
+    "question": "What does FPF say about \"PrroblemCard\"?",
+    "expectedIds": [
+      "C.22.2"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-14",
+    "question": "What is \"Resource Use and Work-Cost Calcluus (Resrc-CAL)\" in FPF?",
+    "expectedIds": [
+      "C.5"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-15",
+    "question": "Tell me about \"Functin and Functional Prrecision Restoration (RPR-FUNCTION)\".",
+    "expectedIds": [
+      "A.6.F"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-16",
+    "question": "Where is \"Groundeed Architeecture and Selected-Structure Adequacy\" covered in the spec?",
+    "expectedIds": [
+      "C.30"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-17",
+    "question": "Explain \"gorup mind\" from the spec.",
+    "expectedIds": [
+      "lex:group-mind",
+      "C.26"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "definition-1",
+    "question": "Define \"scope non-widening\" as FPF uses the term.",
+    "expectedIds": [
+      "lex:scope-non-widening",
+      "E.17"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-2",
+    "question": "Define \"holon level\" as FPF uses the term.",
+    "expectedIds": [
+      "lex:holon-level",
+      "C.32.MLAO"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-3",
+    "question": "Define \"inspection work\" as FPF uses the term.",
+    "expectedIds": [
+      "lex:inspection-work",
+      "C.3"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-4",
+    "question": "In FPF terms, what is a \"record leaves\"?",
+    "expectedIds": [
+      "lex:record-leaves",
+      "C.19"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-5",
+    "question": "In FPF terms, what is a \"transformation-flow graph expression\"?",
+    "expectedIds": [
+      "lex:transformation-flow-graph-expression",
+      "C.30.P"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-6",
+    "question": "What does \"higher-level property\" mean in FPF?",
+    "expectedIds": [
+      "lex:higher-level-property",
+      "B.2.P"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-7",
+    "question": "What does \"conservation law\" mean in FPF?",
+    "expectedIds": [
+      "lex:conservation-law",
+      "A.6.0"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-8",
+    "question": "Define \"abductive loop\" as FPF uses the term.",
+    "expectedIds": [
+      "lex:abductive-loop",
+      "B.5.2"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-9",
+    "question": "Define \"claim content\" as FPF uses the term.",
+    "expectedIds": [
+      "lex:claim-content",
+      "E.10"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-10",
+    "question": "In FPF terms, what is a \"human-factor loop\"?",
+    "expectedIds": [
+      "lex:human-factor-loop",
+      "E.12"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-11",
+    "question": "How does FPF define \"transformation ontic precision restoration\"?",
+    "expectedIds": [
+      "lex:transformation-ontic-precision-restoration",
+      "A.3.4.P"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-12",
+    "question": "What does \"published episteme\" mean in FPF?",
+    "expectedIds": [
+      "lex:published-episteme",
+      "C.2.1",
+      "E.24.PUB",
+      "E.24.UK"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-13",
+    "question": "In FPF terms, what is a \"quality improved\"?",
+    "expectedIds": [
+      "lex:quality-improved",
+      "C.16.Q"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-14",
+    "question": "Define \"incident process\" as FPF uses the term.",
+    "expectedIds": [
+      "lex:incident-process",
+      "E.10"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-15",
+    "question": "What's the FPF meaning of \"tc-mwh missing-information\"?",
+    "expectedIds": [
+      "lex:tc-mwh-missing-information",
+      "E.18"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-16",
+    "question": "In FPF terms, what is a \"structural model\"?",
+    "expectedIds": [
+      "lex:structural-model",
+      "C.30.P"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-17",
+    "question": "What's the FPF meaning of \"episteme whose\"?",
+    "expectedIds": [
+      "lex:episteme-whose",
+      "A.6.F"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "multi-hop-1",
+    "question": "\"U.SpeechAct (Communicative Work Kind, Occurrences, and Records)\" is a refinement of which pattern?",
+    "expectedIds": [
+      "A.2"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-2",
+    "question": "Which pattern does \"Notational Independence\" refine?",
+    "expectedIds": [
+      "E.5"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-3",
+    "question": "Which pattern does \"Gamma_method - Order-Sensitive Method Composition and Work Enactment\" build on?",
+    "expectedIds": [
+      "A.3.1",
+      "A.6.RCD",
+      "B.1",
+      "B.1.4"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-4",
+    "question": "Which pattern does \"U.PromiseContent (Promise Content)\" build on?",
+    "expectedIds": [
+      "A.2.2"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-5",
+    "question": "\"Scaling‑Law Lens Binding (SLL)\" builds on which earlier pattern?",
+    "expectedIds": [
+      "C.16",
+      "C.17",
+      "C.18"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-6",
+    "question": "What does \"Architecture-Bearing Family Characteristic Starter Packs\" directly build on in FPF?",
+    "expectedIds": [
+      "C.16",
+      "C.25",
+      "C.32",
+      "E.13"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-7",
+    "question": "Which pattern does \"Improvement-Oriented Quality Evaluation Question Framing\" build on?",
+    "expectedIds": [
+      "A.19.ECS",
+      "E.2.DA",
+      "E.21",
+      "E.9.DA"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-8",
+    "question": "\"Needed Relation Claim Derivation and Relation-Kind Admission\" builds on which earlier pattern?",
+    "expectedIds": [
+      "A.6.5",
+      "A.6.REL",
+      "C.2.1"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-9",
+    "question": "Name a pattern that \"Cross-Scale Consistency (C-3)\" builds on.",
+    "expectedIds": [
+      "A.1",
+      "A.8"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-10",
+    "question": "\"Reopen / SketchBackoff / Respecify\" builds on which earlier pattern?",
+    "expectedIds": [
+      "A.16",
+      "A.16.0",
+      "C.2.2a",
+      "C.2.5"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-11",
+    "question": "Name a pattern that \"The Eleven Pillars\" builds on.",
+    "expectedIds": [
+      "E.1"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-12",
+    "question": "Name a pattern that \"KindUseAdaptationDeclaration — Contextual Adaptation of Kinds without Cloning\" builds on.",
+    "expectedIds": [
+      "C.2.1",
+      "C.3.1",
+      "C.3.2"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-13",
+    "question": "\"Didactic Architecture of the Spec\" builds on which earlier pattern?",
+    "expectedIds": [
+      "E.2"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-14",
+    "question": "Which pattern does \"Four Guard-Rails of FPF\" build on?",
+    "expectedIds": [
+      "E.2",
+      "E.3"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-15",
+    "question": "Which pattern does \"Work-Resource Aggregation\" build on?",
+    "expectedIds": [
+      "A.15.1",
+      "A.6.1",
+      "C.16",
+      "C.2.1"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-16",
+    "question": "Which pattern does \"Source-Local Meaning Recovery\" build on?",
+    "expectedIds": [
+      "E.10",
+      "E.10.D1",
+      "F.17"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "negative-1",
+    "question": "walrus saxophone hopscotch firefly",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-2",
+    "question": "Why does my pancake smell like limerick after the kaleidoscope festival?",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-3",
+    "question": "noodle walrus limerick porcupine",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-4",
+    "question": "Why does my cupcake smell like quicksand after the limerick festival?",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-5",
+    "question": "gumdrop giraffe umbrella sombrero",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-6",
+    "question": "What's a good recipe that combines walrus, earmuffs, and firefly?",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-7",
+    "question": "hopscotch sombrero icicle confetti",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-8",
+    "question": "Why does my pancake smell like zucchini after the marmalade festival?",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-9",
+    "question": "sherbet saxophone kaleidoscope cupcake",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-10",
+    "question": "How do I teach my marmalade to play the banana?",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  }
+]

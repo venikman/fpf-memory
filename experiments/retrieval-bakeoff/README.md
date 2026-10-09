@@ -1,0 +1,204 @@
+# Retrieval bake-off — memory implementation & indexing candidates
+
+**Status:** historical experiment (board-directed R&D, 2026-08-31).
+Proposed closeout (2026-10-09): retain this archive after review; production
+integration requires a separate decision and P3 verification. Nothing here
+ships to fpf.sh or mcp.fpf.sh, and archive acceptance is not production acceptance.
+
+All results below describe the August 31 local harness on source hash
+`sha256:1169ef3f20b0c89c005b07c33ddb20210039ae9b4a75dfab5255752c20317d37`
+(upstream `e400eab3757d60a8d05196046bed002dff1839e0`). They do not establish
+performance on today's corpus or hosted endpoints. The committed test split
+is exposed and may be replayed for regression checks, but is no longer a
+fresh holdout for candidate selection or tuning.
+
+**Interpretation correction (2026-10-09):** `baseline-trace` measures raw
+retrieval candidates, not final production answers. Its 0/10 empty negative
+lists do not establish zero production abstention. This correction supersedes
+that interpretation in the retained historical report narratives; their
+original measurements and adapter behavior are unchanged.
+
+## Question under test
+
+The runtime's retrieval core (`src/runtime/candidate-seeder.ts` +
+`candidate-ranker.ts`) is a hand-tuned heuristic scorer: exact-ID +100,
+lexeme +45, hand-written seed rules, magic constants. It has never been
+compared against principled IR baselines on this corpus. Is the hand-tuned
+scorer actually better than what 60 years of information-retrieval research
+gives us for free — and if not, which candidate should replace or augment it?
+
+Corpus: the compiled snapshot of `published/current/FPF-Spec.md`
+(9,155 nodes: 311 patterns, 8,453 lexemes, 388 preface sections, 3 routes).
+
+## Constraints every candidate honors (same as the runtime's own)
+
+- Pure TypeScript on Bun; **no new npm dependencies**
+- **Deterministic**: same corpus + question ⇒ byte-identical ranking
+- No network, no Python, no model weights, no vector database service
+- Index build from a cold snapshot must stay in interactive time (seconds)
+
+## Layout
+
+```
+harness/    contract (types.ts), corpus loader, metrics, registry, runner
+gold/       exposed historical query sets — dev.json and test.json
+candidates/ one directory per candidate, default-exports a Retriever
+results/    committed JSON reports + leaderboard
+```
+
+## Rules of the game
+
+1. Candidates implement `Retriever` from `harness/types.ts` and register in
+   `harness/registry.ts`. Nothing else in `harness/` may be edited by a
+   candidate author.
+2. **No gold-peeking.** Candidate code never reads `gold/`. Authors may look
+   at `gold/dev.json` to understand query styles, but must not special-case
+   individual dev questions. The historical protocol materialized
+   `gold/test.json` after candidate freeze; its isolation limitations are
+   disclosed below. It is now public and burned as a fresh holdout.
+3. Every candidate documents its parameters and their provenance (which
+   research finding or tuning run picked them) in its own `README.md`.
+4. Scoring: Recall@1/5/10, MRR@10, nDCG@10 over positive cases; negative
+   cases score "clean" when the candidate returns nothing (the harness treats
+   an empty result list for nonsense queries as correct abstention). Latency
+   p50/p95 per query and build time. The current harness re-queries every case
+   on the same candidate instance and compares its ranked IDs; the report's
+   `deterministic` flag describes only that bounded repeatability check, not
+   cross-process reproducibility. The unchanged August reports checked every
+   seventh case plus misses; their flags do not establish an every-case check.
+
+## Run
+
+For the current harness regression check, run `bun run ensure:snapshot`, then
+`bun test experiments/retrieval-bakeoff/harness/run.test.ts` from the repo root.
+It uses stable and deliberately changing fixtures, not a performance benchmark.
+Combined `--gold all` runs prefix case IDs with `dev:` or `test:` because the
+generated IDs overlap between splits. The historical runner rejected those
+duplicates; separate dev/test replay and the stored reports remain unchanged.
+
+The current runner writes new reports to gitignored
+`.cache/runs/<gold>-latest.json` by default for every gold set (including
+`dev`, `test`, and `all`). These disposable reports replace the previous local
+run for that set. Explicit `--out` paths are still honored; choose one outside
+the committed `results/` archive.
+
+To replay the archived experiment, use a separate checkout of PR #309 head
+`2113f630661f3c34b174308494ded4e9aa40199d`, which retains the matching
+runtime and publication source. The harness always reads that checkout's
+`published/current/**`; running it after a source refresh is a new experiment,
+not reproduction of these results. Keep new reports separate from the archive:
+the pinned historical runner requires explicit `--out` to avoid its old default
+of writing into `results/`.
+
+```bash
+cd experiments/retrieval-bakeoff
+bun harness/run.ts --gold dev --out .cache/runs/dev-latest.json
+bun harness/run.ts --gold dev --candidates bm25f --out .cache/runs/dev-bm25f.json
+bun harness/run.ts --gold test --out .cache/runs/test-latest.json
+```
+
+The corpus loader reads `published/current/fpf-index/snapshot.json` (run
+`bun run ensure:snapshot` at the repo root if it is missing/stale) and caches
+a slim projection under `.cache/`.
+
+## Results (2026-08-31)
+
+Snapshot `sha256:1169ef3f…` (upstream e400eab3, 2026-08-30). Full evidence:
+`results/dev-all-solo.json`, `results/test-final.json`,
+`results/failure-analysis.md`, `results/adversarial-audit.md`. Every number
+below was independently reproduced per-case, byte-for-byte, by a read-only
+audit agent.
+
+### Historical test set (150 cases, materialized post-freeze — see Limitations)
+
+| candidate | R@1 | R@5 | R@10 | MRR@10 | neg-clean | p50 ms | dev→test ΔMRR |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| **fusion** | 79.3% | 88.6% | 90.7% | **0.832** | 10/10 | 11.9 | −0.010 |
+| **bm25f** | 78.6% | 85.0% | 90.0% | 0.817 | 10/10 | 0.55 | −0.021 |
+| trigram-fuzzy | 57.9% | 71.4% | 77.9% | 0.645 | 9/10 | 0.33 | −0.029 |
+| baseline-trace (raw trace candidates) | 53.6% | 67.1% | 75.0% | 0.596 | 0/10 | 515.9 | −0.043 |
+| graph-ppr | 48.6% | 70.7% | 76.4% | 0.585 | 5/10 | 2.3 | −0.080 |
+| rri | 37.1% | 60.7% | 67.1% | 0.469 | 10/10 | 6.0 | −0.070 |
+| baseline-search (production) | 25.0% | 38.6% | 45.0% | 0.301 | 4/10 | 1323.9 | −0.035 |
+| gramset | 22.1% | 30.7% | 35.0% | 0.260 | 10/10 | 0.39 | −0.092 |
+
+The untuned local baseline adapters dropped more dev→test than the tuned winners:
+the test set is genuinely harder, and the challengers widened their lead on it.
+
+### What the categories say (test R@5, winner vs raw trace candidates)
+
+| category | fusion | bm25f | baseline-trace |
+| --- | ---: | ---: | ---: |
+| id-lookup / title / typo / alias / definition | 100% each | 100% each | 100 / 100 / **53** / 94 / 100 |
+| paraphrase | 83% | 78% | **17%** |
+| task | 91% | 86% | **50%** |
+| multi-hop | 31% | 13% | 31% |
+
+The raw trace candidate-list baseline ranked worse on paraphrase, task phrasing,
+and typos in this archived split. These ranking metrics do not measure the
+production answer's grounding, status handling, or abstention.
+
+### Key findings
+
+1. **A ~600-line fielded BM25+ implementation beats the raw trace candidate-list
+   baseline by +17.9pt R@5 / +0.221 MRR on the archived test split.** Warm local
+   p50 timings were 0.55ms vs 516ms (~940× ratio); 10/10 negative cases yielded
+   empty BM25F lists vs 0/10 raw trace lists. The adapter does not apply the
+   production answer's abstention/status handling, so this establishes no
+   production answer abstention rate or hosted speedup.
+2. **Fusion (bm25f backbone + graph lanes + RRI, convex min-max weights)
+   strictly dominates solo bm25f on test** (rescues 5 cases inside rank 5,
+   surrenders 0) and is the only candidate whose handcrafted-half score
+   *improved* dev→test (see Limitations §2 for why that is inconclusive).
+3. **Multi-hop ("which pattern does X build on?") is the open problem**: every
+   frozen candidate lands 13–31% on test. The cause is measured, not
+   mysterious: lexical rankers only hit when the target's text quotes the
+   source, and in 16/16 multi-hop misses the quoted source node + its mirror
+   lexeme occupy the top ranks (filtering the source's own family lifts
+   fusion 31%→50%). The pure flow-walk graph variant reaches **68.8%** on test
+   multi-hop (>2× any frozen candidate) — a real capability the frozen fusion
+   under-weighted because dev's multi-hop lexical scores were luck-inflated
+   (dev sampled cross-reference-rich sources; test didn't). Full diagnosis:
+   `results/failure-analysis.md`.
+4. **Model-free semantics works but doesn't pay its way alone**: reflective
+   random indexing (RRI) is the reason "paraphrase 0% → 43%" solo is possible
+   without embeddings, but as a solo ranker it trails lexical; its value is as
+   a fusion lane.
+5. **The vectorless constraint is not the bottleneck.** Nothing here uses a
+   model or a vector DB; the winning stack is deterministic TS over the
+   archived snapshot and builds in <7s in the recorded local harness. Hosted
+   integration, resource limits, and performance still require verification.
+
+### Limitations (from the adversarial audit — read before quoting numbers)
+
+1. **The test set was held out by convention, not by construction**: the
+   generated half was reconstructible from a committed seed pre-freeze, and
+   the handcrafted half sat in a world-readable `/tmp` path during the fusion
+   tuning window. No candidate code reads any of it (audited), and every
+   dev→test delta is negative (overfitting-shaped, not peeking-shaped), but a
+   stronger protocol next round is specified in `results/adversarial-audit.md`
+   (commit a holdout hash pre-freeze; publish the seed only at freeze).
+2. Fusion's +.020 dev→test uptick on the handcrafted half (vs bm25f's −.013)
+   is statistically weak at n=40 and plausibly ensemble variance-reduction,
+   but fusion was the one candidate tuned while the full test set existed on
+   disk. The observed ordering applies to this exposed split; superiority
+   on a fresh holdout remains unverified.
+3. Title-category gold excludes identically-titled lexeme docs from the
+   equivalence sets (affects kind-agnostic candidates like rri/gramset by a
+   few rank-1s; internally consistent across dev/test).
+4. 1–2 of 10 negative queries per split contain a real title token via the
+   question template ("repair", "recipe"), so `neg-clean` slightly understates
+   abstention quality for candidates without a score floor.
+5. Latencies are warm local measurements. The baselines invoke local
+   `FpfRuntime.search()` / `trace()` after warmup; the trace baseline includes
+   the query pipeline while challenger timings cover their ranking work.
+   These ratios do not establish hosted end-to-end speedups or cost savings.
+   Any integration evaluation needs current-corpus baselines and a new
+   holdout kept inaccessible until candidate freeze.
+6. `baseline-trace` maps raw `TraceResult.candidateScores` without checking
+   `trace.status` or calling `QueryEngine.answerFromTrace()`. That production
+   method's `unsupported` and `not_found` branches return empty answer `ids`,
+   even when retrieval candidates exist. The recorded 0/10 negative
+   clean rate is a raw-list property, not a production answer-abstention
+   measurement. The historical adapter and result JSONs are retained; any
+   answer-level comparison needs separately named evaluation results.

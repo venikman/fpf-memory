@@ -1,0 +1,1551 @@
+[
+  {
+    "id": "id-lookup-1",
+    "question": "Open B.5.3 — what problem does it solve?",
+    "expectedIds": [
+      "B.5.3"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-2",
+    "question": "Explain I.2 from the FPF spec.",
+    "expectedIds": [
+      "I.2"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-3",
+    "question": "Open D.3 — what problem does it solve?",
+    "expectedIds": [
+      "D.3"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-4",
+    "question": "Explain E.11 from the FPF spec.",
+    "expectedIds": [
+      "E.11"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-5",
+    "question": "Open C.3.2 — what problem does it solve?",
+    "expectedIds": [
+      "C.3.2"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-6",
+    "question": "Explain F.16 from the FPF spec.",
+    "expectedIds": [
+      "F.16"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-7",
+    "question": "When should I reach for A.2.5?",
+    "expectedIds": [
+      "A.2.5"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-8",
+    "question": "Give me a quick summary of G.1.",
+    "expectedIds": [
+      "G.1"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-9",
+    "question": "Give me a quick summary of B.3.3.",
+    "expectedIds": [
+      "B.3.3"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-10",
+    "question": "When should I reach for D.5?",
+    "expectedIds": [
+      "D.5"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-11",
+    "question": "What is E.24.PUB and when do I apply it?",
+    "expectedIds": [
+      "E.24.PUB"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-12",
+    "question": "Give me a quick summary of C.19.",
+    "expectedIds": [
+      "C.19"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-13",
+    "question": "Give me a quick summary of F.0.2.",
+    "expectedIds": [
+      "F.0.2"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-14",
+    "question": "When should I reach for A.7.CP?",
+    "expectedIds": [
+      "A.7.CP"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-15",
+    "question": "When should I reach for G.2?",
+    "expectedIds": [
+      "G.2"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-16",
+    "question": "What is B.1.3 and when do I apply it?",
+    "expectedIds": [
+      "B.1.3"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "id-lookup-17",
+    "question": "When should I reach for D.1?",
+    "expectedIds": [
+      "D.1"
+    ],
+    "category": "id-lookup",
+    "source": "generated",
+    "provenance": "id-lookup"
+  },
+  {
+    "id": "title-1",
+    "question": "I'm looking for the section titled \"Agency Characteristic Profile\".",
+    "expectedIds": [
+      "C.9"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-2",
+    "question": "Summarize \"Architecture Decision Adequacy Scales\" for me.",
+    "expectedIds": [
+      "C.32.ADA"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-3",
+    "question": "Summarize \"Relation Obtaining and Individuated Relation Occurrences\" for me.",
+    "expectedIds": [
+      "A.6.REL"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-4",
+    "question": "Where is \"TEVB — Project-local Typical Engineering Viewpoint Bundle Template for Holons\" defined and what is it for?",
+    "expectedIds": [
+      "E.17.2"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-5",
+    "question": "I'm looking for the section titled \"U.Commitment (Deontic Commitment Relation)\".",
+    "expectedIds": [
+      "A.2.8"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-6",
+    "question": "I'm looking for the section titled \"Bitter‑Lesson Preference (BLP)\".",
+    "expectedIds": [
+      "C.19.1"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-7",
+    "question": "Where is \"KindAT — Intentional Abstraction Facet for Kinds (K0…K3)\" defined and what is it for?",
+    "expectedIds": [
+      "C.3.5"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-8",
+    "question": "Summarize \"PublicationUnit Stability Discipline\" for me.",
+    "expectedIds": [
+      "E.17.AUD"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-9",
+    "question": "What does the \"Unified Scope Mechanism (USM): Context Slices & Scopes\" pattern say?",
+    "expectedIds": [
+      "A.2.6"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-10",
+    "question": "Tell me about \"Unified Indicatorization Mechanism (UINDM)\" in FPF.",
+    "expectedIds": [
+      "A.19.UINDM"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-11",
+    "question": "I'm looking for the section titled \"Pattern-Use Applicability, Recommendation, and Coordination\".",
+    "expectedIds": [
+      "E.11.PUR"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-12",
+    "question": "What does the \"Emergence and MHT Precision Restoration\" pattern say?",
+    "expectedIds": [
+      "B.2.P"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-13",
+    "question": "Explain the pattern called \"Practice Architecture Synthesis from Several Structures\".",
+    "expectedIds": [
+      "C.32.MWA"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-14",
+    "question": "What does the \"Control Structure View Adequacy (LCA)\" pattern say?",
+    "expectedIds": [
+      "C.30.LCA"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-15",
+    "question": "What does the \"Work-Performance Configuration and Recovery Testing\" pattern say?",
+    "expectedIds": [
+      "A.15.8"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-16",
+    "question": "Where is \"PublicationUnit Primary-Subject Discipline\" defined and what is it for?",
+    "expectedIds": [
+      "E.17.AUD.OOTD"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "title-17",
+    "question": "Where is \"Multi‑Method Dispatcher & MethodFamily Registry\" defined and what is it for?",
+    "expectedIds": [
+      "G.5"
+    ],
+    "category": "title",
+    "source": "generated",
+    "provenance": "title"
+  },
+  {
+    "id": "alias-1",
+    "question": "Find the FPF entry for \"support force\".",
+    "expectedIds": [
+      "lex:support-force",
+      "E.10"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-2",
+    "question": "Find the FPF entry for \"Reconciliation Process\".",
+    "expectedIds": [
+      "lex:reconciliation-process",
+      "E.10"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-3",
+    "question": "Find the FPF entry for \"Practical entries\".",
+    "expectedIds": [
+      "lex:practical-entries",
+      "E.11.PFP"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-4",
+    "question": "People keep mentioning \"SelectorMechanism\" — where does FPF define that?",
+    "expectedIds": [
+      "A.19.SelectorMechanism"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-5",
+    "question": "Find the FPF entry for \"Returns Process\".",
+    "expectedIds": [
+      "lex:returns-process",
+      "E.10"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-6",
+    "question": "Where does \"Rationale Mandate\" come up in FPF?",
+    "expectedIds": [
+      "lex:rationale-mandate",
+      "E.12"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-7",
+    "question": "What is \"material-flow bottleneck bearer\" in the FPF spec?",
+    "expectedIds": [
+      "lex:material-flow-bottleneck-bearer",
+      "C.32.P2S"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-8",
+    "question": "People keep mentioning \"Lab Owner\" — where does FPF define that?",
+    "expectedIds": [
+      "lex:lab-owner",
+      "E.10"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-9",
+    "question": "Which FPF pattern covers what's called \"Exact policy\"?",
+    "expectedIds": [
+      "lex:exact-policy",
+      "B.1.6"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-10",
+    "question": "Find the FPF entry for \"recognition shell\".",
+    "expectedIds": [
+      "lex:recognition-shell",
+      "E.8"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-11",
+    "question": "What is \"Cooling Guide\" in the FPF spec?",
+    "expectedIds": [
+      "lex:cooling-guide",
+      "E.21"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-12",
+    "question": "People keep mentioning \"TC-MWH factually unsupported\" — where does FPF define that?",
+    "expectedIds": [
+      "lex:tc-mwh-factually-unsupported",
+      "E.18"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-13",
+    "question": "What is \"control sketch\" in the FPF spec?",
+    "expectedIds": [
+      "lex:control-sketch",
+      "C.30.P"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-14",
+    "question": "Find the FPF entry for \"Quality Optimization Pattern\".",
+    "expectedIds": [
+      "lex:quality-optimization-pattern",
+      "C.26.3"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-15",
+    "question": "Which FPF pattern covers what's called \"Initial uncertainty\"?",
+    "expectedIds": [
+      "lex:initial-uncertainty",
+      "I.2"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "alias-16",
+    "question": "Find the FPF entry for \"Result-row shape\".",
+    "expectedIds": [
+      "lex:result-row-shape",
+      "A.19.ECS"
+    ],
+    "category": "alias",
+    "source": "generated",
+    "provenance": "alias"
+  },
+  {
+    "id": "typo-1",
+    "question": "Tell me about \"Exacct ploicy\".",
+    "expectedIds": [
+      "lex:exact-policy",
+      "B.1.6"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-2",
+    "question": "Where is \"Agency Characteristic Proffile\" covered in the spec?",
+    "expectedIds": [
+      "C.9"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-3",
+    "question": "Tell me about \"Work-Performance Configuration and Recovery Testiing\".",
+    "expectedIds": [
+      "A.15.8"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-4",
+    "question": "Explain \"Quality Optmiization Pattern\" from the spec.",
+    "expectedIds": [
+      "lex:quality-optimization-pattern",
+      "C.26.3"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-5",
+    "question": "Where is \"Architeecture Dcision Adequacy Scales\" covered in the spec?",
+    "expectedIds": [
+      "C.32.ADA"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-6",
+    "question": "What does FPF say about \"Unified Scope Mechanissm (USM): Context Slices & Scopes\"?",
+    "expectedIds": [
+      "A.2.6"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-7",
+    "question": "What does FPF say about \"Reconcilition Proocess\"?",
+    "expectedIds": [
+      "lex:reconciliation-process",
+      "E.10"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-8",
+    "question": "Explain \"Reeturns Procses\" from the spec.",
+    "expectedIds": [
+      "lex:returns-process",
+      "E.10"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-9",
+    "question": "Explain \"Emerggence and MHT Precision Restoration\" from the spec.",
+    "expectedIds": [
+      "B.2.P"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-10",
+    "question": "What is \"Iitial uncertainty\" in FPF?",
+    "expectedIds": [
+      "lex:initial-uncertainty",
+      "I.2"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-11",
+    "question": "Tell me about \"Rationale Mandaet\".",
+    "expectedIds": [
+      "lex:rationale-mandate",
+      "E.12"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-12",
+    "question": "Tell me about \"Lab Ownr\".",
+    "expectedIds": [
+      "lex:lab-owner",
+      "E.10"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-13",
+    "question": "Tell me about \"Coolign Guidde\".",
+    "expectedIds": [
+      "lex:cooling-guide",
+      "E.21"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-14",
+    "question": "What is \"TEVB — Project-local Typical Engineering Viewpoint Bundel Template for Holons\" in FPF?",
+    "expectedIds": [
+      "E.17.2"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-15",
+    "question": "What does FPF say about \"TC-MWH facually unsupprted\"?",
+    "expectedIds": [
+      "lex:tc-mwh-factually-unsupported",
+      "E.18"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-16",
+    "question": "Explain \"U.Commitment (Deontic Comitment Relation)\" from the spec.",
+    "expectedIds": [
+      "A.2.8"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "typo-17",
+    "question": "Where is \"material-flow bottleneckk beare\" covered in the spec?",
+    "expectedIds": [
+      "lex:material-flow-bottleneck-bearer",
+      "C.32.P2S"
+    ],
+    "category": "typo",
+    "source": "generated",
+    "provenance": "typo"
+  },
+  {
+    "id": "definition-1",
+    "question": "What does \"transformation flow structure\" mean in FPF?",
+    "expectedIds": [
+      "lex:transformation-flow-structure",
+      "E.18"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-2",
+    "question": "How does FPF define \"review happened\"?",
+    "expectedIds": [
+      "lex:review-happened",
+      "F.8"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-3",
+    "question": "In FPF terms, what is a \"front door\"?",
+    "expectedIds": [
+      "lex:front-door",
+      "E.10"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-4",
+    "question": "Define \"epistemic precision restoration required\" as FPF uses the term.",
+    "expectedIds": [
+      "lex:epistemic-precision-restoration-required",
+      "C.2.P"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-5",
+    "question": "Define \"incident owner\" as FPF uses the term.",
+    "expectedIds": [
+      "lex:incident-owner",
+      "E.10"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-6",
+    "question": "What does \"false platform\" mean in FPF?",
+    "expectedIds": [
+      "lex:false-platform",
+      "C.32.FAIL"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-7",
+    "question": "What's the FPF meaning of \"safety journal\"?",
+    "expectedIds": [
+      "lex:safety-journal",
+      "C.20"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-8",
+    "question": "What does \"state-changing communication\" mean in FPF?",
+    "expectedIds": [
+      "lex:state-changing-communication",
+      "C.26.1"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-9",
+    "question": "In FPF terms, what is an \"architecture characteristic eval programs\"?",
+    "expectedIds": [
+      "lex:architecture-characteristic-eval-programs",
+      "C.32.ACE"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-10",
+    "question": "How does FPF define \"risk condition\"?",
+    "expectedIds": [
+      "lex:risk-condition",
+      "C.22.2"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-11",
+    "question": "In FPF terms, what is a \"presentation-form label\"?",
+    "expectedIds": [
+      "lex:presentation-form-label",
+      "E.17.AUD"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-12",
+    "question": "What's the FPF meaning of \"architecture map\"?",
+    "expectedIds": [
+      "lex:architecture-map",
+      "C.30.P"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-13",
+    "question": "How does FPF define \"module relation repair\"?",
+    "expectedIds": [
+      "lex:module-relation-repair",
+      "A.6.M"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-14",
+    "question": "Define \"whole-unit stabilization\" as FPF uses the term.",
+    "expectedIds": [
+      "lex:whole-unit-stabilization",
+      "E.17.AUD"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-15",
+    "question": "In FPF terms, what is a \"framework edition\"?",
+    "expectedIds": [
+      "lex:framework-edition",
+      "E.4.DPF"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-16",
+    "question": "Define \"full scale-audit selected\" as FPF uses the term.",
+    "expectedIds": [
+      "lex:full-scale-audit-selected",
+      "C.19.1",
+      "C.24"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "definition-17",
+    "question": "How does FPF define \"account owner\"?",
+    "expectedIds": [
+      "lex:account-owner",
+      "E.10"
+    ],
+    "category": "definition",
+    "source": "generated",
+    "provenance": "definition"
+  },
+  {
+    "id": "multi-hop-1",
+    "question": "\"Advanced Mereology: Components, Portions, Aspects & Phases\" is a refinement of which pattern?",
+    "expectedIds": [
+      "A.1"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-2",
+    "question": "\"U.WorkPlan: The Schedule of Intent\" is a refinement of which pattern?",
+    "expectedIds": [
+      "A.15"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-3",
+    "question": "\"U.PreArticulationCuePack\" builds on which earlier pattern?",
+    "expectedIds": [
+      "A.16",
+      "A.7",
+      "C.2.2a",
+      "C.2.LS"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-4",
+    "question": "\"Revalidate Affected Uses When a Relied-on Source Changes\" builds on which earlier pattern?",
+    "expectedIds": [
+      "A.10",
+      "A.11",
+      "C.2.1"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-5",
+    "question": "What does \"Principle-Framework Publication Integration and Preservation\" directly build on in FPF?",
+    "expectedIds": [
+      "C.2.1",
+      "E.24.PUB"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-6",
+    "question": "Name a pattern that \"Archetypal Grounding Principle\" builds on.",
+    "expectedIds": [
+      "E.6"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-7",
+    "question": "\"Use-Bounded Representation Selection and Co-Use\" builds on which earlier pattern?",
+    "expectedIds": [
+      "C.2.1"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-8",
+    "question": "Name a pattern that \"Proof and Inference Use Calculus (LOG-CAL)\" builds on.",
+    "expectedIds": [
+      "A.10",
+      "B.3",
+      "C.2.1",
+      "C.3"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-9",
+    "question": "Name a pattern that \"DRR Decision-Adequacy Evaluation CharacteristicSpace\" builds on.",
+    "expectedIds": [
+      "A.19.ECS",
+      "E.9"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-10",
+    "question": "Name a pattern that \"FPF Pillar-Adequacy Evaluation CharacteristicSpace\" builds on.",
+    "expectedIds": [
+      "A.19.ECS",
+      "E.2"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-11",
+    "question": "Name a pattern that \"Explore → Shape → Evidence → Operate\" builds on.",
+    "expectedIds": [
+      "B.5"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-12",
+    "question": "Name a pattern that \"Evidence Graph & Provenance Ledger\" builds on.",
+    "expectedIds": [
+      "A.10",
+      "A.2.4",
+      "C.2.1",
+      "C.29"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-13",
+    "question": "\"Contextual and Temporal Aggregation\" builds on which earlier pattern?",
+    "expectedIds": [
+      "A.1.1",
+      "A.14",
+      "B.1",
+      "C.27.TA"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-14",
+    "question": "What does \"P2W Problem-to-Work Carry-Through\" directly build on in FPF?",
+    "expectedIds": [
+      "A.6.REL",
+      "C.22.2",
+      "E.18"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-15",
+    "question": "Name a pattern that \"SlotFillingsPlanItem — Declaration-Local Planned Designation\" builds on.",
+    "expectedIds": [
+      "A.15.2",
+      "A.6.1",
+      "A.6.5",
+      "C.2.1"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "multi-hop-16",
+    "question": "\"U.LanguageStateRepresentationFactorBundle\" builds on which earlier pattern?",
+    "expectedIds": [
+      "A.18",
+      "C.2.2a",
+      "C.2.LS"
+    ],
+    "category": "multi-hop",
+    "source": "generated",
+    "provenance": "multi-hop"
+  },
+  {
+    "id": "negative-1",
+    "question": "origami sherbet cupcake walrus",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-2",
+    "question": "Best kayak repair shop that also sells bagpipes waffle?",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-3",
+    "question": "wallpaper gumdrop mustache umbrella",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-4",
+    "question": "Where can I buy a discounted walrus moonwalk near the beach?",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-5",
+    "question": "saxophone tapioca volcano origami wallpaper",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-6",
+    "question": "Why does my marmalade smell like zucchini after the pancake festival?",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-7",
+    "question": "parakeet walrus wallpaper pretzel tambourine",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-8",
+    "question": "Where can I buy a discounted sherbet snorkel near the beach?",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-9",
+    "question": "hammock lighthouse quicksand parakeet tambourine",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "negative-10",
+    "question": "Where can I buy a discounted volcano confetti near the beach?",
+    "expectedIds": [],
+    "category": "negative",
+    "source": "generated",
+    "provenance": "negative"
+  },
+  {
+    "id": "hc-dev-1",
+    "question": "How do I write down what a customer can rely on from our service so a fulfilment claim stays checkable later?",
+    "expectedIds": [
+      "A.2.3"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "A.2.3"
+  },
+  {
+    "id": "hc-dev-2",
+    "question": "Our SLA doc mixes together what we guarantee, who is on the hook, and the tickets that delivered it — which pattern untangles that?",
+    "expectedIds": [
+      "A.2.3"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "A.2.3"
+  },
+  {
+    "id": "hc-dev-3",
+    "question": "One diagram in our docs is being read as the procedure, the tool's ability, and the record of a run all at once. What helps me pull those apart?",
+    "expectedIds": [
+      "A.7"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "A.7"
+  },
+  {
+    "id": "hc-dev-4",
+    "question": "Our team keeps treating an SOP document as if it were the capability to do the job — what helps separate the doc, the way of doing, and the ability?",
+    "expectedIds": [
+      "A.7"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "A.7"
+  },
+  {
+    "id": "hc-dev-5",
+    "question": "A standard we cited got superseded — how do I figure out which of our existing decisions actually depended on the old claim?",
+    "expectedIds": [
+      "A.10.1"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "A.10.1"
+  },
+  {
+    "id": "hc-dev-6",
+    "question": "Someone wants to add yet another core concept to our framework — how do we check that the existing kinds can't already express it?",
+    "expectedIds": [
+      "A.11"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "A.11"
+  },
+  {
+    "id": "hc-dev-7",
+    "question": "Instead of a binary switch for whether something counts as an autonomous actor, is there a graded way to assess how much self-directed capacity a system has?",
+    "expectedIds": [
+      "A.13"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "A.13"
+  },
+  {
+    "id": "hc-dev-8",
+    "question": "The board says a ticket is 'good to start' — how do I check we truly have everything in place before committing, without treating the green label as an approval?",
+    "expectedIds": [
+      "A.15.5"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "A.15.5"
+  },
+  {
+    "id": "hc-dev-9",
+    "question": "Everything for the job looks lined up on paper, but nobody confirmed the inputs are actually on hand — where does FPF stop us from starting on hope?",
+    "expectedIds": [
+      "A.15.5"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "A.15.5"
+  },
+  {
+    "id": "hc-dev-10",
+    "question": "We have several pass/fail signals feeding one go/no-go call — how should the worst signal drive whether the action may proceed?",
+    "expectedIds": [
+      "A.21"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "A.21"
+  },
+  {
+    "id": "hc-dev-11",
+    "question": "One required verification came back unknown rather than pass — should the go/no-go call hold the action or let it through?",
+    "expectedIds": [
+      "A.21"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "A.21"
+  },
+  {
+    "id": "hc-dev-12",
+    "question": "Two teams claim their terms mean the same thing across their glossaries — what discipline stops us hand-waving that the two senses match?",
+    "expectedIds": [
+      "A.6.9",
+      "F.9"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "A.6.9,F.9"
+  },
+  {
+    "id": "hc-dev-13",
+    "question": "A bunch of coordinated parts now behaves like a regulated system with its own goals — when do we stop calling it the old thing and recognize something new?",
+    "expectedIds": [
+      "B.2"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "B.2"
+  },
+  {
+    "id": "hc-dev-14",
+    "question": "When a commissioning project crosses into live operation, do we restart the assurance case for a newly identified whole or keep the old one?",
+    "expectedIds": [
+      "B.2"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "B.2"
+  },
+  {
+    "id": "hc-dev-15",
+    "question": "A certification from decades ago still anchors our trust in this component — how does FPF treat proof that has gone stale?",
+    "expectedIds": [
+      "B.3.4"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "B.3.4"
+  },
+  {
+    "id": "hc-dev-16",
+    "question": "How do I account for test results losing their weight over time when I aggregate assurance?",
+    "expectedIds": [
+      "B.3.4"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "B.3.4"
+  },
+  {
+    "id": "hc-dev-17",
+    "question": "Our run-time system keeps drifting away from its design docs, and lessons learned never make it back into the spec — which pattern gives the cycle that closes that gap?",
+    "expectedIds": [
+      "B.4",
+      "B.4.1"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "B.4"
+  },
+  {
+    "id": "hc-dev-18",
+    "question": "We hit a surprising anomaly and need a disciplined way to propose candidate explanations without locking onto the first plausible guess — where is that covered?",
+    "expectedIds": [
+      "B.5.2"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "B.5.2"
+  },
+  {
+    "id": "hc-dev-19",
+    "question": "How strongly is a claim actually warranted by its linked evidence, and how does that strength travel along a justification path without being silently averaged?",
+    "expectedIds": [
+      "C.2.2"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "C.2.2"
+  },
+  {
+    "id": "hc-dev-20",
+    "question": "Two pieces of evidence with different strength support one claim across a scope translation — how do I carry the warrant along the path without averaging?",
+    "expectedIds": [
+      "C.2.2"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "C.2.2"
+  },
+  {
+    "id": "hc-dev-21",
+    "question": "I have a set of options in hand — when is it right to pick now versus paying for another probe or more computation first?",
+    "expectedIds": [
+      "C.11"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "C.11"
+  },
+  {
+    "id": "hc-dev-22",
+    "question": "Is it worth gathering more information before committing to one of the choices on the table, given that probing costs something?",
+    "expectedIds": [
+      "C.11"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "C.11"
+  },
+  {
+    "id": "hc-dev-23",
+    "question": "Several candidate research lines are still active — how do we decide whether to widen the frontier, keep it, narrow to a subset, or retire a line?",
+    "expectedIds": [
+      "C.19"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "C.19"
+  },
+  {
+    "id": "hc-dev-24",
+    "question": "How do we keep several promising alternatives alive under one policy instead of prematurely collapsing to the single best scorer?",
+    "expectedIds": [
+      "C.19"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "C.19"
+  },
+  {
+    "id": "hc-dev-25",
+    "question": "Terms like resilience or maintainability get squashed into a single score — how does FPF keep an -ility from being treated as one scalar?",
+    "expectedIds": [
+      "C.25"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "C.25"
+  },
+  {
+    "id": "hc-dev-26",
+    "question": "Our org's team boundaries keep forcing every release into cross-team coordination, and the product structure mirrors it — which pattern handles deciding what to change on which side?",
+    "expectedIds": [
+      "C.32.CONWAY"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "C.32.CONWAY"
+  },
+  {
+    "id": "hc-dev-27",
+    "question": "We want the service boundaries to stop mirroring the org chart — do we change the teams or the architecture first, and what counts as evidence either way?",
+    "expectedIds": [
+      "C.32.CONWAY"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "C.32.CONWAY"
+  },
+  {
+    "id": "hc-dev-28",
+    "question": "A project's interests clash with the surrounding community's — how do I write down each side's claim and the tension between them before anyone tries to mediate?",
+    "expectedIds": [
+      "D.3"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "D.3"
+  },
+  {
+    "id": "hc-dev-29",
+    "question": "Part of the system serves the whole while harming its own members — where do I lay out both sides' stakes at their different levels?",
+    "expectedIds": [
+      "D.3"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "D.3"
+  },
+  {
+    "id": "hc-dev-30",
+    "question": "Can I mention CI/CD or file formats in a core normative pattern, or do tool-specific terms have to stay out?",
+    "expectedIds": [
+      "E.5.1"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "E.5.1"
+  },
+  {
+    "id": "hc-dev-31",
+    "question": "When we amend several patterns together, where do we capture why the change was chosen and which alternatives were rejected, so reviewers don't have to dig through patch history?",
+    "expectedIds": [
+      "E.9"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "E.9"
+  },
+  {
+    "id": "hc-dev-32",
+    "question": "Several sections must change together as one coordinated set — where do I record the shared decision so the pieces don't drift apart during the rewrite?",
+    "expectedIds": [
+      "E.9"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "E.9"
+  },
+  {
+    "id": "hc-dev-33",
+    "question": "We're about to rework an existing spec section — how do I tell which downstream uses must be reopened and which can safely continue?",
+    "expectedIds": [
+      "E.15"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "E.15"
+  },
+  {
+    "id": "hc-dev-34",
+    "question": "An agent is allowed to act without a human approving each step — how do we declare hard limits, an override path, and an audit trail for that leeway?",
+    "expectedIds": [
+      "E.16"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "E.16"
+  },
+  {
+    "id": "hc-dev-35",
+    "question": "How do I set an explicit budget for what an unsupervised process may do on its own, with a standard way to pause or de-scope it?",
+    "expectedIds": [
+      "E.16"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "E.16"
+  },
+  {
+    "id": "hc-dev-36",
+    "question": "A new role-ish word showed up in our docs — how do I decide whether it deserves a durable name or should stay a local phrase reusing an existing row?",
+    "expectedIds": [
+      "F.8"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "F.8"
+  },
+  {
+    "id": "hc-dev-37",
+    "question": "We want to rename a long-standing term without breaking what older documents meant — what's the discipline for that?",
+    "expectedIds": [
+      "F.13"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "F.13"
+  },
+  {
+    "id": "hc-dev-38",
+    "question": "Old documents still use the previous label for a concept we split in two — how do we keep readers able to connect past texts to the new senses?",
+    "expectedIds": [
+      "F.13"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "F.13"
+  },
+  {
+    "id": "hc-dev-39",
+    "question": "We're surveying a fast-moving literature with rival schools that disagree on basics — how do we assemble a comparable, citable view without collapsing the plurality?",
+    "expectedIds": [
+      "G.2"
+    ],
+    "category": "paraphrase",
+    "source": "handcrafted",
+    "provenance": "G.2"
+  },
+  {
+    "id": "hc-dev-40",
+    "question": "Multiple downstream consumers need to cite and replay the same chain of established results — what should we build so each doesn't redo the full source account?",
+    "expectedIds": [
+      "G.6"
+    ],
+    "category": "task",
+    "source": "handcrafted",
+    "provenance": "G.6"
+  }
+]

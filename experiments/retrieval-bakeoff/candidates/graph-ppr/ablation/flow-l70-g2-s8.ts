@@ -1,0 +1,8 @@
+// Ablation variant — see ../README.md. Not registered in the harness registry.
+import GraphPprRetriever from '../index.js';
+
+export default class extends GraphPprRetriever {
+  constructor() {
+    super({name: 'ppr-flow-l70-g2-s8',rho: 0,tau: 5,combine: 'convex',lambda: 0.7,walkScore: 'flow',walkGamma: 2,seedN: 8});
+  }
+}

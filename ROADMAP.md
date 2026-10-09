@@ -47,20 +47,34 @@ the delivery is what let a 16-day outage report "within SLO" (see #253).
    > Framework (FPF) by Anatoly Levenchuk. Bounded, vectorless retrieval
    > over the full pattern catalog and curated routes — addressable by
    > stable FPF IDs, synced daily from ailev/FPF.
-3. **Publish to `registry.modelcontextprotocol.io`.** Zero listings today and no
+3. **Retrieval experiment archive and follow-up decision.** The 2026-08-31 bake-off
+   (`experiments/retrieval-bakeoff/`, packet
+   `plans/2026-08-31-retrieval-bakeoff-review-packet.md`) measured the
+   historical local runtime on a now-exposed test set: raw trace candidate-list
+   MRR .596 / R@5 67.1% at 516ms p50, with 0/10 empty negative-case lists.
+   This did not measure production answer abstention. The `search_fpf` scan took
+   about 1.3–1.4s p50 and 3.2s p95. A deterministic, dependency-free fusion
+   stack built in that branch scores .832 / 88.6% at 12ms
+   (solo BM25F: .817 / 85.0% at 0.55ms).
+   These are warm local harness timings, not hosted end-to-end measurements.
+   Next: review the historical archive for retention. Production integration
+   (including replacing the search scan) requires a separate decision after
+   current-corpus comparison, a new isolated holdout, and P3 verification.
+   Archive acceptance does not authorize production changes.
+4. **Publish to `registry.modelcontextprotocol.io`.** Zero listings today and no
    publication was ever attempted. The freshness gate cleared 2026-07-28 (see
    Shipped); what remains is the board go/no-go. Note repo-root `server.json`
    is a contributor stdio launcher currently occupying the filename the registry
    reserves.
-4. **Contribution surface.** `CONTRIBUTING.md`, issue templates, and a
+5. **Contribution surface.** `CONTRIBUTING.md`, issue templates, and a
    `CODE_OF_CONDUCT.md`. GitHub community health is 42%; there is no entry point
    for an outside contributor even once a LICENSE exists.
 
-5. **Route catalog recovery.** Curated routes regressed 23 → 3 on 2026-06-09
+6. **Route catalog recovery.** Curated routes regressed 23 → 3 on 2026-06-09
    (adoption surface restructure, #210). Audit which curated routes carried real
    query traffic and restore the high-value ones. The P4 boundary-route
    re-activation below belongs to this item when it un-defers.
-6. **Monitor hardening & telemetry revival.** Content-quality monitor back to a
+7. **Monitor hardening & telemetry revival.** Content-quality monitor back to a
    green path (#273 open). The weekly-review half shipped 2026-08-07:
    `weekly-metrics.yml` posts a Monday "Weekly metrics review \<ISO week\>"
    issue combining freshness vs the 26h SLO (reusing the sync monitor), main
