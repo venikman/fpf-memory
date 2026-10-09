@@ -12,6 +12,14 @@ Files: `index.ts` (index + scoring core), `tokenizer.ts` (shared doc/query
 pipeline), `porter2.ts` (Snowball English stemmer, frozen by unit vectors that
 the build self-checks).
 
+**Maintenance correction (2026-10-09):** the stemmer's exception lookup now
+accepts only own properties. Previously `constructor` produced an inherited
+function instead of a string token, causing BM25F and fusion to return no
+results for that query. Regression tests cover prototype property names,
+the existing stemming cases, and retrieval from a small synthetic corpus.
+The result JSONs below remain the original August measurements; this repair
+does not establish new full-corpus rankings or performance.
+
 ## Final parameters and provenance
 
 | param | digest start | frozen | provenance |

@@ -11,7 +11,8 @@
 import path from 'node:path';
 
 import { loadCorpus } from './corpus.js';
-import type { CandidateReport, GoldCase } from './types.js';
+import { loadGold } from './gold.js';
+import type { CandidateReport } from './types.js';
 
 const EXPERIMENT_ROOT = path.resolve(import.meta.dir, '..');
 
@@ -39,16 +40,6 @@ function parseArgs(argv: string[]): { file: string; candidate?: string; diff?: [
   return { file, candidate, diff };
 }
 
-async function loadGoldFor(goldSet: string): Promise<Map<string, GoldCase>> {
-  const files = goldSet === 'all' ? ['dev.json', 'test.json'] : [`${goldSet}.json`];
-  const cases: GoldCase[] = [];
-  for (const file of files) {
-    const blob = Bun.file(path.join(EXPERIMENT_ROOT, 'gold', file));
-    if (await blob.exists()) cases.push(...((await blob.json()) as GoldCase[]));
-  }
-  return new Map(cases.map((c) => [c.id, c]));
-}
-
 function label(corpusTitle: string | undefined, id: string): string {
   return corpusTitle ? `${id} (${corpusTitle.slice(0, 48)})` : id;
 }
@@ -57,7 +48,7 @@ async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
   const resultsPath = path.resolve(EXPERIMENT_ROOT, options.file);
   const results = (await Bun.file(resultsPath).json()) as ResultsFile;
-  const gold = await loadGoldFor(results.goldSet);
+  const gold = new Map((await loadGold(results.goldSet)).map((entry) => [entry.id, entry]));
   const corpus = await loadCorpus();
   const title = (id: string): string | undefined => corpus.byId.get(id)?.title;
 

@@ -11,9 +11,10 @@ import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 
 import { loadCorpus } from './corpus.js';
+import { loadGold } from './gold.js';
 import { bestRank, computeMetrics, formatLeaderboard } from './metrics.js';
 import { createCandidates } from './registry.js';
-import type { CandidateReport, CaseResult, GoldCase } from './types.js';
+import type { CandidateReport, CaseResult } from './types.js';
 
 const EXPERIMENT_ROOT = path.resolve(import.meta.dir, '..');
 const K = 10;
@@ -48,28 +49,6 @@ function parseArgs(argv: string[]): CliOptions {
     else throw new Error(`unknown argument: ${arg}`);
   }
   return options;
-}
-
-async function loadGold(name: string): Promise<GoldCase[]> {
-  const files =
-    name === 'all' ? ['dev.json', 'test.json'] : [`${name}.json`];
-  const cases: GoldCase[] = [];
-  for (const file of files) {
-    const filePath = path.join(EXPERIMENT_ROOT, 'gold', file);
-    const blob = Bun.file(filePath);
-    if (!(await blob.exists())) {
-      if (name === 'all' && file === 'test.json') continue; // test split may not be materialized yet
-      throw new Error(`gold set not found: ${filePath}`);
-    }
-    const parsed = (await blob.json()) as GoldCase[];
-    cases.push(...parsed);
-  }
-  const ids = new Set<string>();
-  for (const goldCase of cases) {
-    if (ids.has(goldCase.id)) throw new Error(`duplicate gold case id: ${goldCase.id}`);
-    ids.add(goldCase.id);
-  }
-  return cases;
 }
 
 async function main(): Promise<void> {
@@ -128,12 +107,9 @@ async function main(): Promise<void> {
       });
     }
 
-    // Determinism: re-query every 7th case plus all misses, compare ID lists.
+    // Repeatability: re-query every case on this instance and compare ranked IDs.
     let deterministic = true;
-    for (let i = 0; i < gold.length; i++) {
-      const goldCase = gold[i]!;
-      const caseResult = cases[i]!;
-      if (i % 7 !== 0 && caseResult.rank !== null) continue;
+    for (const goldCase of gold) {
       const again = (await candidate.query(goldCase.question, K)).slice(0, K).map((h) => h.id).join('|');
       if (again !== firstRun.get(goldCase.id)) {
         deterministic = false;

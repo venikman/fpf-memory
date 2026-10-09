@@ -100,5 +100,7 @@ export interface CandidateReport {
     latency: { p50Ms: number; p95Ms: number; meanMs: number };
     perCategory: Record<string, { n: number; recallAt5: number; mrrAt10: number }>;
   };
+  /** Ranked IDs matched on a second query of every case on the same instance.
+   * Historical August reports used a sampled check; this is not a cross-process guarantee. */
   deterministic: boolean;
 }

@@ -157,8 +157,7 @@ export function porter2(input: string): string {
     if (w.length < 3) return w;
   }
 
-  const exceptional = EXCEPTIONS1[w];
-  if (exceptional !== undefined) return exceptional;
+  if (Object.hasOwn(EXCEPTIONS1, w)) return EXCEPTIONS1[w]!;
 
   // Mark consonant y as 'Y' (initial y, or y after a vowel).
   let marked = '';

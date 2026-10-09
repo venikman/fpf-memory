@@ -55,9 +55,20 @@ results/    committed JSON reports + leaderboard
 4. Scoring: Recall@1/5/10, MRR@10, nDCG@10 over positive cases; negative
    cases score "clean" when the candidate returns nothing (the harness treats
    an empty result list for nonsense queries as correct abstention). Latency
-   p50/p95 per query, build time, determinism double-run.
+   p50/p95 per query and build time. The current harness re-queries every case
+   on the same candidate instance and compares its ranked IDs; the report's
+   `deterministic` flag describes only that bounded repeatability check, not
+   cross-process reproducibility. The unchanged August reports checked every
+   seventh case plus misses; their flags do not establish an every-case check.
 
 ## Run
+
+For the current harness regression check, run `bun run ensure:snapshot`, then
+`bun test experiments/retrieval-bakeoff/harness/run.test.ts` from the repo root.
+It uses stable and deliberately changing fixtures, not a performance benchmark.
+Combined `--gold all` runs prefix case IDs with `dev:` or `test:` because the
+generated IDs overlap between splits. The historical runner rejected those
+duplicates; separate dev/test replay and the stored reports remain unchanged.
 
 To replay the archived experiment, use a separate checkout of PR #309 head
 `2113f630661f3c34b174308494ded4e9aa40199d`, which retains the matching

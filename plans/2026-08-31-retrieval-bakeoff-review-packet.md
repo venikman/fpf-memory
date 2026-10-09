@@ -73,7 +73,8 @@ run-stance number has a JSON artifact.
 3. Multi-hop needs the graph walk, not more lexical tuning (CR-4). The
    capability exists (68.8%); it was mis-weighted, not missing.
 4. Everything runs inside the repo's own constraints: deterministic TypeScript,
-   zero new dependencies, no vectors, no models, <7s build on the full corpus.
+   zero new dependencies, no model weights or vector database service,
+   <7s build on the full corpus.
 
 ## Historical follow-up proposals (separate decision required)
 
