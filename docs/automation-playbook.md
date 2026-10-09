@@ -36,7 +36,7 @@ Use profile-based gates so small work stays small without lowering assurance for
 | P1 Tiny low-risk | Copy, typo, dead-link text, comments, or docs wording with no public-promise, route, schema, security, deploy, monitor, or generated-artifact effect. | Focused static inspection or one targeted command, plus why broader checks were not needed. |
 | P2 Normal docs/code | Local docs, CLI, runtime, test, or hosted-copy changes with behavior impact but no production-control or security boundary change. | Closest surface check: focused test, docs build, CLI invocation, local smoke, or type check as applicable. |
 | P3 Production/security/deploy/MCP/published | Public promises, MCP routes/tools/contracts, security headers, deployment packaging, monitor behavior, production smoke, or `published/current/**`. | Surface E2E or deploy dry-run plus the production evidence packet when production-facing behavior is implicated. |
-| P4 Autonomous sync/deploy automation | Sync workers, scheduled monitors, merge/deploy automation, billing/spend controls, or autonomous workflow triggering. | Budget, guard verdict, stop/replan trigger, and ledger-style evidence note. Human approval is still required for billing, purchases, destructive actions, and final external publishing. |
+| P4 Autonomous sync/deploy automation | Sync workers, scheduled monitors, merge/deploy automation, billing/spend controls, or autonomous workflow triggering. | Budget, guard verdict, stop/replan trigger, and ledger-style evidence note. Human approval is still required for billing, purchases, destructive actions, and final external publishing, subject to [project reviewer delegation](#project-reviewer-delegation). |
 
 Agents start with the smallest admissible profile and escalate when the touched surface or claim requires it. Workflow trigger changes, path filters, or monitor cadence/backoff changes should be separate measured PRs unless the current task is explicitly about automation behavior.
 
@@ -88,11 +88,17 @@ Manager brief
 | Local repo and public product read access | All roles | Allowed for evidence gathering. |
 | GitHub read access | All roles that inspect discussions, issues, PRs, and CI | Allowed for evidence gathering. |
 | GitHub write access | Implementation PR agent and PR review/merge captain | Allowed only within their role boundaries. |
-| Vercel MCP access | Vercel MCP operator, PR review/merge captain, FPF sync monitor, Vercel spend monitor | Read-first evidence gathering; mutating tools require human confirmation and role-specific approval. |
+| Vercel MCP access | Vercel MCP operator, PR review/merge captain, FPF sync monitor, Vercel spend monitor | Read-first evidence gathering; mutations require explicit user approval or the scoped release approval below. Built-in tool confirmations remain required. |
 | External publishing accounts | Growth and publishing scout | Draft-only unless the user explicitly approves a specific publish/send action. |
 | Secrets, billing, deploy settings, destructive actions | User or explicitly delegated operator | Prepare instructions; do not perform final actions by default. |
 
-For purchases, subscriptions, billing changes, account changes, or external publishing, the automation may prepare the flow and draft the copy. The user performs or explicitly approves the final action.
+For purchases, subscriptions, billing changes, account changes, or external publishing, the automation may prepare the flow and draft the copy. The user performs or explicitly approves the final action, subject to the bounded project delegation below.
+
+### Project reviewer delegation
+
+For Codex implementation work, the user's project-specific reviewer delegation in repository `AGENTS.md` defines who may independently approve a release. Within its stated scope, that reviewer's recorded approval satisfies the human publishing-approval requirement in the verification profiles, access table, and operator instructions on this page. The delegation covers only the named branch/PR Preview, merge, existing guarded production pipeline, and its rollback; other actions retain their existing approval requirements.
+
+Approval must identify the exact commit, permitted actions, evidence, and risks, with a reference to the actual independent reviewer's decision. New commits or unreviewed working-tree changes require renewed approval. Branch/Preview approval may precede remote CI; merge and production approval require the merge policy and appropriate surface verification. Built-in app/tool confirmations still apply. No reviewer connection or scheduled-workflow enforcement is established by these instructions; an unavailable reviewer is a handoff blocker, never implicit approval.
 
 ## Credential and renewal ledger
 
@@ -145,6 +151,8 @@ Default prompt boundary:
 
 ```text
 Use the Vercel MCP server named vercel for read-only deployment evidence. Inspect the relevant project, deployment, build logs, runtime logs, and protected preview URL if needed. Do not deploy, promote, alias, rollback, buy domains, or change settings unless the user explicitly approves that action.
+
+For Codex implementation work, recorded approval under the project reviewer delegation in AGENTS.md may authorize the existing guarded fpf.sh/mcp.fpf.sh release and its rollback. It does not authorize domains, credentials, settings changes, or bypassing built-in confirmations.
 ```
 
 For project-scoped operations, use the project-specific URLs documented in the operator packaging section on the MCP origin so the team/project context is explicit.
@@ -221,7 +229,7 @@ Rollback is a mutating action: it needs explicit operator approval per the acces
 
 ## Merge policy
 
-Implementation and merge authority are separate.
+Implementation and merge authority are separate. For Codex implementation work, use the designated reviewer under [project reviewer delegation](#project-reviewer-delegation); the implementer cannot supply that independent approval.
 
 A PR may be merged by the review/merge role only when:
 
@@ -424,7 +432,7 @@ If you are open to it, I would value a quick critique of the MCP onboarding path
 
 ## Approval checklist
 
-Before anything leaves GitHub or a local draft:
+Before growth or outreach publishing material leaves GitHub or a local draft (project releases follow the separate release delegation and merge policy):
 
 - The channel is named.
 - The audience is named.
