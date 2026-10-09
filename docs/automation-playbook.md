@@ -36,7 +36,7 @@ Use profile-based gates so small work stays small without lowering assurance for
 | P1 Tiny low-risk | Copy, typo, dead-link text, comments, or docs wording with no public-promise, route, schema, security, deploy, monitor, or generated-artifact effect. | Focused static inspection or one targeted command, plus why broader checks were not needed. |
 | P2 Normal docs/code | Local docs, CLI, runtime, test, or hosted-copy changes with behavior impact but no production-control or security boundary change. | Closest surface check: focused test, docs build, CLI invocation, local smoke, or type check as applicable. |
 | P3 Production/security/deploy/MCP/published | Public promises, MCP routes/tools/contracts, security headers, deployment packaging, monitor behavior, production smoke, or `published/current/**`. | Surface E2E or deploy dry-run plus the production evidence packet when production-facing behavior is implicated. |
-| P4 Autonomous sync/deploy automation | Sync workers, scheduled monitors, merge/deploy automation, billing/spend controls, or autonomous workflow triggering. | Budget, guard verdict, stop/replan trigger, and ledger-style evidence note. Human approval is still required for billing, purchases, destructive actions, and final external publishing. |
+| P4 Autonomous sync/deploy automation | Sync workers, scheduled monitors, merge/deploy automation, billing/spend controls, or autonomous workflow triggering. | Budget, guard verdict, stop/replan trigger, and ledger-style evidence note. Human approval is still required for billing, purchases, destructive actions, and final external publishing, subject to [project reviewer delegation](#project-reviewer-delegation). |
 
 Agents start with the smallest admissible profile and escalate when the touched surface or claim requires it. Workflow trigger changes, path filters, or monitor cadence/backoff changes should be separate measured PRs unless the current task is explicitly about automation behavior.
 
@@ -88,11 +88,17 @@ Manager brief
 | Local repo and public product read access | All roles | Allowed for evidence gathering. |
 | GitHub read access | All roles that inspect discussions, issues, PRs, and CI | Allowed for evidence gathering. |
 | GitHub write access | Implementation PR agent and PR review/merge captain | Allowed only within their role boundaries. |
-| Vercel MCP access | Vercel MCP operator, PR review/merge captain, FPF sync monitor, Vercel spend monitor | Read-first evidence gathering; mutating tools require human confirmation and role-specific approval. |
+| Vercel MCP access | Vercel MCP operator, PR review/merge captain, FPF sync monitor, Vercel spend monitor | Read-first evidence gathering; mutations require explicit user approval or the scoped release approval below. Built-in tool confirmations remain required. |
 | External publishing accounts | Growth and publishing scout | Draft-only unless the user explicitly approves a specific publish/send action. |
 | Secrets, billing, deploy settings, destructive actions | User or explicitly delegated operator | Prepare instructions; do not perform final actions by default. |
 
-For purchases, subscriptions, billing changes, account changes, or external publishing, the automation may prepare the flow and draft the copy. The user performs or explicitly approves the final action.
+For purchases, subscriptions, billing changes, account changes, or external publishing, the automation may prepare the flow and draft the copy. The user performs or explicitly approves the final action, subject to the bounded project delegation below.
+
+### Project reviewer delegation
+
+For Codex implementation work, the user's project-specific reviewer delegation in repository `AGENTS.md` defines who may independently approve a release. Within its stated scope, that reviewer's recorded approval satisfies the human publishing-approval requirement in the verification profiles, access table, and operator instructions on this page. The delegation covers only the named branch/PR Preview, merge, existing guarded production pipeline, and its rollback; other actions retain their existing approval requirements.
+
+Approval must identify the exact commit, permitted actions, evidence, and risks, with a reference to the actual independent reviewer's decision. New commits or unreviewed working-tree changes require renewed approval. Branch/Preview approval may precede remote CI; merge and production approval require the merge policy and appropriate surface verification. Built-in app/tool confirmations still apply. No reviewer connection or scheduled-workflow enforcement is established by these instructions; an unavailable reviewer is a handoff blocker, never implicit approval.
 
 ## Credential and renewal ledger
 
@@ -100,12 +106,24 @@ The repository secrets below gate the automation. Their values appear nowhere in
 
 | Repo secret | What it is | Consumed by | When it dies |
 | --- | --- | --- | --- |
-| `VERCEL_TOKEN` | Baseline Vercel token. Proven **unable** to see the `venikmans-projects` team scope (first live weekly run, 2026-08-07: the CLI says "The specified scope does not exist" and REST returns 403). | `sync-fpf.yml` production-deploy gate and no-change repair path; last fallback in every other token chain. | The sync worker refuses to merge sync PRs ("cannot merge … because production deployment cannot be proven") and publication stalls even with green CI. |
-| `VERCEL_SPEND_MONITOR_TOKEN` | The only token proven to carry the `venikmans-projects` team scope. | Primary for `vercel-spend-monitor.yml` (every 6h); de-facto primary for `weekly-metrics.yml` and the usage sample through fallback chains. | Spend guardrails go blind (a `metrics_unavailable` issue opens) and the weekly review loses deployments, Web Analytics, and the usage sample in one stroke. |
-| `FPF_USAGE_REPORT_VERCEL_TOKEN` | Dedicated usage-report token. **Dormant in CI:** the workflow chain references `VERCEL_USAGE_REPORT_TOKEN`, a secret that was never created, so scheduled usage samples actually run on the spend-monitor token; only local `bun run usage:report` reads this name directly. | `scripts/usage-report.ts` env (local runs); the weekly token-ledger probe. | Local usage reports lose their dedicated token; CI behavior does not change until the workflow chain is renamed to match. |
+| `VERCEL_TOKEN` | Baseline Vercel token. The August 7 scope probe failed; the October 5 ledger reported it invalid. | Last fallback in sync deployment and other token chains; an explicitly exported value also affects local Vercel CLI commands. | Blocks deployment only when selected. Sync selects `VERCEL_SYNC_DEPLOY_TOKEN` → `VERCEL_SPEND_MONITOR_TOKEN` → `VERCEL_TOKEN`; baseline failure alone does not block a valid earlier selection. |
+| `VERCEL_SPEND_MONITOR_TOKEN` | Team-scoped token; the October 9 spend run succeeded. | Primary for `vercel-spend-monitor.yml` (every 6h); current effective credential for sync deploys, weekly metrics and usage sampling when their dedicated credentials are absent. | A selected invalid value can block deployment and reporting as well as cost monitoring; presence-based selection does not retry a later token after rejection. |
+| `FPF_USAGE_REPORT_VERCEL_TOKEN` | Dedicated usage-report token; the October 5 ledger probe reported it invalid. The canonical usage env uses this name. Scheduled sampling keeps the already-used spend-monitor credential first until rotation is verified. | `scripts/usage-report.ts`; second choice after `VERCEL_SPEND_MONITOR_TOKEN` in the weekly usage step; separate token-ledger probe. | Local runs that select this credential report failed collection. Scheduled sampling retains its existing spend-monitor credential when present; the dedicated secret is not silently labelled healthy. |
 | `MASTRA_KEY` | Unknown — referenced by no workflow, script, or doc in this repo (checked 2026-08-30). | Nothing in-repo. | Nothing in-repo. Deletion candidate; confirm no external consumer first. |
 
-Referenced-but-nonexistent secret names, kept deliberately visible: `VERCEL_WEEKLY_METRICS_TOKEN` and `VERCEL_USAGE_REPORT_TOKEN` sit first in `weekly-metrics.yml` fallback chains but do not exist as repo secrets, so those steps silently run on `VERCEL_SPEND_MONITOR_TOKEN` today. Creating either secret later upgrades those steps to a dedicated token — an intended path, not an accident.
+`VERCEL_WEEKLY_METRICS_TOKEN` remains an optional dedicated weekly-report secret; absent it, the weekly report uses `VERCEL_SPEND_MONITOR_TOKEN` then `VERCEL_TOKEN`. The usage step references the canonical `FPF_USAGE_REPORT_VERCEL_TOKEN` secret and keeps `VERCEL_SPEND_MONITOR_TOKEN` first because the dedicated token was invalid in the October 5 probe. Its explicit selection order is spend-monitor → dedicated usage → baseline. After rotating and verifying the dedicated token, review the workflow order before making it primary. `VERCEL_USAGE_REPORT_TOKEN` is a local CLI compatibility alias only; no workflow depends on that nonexistent secret.
+
+The workflow writes the actual selected secret **name** as `credential_source`, separately from the canonical env containing its value. Token-ledger probes still receive each original secret through `FPF_TOKEN_LEDGER_*`; a healthy fallback must never be reported as proof that the dedicated secret is valid. This is presence-based fallback, not automatic retry with a different credential after an authorization rejection.
+
+Read-only local telemetry verification with an existing authenticated Vercel CLI session:
+
+```bash
+bun run usage:report -- --source vercel --use-cli-auth \
+  --scope venikmans-projects --window 24h --vercel-timeout-ms 60000 \
+  --format markdown --no-write --fail-on-quality-breach
+```
+
+`--use-cli-auth` is explicit and used only when no token flag/env is selected; CI continues to require its configured token. No login, secret mutation, or publishing is performed by this report command. Exports have fixed start/end timestamps and the script bounds collection time (300 s by default, below the 6 min workflow step budget). A CLI failure or timeout produces a `source_error` report and GitHub verdict with unavailable event counts; `absent` is reserved for a step that cannot write any verdict. The weekly review preserves these failures as findings. Successful empty exports only establish that no events were returned in the retained sample, not that nobody used MCP. Automated checks also contribute telemetry. Local publication metadata enriches labels and does not establish the revision served by sampled requests.
 
 Renewal procedure for any Vercel token above:
 
@@ -133,6 +151,8 @@ Default prompt boundary:
 
 ```text
 Use the Vercel MCP server named vercel for read-only deployment evidence. Inspect the relevant project, deployment, build logs, runtime logs, and protected preview URL if needed. Do not deploy, promote, alias, rollback, buy domains, or change settings unless the user explicitly approves that action.
+
+For Codex implementation work, recorded approval under the project reviewer delegation in AGENTS.md may authorize the existing guarded fpf.sh/mcp.fpf.sh release and its rollback. It does not authorize domains, credentials, settings changes, or bypassing built-in confirmations.
 ```
 
 For project-scoped operations, use the project-specific URLs documented in the operator packaging section on the MCP origin so the team/project context is explicit.
@@ -209,7 +229,7 @@ Rollback is a mutating action: it needs explicit operator approval per the acces
 
 ## Merge policy
 
-Implementation and merge authority are separate.
+Implementation and merge authority are separate. For Codex implementation work, use the designated reviewer under [project reviewer delegation](#project-reviewer-delegation); the implementer cannot supply that independent approval.
 
 A PR may be merged by the review/merge role only when:
 
@@ -412,7 +432,7 @@ If you are open to it, I would value a quick critique of the MCP onboarding path
 
 ## Approval checklist
 
-Before anything leaves GitHub or a local draft:
+Before growth or outreach publishing material leaves GitHub or a local draft (project releases follow the separate release delegation and merge policy):
 
 - The channel is named.
 - The audience is named.

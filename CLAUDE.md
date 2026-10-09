@@ -31,6 +31,10 @@ only for acts that are hard to reverse or outward-facing:
   remote-branch deletion, external publishing, rotating secrets.
 - **Never fabricate FPF IDs; never force-merge past content-review guards.**
 
+For Codex implementation work, the bounded Your dot review/release delegation in
+`AGENTS.md` governs who may approve the named publishing actions. Other exceptions
+above retain their user-approval requirement; a configured role is not a recorded approval.
+
 **Verification is NOT an exception** — keep verifying rigorously before calling
 work done (`AGENTS.md` P-profiles). The lesson is "stop gating *decisions* on
 approval," never "stop checking your work."

@@ -228,9 +228,11 @@ function assembleTrace(
     normalized.detected.routeNames.length > 0 ||
     normalized.detected.familyTerms.length > 0 ||
     normalized.detected.statusTerms.length > 0;
-  const thinQuery =
+  const knownExplicitId = normalized.detected.ids.some((id) => Boolean(snapshot.compiledNodes[id]));
+  const thinQuery = !knownExplicitId && (
     meaningfulTokens.length < 3 ||
-    (!recognizedFpfTerm && meaningfulTokens.length < 6);
+    (!recognizedFpfTerm && meaningfulTokens.length < 6)
+  );
   const status =
     thinQuery
       ? 'unsupported'
@@ -918,6 +920,18 @@ describe('Query / Quality + shape gating', () => {
     const result = await runtime.query('?');
     expect(result.status).toBe('unsupported');
     expect(result.confidence!).toBeLessThanOrEqual(0.3);
+  });
+
+  it('answers known bare IDs without relaxing the guard for unknown IDs', async () => {
+    for (const id of ['A.1.1', 'E.4.FPF']) {
+      const result = await runtime.query(id);
+      expect(result.status).toBe('ok');
+      expect(result.ids).toContain(id);
+      expect(result.citations.length).toBeGreaterThan(0);
+    }
+    const unknown = await runtime.query('A.999999');
+    expect(unknown.status).toBe('unsupported');
+    expect(unknown.ids).toEqual([]);
   });
 
   it('flags requestedShape and shapeProduced when caller asks for a template', async () => {

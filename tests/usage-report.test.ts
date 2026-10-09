@@ -1,5 +1,7 @@
 import { spawnSync } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import { describe, expect, it } from '@rstest/core';
 
@@ -8,6 +10,9 @@ import {
   configErrorUsageReport,
   formatUsageReportMarkdown,
 } from '../src/build/usage-report.js';
+
+import { getRuntimeLogger, resetRuntimeLoggerForTests } from '../src/adapters/infra/logging/runtime-logger.js';
+import { createMcpUsageTelemetryEvent } from '../src/adapters/mcp/usage-telemetry.js';
 
 const FIXTURE_PATH = 'tests/fixtures/usage/mcp_tool_usage.jsonl';
 const NOW = new Date('2026-05-31T12:30:00.000Z');
@@ -23,6 +28,7 @@ describe('usage report aggregation', () => {
 
     expect(report.state).toBe('ok');
     expect(report.ok).toBe(true);
+    expect(report.countsAvailable).toBe(true);
     expect(report.window.start).toBe('2026-05-30T12:30:00.000Z');
     expect(report.window.end).toBe('2026-05-31T12:30:00.000Z');
     expect(report.totals).toEqual({
@@ -70,12 +76,109 @@ describe('usage report aggregation', () => {
       status: 'Stable',
       part: 'Part A - Kernel Architecture Cluster',
     });
-    expect(report.topServedPatterns[0]?.title).toContain('Holon Ontic Foundation');
+    expect(report.topServedPatterns[0]?.title).toBe('Recognize a Whole with Parts (U.Holon and Admitted Holon Kinds)');
     expect(report.topRoutes[0]).toMatchObject({
       id: 'route:project-alignment',
       count: 1,
       kind: 'route',
     });
+  });
+
+  it('reads every telemetry message from a CLI request row without duplicating its display message', async () => {
+    const event = {
+      event: 'mcp_tool_usage', schemaVersion: 3, toolName: 'get_fpf_index_status',
+      outcome: 'ok', durationMs: 1, input: { intentCategory: 'index_health' }, output: {},
+    };
+    const message = JSON.stringify(event);
+    const report = await buildUsageReportFromLines({
+      lines: [JSON.stringify({
+        timestamp: NOW.getTime(), message,
+        logs: [{ message: 'unrelated diagnostic' }, { message }, { message }],
+      })],
+      source: { kind: 'vercel', description: 'Synthetic CLI request row' },
+      windowLabel: '24h', now: NOW,
+    });
+    expect(report.totals.rawLineCount).toBe(1);
+    expect(report.totals.validEventCount).toBe(2);
+    expect(report.totals.invalidEventCount).toBe(0);
+    expect(report.topTools).toEqual([{ id: 'get_fpf_index_status', count: 2 }]);
+  });
+
+  it('flags a request entry truncated before its usage marker beside a valid event', async () => {
+    const message = JSON.stringify({
+      event: 'mcp_tool_usage', schemaVersion: 3, toolName: 'get_fpf_index_status',
+      outcome: 'ok', durationMs: 1, input: { intentCategory: 'index_health' }, output: {},
+    });
+    const report = await buildUsageReportFromLines({
+      lines: [JSON.stringify({
+        timestamp: NOW.getTime(), message,
+        logs: [{ message }, { message: '{"time":"2026-05-31', messageTruncated: true }],
+      })],
+      source: { kind: 'vercel', description: 'Synthetic partially truncated CLI request' },
+      windowLabel: '24h', now: NOW,
+    });
+    expect(report.totals).toMatchObject({ rawLineCount: 1, validEventCount: 1, invalidEventCount: 1 });
+    expect(report.operatorActionRequired).toBe(true);
+    expect(report.triageFindings.join(' ')).toContain('counts may be incomplete');
+  });
+
+  it('accepts a healthy mixed runtime log through the file CLI quality gate', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'fpf-usage-mixed-'));
+    const priorVercel = process.env.VERCEL;
+    delete process.env.VERCEL;
+    try {
+      const logPath = join(directory, 'fpf-runtime.log');
+      const logger = getRuntimeLogger({ filePath: logPath, level: 'info', serviceName: 'fpf-runtime' });
+      logger.info('MCP stdio server start');
+      logger.info('Hosted MCP server start', { port: 3000 });
+      logger.info('CLI command start', { command: 'query', args: ['__PRIVATE_CLI_ARGUMENT__'] });
+      logger.info('MCP tool usage', { ...createMcpUsageTelemetryEvent({
+        toolName: 'get_fpf_index_status', outcome: 'ok', durationMs: 1,
+        input: {}, output: { fresh: true },
+      }) });
+      logger.info('CLI command finished', { command: 'query', exitCode: 0 });
+      await logger.flush?.();
+
+      const result = spawnSync('bun', ['scripts/usage-report.ts', '--source', 'file', '--log-path', logPath, '--format', 'json', '--no-write', '--fail-on-quality-breach'], {
+        cwd: process.cwd(), encoding: 'utf8',
+        env: { ...process.env, GITHUB_OUTPUT: '', GITHUB_STEP_SUMMARY: '' },
+      });
+      expect(result.status).toBe(0);
+      const report = JSON.parse(result.stdout);
+      expect(report.totals).toMatchObject({ rawLineCount: 5, validEventCount: 1, invalidEventCount: 0 });
+      expect(report.operatorActionRequired).toBe(false);
+      expect(result.stdout).not.toContain('__PRIVATE_CLI_ARGUMENT__');
+    } finally {
+      await resetRuntimeLoggerForTests();
+      if (priorVercel === undefined) delete process.env.VERCEL;
+      else process.env.VERCEL = priorVercel;
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('does not skip malformed telemetry inside an otherwise valid runtime logger envelope', async () => {
+    const report = await buildUsageReportFromLines({
+      lines: [JSON.stringify({
+        time: NOW.toISOString(), level: 'info', service: 'fpf-runtime', logFile: 'fpf-runtime.log',
+        message: 'MCP tool usage', data: { event: 'mcp_tool_usage', toolName: 'get_fpf_index_status' },
+      })],
+      source: { kind: 'file', description: 'Malformed usage envelope' }, windowLabel: '24h', now: NOW,
+    });
+    expect(report.totals.invalidEventCount).toBe(1);
+    expect(report.operatorActionRequired).toBe(true);
+  });
+
+  it('flags incomplete telemetry instead of treating an unparsed export as zero activity', async () => {
+    const report = await buildUsageReportFromLines({
+      lines: [JSON.stringify({ timestamp: NOW.getTime(), logs: [
+        { message: '{"event":"mcp_tool_usage",', messageTruncated: true },
+      ] })],
+      source: { kind: 'vercel', description: 'Truncated CLI export' }, windowLabel: '24h', now: NOW,
+    });
+    expect(report.totals.validEventCount).toBe(0);
+    expect(report.totals.invalidEventCount).toBe(1);
+    expect(report.operatorActionRequired).toBe(true);
+    expect(report.triageFindings.join(' ')).toContain('counts may be incomplete');
   });
 
   it('reports tool counts and quality rates deterministically', async () => {
@@ -122,6 +225,7 @@ describe('usage report aggregation', () => {
     expect(report.unknownUnresolvedRate).toBe(0.125);
     expect(report.operatorActionRequired).toBe(true);
     expect(report.triageFindings).toEqual([
+      '2 log entries could not be parsed as sanitized MCP telemetry; counts may be incomplete.',
       'query_fpf_spec error rate is 50% (1/2).',
       'search_fpf empty-result rate is 50% (1/2).',
     ]);
@@ -289,6 +393,7 @@ describe('usage report aggregation', () => {
 
     expect(report.state).toBe('config_error');
     expect(report.ok).toBe(false);
+    expect(report.countsAvailable).toBe(false);
     expect(report.operatorActionRequired).toBe(true);
     expect(report.totals.validEventCount).toBe(0);
     expect(report.topServedPatternIds).toEqual([]);
@@ -316,10 +421,59 @@ describe('usage report aggregation', () => {
     );
   });
 
+  it('writes a failed-source report and GitHub verdict when the log CLI fails, without leaking stderr or reporting zero use', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'fpf-usage-cli-'));
+    try {
+      const executable = join(directory, 'npx');
+      await writeFile(executable, '#!/bin/sh\necho "private raw log and token $VERCEL_TOKEN" >&2\nexit 1\n');
+      await chmod(executable, 0o755);
+      const output = join(directory, 'github-output');
+      const result = spawnSync('bun', ['scripts/usage-report.ts', '--source', 'vercel', '--format', 'markdown', '--no-write', '--fail-on-quality-breach'], {
+        cwd: process.cwd(), encoding: 'utf8',
+        env: { ...process.env, PATH: `${directory}:${process.env.PATH}`, FPF_USAGE_REPORT_VERCEL_TOKEN: 'test-only-secret', FPF_USAGE_REPORT_CREDENTIAL_SOURCE: 'VERCEL_SPEND_MONITOR_TOKEN', GITHUB_OUTPUT: output, GITHUB_STEP_SUMMARY: '' },
+      });
+      expect(result.status).toBe(1);
+      expect(result.stdout).toContain('State: **source_error**');
+      expect(result.stdout).toContain('Valid events: unavailable');
+      expect(result.stdout).toContain('unknown — telemetry collection failed');
+      expect(result.stdout).not.toContain('private raw log');
+      expect(result.stdout).not.toContain('test-only-secret');
+      const verdict = await readFile(output, 'utf8');
+      expect(verdict).toContain('state=source_error');
+      expect(verdict).toContain('operator_action_required=true');
+      expect(verdict).toContain('valid_event_count=\n');
+      expect(verdict).toContain('credential_source=VERCEL_SPEND_MONITOR_TOKEN');
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('turns an export timeout into a report instead of losing the weekly sample', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'fpf-usage-timeout-'));
+    try {
+      const executable = join(directory, 'npx');
+      await writeFile(executable, '#!/usr/bin/env bun\nsetInterval(() => {}, 1000);\n');
+      await chmod(executable, 0o755);
+      const result = spawnSync('bun', ['scripts/usage-report.ts', '--source', 'vercel', '--format', 'json', '--no-write', '--vercel-timeout-ms', '100'], {
+        cwd: process.cwd(), encoding: 'utf8', timeout: 10000,
+        env: { ...process.env, PATH: `${directory}:${process.env.PATH}`, FPF_USAGE_REPORT_VERCEL_TOKEN: 'test-only-secret', GITHUB_OUTPUT: '', GITHUB_STEP_SUMMARY: '' },
+      });
+      expect(result.status).toBe(0);
+      const report = JSON.parse(result.stdout);
+      expect(report.state).toBe('source_error');
+      expect(report.countsAvailable).toBe(false);
+      expect(report.summary).toContain('ETIMEDOUT');
+      expect(report.operatorActionRequired).toBe(true);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
   it('does not let Vercel CLI branch auto-detection hide production logs', () => {
     const env = { ...process.env };
     delete env.FPF_USAGE_REPORT_VERCEL_TOKEN;
     delete env.VERCEL_USAGE_REPORT_TOKEN;
+    delete env.VERCEL_SPEND_MONITOR_TOKEN;
     delete env.VERCEL_TOKEN;
 
     const result = spawnSync(

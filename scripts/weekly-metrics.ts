@@ -69,7 +69,7 @@ const teamId = readString(
 const vercelToken = readOptionalString(
   flags,
   'token',
-  process.env.VERCEL_WEEKLY_METRICS_TOKEN || process.env.VERCEL_TOKEN,
+  process.env.VERCEL_WEEKLY_METRICS_TOKEN || process.env.VERCEL_SPEND_MONITOR_TOKEN || process.env.VERCEL_TOKEN,
 );
 const projects = parseProjects(
   readOptionalString(flags, 'projects', process.env.FPF_WEEKLY_METRICS_PROJECTS),
@@ -80,6 +80,7 @@ const projects = parseProjects(
 const usageState = readOptionalString(flags, 'usage-state', process.env.FPF_WEEKLY_USAGE_STATE);
 const usageSample = usageState === undefined ? undefined : {
   state: usageState,
+  credentialSource: readOptionalString(flags, 'usage-credential-source', process.env.FPF_WEEKLY_USAGE_CREDENTIAL_SOURCE),
   operatorActionRequired:
     readString(flags, 'usage-action-required', process.env.FPF_WEEKLY_USAGE_ACTION_REQUIRED ?? 'false') === 'true',
   summary: readOptionalString(flags, 'usage-summary', process.env.FPF_WEEKLY_USAGE_SUMMARY),

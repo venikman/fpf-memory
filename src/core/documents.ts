@@ -13,6 +13,7 @@ import {
 } from './optional-term-links.js';
 import { WIKI_CONNECT_MCP_MARKDOWN_LINK } from './public-copy.js';
 import { escapeHtml } from './markup.js';
+import { containsOffset, markdownAutolinkGuards, rewriteMarkdownDestinations } from './markdown-links.js';
 import { normalizeForLookup, unique } from './text.js';
 
 export interface GeneratedDocPage {
@@ -102,6 +103,22 @@ export function buildDocsProjection(
     buildPrefaceIndexPage(snapshot),
     buildRootIndexPage(snapshot, manifest),
   ];
+
+  // Upstream publications use monolith fragments and extracted-pattern
+  // filenames. Resolve them against this snapshot after projection, without
+  // changing unknown links (the docs build must still reject missing targets).
+  const resolveSourceLink = sourceLinkResolver(snapshot);
+  for (const page of pages) {
+    page.markdown = rewriteMarkdownDestinations(page.markdown, resolveSourceLink, (target) => {
+      // A cited source file outside this single-spec projection is not a site
+      // route. Preserve the citation and state the limitation instead of
+      // inventing a public URL. Known pattern filenames remain strict even
+      // when their fragment cannot be resolved.
+      return !/^(?:\/|[a-z][a-z\d+.-]*:)/i.test(target)
+        && /\.md(?:#[^\s]*)?$/.test(target)
+        && !sourcePatternId(snapshot, target.split('#')[0]!);
+    });
+  }
 
   // Stamp every generated page with the truthful last-modified date.
   // For pattern / preface pages, this is the most recent commit that
@@ -1175,31 +1192,10 @@ function autolinkPatternIds(snapshot: Snapshot, body: string): string {
     return body;
   }
 
-  const guards: Array<[number, number]> = [];
-  const guardSources: RegExp[] = [
-    /```[\s\S]*?```/g, // fenced code blocks
-    // Inline code spans. CommonMark allows code-span content to span
-    // newlines (newlines render as spaces inside the span); the source
-    // spec uses this pattern frequently, e.g.
-    //   `F.17 / F.18 /\n  E.10`
-    // The `[^`]+?` body catches these multi-line spans so pattern IDs
-    // inside intended-code text aren't autolinked. Single-line spans
-    // are still matched as a strict subset.
-    /`[^`]+?`/g,
-    /\[[^\]]+\]\([^)]+\)/g, // existing markdown links [text](url)
-    /<[^>]+>/g, // HTML tags (don't link inside attributes)
-  ];
-  for (const re of guardSources) {
-    for (const match of body.matchAll(re)) {
-      const start = match.index ?? 0;
-      guards.push([start, start + match[0].length]);
-    }
-  }
-  const isGuarded = (offset: number): boolean =>
-    guards.some(([start, end]) => offset >= start && offset < end);
+  const guards = markdownAutolinkGuards(body);
 
   return body.replace(PATTERN_ID_TOKEN_PATTERN, (match: string, offset: number) => {
-    if (typeof offset !== 'number' || isGuarded(offset)) {
+    if (typeof offset !== 'number' || containsOffset(guards, offset)) {
       return match;
     }
     const node = snapshot.compiledNodes[match];
@@ -1234,14 +1230,20 @@ function autolinkPatternIdsInTableCells(
   snapshot: Snapshot,
   body: string,
 ): string {
+  if (!/^\s*\|/m.test(body)) return body;
   const lines = body.split('\n');
+  const guards = markdownAutolinkGuards(body, false);
+  let lineOffset = 0;
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index]!;
+    const offset = lineOffset;
+    lineOffset += line.length + 1;
     if (!line.trimStart().startsWith('|')) continue;
     if (/^\s*\|?(?:\s*:?-+:?\s*\|)+\s*:?-+:?\s*\|?\s*$/.test(line)) continue;
     lines[index] = line.replace(
       /`([A-Z]\.\d+(?:\.[A-Za-z0-9]+)*(?::[A-Za-z0-9.]+)?)`/g,
-      (match, id: string) => {
+      (match, id: string, matchOffset: number) => {
+        if (containsOffset(guards, offset + matchOffset)) return match;
         const node = snapshot.compiledNodes[id];
         if (node && node.kind === 'pattern') {
           return `[\`${id}\`](${patternDocRef(id).staticPath})`;
@@ -1291,25 +1293,11 @@ const CANONICAL_PHRASE_TOKEN_PATTERN = new RegExp(
  * noise to prose that already pointed the reader at the page.
  */
 function autolinkCanonicalPhrases(body: string): string {
-  if (!body) {
+  if (!CANONICAL_PHRASE_LINKS.some(({ phrase }) => body.includes(phrase))) {
     return body;
   }
 
-  const guards: Array<[number, number]> = [];
-  const guardSources: RegExp[] = [
-    /```[\s\S]*?```/g,
-    /`[^`]+?`/g, // inline code spans, multi-line allowed
-    /\[[^\]]+\]\([^)]+\)/g,
-    /<[^>]+>/g,
-  ];
-  for (const re of guardSources) {
-    for (const match of body.matchAll(re)) {
-      const start = match.index ?? 0;
-      guards.push([start, start + match[0].length]);
-    }
-  }
-  const isGuarded = (offset: number): boolean =>
-    guards.some(([start, end]) => offset >= start && offset < end);
+  const guards = markdownAutolinkGuards(body);
 
   const linked = new Set<string>();
   return body.replace(
@@ -1317,7 +1305,7 @@ function autolinkCanonicalPhrases(body: string): string {
     (match: string, offset: number) => {
       if (
         typeof offset !== 'number' ||
-        isGuarded(offset) ||
+        containsOffset(guards, offset) ||
         linked.has(match)
       ) {
         return match;
@@ -1447,6 +1435,59 @@ function formatNodeReference(snapshot: Snapshot, nodeId: string): string {
   return inlineCode(nodeId);
 }
 
+function sourceLinkResolver(snapshot: Snapshot): (target: string) => string {
+  const fragments = new Map<string, string>();
+  const ambiguous = new Set<string>();
+  const remember = (fragment: string, url: string) => {
+    if (fragments.has(fragment) && fragments.get(fragment) !== url) ambiguous.add(fragment);
+    else fragments.set(fragment, url);
+  };
+  for (const node of Object.values(snapshot.indexMap)) {
+    const patternId = snapshot.patternGraph.nodes[node.id]
+      ? node.id : node.metadata.patternId;
+    const pattern = patternId ? snapshot.patternGraph.nodes[patternId] : undefined;
+    const page = pattern
+      ? patternDocRef(pattern.id).staticPath
+      : node.id.startsWith('heading:') ? prefaceDocRef(node.id, node.lineStart).staticPath : undefined;
+    if (!page) continue;
+    const url = pattern && node.id !== pattern.id ? `${page}#${headingSlug(node.title)}` : page;
+    // Upstream links include the ID in their heading slug; generated pages
+    // remove that prefix from section headings, and split the monolith.
+    remember(markdownHeadingSlug(node.title), url);
+    for (const match of (snapshot.anchorMap[node.id]?.text ?? '').matchAll(/<a\b[^>]*\bid=["']([^"']+)["'][^>]*>/g)) {
+      const explicitId = match[1]!;
+      const namedPatternId = explicitId.match(/^fpf-pattern-([A-Z]\.\d+(?:\.[A-Za-z0-9]+)*)$/)?.[1];
+      // These upstream anchors precede the named pattern heading and may
+      // parse into the previous pattern's End section. Their explicit known
+      // ID owns the link; ordinary anchors keep their actual container.
+      remember(explicitId, namedPatternId && snapshot.patternGraph.nodes[namedPatternId]
+        ? patternDocRef(namedPatternId).staticPath
+        : `${page}#${explicitId}`);
+    }
+  }
+  return (target) => {
+    const hashIndex = target.indexOf('#');
+    const path = hashIndex < 0 ? target : target.slice(0, hashIndex);
+    let fragment = hashIndex < 0 ? '' : target.slice(hashIndex + 1);
+    try { fragment = decodeURIComponent(fragment); } catch { return target; }
+    if (!path && fragment) {
+      return ambiguous.has(fragment) ? target : fragments.get(fragment) ?? target;
+    }
+    const id = sourcePatternId(snapshot, path);
+    const pattern = id ? snapshot.patternGraph.nodes[id] : undefined;
+    if (!pattern) return target;
+    const page = patternDocRef(pattern.id).staticPath;
+    if (!fragment) return page;
+    const resolved = ambiguous.has(fragment) ? undefined : fragments.get(fragment);
+    return resolved === page || resolved?.startsWith(`${page}#`) ? resolved : target;
+  };
+}
+
+function sourcePatternId(snapshot: Snapshot, path: string): string | undefined {
+  const file = path.match(/^(?:\.\/)?([A-Z]\.\d+(?:\.[A-Za-z0-9]+)*)(?:-[^/]*)?\.md$/);
+  return file && snapshot.patternGraph.nodes[file[1]!] ? file[1] : undefined;
+}
+
 /**
  * Resolve a section-shaped ID (e.g. `A.19:0`, `I.2.1`, `E.18:5.9`) to a
  * URL that points at the parent pattern's generated page plus the section
@@ -1498,7 +1539,11 @@ export function headingSlug(text: string): string {
   // and Cyrillic but had a gap for Greek (U+0370–U+03FF), producing
   // broken `#anchor` links for any pattern whose title started with Γ
   // (PR #72 review feedback).
-  return displaySectionTitle(text)
+  return markdownHeadingSlug(displaySectionTitle(text));
+}
+
+function markdownHeadingSlug(text: string): string {
+  return text
     .toLowerCase()
     .replace(/[^\p{L}\p{N}\s\-_]/gu, '')
     .trim()

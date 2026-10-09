@@ -179,19 +179,35 @@ describe('Compiler / Graph closure stage', () => {
     );
   });
 
-  it('exposes section IDs that two source headings collided on', async () => {
+  it('keeps published-source heading collisions bounded', async () => {
     const { snapshot } = await getCompilerOutput();
     const { validation } = snapshot;
 
-    // The FPF source authors a few section IDs twice; the index-map
-    // build silently keeps the last writer. Surfacing those collisions
-    // lets the validation reader see the silent merges instead of
-    // having to diff line numbers by hand. Stays small in the current
-    // spec; pin it as bounded rather than empty so a regression that
-    // hides the surface (e.g. losing the field on the schema) shows up.
+    // Upstream 0c6ade27 (2026-10-07) has no duplicate structured headings.
+    // Keep the published-source bound, and exercise positive detection on
+    // an explicit collision below instead of requiring upstream defects.
     expect(Array.isArray(validation.duplicateHeadings)).toBe(true);
-    expect(validation.duplicateHeadings.length).toBeGreaterThan(0);
     expect(validation.duplicateHeadings.length).toBeLessThan(20);
+  });
+
+  it('exposes section IDs that two source headings collided on', () => {
+    const sourceText = [
+      '# Test specification',
+      '## A.1 - Test pattern',
+      '### A.1:1 - First occurrence',
+      'First body.',
+      '### A.1:1 - Second occurrence',
+      'Second body.',
+    ].join('\n\n');
+    const compile = (text: string) => compileFpfSource({
+      sourcePath: 'duplicate-heading-fixture.md',
+      sourceHash: createHash('sha256').update(text).digest('hex'),
+      builtAt: '2025-01-01T00:00:00.000Z',
+      sourceText: text,
+    }).snapshot.validation.duplicateHeadings;
+
+    expect(compile(sourceText)).toEqual(['A.1:1']);
+    expect(compile(sourceText.replace('### A.1:1 - Second', '### A.1:2 - Second'))).toEqual([]);
   });
 
   it('does not count `.x` / `.y` placeholders or section anchors as unresolved', async () => {

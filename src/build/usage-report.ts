@@ -14,7 +14,7 @@ export const USAGE_PRIVACY_STATEMENT =
   'Usage reports aggregate sanitized MCP telemetry only. They do not include raw questions, prompts, answer text, selectors, markdown bodies, session IDs, IP addresses, or user identifiers.';
 export const UNKNOWN_INTENT_CATEGORY = 'unknown';
 
-export type UsageReportState = 'ok' | 'config_error';
+export type UsageReportState = 'ok' | 'config_error' | 'source_error';
 export type UsageReportFormat = 'json' | 'markdown';
 export type UsageReportSourceKind = 'file' | 'vercel';
 export type UsageIntentCategory =
@@ -47,6 +47,8 @@ export interface UsageReportSource {
   description: string;
   logPath?: string;
   vercelQuery?: string;
+  /** Environment variable selected for this query; never the token value. */
+  credentialSource?: string;
 }
 
 export interface UsageRank {
@@ -90,6 +92,8 @@ export interface UsageReportTotals {
 export interface UsageReport {
   state: UsageReportState;
   ok: boolean;
+  /** False means totals are placeholders, not an observed zero. */
+  countsAvailable: boolean;
   generatedAt: string;
   window: UsageWindow;
   source: UsageReportSource;
@@ -179,12 +183,15 @@ export async function buildUsageReportFromLines(
     unknownUnresolvedEventCount: 0,
   };
 
-  for (const line of input.lines) {
+  for (const line of input.lines.flatMap(expandVercelRequestLogs)) {
     if (!line.trim()) {
       continue;
     }
     const parsed = parseUsageLogLine(line);
     if (!parsed.ok) {
+      if (parsed.ignored) {
+        continue;
+      }
       totals.invalidEventCount += 1;
       continue;
     }
@@ -274,6 +281,7 @@ export async function buildUsageReportFromLines(
   const report: UsageReport = {
     state: 'ok',
     ok: true,
+    countsAvailable: true,
     generatedAt: now.toISOString(),
     window,
     source: input.source,
@@ -317,11 +325,13 @@ export function configErrorUsageReport(input: {
   source: UsageReportSource;
   message: string;
   cwd?: string;
+  state?: 'config_error' | 'source_error';
 }): Promise<UsageReport> {
   const now = input.now ?? new Date();
+  const state = input.state ?? 'config_error';
   return readUsageReportPublication(input.cwd).then((publication) => {
     const triageFindings = buildTriageFindings({
-      state: 'config_error',
+      state,
       totals: {
         rawLineCount: 0,
         validEventCount: 0,
@@ -337,8 +347,9 @@ export function configErrorUsageReport(input: {
       configMessage: input.message,
     });
     const report: UsageReport = {
-      state: 'config_error' as const,
+      state,
       ok: false,
+      countsAvailable: false,
       generatedAt: now.toISOString(),
       window: resolveUsageWindow(input.windowLabel, now),
       source: input.source,
@@ -401,6 +412,36 @@ export function resolveUsageWindow(label: string, now: Date): UsageWindow {
 }
 
 export function formatUsageReportMarkdown(report: UsageReport): string {
+  if (!report.countsAvailable) {
+    return `# FPF Weekly Usage Report
+
+State: **${report.state}**
+
+Window: ${report.window.start} -> ${report.window.end} (${report.window.label})
+
+Source: ${report.source.description}
+${report.source.credentialSource ? `\nCredential source: \`${report.source.credentialSource}\` (selection only; see the separate credential ledger for validity)\n` : ''}
+Summary: ${report.summary}
+
+## Usage
+
+- Observation: unknown — telemetry collection failed
+- Valid events: unavailable
+- Operator action required: yes
+
+### Triage Findings
+
+${findingList(report.triageFindings)}
+
+### Caveats
+
+${report.caveats.map((item) => `- ${item}`).join('\n')}
+
+## Privacy
+
+${report.privacyStatement}
+`;
+  }
   return `# FPF Weekly Usage Report
 
 State: **${report.state}**
@@ -408,14 +449,16 @@ State: **${report.state}**
 Window: ${report.window.start} -> ${report.window.end} (${report.window.label})
 
 Source: ${report.source.description}
-
-Publication: upstream \`${shortRef(report.publication.upstreamRef)}\`, source \`${report.publication.sourceHash}\`, compiler \`${report.publication.compilerFingerprint}\`
+${report.source.credentialSource ? `
+Credential source: \`${report.source.credentialSource}\` (selection only; see the separate credential ledger for validity)
+` : ''}
+Local catalog publication (for labels, not evidence of the deployed revision): upstream \`${shortRef(report.publication.upstreamRef)}\`, source \`${report.publication.sourceHash}\`, compiler \`${report.publication.compilerFingerprint}\`
 
 Summary: ${report.summary}
 
 ## Usage
 
-- Adoption: ${report.totals.validEventCount > 0 ? 'observed production MCP usage' : 'no observed production MCP use'}
+- Observation: ${report.totals.validEventCount > 0 ? 'MCP telemetry observed in this sample; includes automated probes' : 'no events observed in this sample; not proof of no usage'}
 - Valid events: ${report.totals.validEventCount}
 - Operator action required: ${report.operatorActionRequired ? 'yes' : 'no'}
 
@@ -516,12 +559,44 @@ ${report.privacyStatement}
 `;
 }
 
-function parseUsageLogLine(line: string): { ok: true; event: UsageEvent } | { ok: false } {
+/** The pinned CLI emits request rows with all messages in logs[]. Its top-level
+ * message is only one selected log (highest severity), not the full request.
+ * Expand telemetry entries without also counting the duplicate display message.
+ */
+function expandVercelRequestLogs(line: string): string[] {
+  try {
+    const record = asRecord(JSON.parse(line));
+    if (!record || !Array.isArray(record.logs)) {
+      return [line];
+    }
+    const entries = record.logs.filter((entry) => {
+      const log = asRecord(entry);
+      // Truncation may remove the event marker; retain it so partial counts
+      // cannot look complete just because a sibling message parsed correctly.
+      return log?.messageTruncated === true || findUsageEnvelope(entry)
+        || (optionalString(log?.message) ?? optionalString(log?.text))?.includes('mcp_tool_usage');
+    });
+    if (entries.length === 0) {
+      return [line];
+    }
+    const requestTime = typeof record.timestamp === 'number'
+      ? new Date(record.timestamp).toISOString()
+      : optionalString(record.timestamp) ?? optionalString(record.time);
+    return entries.map((entry) => JSON.stringify({ time: requestTime, ...asRecord(entry) }));
+  } catch {
+    return [line];
+  }
+}
+
+function parseUsageLogLine(line: string): { ok: true; event: UsageEvent } | { ok: false; ignored?: boolean } {
   try {
     const record = JSON.parse(line) as unknown;
     const envelope = findUsageEnvelope(record);
-    if (!envelope) {
+    if (asRecord(record)?.messageTruncated === true) {
       return { ok: false };
+    }
+    if (!envelope) {
+      return { ok: false, ignored: isOrdinaryRuntimeLog(record) };
     }
     if (containsRawPrivateField(envelope.payload)) {
       return { ok: false };
@@ -531,6 +606,40 @@ function parseUsageLogLine(line: string): { ok: true; event: UsageEvent } | { ok
   } catch {
     return { ok: false };
   }
+}
+
+/** Local files also contain startup and CLI diagnostics from RuntimeLogger.
+ * Recognize that envelope, rather than silently discarding arbitrary bad rows.
+ * Keep anything labelled as usage (including an incomplete payload) invalid.
+ */
+function isOrdinaryRuntimeLog(value: unknown): boolean {
+  const record = asRecord(value);
+  if (!record) {
+    return false;
+  }
+  const message = optionalString(record.message) ?? optionalString(record.text);
+  if (!message || message === 'MCP tool usage' || message.includes('mcp_tool_usage')) {
+    return false;
+  }
+  if (
+    parseDate(optionalString(record.time))
+    && ['debug', 'info', 'warn', 'error'].includes(optionalString(record.level) ?? '')
+    && optionalString(record.service)
+    && optionalString(record.logFile)
+    && record.event === undefined
+    && asRecord(record.data)?.event !== 'mcp_tool_usage'
+  ) {
+    return true;
+  }
+  // The same logger payload can be wrapped in a Vercel message/text field.
+  if (message.trim().startsWith('{')) {
+    try {
+      return isOrdinaryRuntimeLog(JSON.parse(message));
+    } catch {
+      return false;
+    }
+  }
+  return false;
 }
 
 function findUsageEnvelope(value: unknown): {
@@ -888,11 +997,14 @@ function buildTriageFindings(input: {
   configMessage?: string;
 }): string[] {
   const findings: string[] = [];
-  if (input.state === 'config_error') {
+  if (input.state !== 'ok') {
     findings.push(input.configMessage ?? 'Usage report configuration failed.');
     return findings;
   }
 
+  if (input.totals.invalidEventCount > 0) {
+    findings.push(`${input.totals.invalidEventCount} log entries could not be parsed as sanitized MCP telemetry; counts may be incomplete.`);
+  }
   for (const rate of input.errorRateByTool) {
     if (rate.count > 0) {
       findings.push(`${rate.toolName} error rate is ${formatPercent(rate.rate)} (${rate.count}/${rate.calls}).`);
@@ -913,7 +1025,7 @@ function buildTriageFindings(input: {
 }
 
 function buildUsageSummary(report: UsageReport): string {
-  if (report.state === 'config_error') {
+  if (report.state !== 'ok') {
     return `Telemetry review did not run: ${report.triageFindings[0] ?? 'configuration error'}`;
   }
   const topTool = report.topTools[0];
