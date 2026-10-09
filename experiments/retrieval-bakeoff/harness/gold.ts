@@ -12,7 +12,6 @@ export async function loadGold(name: string): Promise<GoldCase[]> {
     const filePath = path.join(EXPERIMENT_ROOT, 'gold', file);
     const blob = Bun.file(filePath);
     if (!(await blob.exists())) {
-      if (name === 'all' && file === 'test.json') continue; // test split may not be materialized yet
       throw new Error(`gold set not found: ${filePath}`);
     }
     const parsed = (await blob.json()) as GoldCase[];
@@ -28,4 +27,3 @@ export async function loadGold(name: string): Promise<GoldCase[]> {
   }
   return cases;
 }
-

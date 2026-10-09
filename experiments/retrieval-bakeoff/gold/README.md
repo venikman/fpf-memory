@@ -22,11 +22,26 @@ abstention discipline, not recall).
 mulberry32 PRNG drives every sampling decision (no `Math.random`, no
 `Date.now`). Same corpus + seed + split ⇒ byte-identical output.
 
+The current generator requires exactly 110 generated cases: 17 each for
+id-lookup, title, typo, and definition; 16 each for alias and multi-hop;
+and 10 negatives. It checks every category and the total before writing.
+If eligible pools or attempt limits prevent completion, it exits with an error
+that names the deficient split/categories and preserves any existing output.
+Test generation first requires a complete dev split, then validates test.
+The additional 40 handcrafted cases are not produced by this command.
+
 ```bash
 cd experiments/retrieval-bakeoff
-bun gold/generate.ts --split dev  --seed 20260831 --out gold/dev-generated.json
-bun gold/generate.ts --split test --seed 20260831 --out gold/test-generated.json   # historical reproduction only
+mkdir -p .cache/runs
+bun gold/generate.ts --split dev  --seed 20260831 --out .cache/runs/dev-generated.json
+bun gold/generate.ts --split test --seed 20260831 --out .cache/runs/test-generated.json
 ```
+
+These gitignored outputs keep new generation separate from the committed gold
+archive. To reproduce the historical files, use the pinned August checkout
+described in the experiment README and still choose a disposable `--out` path.
+That old generator lacks the completeness guard; its results must not be
+treated as evidence that the current generator ran.
 
 **Seed used for `dev.json`: `20260831`.** The test split derives its own PRNG
 stream (`seed ^ 0x9e3779b9`) from the same base seed. Reproduction requires

@@ -2,8 +2,9 @@
  * Deterministic gold-case generator for the retrieval bake-off.
  *
  * Usage:
- *   bun gold/generate.ts --split dev  --seed 20260831 --out gold/dev-generated.json
- *   bun gold/generate.ts --split test --seed 20260831 --out gold/test-generated.json
+ *   mkdir -p .cache/runs
+ *   bun gold/generate.ts --split dev  --seed 20260831 --out .cache/runs/dev-generated.json
+ *   bun gold/generate.ts --split test --seed 20260831 --out .cache/runs/test-generated.json
  *
  * Determinism: a seeded mulberry32 PRNG drives every sampling decision — no
  * Math.random(), no Date.now(). Same corpus + same seed + same split ⇒
@@ -655,7 +656,23 @@ function generateSplit(
 // Validation
 // ---------------------------------------------------------------------------
 
-function validate(corpus: Corpus, cases: GoldCase[]): void {
+function validate(corpus: Corpus, cases: GoldCase[], split: 'dev' | 'test'): void {
+  const expectedCounts = {
+    'id-lookup': COUNTS.idLookup, title: COUNTS.title, alias: COUNTS.alias,
+    typo: COUNTS.typo, definition: COUNTS.definition,
+    'multi-hop': COUNTS.multiHop, negative: COUNTS.negative,
+  };
+  const actualCounts = new Map<string, number>();
+  for (const entry of cases) actualCounts.set(entry.category, (actualCounts.get(entry.category) ?? 0) + 1);
+  const expectedTotal = Object.values(expectedCounts).reduce((sum, count) => sum + count, 0);
+  const mismatches = Object.entries(expectedCounts)
+    .filter(([category, expected]) => (actualCounts.get(category) ?? 0) !== expected)
+    .map(([category, expected]) => `${category}: expected ${expected}, got ${actualCounts.get(category) ?? 0}`);
+  if (cases.length !== expectedTotal || mismatches.length > 0) {
+    throw new Error(
+      `Incomplete generated ${split} split: expected ${expectedTotal} cases, got ${cases.length}; ${mismatches.join('; ')}`,
+    );
+  }
   const ids = new Set<string>();
   const questions = new Set<string>();
   for (const c of cases) {
@@ -711,13 +728,13 @@ async function main(): Promise<void> {
   // Dev is always generated first from the base seed; test excludes dev's
   // sampled docs and uses a derived seed so its PRNG stream is independent.
   const dev = generateSplit(corpus, pools, seed, COUNTS, new Set());
+  validate(corpus, dev.cases, 'dev');
   let result = dev;
   if (split === 'test') {
     const testSeed = (seed ^ 0x9e3779b9) >>> 0;
     result = generateSplit(corpus, pools, testSeed, COUNTS, dev.usedDocIds);
+    validate(corpus, result.cases, 'test');
   }
-
-  validate(corpus, result.cases);
 
   const json = JSON.stringify(result.cases, null, 2) + '\n';
   if (out) {

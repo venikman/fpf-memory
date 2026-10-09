@@ -17,6 +17,7 @@ import type { CandidateReport } from './types.js';
 const EXPERIMENT_ROOT = path.resolve(import.meta.dir, '..');
 
 interface ResultsFile {
+  sourceHash: string;
   goldSet: string;
   reports: CandidateReport[];
 }
@@ -50,6 +51,29 @@ async function main(): Promise<void> {
   const results = (await Bun.file(resultsPath).json()) as ResultsFile;
   const gold = new Map((await loadGold(results.goldSet)).map((entry) => [entry.id, entry]));
   const corpus = await loadCorpus();
+  if (results.sourceHash !== corpus.sourceHash) {
+    throw new Error(`report sourceHash ${results.sourceHash} does not match corpus ${corpus.sourceHash}`);
+  }
+  if (!Array.isArray(results.reports) || results.reports.length === 0) {
+    throw new Error('report must contain at least one candidate report');
+  }
+  for (const report of results.reports) {
+    if (report.goldSet !== results.goldSet) {
+      throw new Error(`${report.name}: goldSet does not match the report envelope`);
+    }
+    const seen = new Set<string>();
+    for (const entry of report.cases) {
+      if (!gold.has(entry.caseId)) throw new Error(`${report.name}: unknown gold case ${entry.caseId}`);
+      if (seen.has(entry.caseId)) throw new Error(`${report.name}: duplicate case ${entry.caseId}`);
+      seen.add(entry.caseId);
+    }
+    if (seen.size !== gold.size) {
+      throw new Error(`${report.name}: incomplete cases (${seen.size}/${gold.size})`);
+    }
+  }
+  if (options.candidate && !results.reports.some((report) => report.name === options.candidate)) {
+    throw new Error(`candidate not found: ${options.candidate}`);
+  }
   const title = (id: string): string | undefined => corpus.byId.get(id)?.title;
 
   if (options.diff) {
