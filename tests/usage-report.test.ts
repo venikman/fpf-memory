@@ -104,6 +104,24 @@ describe('usage report aggregation', () => {
     expect(report.topTools).toEqual([{ id: 'get_fpf_index_status', count: 2 }]);
   });
 
+  it('flags a request entry truncated before its usage marker beside a valid event', async () => {
+    const message = JSON.stringify({
+      event: 'mcp_tool_usage', schemaVersion: 3, toolName: 'get_fpf_index_status',
+      outcome: 'ok', durationMs: 1, input: { intentCategory: 'index_health' }, output: {},
+    });
+    const report = await buildUsageReportFromLines({
+      lines: [JSON.stringify({
+        timestamp: NOW.getTime(), message,
+        logs: [{ message }, { message: '{"time":"2026-05-31', messageTruncated: true }],
+      })],
+      source: { kind: 'vercel', description: 'Synthetic partially truncated CLI request' },
+      windowLabel: '24h', now: NOW,
+    });
+    expect(report.totals).toMatchObject({ rawLineCount: 1, validEventCount: 1, invalidEventCount: 1 });
+    expect(report.operatorActionRequired).toBe(true);
+    expect(report.triageFindings.join(' ')).toContain('counts may be incomplete');
+  });
+
   it('accepts a healthy mixed runtime log through the file CLI quality gate', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'fpf-usage-mixed-'));
     const priorVercel = process.env.VERCEL;

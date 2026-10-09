@@ -85,4 +85,12 @@ A branch push or draft PR can trigger the existing `fpf-sh` Git integration's we
 
 ## New materials
 
+## Release review follow-up
+
+The PR review identified a mixed request containing one valid usage message and one entry truncated before its usage marker. The original expansion dropped that second entry and incorrectly reported complete counts. The fix preserves `messageTruncated` entries for the parser's existing invalid-entry gate. A focused regression now verifies one valid event, one invalid entry, and an incomplete-count finding.
+
+Validation: `bunx rstest run --pool=forks tests/usage-report.test.ts`, `bun run check`, and `bun run lint` passed; lint reported zero errors/warnings. An actual file-source `scripts/usage-report.ts --fail-on-quality-breach` invocation returned the expected exit 1 with one valid event, one invalid entry, and `operatorActionRequired: true`. Structured review of this follow-up returned no actionable findings. The earlier full-inventory count above is historical evidence for the original candidate; clean CI for the updated PR head remains the release gate.
+
+## New materials
+
 The separate [Library proposal](2026-10-09-new-fpf-materials-proposal.md) covers all 40 publications in the inspected upstream tree. It recommends a pinned publication manifest, exact section reader and deterministic search, preserving Core compatibility before expanding public contracts. No multi-publication implementation is included in this recovery.

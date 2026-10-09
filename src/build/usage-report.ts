@@ -571,7 +571,9 @@ function expandVercelRequestLogs(line: string): string[] {
     }
     const entries = record.logs.filter((entry) => {
       const log = asRecord(entry);
-      return findUsageEnvelope(entry)
+      // Truncation may remove the event marker; retain it so partial counts
+      // cannot look complete just because a sibling message parsed correctly.
+      return log?.messageTruncated === true || findUsageEnvelope(entry)
         || (optionalString(log?.message) ?? optionalString(log?.text))?.includes('mcp_tool_usage');
     });
     if (entries.length === 0) {
