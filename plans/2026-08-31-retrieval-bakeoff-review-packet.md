@@ -5,6 +5,13 @@ implementation and indexing: research, select candidates, build all, compare").
 Branch `experiment/retrieval-bakeoff`; everything referenced lives under
 `experiments/retrieval-bakeoff/` and touches no production surface.
 
+**Closeout proposal (2026-10-09):** retain the experiment as a historical
+archive after review. This is not an approval to replace production retrieval.
+The claims below refer to the August 31 corpus and warm local harness; the
+test data is now exposed. Current-corpus performance and hosted end-to-end
+speedups remain unverified. A production proposal needs fresh holdout evidence,
+P3 verification, and a separate approval.
+
 ## Context (A.1.1)
 
 One bounded context: **the retrieval core of the fpf-memory runtime** — the
@@ -28,9 +35,11 @@ source (snapshot `sha256:1169ef3f…`, upstream e400eab3, 2026-08-30).
 | CR-5 | The test split was held out **by convention, not by construction** (seed committed pre-freeze; handcrafted holdout world-readable in /tmp during fusion tuning). No peeking machinery exists in any candidate (exhaustive audit) and all dev→test deltas are negative (overfitting-shaped) | `results/adversarial-audit.md` §1, §10 | [fact]; hold-out strength [assumption: agent honesty] |
 | CR-6 | The gold sets are honest: 0 "expected answer wrong / too narrow" verdicts across all fusion misses; multi-hop equivalence sets exactly equal corpus `builds_on`/`refines` targets | `results/failure-analysis.md` §2; audit §10 | [fact] |
 
-Uncertainty stated, not laundered: dev-set numbers throughout the candidate
-READMEs are tuning-set numbers; only `test-final.json` supports generalization
-claims. n=150 per split ⇒ single-case granularity ≈ 0.7pt recall.
+Dev-set numbers throughout the candidate READMEs are tuning-set numbers.
+`test-final.json` records the historical test run with the isolation limitations
+in CR-5; it is not fresh generalization evidence for later candidate selection.
+There are 140 positive cases per split, so one positive case changes recall
+by about 0.7 percentage points; 10 negatives are scored separately.
 
 ## Roles (A.15)
 
@@ -66,22 +75,25 @@ run-stance number has a JSON artifact.
 4. Everything runs inside the repo's own constraints: deterministic TypeScript,
    zero new dependencies, no vectors, no models, <7s build on the full corpus.
 
-## Ranked next moves (decision owner: board for #1's go/no-go, maintainer for execution)
+## Historical follow-up proposals (separate decision required)
 
-1. **[ship-candidate]** Integrate the fusion stack (bm25f backbone + graph
-   lanes + abstention gate) behind the runtime's existing exact-ID
+1. **[evaluate-candidate]** Evaluate the fusion stack (bm25f backbone + graph
+   lanes + abstention gate) on the current corpus with a new isolated holdout
+   before proposing integration behind the runtime's existing exact-ID
    short-circuit, as a bounded PR with P3 verification (public tool behavior
    changes). Measured risks & mitigations in `results/failure-analysis.md`
    (multi-hop weight re-tune on a fresh split; keep +100 ID fast path to hold
-   id-lookup MRR at 1.000; 6.6s build / ~276MB is Vercel-viable but must be
-   verified against function limits).
+   id-lookup MRR at 1.000; historical 6.6s build / ~276MB measurements do not
+   establish hosted viability, which must be verified against function limits).
 2. **[tune]** Source-family filtering + relation-aware routing for multi-hop
    (measured +19pt from the filter alone).
 3. **[gold-fix]** Adopt the audit's stronger hold-out protocol and fix the two
    gold template defects before the next evaluation round.
-4. **[rethink]** Retire `baseline-search`'s O(N·text) scan regardless of #1 —
-   1.3–3.2s p50 on the public endpoint is a standing cost with a 0.55ms
-   replacement sitting in this branch.
+4. **[rethink]** Evaluate replacing `baseline-search`'s O(N·text) scan.
+   The historical warm local adapter measured about 1.3–1.4s p50 and 3.2s p95,
+   versus 0.55ms p50 for the candidate ranker. No hosted endpoint was timed by
+   this harness; neither end-to-end speedup nor cost savings are established
+   by those ratios.
 
 ## Work performed (run-stance, dated 2026-08-31)
 

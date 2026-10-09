@@ -47,17 +47,19 @@ the delivery is what let a 16-day outage report "within SLO" (see #253).
    > Framework (FPF) by Anatoly Levenchuk. Bounded, vectorless retrieval
    > over the full pattern catalog and curated routes — addressable by
    > stable FPF IDs, synced daily from ailev/FPF.
-3. **Retrieval core replacement (evidence in hand).** The 2026-08-31 bake-off
+3. **Retrieval experiment archive and follow-up decision.** The 2026-08-31 bake-off
    (`experiments/retrieval-bakeoff/`, packet
    `plans/2026-08-31-retrieval-bakeoff-review-packet.md`) measured the
-   production ranking on a held-out gold set: trace pipeline MRR .596 / R@5
+   historical local runtime on a now-exposed test set: trace pipeline MRR .596 / R@5
    67.1% at 516ms p50 with zero nonsense-query abstention; `search_fpf` scan
-   1.3–3.2s p50. A deterministic, dependency-free fusion stack built in that
-   branch scores .832 / 88.6% at 12ms (solo BM25F: .817 / 85.0% at 0.55ms).
-   Next: board go/no-go on integrating it behind the exact-ID fast path
-   (bounded PR, P3 verification); independent of the go/no-go, retire the
-   O(N·text) search scan. Ranked above registry publication because it changes
-   what every adopter *gets*, not just who finds it.
+   about 1.3–1.4s p50 and 3.2s p95. A deterministic, dependency-free fusion
+   stack built in that branch scores .832 / 88.6% at 12ms
+   (solo BM25F: .817 / 85.0% at 0.55ms).
+   These are warm local harness timings, not hosted end-to-end measurements.
+   Next: review the historical archive for retention. Production integration
+   (including replacing the search scan) requires a separate decision after
+   current-corpus comparison, a new isolated holdout, and P3 verification.
+   Archive acceptance does not authorize production changes.
 4. **Publish to `registry.modelcontextprotocol.io`.** Zero listings today and no
    publication was ever attempted. The freshness gate cleared 2026-07-28 (see
    Shipped); what remains is the board go/no-go. Note repo-root `server.json`

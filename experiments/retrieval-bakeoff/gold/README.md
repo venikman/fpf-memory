@@ -13,7 +13,8 @@ abstention discipline, not recall).
 | `dev.json` | **open** | 150 cases = 110 generated + 40 handcrafted. Candidate authors may read it to understand query styles; special-casing individual questions is forbidden (see the experiment README). |
 | `dev-generated.json` | open | The generated 110 alone (regenerable, see below). |
 | `dev-handcrafted.json` | open | The handcrafted 40 alone (source of truth for the handcrafted half of `dev.json`). |
-| `test.json` | **not yet materialized** | Created only after all candidates are frozen. Will be `--split test` generator output plus a held-out handcrafted set. |
+| `test.json` | **materialized, public, burned as a fresh holdout** | 150 historical cases = 110 generated + 40 handcrafted. Retained for reproducing the August 31 results; not a fresh test set for tuning or selecting later candidates. |
+| `test-generated.json` | materialized, public | The historical generated 110 alone. |
 
 ## Generator
 
@@ -24,12 +25,12 @@ mulberry32 PRNG drives every sampling decision (no `Math.random`, no
 ```bash
 cd experiments/retrieval-bakeoff
 bun gold/generate.ts --split dev  --seed 20260831 --out gold/dev-generated.json
-bun gold/generate.ts --split test --seed 20260831 --out gold/test-generated.json   # freeze-time only
+bun gold/generate.ts --split test --seed 20260831 --out gold/test-generated.json   # historical reproduction only
 ```
 
 **Seed used for `dev.json`: `20260831`.** The test split derives its own PRNG
-stream (`seed ^ 0x9e3779b9`) from the same base seed, so materializing test
-later requires only the same `--seed 20260831`.
+stream (`seed ^ 0x9e3779b9`) from the same base seed. Reproduction requires
+the same seed and archived corpus; see the experiment README for the checkout.
 
 **Split disjointness.** Dev is always generated first from the base seed. For
 `--split test` the generator replays the dev sampling internally, collects the
@@ -55,9 +56,10 @@ Generator rules (= `provenance` value, one per category):
   expected = lexeme + its linked pattern(s).
 - `multi-hop` — "which pattern does <title> build on / refine?"; expected =
   all targets of that relation (equivalence set).
-- `negative` — seeded mundane-word queries; every bank word is checked against
-  corpus titles/aliases at generation time so the queries are guaranteed
-  FPF-irrelevant. Expected `[]`.
+- `negative` — seeded mundane-word queries; bank words were checked against
+  corpus titles/aliases, but template words were not. The audit found real
+  title-token collisions in 1–2 queries per split. Expected `[]`; see the
+  experiment README's limitations before interpreting abstention scores.
 
 Every emitted `expectedId` is validated against the corpus (generation throws
 on an unknown ID); questions are deduped case-insensitively.
@@ -70,13 +72,16 @@ checked to share **≤1 content word** with the expected pattern's title — the
 describe the problem the pattern solves, not its name. Dev handcrafted cases
 (`hc-dev-1..40`) cover 26 patterns spread across parts A-G.
 
-## No-peeking rule
+## Historical no-peeking protocol and future use
 
-- `test.json` is materialized only after all candidates are frozen; nobody
-  tunes on it.
-- A second **held-out handcrafted set exists outside this repository** (same
-  GoldCase shape, `hc-test-*` IDs, built on a disjoint set of patterns from
-  dev's handcrafted ones). It is merged into `test.json` at freeze time.
-  Its location is intentionally not written down here; candidate authors never
-  see it before the freeze.
+- `test.json` was committed after candidate freeze. The generated seed was
+  already public, and the handcrafted cases were accessible on disk during
+  tuning. The audit found no peeking in candidate code, but could not establish
+  structural holdout isolation; see `../results/adversarial-audit.md`.
+- The handcrafted cases (`hc-test-*`) are now included in `test.json`.
+  Both historical splits are exposed. Replays support regression comparisons,
+  not fresh generalization claims for tuned or newly selected candidates.
+- Before a new evaluation, commit the holdout hash, keep its plaintext and
+  generation seed inaccessible to candidate authors until freeze, and correct
+  the title-equivalence and negative-template limitations disclosed in the audit.
 - Candidate code never reads anything under `gold/` (harness rule 2).

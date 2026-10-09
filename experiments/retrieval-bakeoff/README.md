@@ -1,8 +1,16 @@
 # Retrieval bake-off — memory implementation & indexing candidates
 
-**Status:** experiment (board-directed R&D, 2026-08-31). Lives outside `src/`
-on purpose: nothing here ships to fpf.sh or mcp.fpf.sh. The outcome is a
-measured comparison + recommendation, not a production change.
+**Status:** historical experiment (board-directed R&D, 2026-08-31).
+Proposed closeout (2026-10-09): retain this archive after review; production
+integration requires a separate decision and P3 verification. Nothing here
+ships to fpf.sh or mcp.fpf.sh, and archive acceptance is not production acceptance.
+
+All results below describe the August 31 local harness on source hash
+`sha256:1169ef3f20b0c89c005b07c33ddb20210039ae9b4a75dfab5255752c20317d37`
+(upstream `e400eab3757d60a8d05196046bed002dff1839e0`). They do not establish
+performance on today's corpus or hosted endpoints. The committed test split
+is exposed and may be replayed for regression checks, but is no longer a
+fresh holdout for candidate selection or tuning.
 
 ## Question under test
 
@@ -27,7 +35,7 @@ Corpus: the compiled snapshot of `published/current/FPF-Spec.md`
 
 ```
 harness/    contract (types.ts), corpus loader, metrics, registry, runner
-gold/       gold query sets — dev.json (open) and test.json (HELD OUT)
+gold/       exposed historical query sets — dev.json and test.json
 candidates/ one directory per candidate, default-exports a Retriever
 results/    committed JSON reports + leaderboard
 ```
@@ -39,8 +47,9 @@ results/    committed JSON reports + leaderboard
    candidate author.
 2. **No gold-peeking.** Candidate code never reads `gold/`. Authors may look
    at `gold/dev.json` to understand query styles, but must not special-case
-   individual dev questions. `gold/test.json` is materialized only after all
-   candidates are frozen; nobody tunes on it.
+   individual dev questions. The historical protocol materialized
+   `gold/test.json` after candidate freeze; its isolation limitations are
+   disclosed below. It is now public and burned as a fresh holdout.
 3. Every candidate documents its parameters and their provenance (which
    research finding or tuning run picked them) in its own `README.md`.
 4. Scoring: Recall@1/5/10, MRR@10, nDCG@10 over positive cases; negative
@@ -50,11 +59,17 @@ results/    committed JSON reports + leaderboard
 
 ## Run
 
+To replay the archived experiment, use a separate checkout of PR #309 head
+`2113f630661f3c34b174308494ded4e9aa40199d`, which retains the matching
+runtime and publication source. The harness always reads that checkout's
+`published/current/**`; running it after a source refresh is a new experiment,
+not reproduction of these results. Keep new reports separate from the archive.
+
 ```bash
 cd experiments/retrieval-bakeoff
 bun harness/run.ts --gold dev                    # everything on the dev set
 bun harness/run.ts --gold dev --candidates bm25f # one candidate while iterating
-bun harness/run.ts --gold test                   # frozen candidates only
+bun harness/run.ts --gold test                   # replay the exposed historical split
 ```
 
 The corpus loader reads `published/current/fpf-index/snapshot.json` (run
@@ -69,7 +84,7 @@ Snapshot `sha256:1169ef3f…` (upstream e400eab3, 2026-08-30). Full evidence:
 below was independently reproduced per-case, byte-for-byte, by a read-only
 audit agent.
 
-### Held-out test set (150 cases, materialized post-freeze — see Limitations)
+### Historical test set (150 cases, materialized post-freeze — see Limitations)
 
 | candidate | R@1 | R@5 | R@10 | MRR@10 | neg-clean | p50 ms | dev→test ΔMRR |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -124,7 +139,8 @@ orders of magnitude lower latency.
    a fusion lane.
 5. **The vectorless constraint is not the bottleneck.** Nothing here uses a
    model or a vector DB; the winning stack is deterministic TS over the
-   existing snapshot, builds in <7s, and fits the repo's constraints as-is.
+   archived snapshot and builds in <7s in the recorded local harness. Hosted
+   integration, resource limits, and performance still require verification.
 
 ### Limitations (from the adversarial audit — read before quoting numbers)
 
@@ -138,11 +154,17 @@ orders of magnitude lower latency.
 2. Fusion's +.020 dev→test uptick on the handcrafted half (vs bm25f's −.013)
    is statistically weak at n=40 and plausibly ensemble variance-reduction,
    but fusion was the one candidate tuned while the full test set existed on
-   disk — treat "fusion > bm25f" as likely, and "fusion ≥ bm25f" as solid.
+   disk. The observed ordering applies to this exposed split; superiority
+   on a fresh holdout remains unverified.
 3. Title-category gold excludes identically-titled lexeme docs from the
    equivalence sets (affects kind-agnostic candidates like rri/gramset by a
    few rank-1s; internally consistent across dev/test).
 4. 1–2 of 10 negative queries per split contain a real title token via the
    question template ("repair", "recipe"), so `neg-clean` slightly understates
    abstention quality for candidates without a score floor.
-
+5. Latencies are warm local measurements. The baselines invoke local
+   `FpfRuntime.search()` / `trace()` after warmup; the trace baseline includes
+   the query pipeline while challenger timings cover their ranking work.
+   These ratios do not establish hosted end-to-end speedups or cost savings.
+   Any integration evaluation needs current-corpus baselines and a new
+   holdout kept inaccessible until candidate freeze.
