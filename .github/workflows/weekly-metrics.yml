@@ -84,19 +84,26 @@ jobs:
       - name: Build MCP usage telemetry sample (trailing 24h of runtime logs)
         # Vercel runtime-log retention is far shorter than a week, so this is
         # an honest 24h sample, embedded in the review as supporting detail.
-        # Tolerant: a config error still renders as a config_error report.
-        # The step timeout backstops the script's own 300s vercel-logs spawn
-        # timeout so a stall degrades to an `absent` sample finding.
+        # Collection failures render a source_error report and verdict. The
+        # step timeout backstops the 300s export timeout; only a killed script
+        # or failed report write should degrade to an absent sample.
         id: usage
         continue-on-error: true
         timeout-minutes: 6
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_USAGE_REPORT_TOKEN || secrets.VERCEL_SPEND_MONITOR_TOKEN || secrets.VERCEL_TOKEN }}
+          # The dedicated secret was invalid in the Oct 5 ledger. Keep the
+          # already-used scoped token first until credential rotation is
+          # verified; wiring the dead secret first would break working access.
+          # Record the selected secret NAME separately; never infer it from
+          # the canonical env variable which holds the resolved token.
+          FPF_USAGE_REPORT_VERCEL_TOKEN: ${{ secrets.VERCEL_SPEND_MONITOR_TOKEN || secrets.FPF_USAGE_REPORT_VERCEL_TOKEN || secrets.VERCEL_TOKEN }}
+          FPF_USAGE_REPORT_CREDENTIAL_SOURCE: ${{ secrets.VERCEL_SPEND_MONITOR_TOKEN && 'VERCEL_SPEND_MONITOR_TOKEN' || secrets.FPF_USAGE_REPORT_VERCEL_TOKEN && 'FPF_USAGE_REPORT_VERCEL_TOKEN' || secrets.VERCEL_TOKEN && 'VERCEL_TOKEN' || '' }}
         run: |
           bun run usage:report -- \
             --source vercel \
             --window 24h \
             --format markdown \
+            --fail-on-quality-breach \
             --output reports/usage/weekly-usage-sample.md
 
       - name: Build weekly metrics report
@@ -125,6 +132,7 @@ jobs:
           FPF_WEEKLY_USAGE_ACTION_REQUIRED: ${{ steps.usage.outputs.operator_action_required || 'true' }}
           FPF_WEEKLY_USAGE_SUMMARY: ${{ steps.usage.outputs.summary || 'usage report produced no outputs' }}
           FPF_WEEKLY_USAGE_EXPORT_CAPPED: ${{ steps.usage.outputs.export_capped || 'false' }}
+          FPF_WEEKLY_USAGE_CREDENTIAL_SOURCE: ${{ steps.usage.outputs.credential_source || 'unknown (usage step produced no selection)' }}
         run: |
           bun run weekly:metrics -- \
             --window "$FPF_WEEKLY_METRICS_WINDOW" \

@@ -189,31 +189,35 @@ describe('docs projection', () => {
   });
 
   it('renders catalog reminders for stub pages with no body content', () => {
-    // The published spec no longer ships any pattern that is a pure catalog
-    // stub, and since the 2026-08-28 upstream sync (ref 72222c13) every
-    // catalog row uses the Keywords/Queries format, so no pattern carries a
-    // prose catalog description either. Synthesize the whole stub from a
-    // real pattern: strip its anchor text and child sections and inject a
-    // catalog description. The reminder is the description-only fallback the
-    // renderer emits when there is no intro text and no first-child excerpt.
-    const stubId = 'I.2';
-    const synthetic = structuredClone(snapshot);
-    const stubNode = synthetic.patternGraph.nodes[stubId];
-    expect(stubNode, 'expected the stub fixture pattern to exist').toBeTruthy();
+    // Upstream 0c6ade27 (2026-10-07) no longer contains the old I.2 fixture.
+    // Compile an actual catalog-only pattern so the reminder fallback is
+    // tested independently of upstream's current pattern repertoire.
+    const stubId = 'Z.99';
     const catalogDescription =
       'Synthetic catalog description used to exercise the stub-page reminder fallback.';
-    stubNode!.description = catalogDescription;
-
-    // Remove body content so the renderer falls through to the reminder.
-    if (synthetic.anchorMap[stubId]) synthetic.anchorMap[stubId].text = '';
-    if (synthetic.indexMap[stubId]) synthetic.indexMap[stubId].childIds = [];
+    const sourceText = [
+      '# Catalog',
+      '',
+      '| ID | Title | Status | Description |',
+      '| --- | --- | --- | --- |',
+      `| ${stubId} | Catalog-only pattern | Stub | ${catalogDescription} |`,
+    ].join('\n');
+    const synthetic = compileFpfSource({
+      sourcePath: 'catalog-stub-fixture.md',
+      sourceHash: `sha256:${createHash('sha256').update(sourceText).digest('hex')}`,
+      builtAt: '2026-04-11T19:34:21.498Z',
+      sourceText,
+    }).snapshot;
+    expect(synthetic.patternGraph.nodes[stubId]?.description).toBe(catalogDescription);
+    expect(synthetic.patternGraph.nodes[stubId]?.sectionIds).toEqual([]);
+    expect(synthetic.anchorMap[stubId]).toBeUndefined();
 
     const projection = buildDocsProjection(synthetic);
     const stubPage =
       projection.pagesByMarkdownPath[`docs/generated/patterns/${stubId}.md`]?.markdown ?? '';
 
     expect(stubPage).not.toContain('## Content');
-    expect(stubPage).toContain(catalogDescription!);
+    expect(stubPage).toContain(catalogDescription);
   });
 
   it('preserves keyword cells that contain pipes inside code spans', () => {
@@ -665,10 +669,11 @@ describe('docs projection', () => {
       }
       // The upstream spec (2026-07-03 sync) dropped the specification change
       // log pattern (was I.3), so its generated page no longer exists. Verify
-      // a representative generated pattern page builds instead.
+      // a representative generated pattern page builds instead. A.1's title
+      // changed in upstream 0c6ade27 (2026-10-07).
       expect(
         await readFile(resolve(outDir, 'generated/patterns/A.1.html'), 'utf8'),
-      ).toContain('Holon Ontic Foundation');
+      ).toContain('Recognize a Whole with Parts (U.Holon and Admitted Holon Kinds)');
       expect(
         await readFile(resolve(outDir, 'generated/routes/index.html'), 'utf8'),
       ).toContain('They are not website routes');

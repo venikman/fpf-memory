@@ -297,7 +297,8 @@ describe('token ledger interpretation', () => {
       now: NOW,
     });
     expect(entry.state).toBe('invalid');
-    expect(entry.detail).toContain('expired or revoked');
+    expect(entry.detail).toContain('expired, revoked, or unauthorized');
+    expect(entry.detail).toContain('does not establish which credential');
   });
 
   it('marks unrecognized 200 bodies as error instead of guessing', () => {
@@ -458,11 +459,17 @@ describe('weekly metrics report', () => {
 
     const broken = buildWeeklyMetricsReport({
       ...base,
-      usageSample: { state: 'absent', operatorActionRequired: true, summary: 'usage report produced no outputs' },
+      usageSample: { state: 'source_error', operatorActionRequired: true, summary: 'vercel logs failed to run (ETIMEDOUT).', credentialSource: 'VERCEL_SPEND_MONITOR_TOKEN' },
     });
-    expect(broken.findings.join('\n')).toContain('usage telemetry sample did not run cleanly (absent)');
+    expect(broken.findings.join('\n')).toContain('usage telemetry sample did not run cleanly (source_error)');
     expect(broken.operatorActionRequired).toBe(true);
     expect(formatWeeklyMetricsMarkdown(broken)).toContain('## MCP usage telemetry sample');
+    expect(formatWeeklyMetricsMarkdown(broken)).toContain('Selected usage credential: VERCEL_SPEND_MONITOR_TOKEN');
+
+    const absent = buildWeeklyMetricsReport({
+      ...base, usageSample: { state: 'absent', operatorActionRequired: true },
+    });
+    expect(absent.findings.join('\n')).toContain('usage telemetry sample did not run cleanly (absent)');
 
     const breaching = buildWeeklyMetricsReport({
       ...base,

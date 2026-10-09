@@ -328,7 +328,9 @@ describe('direct MCP server', () => {
     });
     const readDocPayload = asToolPayload(readDoc);
     expect(readDocPayload.nodeId).toBe('A.1.1');
-    expect(readDocPayload.markdown).toContain('# Bounded Model-Use Structure and DDD Bounded-Context Recovery');
+    expect(readDocPayload.markdown).toContain(
+      '# Bounded Model-Use Structure: Applicability, Use and Expression Coherence (DDD Bounded Context)',
+    );
     expect(typeof readDocPayload.markdownChars).toBe('number');
     expect(Array.isArray(readDocPayload.headings)).toBe(true);
 

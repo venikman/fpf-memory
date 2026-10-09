@@ -99,6 +99,7 @@ export interface WeeklyWebAnalyticsSection {
  */
 export interface WeeklyUsageSampleSection {
   state: string;
+  credentialSource?: string;
   operatorActionRequired: boolean;
   summary?: string;
   /** True when the runtime-log export hit its line cap — event counts are lower bounds. */
@@ -409,7 +410,7 @@ export function interpretTokenMetadataResponse(input: {
     return {
       secret: input.secret,
       state: 'invalid',
-      detail: `Vercel rejected the token with HTTP ${input.status}; the secret is expired or revoked, and every workflow using it is broken or silently on a fallback.`,
+      detail: `Vercel rejected the token with HTTP ${input.status}; this credential is invalid for the metadata probe (expired, revoked, or unauthorized). This probe does not establish which credential a consuming workflow selected.`,
     };
   }
   if (input.status !== 200) {
@@ -805,7 +806,7 @@ function usageSampleSection(sample: WeeklyUsageSampleSection | undefined): strin
   }
   return `## MCP usage telemetry sample
 
-- State: **${sample.state}**
+- State: **${sample.state}**${sample.credentialSource ? `\n- Selected usage credential: ${sample.credentialSource} (selection only; see the separate token ledger for validity).` : ''}
 - Operator action required: ${sample.operatorActionRequired ? 'yes' : 'no'}${sample.summary ? `\n- Summary: ${sample.summary}` : ''}${sample.exportCapped ? '\n- Export capped: yes — usage counts are lower bounds for the sample window.' : ''}
 - The full sample is attached below this report by the workflow.
 

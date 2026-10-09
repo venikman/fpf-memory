@@ -8,6 +8,7 @@ import {
   DEFAULT_USAGE_REPORT_LOG_PATH,
   formatUsageReportMarkdown,
   isVercelExportCapped,
+  resolveUsageWindow,
   readUsageReportLinesFromFile,
   type UsageReport,
   type UsageReportFormat,
@@ -44,6 +45,7 @@ const noWrite = flags.has('no-write');
 const outputPath = readOptionalString(flags, 'output', process.env.FPF_USAGE_REPORT_OUTPUT)
   ?? defaultOutputPath(windowLabel, format);
 
+const reportNow = new Date();
 const report = sourceKind === 'vercel'
   ? await runVercelUsageReport(windowLabel)
   : await runFileUsageReport(windowLabel);
@@ -91,6 +93,7 @@ async function runFileUsageReport(window: string): Promise<UsageReport> {
       logPath,
     },
     limit: readReportLimit(),
+    now: reportNow,
   });
 }
 
@@ -101,13 +104,9 @@ async function runVercelUsageReport(window: string): Promise<UsageReport> {
     process.env.FPF_USAGE_REPORT_VERCEL_PROJECT ?? DEFAULT_USAGE_REPORT_PROJECT,
   );
   const scope = readOptionalString(flags, 'scope', process.env.FPF_VERCEL_SCOPE);
-  const token = readOptionalString(
-    flags,
-    'token',
-    process.env.FPF_USAGE_REPORT_VERCEL_TOKEN
-      || process.env.VERCEL_USAGE_REPORT_TOKEN
-      || process.env.VERCEL_TOKEN,
-  );
+  const tokenNames = ['FPF_USAGE_REPORT_VERCEL_TOKEN', 'VERCEL_USAGE_REPORT_TOKEN', 'VERCEL_SPEND_MONITOR_TOKEN', 'VERCEL_TOKEN'];
+  const selectedName = tokenNames.find((name) => process.env[name]?.trim());
+  const token = readOptionalString(flags, 'token', selectedName ? process.env[selectedName] : undefined);
   const vercelLimit = readPositiveInteger(
     flags,
     'vercel-limit',
@@ -115,27 +114,38 @@ async function runVercelUsageReport(window: string): Promise<UsageReport> {
     DEFAULT_USAGE_REPORT_VERCEL_LIMIT,
   );
   const source = vercelSource(project, window, scope, vercelLimit);
+  const useCliAuth = flags.has('use-cli-auth') && !token;
+  source.credentialSource = flags.has('token') ? '--token'
+    : process.env.FPF_USAGE_REPORT_CREDENTIAL_SOURCE || selectedName
+      || (useCliAuth ? 'authenticated Vercel CLI session' : undefined);
 
-  if (!token) {
+  if (!token && !useCliAuth) {
     return configErrorUsageReport({
       windowLabel: window,
       source,
       message: 'Missing Vercel logs token. Set FPF_USAGE_REPORT_VERCEL_TOKEN or VERCEL_TOKEN.',
+      now: reportNow,
     });
   }
 
-  const lines = runVercelLogs({
-    project,
-    window,
-    scope,
-    token,
-    limit: vercelLimit,
-  });
+  let lines: string[];
+  try {
+    lines = runVercelLogs({ project, window, scope, token, limit: vercelLimit });
+  } catch (error) {
+    return configErrorUsageReport({
+      state: 'source_error',
+      windowLabel: window,
+      source,
+      now: reportNow,
+      message: error instanceof Error ? error.message : 'Vercel log collection failed.',
+    });
+  }
   return buildUsageReportFromLines({
     lines,
     windowLabel: window,
     source,
     limit: readReportLimit(),
+    now: reportNow,
   });
 }
 
@@ -143,7 +153,7 @@ function runVercelLogs(input: {
   project: string;
   window: string;
   scope: string | undefined;
-  token: string;
+  token: string | undefined;
   limit: number;
 }): string[] {
   const args = [
@@ -158,7 +168,9 @@ function runVercelLogs(input: {
     '--source',
     'serverless',
     '--since',
-    input.window,
+    resolveUsageWindow(input.window, reportNow).start,
+    '--until',
+    reportNow.toISOString(),
     '--query',
     'mcp_tool_usage',
     '--json',
@@ -166,12 +178,10 @@ function runVercelLogs(input: {
     String(input.limit),
     '--non-interactive',
     ...(input.scope ? ['--scope', input.scope] : []),
-    '--token',
-    input.token,
   ];
   const result = spawnSync('npx', args, {
     encoding: 'utf8',
-    env: process.env,
+    env: input.token ? { ...process.env, VERCEL_TOKEN: input.token } : process.env,
     maxBuffer: VERCEL_LOGS_MAX_BUFFER_BYTES,
     timeout: readVercelLogsTimeoutMs(),
   });
@@ -183,7 +193,7 @@ function runVercelLogs(input: {
     throw new Error(
       [
         `vercel logs failed with exit code ${result.status ?? 'unknown'}.`,
-        sanitizeVercelFailureOutput(result.stderr, input.token),
+        'No usage counts were produced. Check Vercel log access, scope and the collection timeout.',
       ].filter(Boolean).join('\n'),
     );
   }
@@ -194,13 +204,6 @@ function formatVercelSpawnError(error: Error): string {
   const maybeCode = (error as Error & { code?: unknown }).code;
   const code = typeof maybeCode === 'string' ? ` (${maybeCode})` : '';
   return `vercel logs failed to run${code}.`;
-}
-
-function sanitizeVercelFailureOutput(value: string, token: string): string {
-  const redacted = token
-    ? value.replaceAll(token, '[redacted-vercel-token]')
-    : value;
-  return redacted.trim().slice(0, 4000);
 }
 
 function vercelSource(
@@ -216,7 +219,8 @@ function vercelSource(
     '--environment production',
     '--no-branch',
     '--source serverless',
-    `--since ${window}`,
+    `--since ${resolveUsageWindow(window, reportNow).start}`,
+    `--until ${reportNow.toISOString()}`,
     '--query mcp_tool_usage',
     '--json',
     `--limit ${limit}`,
@@ -269,9 +273,11 @@ function renderGithubOutput(report: UsageReport): string {
   return [
     ['state', report.state],
     ['ok', String(report.ok)],
+    ['counts_available', String(report.countsAvailable)],
     ['operator_action_required', String(report.operatorActionRequired)],
     ['summary', report.summary],
-    ['valid_event_count', String(report.totals.validEventCount)],
+    ['valid_event_count', report.state === 'ok' ? String(report.totals.validEventCount) : ''],
+    ['credential_source', report.source.credentialSource ?? ''],
     ['invalid_event_count', String(report.totals.invalidEventCount)],
     ['unknown_unresolved_event_count', String(report.totals.unknownUnresolvedEventCount)],
     ['unknown_unresolved_rate', String(report.unknownUnresolvedRate)],

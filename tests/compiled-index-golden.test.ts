@@ -96,10 +96,8 @@ describe('compiled index golden snapshot', () => {
     // Canonical nodes — these IDs and titles are load-bearing in FPF vocabulary
     // and docs; a rename here would require a coordinated spec change.
     const canonical: Record<string, { kind: CompiledNode['kind']; titlePrefix: string; part: string }> = {
-      // Upstream (2026-07-28 sync, ref 17edd955) renamed A.1.1 from
-      // "U.BoundedContext Semantic Frame" to "Bounded Model-Use Structure and
-      // DDD Bounded-Context Recovery" — U.BoundedContext is no longer
-      // published as a U-kind.
+      // Upstream 0c6ade27 (2026-10-07) keeps the bounded model-use structure
+      // title prefix; U.BoundedContext is no longer published as a U-kind.
       'A.1.1': {
         kind: 'pattern',
         titlePrefix: 'Bounded Model-Use Structure',
@@ -116,19 +114,19 @@ describe('compiled index golden snapshot', () => {
       // Upstream (2026-07-03 sync, ref f7c7e93f) renamed A.2.5 from
       // "U.RoleStateGraph" to "RoleStateRelation@BoundedContext"; the
       // 2026-08-28 sync (ref 72222c13) renamed it again to
-      // "SystemRoleAssignmentStateRelation - Assignment-State Recognition
-      // and Work Admission".
+      // "SystemRoleAssignmentStateRelation". The 2026-10-07 edition retains
+      // that prefix with "Assignment-State Recognition for Work Admission".
       'A.2.5': {
         kind: 'pattern',
         titlePrefix: 'SystemRoleAssignmentStateRelation',
         part: 'Part A - Kernel Architecture Cluster',
       },
-      // Part J ("Indexes & Navigation Aids", incl. J.1 "Concept") was removed
-      // in the same sync. A.1 is the kernel Holon Ontic Foundation and stands
-      // in as the load-bearing canonical anchor here.
+      // Upstream 0c6ade27 (2026-10-07) renamed A.1 from "Holon Ontic
+      // Foundation" to "Recognize a Whole with Parts (U.Holon and Admitted
+      // Holon Kinds)"; it remains the kernel's canonical whole/parts anchor.
       'A.1': {
         kind: 'pattern',
-        titlePrefix: 'Holon Ontic Foundation',
+        titlePrefix: 'Recognize a Whole with Parts',
         part: 'Part A - Kernel Architecture Cluster',
       },
     };

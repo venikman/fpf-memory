@@ -220,9 +220,13 @@ export class QueryEngine {
       normalized.detected.routeNames.length > 0 ||
       normalized.detected.familyTerms.length > 0 ||
       normalized.detected.statusTerms.length > 0;
-    const thinQuery =
+    // A known explicit identifier is sufficient context on its own. Keep
+    // the clarification guard for unknown IDs and short generic wording.
+    const knownExplicitId = normalized.detected.ids.some((id) => Boolean(this.snapshot.compiledNodes[id]));
+    const thinQuery = !knownExplicitId && (
       meaningfulTokens.length < 3 ||
-      (!recognizedFpfTerm && meaningfulTokens.length < 6);
+      (!recognizedFpfTerm && meaningfulTokens.length < 6)
+    );
 
     const status =
       thinQuery

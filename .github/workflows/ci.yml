@@ -211,10 +211,9 @@ jobs:
         # pull-request CI.
         run: bun run smoke:production -- --local --format markdown --fail-on-breach
 
-  # Single green check for branch protection: this is the only required
-  # status. It goes green iff every parallel job above succeeded. The job
-  # ID stays `ci` (no `name:` override) so the status-check context
-  # remains `CI / ci`, matching existing branch-protection rules.
+  # Aggregate check intended for branch protection. It goes green iff every
+  # parallel job above succeeded. Keep the `CI / ci` context stable; this
+  # workflow does not configure or prove GitHub branch-protection settings.
   ci:
     runs-on: ubuntu-latest
     needs: [setup, lint, typecheck, test, build]
