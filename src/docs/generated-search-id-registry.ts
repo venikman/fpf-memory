@@ -38,7 +38,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.1.STM",
-      "title": "Find the First Unsupported Project Dependency (System-Thinking Long Mantra)",
+      "title": "Connect Project Reasoning (System-Thinking Long Mantra)",
       "staticPath": "/generated/patterns/A.1.STM"
     },
     {
@@ -107,14 +107,54 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.3.1"
     },
     {
+      "id": "A.3.1.CC",
+      "title": "Check the Coherence of a Method Claim",
+      "staticPath": "/generated/patterns/A.3.1.CC"
+    },
+    {
+      "id": "A.3.1.DR",
+      "title": "Recover Method Contributions from Documentary Sources",
+      "staticPath": "/generated/patterns/A.3.1.DR"
+    },
+    {
+      "id": "A.3.1.FT",
+      "title": "Qualify Method Fit and Transfer",
+      "staticPath": "/generated/patterns/A.3.1.FT"
+    },
+    {
+      "id": "A.3.1.MI",
+      "title": "Introduce a Method into Practice and Decide What to Keep or Change",
+      "staticPath": "/generated/patterns/A.3.1.MI"
+    },
+    {
       "id": "A.3.1.MR",
       "title": "Candidate-Method Recovery from Work Evidence",
       "staticPath": "/generated/patterns/A.3.1.MR"
     },
     {
+      "id": "A.3.1.MV",
+      "title": "Construct and Maintain a Method Variant",
+      "staticPath": "/generated/patterns/A.3.1.MV"
+    },
+    {
+      "id": "A.3.1.QM",
+      "title": "Qualify a Method for Its Intended Contribution",
+      "staticPath": "/generated/patterns/A.3.1.QM"
+    },
+    {
+      "id": "A.3.1.WT",
+      "title": "Design and Interpret a Method Work Trial",
+      "staticPath": "/generated/patterns/A.3.1.WT"
+    },
+    {
       "id": "A.3.2",
       "title": "U.MethodDescription: Description Episteme for a Way of Doing",
       "staticPath": "/generated/patterns/A.3.2"
+    },
+    {
+      "id": "A.3.2.DE",
+      "title": "Describe a Method for Its Intended Use",
+      "staticPath": "/generated/patterns/A.3.2.DE"
     },
     {
       "id": "A.3.3",
@@ -277,11 +317,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.6.P.WMR"
     },
     {
-      "id": "A.6.RCD",
-      "title": "Needed Relation Claim Derivation and Relation-Kind Admission",
-      "staticPath": "/generated/patterns/A.6.RCD"
-    },
-    {
       "id": "A.6.REL",
       "title": "Relation Obtaining and Individuation: Distinguish Occurrences When Needed",
       "staticPath": "/generated/patterns/A.6.REL"
@@ -330,11 +365,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "A.9",
       "title": "Choose and Check an Aggregation Law for the Intended Result",
       "staticPath": "/generated/patterns/A.9"
-    },
-    {
-      "id": "A.10",
-      "title": "Evidence Graph Referring: Claim-Bound Evidence and Provenance Graph",
-      "staticPath": "/generated/patterns/A.10"
     },
     {
       "id": "A.10.1",
@@ -412,6 +442,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.15.8"
     },
     {
+      "id": "A.15.8.MS",
+      "title": "Configure Methodological Support for Work",
+      "staticPath": "/generated/patterns/A.15.8.MS"
+    },
+    {
       "id": "A.15.9",
       "title": "Use or Request a Bounded Result from Another Practice",
       "staticPath": "/generated/patterns/A.15.9"
@@ -425,11 +460,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "A.15.11",
       "title": "Make Applicable Methods Noticeable in Work",
       "staticPath": "/generated/patterns/A.15.11"
-    },
-    {
-      "id": "A.15.PROD",
-      "title": "Production Work, Entity-Identity Inception, and Production Completion Recovery",
-      "staticPath": "/generated/patterns/A.15.PROD"
     },
     {
       "id": "A.16",
@@ -517,16 +547,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.19.USCM"
     },
     {
-      "id": "A.20",
-      "title": "Constraint Validity for Transformation Steps",
-      "staticPath": "/generated/patterns/A.20"
-    },
-    {
-      "id": "A.21",
-      "title": "Gate Decisions from Independent Check Results",
-      "staticPath": "/generated/patterns/A.21"
-    },
-    {
       "id": "A.22",
       "title": "Structure and Structural Views (STRUCT-CAL)",
       "staticPath": "/generated/patterns/A.22"
@@ -565,6 +585,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "B.1.5",
       "title": "Gamma_method - Order-Sensitive Method Composition and Work Enactment",
       "staticPath": "/generated/patterns/B.1.5"
+    },
+    {
+      "id": "B.1.5.CM",
+      "title": "Construct and Qualify a Composite Method",
+      "staticPath": "/generated/patterns/B.1.5.CM"
     },
     {
       "id": "B.1.5.EW",
@@ -610,11 +635,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "B.2.P",
       "title": "Clarify Emergence and Meta-Holon Transition (MHT) Claims",
       "staticPath": "/generated/patterns/B.2.P"
-    },
-    {
-      "id": "B.3",
-      "title": "Is This Claim Supported for This Use? — Trust and Assurance Calculus",
-      "staticPath": "/generated/patterns/B.3"
     },
     {
       "id": "B.3.3",
@@ -727,6 +747,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/B.5.RR"
     },
     {
+      "id": "B.5.SD",
+      "title": "Construct a Useful Answer through Substantive Discussion",
+      "staticPath": "/generated/patterns/B.5.SD"
+    },
+    {
       "id": "B.5.TC",
       "title": "Compare Theoretical Accounts for a Working Question",
       "staticPath": "/generated/patterns/B.5.TC"
@@ -740,11 +765,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "B.5.WN",
       "title": "Develop Lines of Thought with Working Notes",
       "staticPath": "/generated/patterns/B.5.WN"
-    },
-    {
-      "id": "C.1",
-      "title": "Physical System State, Conservation, and Resource-Flow Calculus (Sys-CAL)",
-      "staticPath": "/generated/patterns/C.1"
     },
     {
       "id": "C.2",
@@ -882,6 +902,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.11.DUA"
     },
     {
+      "id": "C.11.MV",
+      "title": "Compare the Worth of a Method Option",
+      "staticPath": "/generated/patterns/C.11.MV"
+    },
+    {
       "id": "C.13",
       "title": "Constructional Mereology (Compose‑CAL)",
       "staticPath": "/generated/patterns/C.13"
@@ -890,11 +915,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "C.14",
       "title": "System-of-Systems and Infrastructure Calculus (M-Sys-CAL)",
       "staticPath": "/generated/patterns/C.14"
-    },
-    {
-      "id": "C.16",
-      "title": "Measurement & Metrics Characterization (MM‑CHR)",
-      "staticPath": "/generated/patterns/C.16"
     },
     {
       "id": "C.16.IR",
@@ -962,11 +982,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.21"
     },
     {
-      "id": "C.22",
-      "title": "Task Typing and TaskSignature Assignment (Problem-CHR)",
-      "staticPath": "/generated/patterns/C.22"
-    },
-    {
       "id": "C.22.1",
       "title": "Task-family adaptation signature",
       "staticPath": "/generated/patterns/C.22.1"
@@ -997,11 +1012,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.25"
     },
     {
-      "id": "C.26",
-      "title": "Quantum-Like Modeling Lens",
-      "staticPath": "/generated/patterns/C.26"
-    },
-    {
       "id": "C.26.1",
       "title": "Probe-Coupled Boundary Interaction",
       "staticPath": "/generated/patterns/C.26.1"
@@ -1012,24 +1022,9 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.26.2"
     },
     {
-      "id": "C.26.3",
-      "title": "Viability-Envelope Boundary Regulation",
-      "staticPath": "/generated/patterns/C.26.3"
-    },
-    {
       "id": "C.27",
       "title": "Temporal Claim Adequacy: State Readings, Temporal Trends, and Intervention-Sensitive Change",
       "staticPath": "/generated/patterns/C.27"
-    },
-    {
-      "id": "C.27.TA",
-      "title": "Temporal Aspect: Time Windows, Rhythm, Cadence, and Currentness",
-      "staticPath": "/generated/patterns/C.27.TA"
-    },
-    {
-      "id": "C.28",
-      "title": "CausalUse-CAL: Causal-Use Questions, Identification, and Realizability",
-      "staticPath": "/generated/patterns/C.28"
     },
     {
       "id": "C.28.CM",
@@ -1040,11 +1035,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "C.28.MR",
       "title": "Derive an Intervention Consequence by Mechanism Replacement",
       "staticPath": "/generated/patterns/C.28.MR"
-    },
-    {
-      "id": "C.29",
-      "title": "Mathematical Lens Use",
-      "staticPath": "/generated/patterns/C.29"
     },
     {
       "id": "C.29.1",
@@ -1162,6 +1152,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.32.HCS"
     },
     {
+      "id": "C.32.LCA",
+      "title": "Construct and Compare a Control Architecture",
+      "staticPath": "/generated/patterns/C.32.LCA"
+    },
+    {
       "id": "C.32.MLAO",
       "title": "Architecture Candidates to Reduce Cross-Scope Residuals",
       "staticPath": "/generated/patterns/C.32.MLAO"
@@ -1170,6 +1165,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "C.32.MWA",
       "title": "Synthesize an Architecture Account of Methods and Their Use",
       "staticPath": "/generated/patterns/C.32.MWA"
+    },
+    {
+      "id": "C.32.MWA.PP",
+      "title": "Construct and Compare Method Performance and Provision Arrangements",
+      "staticPath": "/generated/patterns/C.32.MWA.PP"
     },
     {
       "id": "C.32.P2S",
@@ -1202,6 +1202,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.36"
     },
     {
+      "id": "C.36.MC",
+      "title": "Qualify and Develop a Method Culture",
+      "staticPath": "/generated/patterns/C.36.MC"
+    },
+    {
       "id": "C.36.P",
       "title": "Clarify Cultural-Evolution Wording for a Claim or Action",
       "staticPath": "/generated/patterns/C.36.P"
@@ -1217,6 +1222,16 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.37"
     },
     {
+      "id": "C.37.CF",
+      "title": "Compare Content and Form Changes",
+      "staticPath": "/generated/patterns/C.37.CF"
+    },
+    {
+      "id": "C.37.MP",
+      "title": "Maintain a Method Representation Profile",
+      "staticPath": "/generated/patterns/C.37.MP"
+    },
+    {
       "id": "C.38",
       "title": "Construct Comparable Ways to Obtain One Result",
       "staticPath": "/generated/patterns/C.38"
@@ -1227,9 +1242,29 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.39"
     },
     {
+      "id": "C.39.MC",
+      "title": "Continue Method Development from Changed Conditions",
+      "staticPath": "/generated/patterns/C.39.MC"
+    },
+    {
+      "id": "C.39.MF",
+      "title": "Choose and Reopen a Method Development Focus",
+      "staticPath": "/generated/patterns/C.39.MF"
+    },
+    {
       "id": "C.39.RO",
       "title": "Turn a Construction into a Reusable Operation",
       "staticPath": "/generated/patterns/C.39.RO"
+    },
+    {
+      "id": "C.39.RP",
+      "title": "Organize a Repertoire for Method Development",
+      "staticPath": "/generated/patterns/C.39.RP"
+    },
+    {
+      "id": "C.39.RQ",
+      "title": "Construct Situated Method Requirements",
+      "staticPath": "/generated/patterns/C.39.RQ"
     },
     {
       "id": "C.40",
@@ -1245,6 +1280,106 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "C.40.CU",
       "title": "Develop a Useful and Reproducible Use of a Construct",
       "staticPath": "/generated/patterns/C.40.CU"
+    },
+    {
+      "id": "C.40.DC",
+      "title": "Construct Directions with Support Configurations",
+      "staticPath": "/generated/patterns/C.40.DC"
+    },
+    {
+      "id": "C.40.JD",
+      "title": "Develop a Way, Its Holder and Its Provision Together",
+      "staticPath": "/generated/patterns/C.40.JD"
+    },
+    {
+      "id": "C.40.JF",
+      "title": "Qualify Dependencies and Joint Reachability",
+      "staticPath": "/generated/patterns/C.40.JF"
+    },
+    {
+      "id": "C.40.NP",
+      "title": "Continue from a Result to New Attainable Problems",
+      "staticPath": "/generated/patterns/C.40.NP"
+    },
+    {
+      "id": "C.40.NU",
+      "title": "Search Neighboring Uses and Means",
+      "staticPath": "/generated/patterns/C.40.NU"
+    },
+    {
+      "id": "C.40.OC",
+      "title": "Characterize a Subject for a Possible Change",
+      "staticPath": "/generated/patterns/C.40.OC"
+    },
+    {
+      "id": "C.40.OCN",
+      "title": "Construct a Bounded Opportunity",
+      "staticPath": "/generated/patterns/C.40.OCN"
+    },
+    {
+      "id": "C.40.OD",
+      "title": "Construct and Continue Open-Ended Development",
+      "staticPath": "/generated/patterns/C.40.OD"
+    },
+    {
+      "id": "C.40.OI",
+      "title": "Bound an Opportunity Inquiry",
+      "staticPath": "/generated/patterns/C.40.OI"
+    },
+    {
+      "id": "C.40.OP",
+      "title": "Maintain Opportunities and Stepping Stones",
+      "staticPath": "/generated/patterns/C.40.OP"
+    },
+    {
+      "id": "C.40.PC",
+      "title": "Construct a Worthwhile Problem and Proposed Contribution",
+      "staticPath": "/generated/patterns/C.40.PC"
+    },
+    {
+      "id": "C.40.RQ",
+      "title": "Requalify Changed Opportunities",
+      "staticPath": "/generated/patterns/C.40.RQ"
+    },
+    {
+      "id": "C.41",
+      "title": "Select Checklist Questions for a Work Result",
+      "staticPath": "/generated/patterns/C.41"
+    },
+    {
+      "id": "C.41.OF",
+      "title": "Fit a Checklist to Its Occasion of Use",
+      "staticPath": "/generated/patterns/C.41.OF"
+    },
+    {
+      "id": "C.41.QC",
+      "title": "Qualify Checklist Criteria and Checking Means",
+      "staticPath": "/generated/patterns/C.41.QC"
+    },
+    {
+      "id": "C.41.SR",
+      "title": "Reconcile Checklist Results Across Shared Work",
+      "staticPath": "/generated/patterns/C.41.SR"
+    },
+    {
+      "id": "C.41.TF",
+      "title": "Construct a Checklist Template That Preserves Its Questions",
+      "staticPath": "/generated/patterns/C.41.TF"
+    },
+    {
+      "id": "C.41.UA",
+      "title": "Use a Checklist to Answer Questions and Act on the Results",
+      "staticPath": "/generated/patterns/C.41.UA"
+    },
+    {
+      "id": "C.42",
+      "title": "Reduce Avoidable Work While Preserving the Needed Result",
+      "staticPath": "/generated/patterns/C.42"
+    },
+    {
+      "id": "C.43",
+      "title": "Connect Observation, Choice and Action in Control",
+      "staticPath": "/generated/patterns/C.43"
     },
     {
       "id": "D.1",
@@ -1377,6 +1512,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/E.8.ECSPF"
     },
     {
+      "id": "E.8.ML",
+      "title": "Construct a Pattern Language for Connected Methods",
+      "staticPath": "/generated/patterns/E.8.ML"
+    },
+    {
       "id": "E.9",
       "title": "Design-Rationale Record (DRR) for FPF Content Decisions",
       "staticPath": "/generated/patterns/E.9"
@@ -1443,7 +1583,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.11.DSG",
-      "title": "DPF Suite Reference",
+      "title": "Architectural Reference",
       "staticPath": "/generated/patterns/E.11.DSG"
     },
     {
@@ -1520,11 +1660,6 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "E.17.AUD.OOTD",
       "title": "PublicationUnit Primary-Subject Discipline",
       "staticPath": "/generated/patterns/E.17.AUD.OOTD"
-    },
-    {
-      "id": "E.17.EFP",
-      "title": "ExplanationFaithfulnessProfile — explanation-use discipline over existing MVPK faces",
-      "staticPath": "/generated/patterns/E.17.EFP"
     },
     {
       "id": "E.17.ID.CR",
@@ -1620,6 +1755,16 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "F.0.2",
       "title": "Semantic Synthesis across Source Ontologies",
       "staticPath": "/generated/patterns/F.0.2"
+    },
+    {
+      "id": "F.0.2.MA",
+      "title": "Synthesize and Allocate Method Contributions",
+      "staticPath": "/generated/patterns/F.0.2.MA"
+    },
+    {
+      "id": "F.0.2.RC",
+      "title": "Test Constructive Coverage and Refresh Dependent Explanations",
+      "staticPath": "/generated/patterns/F.0.2.RC"
     },
     {
       "id": "F.1",
@@ -1722,6 +1867,81 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/F.19"
     },
     {
+      "id": "A.6.RCD",
+      "title": "no direct relation closes the named use, and a substrate-admitted compound claim, repeated predicate semantics, or relation-kind question is current",
+      "staticPath": "/generated/patterns/A.6.RCD"
+    },
+    {
+      "id": "A.10",
+      "title": "A descriptive claim-bound evidence-provenance account, the direct relations and currentness facts it cites, and its RelianceDisposition for the attempted use.",
+      "staticPath": "/generated/patterns/A.10"
+    },
+    {
+      "id": "A.15.PROD",
+      "title": "production-work participation, entity-identity inception, or production completion is explicitly the current question",
+      "staticPath": "/generated/patterns/A.15.PROD"
+    },
+    {
+      "id": "A.20",
+      "title": "ConstraintValidityResult with its evaluation state, outcome when present, and witnessOrReason, PathId or PathSliceId when applicable, window, sentinel, and pins when those fields are needed for the claim.",
+      "staticPath": "/generated/patterns/A.20"
+    },
+    {
+      "id": "A.21",
+      "title": "GateDecisionResult, gateRef, profileApplicationRef, DecisionLogRef, gate profile, gate version, scope, window, and replay or freshness pins.",
+      "staticPath": "/generated/patterns/A.21"
+    },
+    {
+      "id": "B.3",
+      "title": "Typed assurance claim, no-assurance-use disposition, or rejected or downgraded assurance claim.",
+      "staticPath": "/generated/patterns/B.3"
+    },
+    {
+      "id": "C.1",
+      "title": "Sys‑CAL (planned)",
+      "staticPath": "/generated/patterns/C.1"
+    },
+    {
+      "id": "C.16",
+      "title": "exact measurement result when relied on",
+      "staticPath": "/generated/patterns/C.16"
+    },
+    {
+      "id": "C.22",
+      "title": "Problem-side record, ProblemProfile, and TaskSignature are being related.",
+      "staticPath": "/generated/patterns/C.22"
+    },
+    {
+      "id": "C.26",
+      "title": "only that a residual QL cue remains after ordinary patterns",
+      "staticPath": "/generated/patterns/C.26"
+    },
+    {
+      "id": "C.26.3",
+      "title": "exact envelope-regulation episteme or ClaimAddress used by a braking, recovery, cadence or stabilization claim",
+      "staticPath": "/generated/patterns/C.26.3"
+    },
+    {
+      "id": "C.27.TA",
+      "title": "exact positive temporal-aspect episteme or ClaimAddress",
+      "staticPath": "/generated/patterns/C.27.TA"
+    },
+    {
+      "id": "C.28",
+      "title": "exact causal-use result when temporal wording is used causally",
+      "staticPath": "/generated/patterns/C.28"
+    },
+    {
+      "id": "C.29",
+      "title": "A mathematical representation preserves, coarsens, or retargets the EntityOfConcern or the problem-side representation.",
+      "staticPath": "/generated/patterns/C.29"
+    },
+    {
+      "id": "E.17.EFP",
+      "title": "Explanation class, source-finding relation, and faithfulness relation over the selected source U.Episteme, with the exact EpistemePublicationRelation occurrence named separately when availability is material.",
+      "staticPath": "/generated/patterns/E.17.EFP"
+    },
+    {
       "id": "G.0",
       "title": "Define Admissible Comparison and Aggregation for a Frame (CG-Spec)",
       "staticPath": "/generated/patterns/G.0"
@@ -1768,7 +1988,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "G.9",
-      "title": "Parity / Benchmark Harness",
+      "title": "dynamic comparison question",
       "staticPath": "/generated/patterns/G.9"
     },
     {
