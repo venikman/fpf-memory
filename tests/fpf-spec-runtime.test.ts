@@ -18,7 +18,9 @@ import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
 import { ARTIFACT_FILENAMES } from '../src/runtime/constants.js';
 import { FpfRuntime } from '../src/runtime/runtime.js';
 
-const SNAPSHOT_REUSE_TEST_TIMEOUT_MS = 70_000;
+// Five consecutive refreshes, three of them full rebuilds. See the
+// `testTimeout` note in rstest.config.ts for why these budgets are wide.
+const SNAPSHOT_REUSE_TEST_TIMEOUT_MS = 300_000;
 
 describe('FpfRuntime', () => {
   const canonicalSourcePath = resolve(process.cwd(), DEFAULT_SOURCE_PATH);
@@ -161,8 +163,6 @@ describe('FpfRuntime', () => {
     );
   });
 
-  // Snapshot construction plus several downstream queries can cross the
-  // default 20s timeout on GitHub runners under parallel load.
   it('builds a snapshot and keeps the key use-case IDs queryable', async () => {
     const audit = await runtime.refresh();
     expect(audit.rebuilt).toBe(true);
@@ -234,7 +234,7 @@ describe('FpfRuntime', () => {
     const boundedContextTrace = await runtime.trace('What is U.BoundedContext?', 'compact');
     expect(boundedContextTrace.status).toBe('ok');
     expect(boundedContextTrace.selectedNodeIds[0]).toBe('A.1.1');
-  }, 40_000);
+  });
 
   it('returns the project-alignment route from the public adoption overlay', async () => {
     await runtime.refresh();
@@ -325,10 +325,9 @@ describe('FpfRuntime', () => {
     expect(trace.selectedNodeIds).toContain('route:boundary-unpacking');
   });
 
-  // This test chains `refresh()` (full snapshot build, ~16–18s on GitHub
-  // ubuntu-latest runners) with many downstream inspect/readDoc/trace calls.
-  // The default 20s global timeout consistently tips over on CI. Give it the
-  // same headroom as the other snapshot-building tests in this file.
+  // Chains `refresh()` (a full snapshot build) with 14 browse, inspect,
+  // readDoc, trace and status calls over the compiled index. It outgrew a
+  // 40 s override as the spec grew; it now inherits the suite default.
   it('supports inspect, trace, and status surfaces over the compiled local index', async () => {
     await runtime.refresh();
 
@@ -453,7 +452,7 @@ describe('FpfRuntime', () => {
     for (const key of Object.keys(ARTIFACT_FILENAMES)) {
       expect(status.artifacts[key]).toBe(true);
     }
-  }, 40_000);
+  });
 
   it('expands citations in batch without changing single-anchor semantics', async () => {
     await runtime.refresh();

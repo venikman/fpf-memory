@@ -15,8 +15,11 @@ import {
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
 import vercelHandler from '../src/entrypoints/vercel-function.js';
 
-const MCP_REQUEST_TIMEOUT_MS = 30_000;
-const FULL_SURFACE_TEST_TIMEOUT_MS = 70_000;
+// The first request to a freshly spawned server pays for a full spec
+// compile. Keep the request budget below the test budget so a stall reports
+// the server's stderr instead of a bare test timeout.
+const MCP_REQUEST_TIMEOUT_MS = 90_000;
+const FULL_SURFACE_TEST_TIMEOUT_MS = 300_000;
 
 interface JsonRpcResponse {
   jsonrpc: '2.0';
