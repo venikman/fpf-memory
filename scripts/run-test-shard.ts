@@ -47,8 +47,38 @@ export function parseShard(value: string): ParsedShard {
   return { index, count };
 }
 
+/**
+ * Files whose tests compile the full published spec many times over. They
+ * dominate shard wall-clock time, so they are dealt out first, one per shard
+ * in turn, and every other file follows by index.
+ *
+ * Plain index slicing reassigns every file after an insertion point, so one
+ * new small test file can stack several of these into a single shard: it did
+ * on 2026-11-13 (753 s in one shard against 16 s in its neighbour), which
+ * puts that shard's job timeout back in play for no reason a diff would show.
+ * Ordered longest first, then shortest first, so each shard of four gets one
+ * long file and one short one.
+ */
+export const HEAVY_TEST_FILES: readonly string[] = [
+  'tests/docs-projection.test.ts',
+  'tests/discovery-layer.test.ts',
+  'tests/fpf-spec-runtime.test.ts',
+  'tests/publish-current.test.ts',
+  'tests/mcp-server.test.ts',
+  'tests/compiler-contracts.test.ts',
+  'tests/query-contracts.test.ts',
+  'tests/cache-freshness-regression.test.ts',
+];
+
 export function selectShardFiles(files: string[], shard: ParsedShard): string[] {
-  return files.filter((_, index) => index % shard.count === shard.index - 1);
+  const present = new Set(files);
+  const heavy = HEAVY_TEST_FILES.filter((file) => present.has(file));
+  const heavySet = new Set(heavy);
+  const light = files.filter((file) => !heavySet.has(file));
+  const deal = (list: readonly string[]): string[] =>
+    list.filter((_, index) => index % shard.count === shard.index - 1);
+
+  return [...deal(heavy), ...deal(light)];
 }
 
 export async function runTestShard(options: RunTestShardOptions): Promise<number> {
