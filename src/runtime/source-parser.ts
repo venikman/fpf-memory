@@ -363,10 +363,7 @@ function isRelationLabelBoundaryBefore(text: string, index: number): boolean {
  * catalog row.
  */
 export function findCatalogEnd(lines: string[]): number {
-  const catalogStart = lines.findIndex((line) => {
-    const heading = parseHeadingLine(line);
-    return heading?.level === 1 && normalizeForLookup(heading.title) === CATALOG_HEADING_TITLE;
-  });
+  const catalogStart = findCatalogHeadingIndex(lines);
 
   if (catalogStart >= 0) {
     for (let index = catalogStart + 1; index < lines.length; index += 1) {
@@ -386,6 +383,14 @@ export function findCatalogEnd(lines: string[]): number {
     (line) => parseHeadingLine(line)?.fullId !== undefined,
   );
   return firstBodyIndex >= 0 ? firstBodyIndex : lines.length;
+}
+
+/** Index of the level-1 `# Table of Contents` heading, or -1 when absent. */
+export function findCatalogHeadingIndex(lines: string[]): number {
+  return lines.findIndex((line) => {
+    const heading = parseHeadingLine(line);
+    return heading?.level === 1 && normalizeForLookup(heading.title) === CATALOG_HEADING_TITLE;
+  });
 }
 
 export function parseSource(sourceText: string): SourceIR {

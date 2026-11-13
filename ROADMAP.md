@@ -101,10 +101,11 @@ the delivery is what let a 16-day outage report "within SLO" (see #253).
    after upstream `f2bc67dd`: a catalog boundary keyed to a heading upstream
    renamed, a Playwright / `ubuntu-latest` mismatch, and test timeouts
    sitting at 80-100% of their limits. It also capped the docs build's Node
-   heap on the 8 GB Vercel preview machine (container peak 5938 MB to
-   5432 MB); the out-of-memory kills of 2026-10-13 to 11-02 had already
-   stopped and their cause could not be re-measured. Still open under this
-   item, ranked:
+   heap on the 8 GB Vercel preview machine, where the build environment's
+   `NODE_OPTIONS` sets the limit to the whole container (container peak
+   5574-5938 MB uncapped, 5293-5432 MB capped); the out-of-memory kills of
+   2026-10-13 to 11-02 had already stopped and their cause could not be
+   re-measured. Still open under this item, ranked:
    (a) **The alarm has no responder.** #353 opened at 2026-10-12 23:53Z,
    minutes after the first failed sync, and #359 four days later; neither
    drew a response until 2026-11-13. After the first notification the

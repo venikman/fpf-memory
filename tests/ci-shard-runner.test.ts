@@ -55,7 +55,10 @@ describe('CI test shard runner', () => {
           shards.findIndex((shard) => selectShardFiles(files, shard).includes(file)) + 1,
         ]),
       );
-    const light = ['tests/a.test.ts', 'tests/m.test.ts', 'tests/z.test.ts'];
+    // Four light files: with three shards both the heavy list (8) and the
+    // light list leave a remainder, which two separate rotations stack on
+    // shard 1 (5 / 4 / 3 files) and a single rotation does not (4 / 4 / 4).
+    const light = ['tests/a.test.ts', 'tests/m.test.ts', 'tests/q.test.ts', 'tests/z.test.ts'];
     const baseline = [...HEAVY_TEST_FILES, ...light].sort();
 
     const heavyCounts = (files: string[], over: typeof shards): number[] =>

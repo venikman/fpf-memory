@@ -9,8 +9,9 @@
  *
  * What is measured (2026-11-13):
  *
- * - On the build host, Node v26.13.1 reports a default heap limit of 8288 MB
- *   inside an 8192 MB container, so V8 is never the first to feel pressure.
+ * - The build environment itself puts `--max_old_space_size=8192` in
+ *   NODE_OPTIONS: a heap limit (reported as 8288 MB by Node v26.13.1) the size
+ *   of the whole 8192 MB container, so V8 is never the first to feel pressure.
  * - The build's peak memory follows the heap limit, not the content
  *   (`rspress build`, upstream 1e57ccda at 18.4 MB, 4 cores, Node 22):
  *
@@ -21,13 +22,14 @@
  *     3072 MB      6.3 GiB
  *     4096 MB      6.7 GiB
  *
- * - On the build host, same tree built twice: container peak 5938 MB with
- *   the default limit, 5432 MB with the heap capped at 3072 MB.
+ * - On the build host, same tree: container peak 5938 MB and 5574 MB with
+ *   the environment's limit, 5432 MB and 5293 MB with the heap capped at
+ *   3072 MB.
  *
  * What is not established: that the heap limit caused the 2026-10 kills.
  * They stopped about when Vercel moved this project's builds to Node 26, and
  * the earlier runtime can no longer be measured. The cap is therefore a
- * bound on the part of memory this repo controls, worth about 0.5 GB of
+ * bound on the part of memory this repo controls, worth 0.3-0.5 GB of
  * margin today and independent of which Node major the build floats to.
  *
  * It buys margin, not capacity. The build needs about 1.7 GB of live heap
@@ -50,7 +52,7 @@ export interface BuildHostFacts {
   node?: string;
   /** Effective V8 heap limit of a default `node` process on this host. */
   heapLimitMb?: number;
-  /** `--max-old-space-size` already present in NODE_OPTIONS, if any. */
+  /** `--max-old-space-size` already present in NODE_OPTIONS; informational. */
   maxOldSpaceFlagMb?: number | null;
   totalMemMb?: number;
   /** Memory limit imposed on the process (cgroup); 0 or null when unknown. */
@@ -59,16 +61,18 @@ export interface BuildHostFacts {
 }
 
 /**
- * The heap cap to apply to the docs build, or `undefined` to leave Node's
- * default alone: when an operator already set one, when the host limit is
- * unknown, when the default already leaves the non-heap reserve free, or when
- * the host is too small for any workable cap.
+ * The heap cap to apply to the docs build, or `undefined` to leave the
+ * effective limit alone: when the host limit is unknown, when the effective
+ * limit already leaves the non-heap reserve free, or when the host is too
+ * small for any workable cap.
+ *
+ * The decision uses the limit Node actually reports, not the presence of a
+ * flag. The build environment's own NODE_OPTIONS already carries a
+ * `--max_old_space_size` the size of the container, so "a flag is set" says
+ * nothing about whether the reserve is free. A lower limit set on purpose is
+ * respected because it already satisfies the bound; a higher one is not.
  */
 export function resolveDocsBuildHeapCapMb(host: BuildHostFacts): number | undefined {
-  if (host.maxOldSpaceFlagMb !== undefined && host.maxOldSpaceFlagMb !== null) {
-    return undefined;
-  }
-
   const constrainedMemMb = host.constrainedMemMb ?? 0;
   const heapLimitMb = host.heapLimitMb ?? 0;
   if (!(constrainedMemMb > 0) || !(heapLimitMb > 0)) {
@@ -84,9 +88,9 @@ export function resolveDocsBuildHeapCapMb(host: BuildHostFacts): number | undefi
 }
 
 /**
- * The `--max-old-space-size` an operator already put in NODE_OPTIONS, in MB.
- * V8 accepts dashes or underscores in the flag name, and the last occurrence
- * wins, so both are matched and the last one is returned.
+ * The `--max-old-space-size` already present in NODE_OPTIONS, in MB, for the
+ * build log only. V8 accepts dashes or underscores in the flag name, and the
+ * last occurrence wins, so both are matched and the last one is returned.
  */
 export function parseMaxOldSpaceFlagMb(nodeOptions: string | undefined): number | null {
   const matches = [...(nodeOptions ?? '').matchAll(/--max[-_]old[-_]space[-_]size=(\d+)/g)];

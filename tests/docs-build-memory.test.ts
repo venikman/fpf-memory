@@ -11,15 +11,18 @@ import {
 /**
  * Pins the heap-cap decision for the docs build on memory-constrained hosts.
  * The host facts are the ones the Vercel preview build log printed on
- * 2026-11-13: a default heap limit (8288 MB) above the container (8192 MB).
- * Whether that limit caused the 2026-10 OOM kills is not established; see
- * src/build/docs-build-memory.ts.
+ * 2026-11-13: the build environment's own NODE_OPTIONS sets
+ * `--max_old_space_size=8192`, a heap limit (8288 MB) the size of the
+ * container (8192 MB). Whether that limit caused the 2026-10 OOM kills is not
+ * established; see src/build/docs-build-memory.ts.
  */
 describe('docs build heap cap', () => {
   const vercelStandardMachine = {
     node: 'v26.13.1',
     heapLimitMb: 8288,
-    maxOldSpaceFlagMb: null,
+    // Present on the real host. The decision must not read it as an operator
+    // choice: doing so switched the cap off on Vercel for one commit.
+    maxOldSpaceFlagMb: 8192,
     totalMemMb: 8404,
     constrainedMemMb: 8192,
     cpus: 4,
@@ -35,9 +38,22 @@ describe('docs build heap cap', () => {
     expect(capMb).toBeLessThan(vercelStandardMachine.constrainedMemMb);
   });
 
-  it('leaves an operator-chosen --max-old-space-size alone', () => {
+  it('decides from the effective limit, not from whether a flag is present', () => {
+    // The platform flag (container-sized) is overridden...
+    expect(resolveDocsBuildHeapCapMb(vercelStandardMachine)).toBe(3072);
+    expect(resolveDocsBuildHeapCapMb({ ...vercelStandardMachine, maxOldSpaceFlagMb: null })).toBe(
+      3072,
+    );
+    // ...and so is any other limit that eats into the reserve...
     expect(
-      resolveDocsBuildHeapCapMb({ ...vercelStandardMachine, heapLimitMb: 6144, maxOldSpaceFlagMb: 6144 }),
+      resolveDocsBuildHeapCapMb({ ...vercelStandardMachine, heapLimitMb: 6200, maxOldSpaceFlagMb: 6144 }),
+    ).toBe(3072);
+    // ...while a limit already inside the bound is left exactly as set.
+    expect(
+      resolveDocsBuildHeapCapMb({ ...vercelStandardMachine, heapLimitMb: 2600, maxOldSpaceFlagMb: 2560 }),
+    ).toBeUndefined();
+    expect(
+      resolveDocsBuildHeapCapMb({ ...vercelStandardMachine, heapLimitMb: 3072, maxOldSpaceFlagMb: 3000 }),
     ).toBeUndefined();
   });
 
@@ -82,24 +98,17 @@ describe('docs build heap cap', () => {
     expect(resolveDocsBuildHeapCapMb({ maxOldSpaceFlagMb: null, constrainedMemMb: 8192 })).toBeUndefined();
   });
 
-  it('recognises an operator heap flag in either spelling and takes the last one', () => {
+  it('reports a heap flag in either spelling and takes the last one', () => {
     expect(parseMaxOldSpaceFlagMb(undefined)).toBeNull();
     expect(parseMaxOldSpaceFlagMb('--use-openssl-ca')).toBeNull();
     expect(parseMaxOldSpaceFlagMb('--max-old-space-size=6144')).toBe(6144);
-    // V8 accepts underscores; missing this spelling let the cap override it.
-    expect(parseMaxOldSpaceFlagMb('--max_old_space_size=6144')).toBe(6144);
+    // V8 accepts underscores, and that is the spelling the Vercel build
+    // environment uses.
+    expect(parseMaxOldSpaceFlagMb('--max_old_space_size=8192')).toBe(8192);
     expect(parseMaxOldSpaceFlagMb('--trace-gc --max-old_space-size=5000 --inspect')).toBe(5000);
     expect(
       parseMaxOldSpaceFlagMb('--max-old-space-size=2048 --max_old_space_size=7000'),
     ).toBe(7000);
-
-    expect(
-      resolveDocsBuildHeapCapMb({
-        ...vercelStandardMachine,
-        heapLimitMb: 6200,
-        maxOldSpaceFlagMb: parseMaxOldSpaceFlagMb('--max_old_space_size=6144'),
-      }),
-    ).toBeUndefined();
   });
 
   it('appends the flag and keeps existing NODE_OPTIONS', () => {
@@ -108,5 +117,9 @@ describe('docs build heap cap', () => {
     expect(withDocsBuildHeapCap(' --use-openssl-ca ', 3584)).toBe(
       '--use-openssl-ca --max-old-space-size=3584',
     );
+    // Appended last, so it wins over the platform's own flag.
+    const capped = withDocsBuildHeapCap('--max_old_space_size=8192', 3072);
+    expect(capped).toBe('--max_old_space_size=8192 --max-old-space-size=3072');
+    expect(parseMaxOldSpaceFlagMb(capped)).toBe(3072);
   });
 });

@@ -15,7 +15,7 @@ const script = surface === 'mcp' ? 'vercel:mcp:build' : 'vercel:website:build';
 
 process.stdout.write(`build-vercel-git-preview: surface=${surface} script=${script}\n`);
 
-const host = probeBuildHost();
+const host = probeBuildHost(process.env);
 process.stdout.write(
   `build-vercel-git-preview: host=${typeof host === 'string' ? host : JSON.stringify(host)}\n`,
 );
@@ -27,8 +27,13 @@ const heapCapMb =
   surface === 'website' && typeof host !== 'string' ? resolveDocsBuildHeapCapMb(host) : undefined;
 if (heapCapMb !== undefined) {
   buildEnv.NODE_OPTIONS = withDocsBuildHeapCap(buildEnv.NODE_OPTIONS, heapCapMb);
+  // Probe again with the build's environment: the cap is appended after any
+  // flag already there, and the log should show the limit that results
+  // rather than the one that was asked for.
+  const capped = probeBuildHost(buildEnv);
+  const effective = typeof capped === 'string' ? capped : `${capped.heapLimitMb} MB`;
   process.stdout.write(
-    `build-vercel-git-preview: docs build heap capped at ${heapCapMb} MB via NODE_OPTIONS\n`,
+    `build-vercel-git-preview: docs build heap capped at ${heapCapMb} MB via NODE_OPTIONS (effective limit ${effective})\n`,
   );
 }
 
@@ -50,7 +55,7 @@ if (result.status !== 0) {
 // One line of build-host facts in every preview log. `rspress build` runs
 // under Node, and its peak memory follows the heap limit Node derives from
 // the host, so the limit has to be readable from the log after the fact.
-function probeBuildHost(): BuildHostFacts | string {
+function probeBuildHost(env: NodeJS.ProcessEnv): BuildHostFacts | string {
   const probe = spawnSync(
     'node',
     [
@@ -68,14 +73,14 @@ function probeBuildHost(): BuildHostFacts | string {
         '}));',
       ].join('\n'),
     ],
-    { cwd: process.cwd(), env: process.env, encoding: 'utf8' },
+    { cwd: process.cwd(), env, encoding: 'utf8' },
   );
 
   if (probe.status === 0 && probe.stdout.trim()) {
     try {
       return {
         ...(JSON.parse(probe.stdout.trim()) as BuildHostFacts),
-        maxOldSpaceFlagMb: parseMaxOldSpaceFlagMb(process.env.NODE_OPTIONS),
+        maxOldSpaceFlagMb: parseMaxOldSpaceFlagMb(env.NODE_OPTIONS),
       };
     } catch {
       // Fall through to the unavailable report.

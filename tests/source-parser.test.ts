@@ -6,23 +6,36 @@ import { describe, expect, it } from '@rstest/core';
 import { DEFAULT_SOURCE_PATH, PREFACE_MARKER } from '../src/core/constants.js';
 import {
   findCatalogEnd,
+  findCatalogHeadingIndex,
   parseHeadingMetadata,
   parseLabeledRelations,
   parseSource,
 } from '../src/runtime/source-parser.js';
 
-// Every pattern body has a catalog row in the published spec (343 of 343 on
-// upstream f2bc67dd, 390 of 390 on 1e57ccda). A few are tolerated so one
-// upstream slip does not block publication; a truncated catalog loses dozens.
-const MAX_BODIES_WITHOUT_CATALOG_ROW = 3;
+// Share of pattern bodies allowed to have no catalog row. Every body has one
+// on upstream f2bc67dd (343) and 1e57ccda (390), but 26 of the 29 specs
+// published from 2026-07 to 2026-09 carried eight sub-entries (I.2.1-I.2.8)
+// without rows, about 2%. A catalog cut short at a part boundary loses far
+// more than this; one cut within its last few rows is not detected.
+const MAX_SHARE_OF_BODIES_WITHOUT_CATALOG_ROW = 0.05;
+
+function patternBodyIds(ir: ReturnType<typeof parseSource>): string[] {
+  return [
+    ...new Set(
+      ir.sections
+        .filter((section) => section.fullId !== undefined && section.fullId === section.patternId)
+        .map((section) => section.patternId as string),
+    ),
+  ];
+}
+
+function shareOfBodiesWithoutCatalogRow(ir: ReturnType<typeof parseSource>): number {
+  const bodies = patternBodyIds(ir);
+  return patternBodiesWithoutCatalogRow(ir).length / Math.max(1, bodies.length);
+}
 
 function patternBodiesWithoutCatalogRow(ir: ReturnType<typeof parseSource>): string[] {
-  const bodyIds = new Set(
-    ir.sections
-      .filter((section) => section.fullId !== undefined && section.fullId === section.patternId)
-      .map((section) => section.patternId as string),
-  );
-  return [...bodyIds].filter((id) => ir.metadata[id] === undefined);
+  return patternBodyIds(ir).filter((id) => ir.metadata[id] === undefined);
 }
 
 // A spec shaped like upstream: catalog section, then front matter, then a
@@ -196,9 +209,11 @@ describe('source-parser', () => {
   });
 
   it('finds a catalog boundary in the published spec that excludes every pattern body', async () => {
-    // Structural guard on the real artifact. If upstream renames or moves the
-    // Table of Contents, the legacy fallback swallows the whole document and
-    // this fails by name, instead of surfacing as a search-ranking regression.
+    // Structural guard on the real artifact, whichever boundary rule applied:
+    // the catalog region must stop before the pattern bodies, so a body table
+    // can never be read as a catalog row. (If upstream renames the Table of
+    // Contents the parser falls back to the front matter and this still
+    // holds; the two tests below then have nothing to exercise.)
     const sourceText = await readFile(resolve(process.cwd(), DEFAULT_SOURCE_PATH), 'utf8');
     const ir = parseSource(sourceText);
 
@@ -222,9 +237,9 @@ describe('source-parser', () => {
 
     // And the other direction: a catalog cut short (a level-1 heading inside
     // the Table of Contents ends it early) leaves pattern bodies without a
-    // row. Every body has one today; allow a few for upstream slips.
-    expect(patternBodiesWithoutCatalogRow(ir).length).toBeLessThanOrEqual(
-      MAX_BODIES_WITHOUT_CATALOG_ROW,
+    // row.
+    expect(shareOfBodiesWithoutCatalogRow(ir)).toBeLessThanOrEqual(
+      MAX_SHARE_OF_BODIES_WITHOUT_CATALOG_ROW,
     );
   });
 
@@ -232,26 +247,49 @@ describe('source-parser', () => {
     const lines = (await readFile(resolve(process.cwd(), DEFAULT_SOURCE_PATH), 'utf8')).split(
       /\r?\n/,
     );
+    const catalogStart = findCatalogHeadingIndex(lines);
+    if (catalogStart < 0) {
+      // The published spec no longer has the catalog heading, so the parser
+      // is on its fallback, where a level-1 heading does not end the catalog.
+      expect(shareOfBodiesWithoutCatalogRow(parseSource(lines.join('\n')))).toBeLessThanOrEqual(
+        MAX_SHARE_OF_BODIES_WITHOUT_CATALOG_ROW,
+      );
+      return;
+    }
+
     const catalogEnd = findCatalogEnd(lines);
     const truncated = [...lines];
-    truncated.splice(Math.floor(catalogEnd / 2), 0, '# Heading Promoted Inside The Catalog');
+    truncated.splice(
+      catalogStart + Math.floor((catalogEnd - catalogStart) / 2),
+      0,
+      '# Heading Promoted Inside The Catalog',
+    );
 
-    expect(patternBodiesWithoutCatalogRow(parseSource(truncated.join('\n'))).length).toBeGreaterThan(
-      MAX_BODIES_WITHOUT_CATALOG_ROW,
+    expect(shareOfBodiesWithoutCatalogRow(parseSource(truncated.join('\n')))).toBeGreaterThan(
+      MAX_SHARE_OF_BODIES_WITHOUT_CATALOG_ROW,
     );
   });
 
   it('keeps published catalog metadata when the catalog heading is renamed', async () => {
-    // The fallback path on the real artifact: front matter only, so the IDs
-    // and titles match the normal parse instead of body tables leaking in.
-    const sourceText = await readFile(resolve(process.cwd(), DEFAULT_SOURCE_PATH), 'utf8');
-    const normal = parseSource(sourceText);
-    const renamed = parseSource(sourceText.replace(/^# Table of Contents$/m, '# Contents'));
-    const titles = (ir: ReturnType<typeof parseSource>): Record<string, string> =>
-      Object.fromEntries(Object.entries(ir.metadata).map(([id, meta]) => [id, meta.title]));
+    // The fallback path on the real artifact: front matter only, so pattern
+    // metadata matches the normal parse instead of body tables leaking in.
+    const lines = (await readFile(resolve(process.cwd(), DEFAULT_SOURCE_PATH), 'utf8')).split(
+      /\r?\n/,
+    );
+    const catalogStart = findCatalogHeadingIndex(lines);
+    if (catalogStart < 0) {
+      // Already the case upstream; the structural test above covers it.
+      return;
+    }
 
+    const renamedLines = [...lines];
+    renamedLines[catalogStart] = '# Contents';
+    const normal = parseSource(lines.join('\n'));
+    const renamed = parseSource(renamedLines.join('\n'));
+
+    expect(findCatalogHeadingIndex(renamedLines)).toBe(-1);
     expect(renamed.catalogLines.length).toBeGreaterThan(normal.catalogLines.length);
-    expect(titles(renamed)).toEqual(titles(normal));
+    expect(renamed.metadata).toEqual(normal.metadata);
   });
 
   it('parses heading metadata from labeled blockquote lines', () => {
