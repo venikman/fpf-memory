@@ -29,6 +29,11 @@ the delivery is what let a 16-day outage report "within SLO" (see #253).
 
 ## Now
 
+> **2026-11-13 re-rank.** Pick up item 7 first, ahead of items 1-6. The
+> freshness promise above was broken for 32 days (2026-10-12 to 2026-11-13)
+> while both of its alarms sat open, and four ways to repeat that are still
+> listed there. Numbering is unchanged so existing references stay valid.
+
 1. **LICENSE.** The repo is all-rights-reserved by default, which caps every
    distribution move below it. Needs Stas to pick (MIT or Apache-2.0), and the
    file must scope repo code separately from the mirrored upstream spec text in
@@ -92,6 +97,37 @@ the delivery is what let a 16-day outage report "within SLO" (see #253).
    (the old 100-run window made a 3-4-week outage look recovered), and a
    credential/renewal ledger in the automation playbook with weekly
    token-expiry findings from `GET /v5/user/tokens/current`.
+   2026-11-13 stall recovery (#401) removed what kept every sync PR red
+   after upstream `f2bc67dd`: a catalog boundary keyed to a heading upstream
+   renamed, a Playwright / `ubuntu-latest` mismatch, test timeouts sitting at
+   80-100% of their limits, and a Node heap limit larger than the 8 GB Vercel
+   preview build machine. Still open under this item, ranked:
+   (a) **The alarm has no responder.** #353 opened at 2026-10-12 23:53Z,
+   minutes after the first failed sync, and #359 four days later; neither
+   drew a response until 2026-11-13. After the first notification the
+   escalation only edits the issue body in place, which notifies no one. A
+   failure that persists must page a person or start a maintainer session.
+   (b) **A failed check on an unchanged head cannot recover.** The worker
+   re-dispatches CI on each run, but nothing rebuilds the Vercel preview or
+   reruns its Playwright check, so one failed preview blocks publication
+   until upstream moves (sync head `0d8ca19a` was dispatched nine times over
+   four days against the same failed preview).
+   (c) **Preview build capacity.** At 18.4 MB of spec `rspress build` needs
+   about 1.7 GB of live heap and holds about 3.5 GiB outside it; the preview
+   machine has 8 GB. The heap cap in `src/build/docs-build-memory.ts` buys
+   margin, not capacity. Watch the `container memory peak` line in the
+   preview build log; before it passes ~7 GB, build previews in GitHub
+   Actions and upload them prebuilt (as production already is) or move to a
+   larger build machine (a billing decision for Stas).
+   (d) **Per-test spec compiles.** Most test files rebuild the full snapshot
+   inside every test, so suite time tracks upstream size (10.2 MB to 18.4 MB
+   from 2026-07 to 2026-11). `FpfRuntime` already accepts `artifactSeedDir`;
+   seeding tests from the `ensure:snapshot` artifact makes per-test cost
+   flat. The 120 s default timeout from #401 is a stopgap.
+   (e) **Floating toolchains.** Vercel git builds follow `engines.node:
+   ">=22.13.0"` to the newest Node major (26.x on 2026-11-13, while Project
+   Settings say 24.x); pin it. The Preview E2E job is pinned to
+   `ubuntu-24.04` until Playwright moves past 1.59.1 (1.65.0 lists 26.04).
 
 ## Shipped
 

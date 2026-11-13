@@ -1,4 +1,11 @@
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+
+import {
+  resolveDocsBuildHeapCapMb,
+  withDocsBuildHeapCap,
+  type BuildHostFacts,
+} from '../src/build/docs-build-memory.js';
 
 type VercelSurface = 'website' | 'mcp';
 
@@ -6,13 +13,31 @@ const surface = resolveVercelSurface(process.env);
 const script = surface === 'mcp' ? 'vercel:mcp:build' : 'vercel:website:build';
 
 process.stdout.write(`build-vercel-git-preview: surface=${surface} script=${script}\n`);
-reportBuildHost();
+
+const host = probeBuildHost();
+process.stdout.write(
+  `build-vercel-git-preview: host=${typeof host === 'string' ? host : JSON.stringify(host)}\n`,
+);
+
+// Only the website surface runs `rspress build`; see docs-build-memory.ts for
+// why its heap is capped from the container size.
+const buildEnv: NodeJS.ProcessEnv = { ...process.env };
+const heapCapMb =
+  surface === 'website' && typeof host !== 'string' ? resolveDocsBuildHeapCapMb(host) : undefined;
+if (heapCapMb !== undefined) {
+  buildEnv.NODE_OPTIONS = withDocsBuildHeapCap(buildEnv.NODE_OPTIONS, heapCapMb);
+  process.stdout.write(
+    `build-vercel-git-preview: docs build heap capped at ${heapCapMb} MB via NODE_OPTIONS\n`,
+  );
+}
 
 const result = spawnSync('bun', ['run', script], {
   cwd: process.cwd(),
-  env: process.env,
+  env: buildEnv,
   stdio: 'inherit',
 });
+
+reportContainerMemoryPeak();
 
 if (result.error) {
   throw result.error;
@@ -23,12 +48,8 @@ if (result.status !== 0) {
 
 // One line of build-host facts in every preview log. `rspress build` runs
 // under Node, and its peak memory follows the heap limit Node derives from
-// the host: measured on upstream 1e57ccda, a 1.5 GB limit aborts the build,
-// ~2 GB peaks at 5.3-5.8 GiB RSS and 4 GB at 6.7 GiB. On the 8 GB Vercel
-// build machine that difference decides whether the container is OOM-killed
-// (2026-08, and 18 of 31 sync previews from 2026-10-13 to 2026-11-02), and
-// the build log is the only place the limit can be read afterwards.
-function reportBuildHost(): void {
+// the host, so the limit has to be readable from the log after the fact.
+function probeBuildHost(): BuildHostFacts | string {
   const probe = spawnSync(
     'node',
     [
@@ -50,11 +71,52 @@ function reportBuildHost(): void {
     ],
     { cwd: process.cwd(), env: process.env, encoding: 'utf8' },
   );
-  const facts =
-    probe.status === 0 && probe.stdout.trim()
-      ? probe.stdout.trim()
-      : `unavailable (${probe.error?.message ?? `exit ${probe.status ?? 'unknown'}`})`;
-  process.stdout.write(`build-vercel-git-preview: host=${facts}\n`);
+
+  if (probe.status === 0 && probe.stdout.trim()) {
+    try {
+      return JSON.parse(probe.stdout.trim()) as BuildHostFacts;
+    } catch {
+      // Fall through to the unavailable report.
+    }
+  }
+  return `unavailable (${probe.error?.message ?? `exit ${probe.status ?? 'unknown'}`})`;
+}
+
+// The kernel's own high-water mark for this container: the number the OOM
+// killer compares against the limit. Best effort across cgroup v2 and v1;
+// absent files (local runs, other hosts) print nothing.
+function reportContainerMemoryPeak(): void {
+  const candidates: Array<[peak: string, limit: string]> = [
+    ['/sys/fs/cgroup/memory.peak', '/sys/fs/cgroup/memory.max'],
+    [
+      '/sys/fs/cgroup/memory/memory.max_usage_in_bytes',
+      '/sys/fs/cgroup/memory/memory.limit_in_bytes',
+    ],
+  ];
+  for (const [peakPath, limitPath] of candidates) {
+    const peak = readByteCount(peakPath);
+    if (peak === undefined) {
+      continue;
+    }
+    const limit = readByteCount(limitPath);
+    const mb = (bytes: number): number => Math.round(bytes / 1048576);
+    // An unlimited cgroup reports a sentinel near 2^63 (v1) or "max" (v2).
+    const limitText =
+      limit === undefined || limit > 2 ** 40 ? 'none' : `${mb(limit)} MB`;
+    process.stdout.write(
+      `build-vercel-git-preview: container memory peak=${mb(peak)} MB limit=${limitText}\n`,
+    );
+    return;
+  }
+}
+
+function readByteCount(path: string): number | undefined {
+  try {
+    const value = Number(readFileSync(path, 'utf8').trim());
+    return Number.isFinite(value) && value > 0 ? value : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function resolveVercelSurface(env: NodeJS.ProcessEnv): VercelSurface {
