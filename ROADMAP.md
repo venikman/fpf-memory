@@ -128,7 +128,9 @@ the delivery is what let a 16-day outage report "within SLO" (see #253).
    inside every test, so suite time tracks upstream size (10.2 MB to 18.4 MB
    from 2026-07 to 2026-11). `FpfRuntime` already accepts `artifactSeedDir`;
    seeding tests from the `ensure:snapshot` artifact makes per-test cost
-   flat. The 120 s default timeout from #401 is a stopgap.
+   flat. The 120 s default timeout from #401 is a stopgap, and so is the
+   hand-kept `HEAVY_TEST_FILES` list that keeps those files in separate CI
+   shards; both can go once per-test cost is flat.
    (e) **Floating toolchains.** Vercel git builds follow `engines.node:
    ">=22.13.0"` to the newest Node major (26.x on 2026-11-13, while Project
    Settings say 24.x); pin it. The Preview E2E job is pinned to

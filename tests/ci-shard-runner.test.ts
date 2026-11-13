@@ -58,12 +58,21 @@ describe('CI test shard runner', () => {
     const light = ['tests/a.test.ts', 'tests/m.test.ts', 'tests/z.test.ts'];
     const baseline = [...HEAVY_TEST_FILES, ...light].sort();
 
-    for (const shard of shards) {
-      const heavyInShard = selectShardFiles(baseline, shard).filter((file) =>
-        HEAVY_TEST_FILES.includes(file),
+    const heavyCounts = (files: string[], over: typeof shards): number[] =>
+      over.map(
+        (shard) =>
+          selectShardFiles(files, shard).filter((file) => HEAVY_TEST_FILES.includes(file)).length,
       );
-      expect(heavyInShard).toHaveLength(HEAVY_TEST_FILES.length / shards.length);
-    }
+    const spread = (counts: number[]): number => Math.max(...counts) - Math.min(...counts);
+
+    expect(spread(heavyCounts(baseline, shards))).toBeLessThanOrEqual(1);
+    // Holds for shard counts that do not divide the list, and for the whole
+    // file set, where heavy and light remainders must not land together.
+    const threeShards = ['1/3', '2/3', '3/3'].map(parseShard);
+    expect(spread(heavyCounts(baseline, threeShards))).toBeLessThanOrEqual(1);
+    expect(
+      spread(threeShards.map((shard) => selectShardFiles(baseline, shard).length)),
+    ).toBeLessThanOrEqual(1);
 
     // Regression: a new file that sorts early used to shift every later file
     // into a different shard and stack the heavy ones together.

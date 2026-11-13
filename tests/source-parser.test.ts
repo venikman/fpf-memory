@@ -11,6 +11,20 @@ import {
   parseSource,
 } from '../src/runtime/source-parser.js';
 
+// Every pattern body has a catalog row in the published spec (343 of 343 on
+// upstream f2bc67dd, 390 of 390 on 1e57ccda). A few are tolerated so one
+// upstream slip does not block publication; a truncated catalog loses dozens.
+const MAX_BODIES_WITHOUT_CATALOG_ROW = 3;
+
+function patternBodiesWithoutCatalogRow(ir: ReturnType<typeof parseSource>): string[] {
+  const bodyIds = new Set(
+    ir.sections
+      .filter((section) => section.fullId !== undefined && section.fullId === section.patternId)
+      .map((section) => section.patternId as string),
+  );
+  return [...bodyIds].filter((id) => ir.metadata[id] === undefined);
+}
+
 // A spec shaped like upstream: catalog section, then front matter, then a
 // pattern body that contains a lookup table whose first cell is a pattern ID.
 // `frontMatterHeading` is the level-1 heading upstream places after the
@@ -146,13 +160,39 @@ describe('source-parser', () => {
     expect(findCatalogEnd(nested)).toBe(3);
   });
 
-  it('keeps the legacy contract for sources without a catalog heading', () => {
+  it('falls back to the legacy marker, then to the first pattern body', () => {
     const withMarker = ['| A.1 | Title | Stable | | |', PREFACE_MARKER, '| A.1 | Body row | x | | |'];
     expect(findCatalogEnd(withMarker)).toBe(1);
     expect(parseSource(withMarker.join('\n')).metadata['A.1']?.title).toBe('Title');
 
-    const bare = ['| A.1 | Title | Stable | | |', '', '# A.1 - Title'];
-    expect(findCatalogEnd(bare)).toBe(bare.length);
+    // No catalog heading and no marker: the catalog stops where the bodies
+    // start, so a table under a pattern heading is never a catalog row.
+    const bare = [
+      '| A.1 | Title | Stable | | |',
+      '',
+      '# A.1 - Title',
+      '| A.1 | Body row | x | | |',
+    ];
+    expect(findCatalogEnd(bare)).toBe(2);
+    expect(parseSource(bare.join('\n')).metadata['A.1']).toMatchObject({
+      title: 'Title',
+      status: 'Stable',
+    });
+
+    // Nothing ID-bearing at all: the whole text is catalog.
+    const rowsOnly = ['| A.1 | Title | Stable | | |', '# Notes', '| A.2 | Other | Draft | | |'];
+    expect(findCatalogEnd(rowsOnly)).toBe(rowsOnly.length);
+  });
+
+  it('still reads front matter only when the catalog heading itself is renamed', () => {
+    const renamed = specWithBodyLookupTable('# Front Matter').replace(
+      '# Table of Contents',
+      '# Contents',
+    );
+    const ir = parseSource(renamed);
+
+    expect(ir.metadata['A.1']).toMatchObject({ title: 'Catalog Title For A.1', status: 'Stable' });
+    expect(Object.keys(ir.metadata).sort()).toEqual(['A.1', 'A.2']);
   });
 
   it('finds a catalog boundary in the published spec that excludes every pattern body', async () => {
@@ -179,6 +219,39 @@ describe('source-parser', () => {
     expect(catalogIds.length).toBeGreaterThan(100);
     const withBody = catalogIds.filter((id) => patternBodyIds.has(id));
     expect(withBody.length / catalogIds.length).toBeGreaterThan(0.9);
+
+    // And the other direction: a catalog cut short (a level-1 heading inside
+    // the Table of Contents ends it early) leaves pattern bodies without a
+    // row. Every body has one today; allow a few for upstream slips.
+    expect(patternBodiesWithoutCatalogRow(ir).length).toBeLessThanOrEqual(
+      MAX_BODIES_WITHOUT_CATALOG_ROW,
+    );
+  });
+
+  it('would notice a published catalog that is cut short', async () => {
+    const lines = (await readFile(resolve(process.cwd(), DEFAULT_SOURCE_PATH), 'utf8')).split(
+      /\r?\n/,
+    );
+    const catalogEnd = findCatalogEnd(lines);
+    const truncated = [...lines];
+    truncated.splice(Math.floor(catalogEnd / 2), 0, '# Heading Promoted Inside The Catalog');
+
+    expect(patternBodiesWithoutCatalogRow(parseSource(truncated.join('\n'))).length).toBeGreaterThan(
+      MAX_BODIES_WITHOUT_CATALOG_ROW,
+    );
+  });
+
+  it('keeps published catalog metadata when the catalog heading is renamed', async () => {
+    // The fallback path on the real artifact: front matter only, so the IDs
+    // and titles match the normal parse instead of body tables leaking in.
+    const sourceText = await readFile(resolve(process.cwd(), DEFAULT_SOURCE_PATH), 'utf8');
+    const normal = parseSource(sourceText);
+    const renamed = parseSource(sourceText.replace(/^# Table of Contents$/m, '# Contents'));
+    const titles = (ir: ReturnType<typeof parseSource>): Record<string, string> =>
+      Object.fromEntries(Object.entries(ir.metadata).map(([id, meta]) => [id, meta.title]));
+
+    expect(renamed.catalogLines.length).toBeGreaterThan(normal.catalogLines.length);
+    expect(titles(renamed)).toEqual(titles(normal));
   });
 
   it('parses heading metadata from labeled blockquote lines', () => {

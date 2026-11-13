@@ -83,6 +83,17 @@ export function resolveDocsBuildHeapCapMb(host: BuildHostFacts): number | undefi
   return capMb;
 }
 
+/**
+ * The `--max-old-space-size` an operator already put in NODE_OPTIONS, in MB.
+ * V8 accepts dashes or underscores in the flag name, and the last occurrence
+ * wins, so both are matched and the last one is returned.
+ */
+export function parseMaxOldSpaceFlagMb(nodeOptions: string | undefined): number | null {
+  const matches = [...(nodeOptions ?? '').matchAll(/--max[-_]old[-_]space[-_]size=(\d+)/g)];
+  const last = matches.at(-1);
+  return last ? Number(last[1]) : null;
+}
+
 /** NODE_OPTIONS with the heap cap appended; existing options are preserved. */
 export function withDocsBuildHeapCap(nodeOptions: string | undefined, capMb: number): string {
   return [nodeOptions?.trim(), `--max-old-space-size=${capMb}`].filter(Boolean).join(' ');

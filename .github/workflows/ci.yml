@@ -124,7 +124,13 @@ jobs:
     name: Test (shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
     needs: setup
-    timeout-minutes: 15
+    # Above the per-test hang budgets, so a hang is reported as a named test
+    # failure instead of a killed job: run-test-shard.ts gives each file two
+    # attempts, and the longest single test budget is 660 s (the Rspress
+    # build in docs-projection), so 2 x 660 s plus the rest of a shard
+    # (~6 min) has to fit. Below the 45 minutes sync-fpf.yml waits for
+    # checks. A healthy shard takes about 6 minutes.
+    timeout-minutes: 35
     strategy:
       # Surface every failing shard, don't mask 2-4 because shard 1 broke.
       fail-fast: false

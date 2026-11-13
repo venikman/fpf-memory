@@ -75,10 +75,11 @@ export function selectShardFiles(files: string[], shard: ParsedShard): string[] 
   const heavy = HEAVY_TEST_FILES.filter((file) => present.has(file));
   const heavySet = new Set(heavy);
   const light = files.filter((file) => !heavySet.has(file));
-  const deal = (list: readonly string[]): string[] =>
-    list.filter((_, index) => index % shard.count === shard.index - 1);
 
-  return [...deal(heavy), ...deal(light)];
+  // One rotation over heavy-then-light: the heavy files' shards depend only
+  // on the list above, and the light files continue where the heavy ones
+  // stopped instead of restarting at shard 1.
+  return [...heavy, ...light].filter((_, index) => index % shard.count === shard.index - 1);
 }
 
 export async function runTestShard(options: RunTestShardOptions): Promise<number> {

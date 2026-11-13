@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
 import {
+  parseMaxOldSpaceFlagMb,
   resolveDocsBuildHeapCapMb,
   withDocsBuildHeapCap,
   type BuildHostFacts,
@@ -58,11 +59,9 @@ function probeBuildHost(): BuildHostFacts | string {
         "const v8 = require('node:v8');",
         "const os = require('node:os');",
         'const mb = (bytes) => Math.round(bytes / 1048576);',
-        "const flag = /--max-old-space-size=(\\d+)/.exec(process.env.NODE_OPTIONS ?? '');",
         'console.log(JSON.stringify({',
         '  node: process.version,',
         '  heapLimitMb: mb(v8.getHeapStatistics().heap_size_limit),',
-        '  maxOldSpaceFlagMb: flag ? Number(flag[1]) : null,',
         '  totalMemMb: mb(os.totalmem()),',
         "  constrainedMemMb: typeof process.constrainedMemory === 'function' ? mb(process.constrainedMemory()) : null,",
         "  cpus: typeof os.availableParallelism === 'function' ? os.availableParallelism() : os.cpus().length,",
@@ -74,7 +73,10 @@ function probeBuildHost(): BuildHostFacts | string {
 
   if (probe.status === 0 && probe.stdout.trim()) {
     try {
-      return JSON.parse(probe.stdout.trim()) as BuildHostFacts;
+      return {
+        ...(JSON.parse(probe.stdout.trim()) as BuildHostFacts),
+        maxOldSpaceFlagMb: parseMaxOldSpaceFlagMb(process.env.NODE_OPTIONS),
+      };
     } catch {
       // Fall through to the unavailable report.
     }

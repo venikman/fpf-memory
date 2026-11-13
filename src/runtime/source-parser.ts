@@ -349,9 +349,18 @@ function isRelationLabelBoundaryBefore(text: string, index: number): boolean {
  * and ten more on upstream 1e57ccda). Bounding by structure instead of by a
  * neighbour's name removes that dependency.
  *
- * Sources without a catalog heading (unit-test fixtures, hand-written
- * snippets) keep the previous contract: stop at the legacy marker when it is
- * present, otherwise treat the whole text as catalog.
+ * Sources without a catalog heading fall back in two steps: the legacy
+ * marker when it is present, otherwise the first heading that carries a
+ * structured ID, which is where the pattern bodies begin. That keeps short
+ * fixtures working (catalog table, then bodies) and means a spec whose
+ * catalog heading is renamed still parses front matter only, never the
+ * bodies. Only a text with no ID-bearing heading at all is catalog
+ * throughout.
+ *
+ * A level-1 heading *inside* the catalog section would end it early. That
+ * cannot be told apart from a real section break here; the published-spec
+ * test in tests/source-parser.test.ts catches it as pattern bodies without a
+ * catalog row.
  */
 export function findCatalogEnd(lines: string[]): number {
   const catalogStart = lines.findIndex((line) => {
@@ -369,7 +378,14 @@ export function findCatalogEnd(lines: string[]): number {
   }
 
   const prefaceIndex = lines.findIndex((line) => line.trim() === PREFACE_MARKER);
-  return prefaceIndex >= 0 ? prefaceIndex : lines.length;
+  if (prefaceIndex >= 0) {
+    return prefaceIndex;
+  }
+
+  const firstBodyIndex = lines.findIndex(
+    (line) => parseHeadingLine(line)?.fullId !== undefined,
+  );
+  return firstBodyIndex >= 0 ? firstBodyIndex : lines.length;
 }
 
 export function parseSource(sourceText: string): SourceIR {

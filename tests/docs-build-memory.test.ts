@@ -3,15 +3,17 @@ import { describe, expect, it } from '@rstest/core';
 import {
   DOCS_BUILD_MIN_HEAP_CAP_MB,
   DOCS_BUILD_NON_HEAP_RESERVE_MB,
+  parseMaxOldSpaceFlagMb,
   resolveDocsBuildHeapCapMb,
   withDocsBuildHeapCap,
 } from '../src/build/docs-build-memory.js';
 
 /**
- * The docs build was OOM-killed on the 8 GB Vercel build machine because
- * Node's default heap limit there (8288 MB) exceeds the container. These
- * cases pin the cap decision; the host facts are the ones the preview build
- * log printed on 2026-11-13.
+ * Pins the heap-cap decision for the docs build on memory-constrained hosts.
+ * The host facts are the ones the Vercel preview build log printed on
+ * 2026-11-13: a default heap limit (8288 MB) above the container (8192 MB).
+ * Whether that limit caused the 2026-10 OOM kills is not established; see
+ * src/build/docs-build-memory.ts.
  */
 describe('docs build heap cap', () => {
   const vercelStandardMachine = {
@@ -78,6 +80,26 @@ describe('docs build heap cap', () => {
       resolveDocsBuildHeapCapMb({ heapLimitMb: 8288, maxOldSpaceFlagMb: null, constrainedMemMb: null }),
     ).toBeUndefined();
     expect(resolveDocsBuildHeapCapMb({ maxOldSpaceFlagMb: null, constrainedMemMb: 8192 })).toBeUndefined();
+  });
+
+  it('recognises an operator heap flag in either spelling and takes the last one', () => {
+    expect(parseMaxOldSpaceFlagMb(undefined)).toBeNull();
+    expect(parseMaxOldSpaceFlagMb('--use-openssl-ca')).toBeNull();
+    expect(parseMaxOldSpaceFlagMb('--max-old-space-size=6144')).toBe(6144);
+    // V8 accepts underscores; missing this spelling let the cap override it.
+    expect(parseMaxOldSpaceFlagMb('--max_old_space_size=6144')).toBe(6144);
+    expect(parseMaxOldSpaceFlagMb('--trace-gc --max-old_space-size=5000 --inspect')).toBe(5000);
+    expect(
+      parseMaxOldSpaceFlagMb('--max-old-space-size=2048 --max_old_space_size=7000'),
+    ).toBe(7000);
+
+    expect(
+      resolveDocsBuildHeapCapMb({
+        ...vercelStandardMachine,
+        heapLimitMb: 6200,
+        maxOldSpaceFlagMb: parseMaxOldSpaceFlagMb('--max_old_space_size=6144'),
+      }),
+    ).toBeUndefined();
   });
 
   it('appends the flag and keeps existing NODE_OPTIONS', () => {

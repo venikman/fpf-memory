@@ -15,10 +15,14 @@ import {
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
 import vercelHandler from '../src/entrypoints/vercel-function.js';
 
-// The first request to a freshly spawned server pays for a full spec
-// compile. Keep the request budget below the test budget so a stall reports
-// the server's stderr instead of a bare test timeout.
+// The first tool call to a freshly spawned server pays for a full spec
+// compile, so the per-request wait is wide. A stalled request rejects with
+// the server's stderr; for that to surface instead of a bare test timeout, a
+// stdio test's budget has to exceed the waits it chains.
 const MCP_REQUEST_TIMEOUT_MS = 90_000;
+// initialize + one request.
+const STDIO_HANDSHAKE_TEST_TIMEOUT_MS = 2 * MCP_REQUEST_TIMEOUT_MS + 30_000;
+// Thirteen requests; covers a stall after up to 210 s of healthy ones.
 const FULL_SURFACE_TEST_TIMEOUT_MS = 300_000;
 
 interface JsonRpcResponse {
@@ -222,7 +226,7 @@ describe('direct MCP server', () => {
     const ping = await harness.request('ping');
     expect(ping.error).toBeUndefined();
     expect(ping.result).toEqual({});
-  });
+  }, STDIO_HANDSHAKE_TEST_TIMEOUT_MS);
 
   it('lists the canonical snake_case tools with plain JSON Schemas', async () => {
     const harness = await startHarness();
@@ -262,7 +266,7 @@ describe('direct MCP server', () => {
     // The vestigial `random_string` compatibility parameter is gone — the
     // status tool advertises no parameters at all.
     expect(Object.keys((statusSchema?.properties ?? {}) as Record<string, unknown>)).toEqual([]);
-  });
+  }, STDIO_HANDSHAKE_TEST_TIMEOUT_MS);
 
   // This chains multiple full-surface MCP calls through the stdio transport.
   // Large upstream spec refreshes can push the query/ask phase past Rstest's
@@ -527,7 +531,7 @@ describe('direct MCP server', () => {
       'read_fpf_doc',
       'get_fpf_index_status',
     ]);
-  });
+  }, STDIO_HANDSHAKE_TEST_TIMEOUT_MS);
 
   it('initializes the direct hosted runtime', async () => {
     const { app } = createHostedComposition({

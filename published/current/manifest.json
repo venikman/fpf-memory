@@ -1,7 +1,7 @@
 {
   "channel": "latest-published",
   "sourceHash": "sha256:046d44f3972a8de52aca18fc9629cf4f59c584be76ee07bfc3fc647a5da03a30",
-  "compilerFingerprint": "sha256:db2ffab44687db9cabfa313b74cab4472f817ed7a9e146162e95a9b5560cbd9c",
+  "compilerFingerprint": "sha256:c7b23971a9fce92d897b21e4b29e1003391c93144679a52a70aa32da5dd03ea5",
   "upstreamRef": "f2bc67dd6f3d8525bc63965a98165abf59b48e2f",
   "upstreamRepoUrl": "https://github.com/ailev/FPF",
   "upstreamCommittedAt": "2026-10-12T01:57:42Z",
