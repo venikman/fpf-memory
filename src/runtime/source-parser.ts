@@ -1,4 +1,5 @@
 import {
+  CATALOG_HEADING_TITLE,
   PART_C_CLUSTER_LABELS,
   PREFACE_MARKER,
   PREFACE_ROUTE_CITATION,
@@ -335,10 +336,45 @@ function isRelationLabelBoundaryBefore(text: string, index: number): boolean {
   return index === 0 || !isAsciiAlphaNumeric(text[index - 1]);
 }
 
+/**
+ * Exclusive end index of the catalog region: the lines whose table rows are
+ * read as pattern metadata (title, status, part, relations).
+ *
+ * The catalog is the spec's level-1 `# Table of Contents` section, so it ends
+ * at the next level-1 heading, whatever upstream calls it. The boundary used
+ * to be an exact match on the `# **Preface** (non-normative)` heading two
+ * sections later; when upstream renamed that section the match failed, the
+ * whole document became the catalog, and body tables with a pattern ID in the
+ * first cell silently overwrote catalog titles (A.10, A.20, A.21, B.3, C.16
+ * and ten more on upstream 1e57ccda). Bounding by structure instead of by a
+ * neighbour's name removes that dependency.
+ *
+ * Sources without a catalog heading (unit-test fixtures, hand-written
+ * snippets) keep the previous contract: stop at the legacy marker when it is
+ * present, otherwise treat the whole text as catalog.
+ */
+export function findCatalogEnd(lines: string[]): number {
+  const catalogStart = lines.findIndex((line) => {
+    const heading = parseHeadingLine(line);
+    return heading?.level === 1 && normalizeForLookup(heading.title) === CATALOG_HEADING_TITLE;
+  });
+
+  if (catalogStart >= 0) {
+    for (let index = catalogStart + 1; index < lines.length; index += 1) {
+      if (parseHeadingLine(lines[index] ?? '')?.level === 1) {
+        return index;
+      }
+    }
+    return lines.length;
+  }
+
+  const prefaceIndex = lines.findIndex((line) => line.trim() === PREFACE_MARKER);
+  return prefaceIndex >= 0 ? prefaceIndex : lines.length;
+}
+
 export function parseSource(sourceText: string): SourceIR {
   const lines = sourceText.split(/\r?\n/);
-  const prefaceIndex = lines.findIndex((line) => line.trim() === PREFACE_MARKER);
-  const catalogLines = prefaceIndex >= 0 ? lines.slice(0, prefaceIndex) : lines;
+  const catalogLines = lines.slice(0, findCatalogEnd(lines));
 
   const metadata = parseCatalogMetadata(catalogLines);
   const catalogDescriptions = parseCatalogDescriptions(catalogLines);
