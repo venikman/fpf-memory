@@ -52,6 +52,14 @@ export const ARTIFACT_FILENAMES = {
 
 export const SESSION_CACHE_FILENAME = 'session-cache.json';
 
+// Normalized title of the level-1 heading that opens the spec's pattern
+// catalog. The catalog is exactly that section; see `findCatalogEnd`.
+export const CATALOG_HEADING_TITLE = 'table of contents';
+// Legacy catalog terminator, used only for sources with no catalog heading.
+// Upstream retired this heading between f2bc67dd (2026-10-12) and 1e57ccda
+// (2026-11-12); the section is now "# First Principles Framework
+// Architectural Reference (non-normative)". Nothing may depend on it being
+// present.
 export const PREFACE_MARKER = '# **Preface** (non-normative)';
 export const PREFACE_ROUTE_CITATION = 'Preface/Where to start';
 export const ROUTE_INDEX_CITATION = 'J.4';

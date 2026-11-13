@@ -69,7 +69,7 @@ describe('hosted home page', () => {
     expect(response.status).toBe(200);
     expect(html).toContain('<title>FPF Reference MCP</title>');
     expect(html).toContain(HOSTED_MCP_ENDPOINT);
-  }, 20_000);
+  });
 
   it('registers the connection page on direct hosted home routes', async () => {
     const { app } = createHostedComposition({

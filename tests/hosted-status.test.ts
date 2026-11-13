@@ -78,7 +78,7 @@ describe('hosted FPF status endpoint', () => {
     expect(body.freshness.publicationCurrentAgainstConfiguredSource).toBe(true);
     expect(body.freshness.freshnessBasis).toBe('source_hash_match');
     expect(body.freshness.upstreamCurrentness).toBe('unknown');
-  }, 20_000);
+  });
 
   it('reads hosted staged manifest, source, and snapshot when present', async () => {
     const specText = '# Fake FPF\n\nHosted status fixture.\n';

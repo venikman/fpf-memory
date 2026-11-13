@@ -566,7 +566,7 @@ describe('docs projection', () => {
     } finally {
       await rm(tempRoot, { recursive: true, force: true });
     }
-  }, 20_000);
+  });
 
   it('omits optional home navigation links when the selected spec lacks those IDs', () => {
     // The current spec already lacks a spec-derived glossary pattern in a
@@ -626,10 +626,10 @@ describe('docs projection', () => {
             FPF_DOCS_OUT_DIR: outDir,
             RSPRESS_PERSISTENT_CACHE: 'false',
           },
-          // Building ~825 generated pages + non-generated docs with the
-          // persistent cache disabled consistently takes 1.5-2.5 min on
-          // GitHub's ubuntu-latest runners. Give it headroom.
-          timeout: 300_000,
+          // Building every generated page + the non-generated docs with the
+          // persistent cache disabled took ~2.4 min on a GitHub runner at
+          // 18 MB of spec (2026-11) and scales with it. Give it headroom.
+          timeout: 600_000,
         },
       );
 
@@ -723,7 +723,7 @@ describe('docs projection', () => {
     } finally {
       await rm(tempRoot, { recursive: true, force: true });
     }
-  }, 360_000);
+  }, 660_000);
 
   it('falls back to publishedAt when manifest lacks upstream commit metadata', () => {
     // Older snapshots predate the upstream-commit fields in manifest.

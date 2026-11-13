@@ -8,6 +8,12 @@ import { afterEach, describe, expect, it } from '@rstest/core';
 
 import { DEFAULT_SOURCE_PATH } from '../src/core/constants.js';
 
+// A stalled request rejects with the server's stderr after this wait.
+const REQUEST_TIMEOUT_MS = 120_000;
+// Five requests per test. Larger than one request wait plus the healthy
+// calls before it, so that rejection is what a stall reports.
+const SESSION_TEST_TIMEOUT_MS = 300_000;
+
 interface JsonRpcResponse {
   jsonrpc: '2.0';
   id: string | number | null;
@@ -67,11 +73,13 @@ class StdioMcpHarness {
       const timeout = setTimeout(() => {
         this.pending.delete(id);
         reject(new Error(`Timed out waiting for ${method}\n${this.stderr.join('')}`));
-        // 120s matches the per-test budgets: compile-bearing calls (initial
-        // build, refresh_fpf_index) crossed 15s once the spec corpus grew
-        // past 12MB, so a short request timeout became a corpus-growth
-        // tripwire instead of a hang detector.
-      }, 120_000);
+        // Wide on purpose: compile-bearing calls (initial build,
+        // refresh_fpf_index) crossed 15s once the spec corpus grew past
+        // 12MB, so a short request timeout became a corpus-growth tripwire
+        // instead of a hang detector. The per-test budgets below are larger
+        // still, so a stalled request reports the server's stderr here
+        // rather than ending as a bare test timeout.
+      }, REQUEST_TIMEOUT_MS);
       this.pending.set(id, { resolve, reject, timeout });
     });
     this.child.stdin.write(`${payload}\n`);
@@ -225,7 +233,7 @@ describe('MCP session-continuity roundtrip', () => {
     // would break session caching and inflate latency.
     expect(followupStatus.builtAt).toBe(initialBuiltAt);
     expect(followupStatus.fresh).toBe(true);
-  }, 120_000);
+  }, SESSION_TEST_TIMEOUT_MS);
 
   it('forces a rebuild via refresh_fpf_index without corrupting the session cache', async () => {
     const harness = await startHarness();
@@ -265,5 +273,5 @@ describe('MCP session-continuity roundtrip', () => {
     // Session cache survives a rebuild (sessions are in-memory, not in artefacts).
     const postSessionCache = postRefreshStatus.sessionCache as { activeSessions: number };
     expect(postSessionCache.activeSessions).toBeGreaterThanOrEqual(1);
-  }, 120_000);
+  }, SESSION_TEST_TIMEOUT_MS);
 });

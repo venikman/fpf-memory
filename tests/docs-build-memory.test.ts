@@ -1,0 +1,125 @@
+import { describe, expect, it } from '@rstest/core';
+
+import {
+  DOCS_BUILD_MIN_HEAP_CAP_MB,
+  DOCS_BUILD_NON_HEAP_RESERVE_MB,
+  parseMaxOldSpaceFlagMb,
+  resolveDocsBuildHeapCapMb,
+  withDocsBuildHeapCap,
+} from '../src/build/docs-build-memory.js';
+
+/**
+ * Pins the heap-cap decision for the docs build on memory-constrained hosts.
+ * The host facts are the ones the Vercel preview build log printed on
+ * 2026-11-13: the build environment's own NODE_OPTIONS sets
+ * `--max_old_space_size=8192`, a heap limit (8288 MB) the size of the
+ * container (8192 MB). Whether that limit caused the 2026-10 OOM kills is not
+ * established; see src/build/docs-build-memory.ts.
+ */
+describe('docs build heap cap', () => {
+  const vercelStandardMachine = {
+    node: 'v26.13.1',
+    heapLimitMb: 8288,
+    // Present on the real host. The decision must not read it as an operator
+    // choice: doing so switched the cap off on Vercel for one commit.
+    maxOldSpaceFlagMb: 8192,
+    totalMemMb: 8404,
+    constrainedMemMb: 8192,
+    cpus: 4,
+  };
+
+  it('caps the heap below the container on the 8 GB Vercel build machine', () => {
+    const capMb = resolveDocsBuildHeapCapMb(vercelStandardMachine);
+
+    expect(capMb).toBe(8192 - DOCS_BUILD_NON_HEAP_RESERVE_MB);
+    // Above the ~1.7 GB of live heap the build needs (a 1536 MB limit aborts
+    // it), and low enough to leave the measured non-heap share free.
+    expect(capMb).toBeGreaterThanOrEqual(DOCS_BUILD_MIN_HEAP_CAP_MB);
+    expect(capMb).toBeLessThan(vercelStandardMachine.constrainedMemMb);
+  });
+
+  it('decides from the effective limit, not from whether a flag is present', () => {
+    // The platform flag (container-sized) is overridden...
+    expect(resolveDocsBuildHeapCapMb(vercelStandardMachine)).toBe(3072);
+    expect(resolveDocsBuildHeapCapMb({ ...vercelStandardMachine, maxOldSpaceFlagMb: null })).toBe(
+      3072,
+    );
+    // ...and so is any other limit that eats into the reserve...
+    expect(
+      resolveDocsBuildHeapCapMb({ ...vercelStandardMachine, heapLimitMb: 6200, maxOldSpaceFlagMb: 6144 }),
+    ).toBe(3072);
+    // ...while a limit already inside the bound is left exactly as set.
+    expect(
+      resolveDocsBuildHeapCapMb({ ...vercelStandardMachine, heapLimitMb: 2600, maxOldSpaceFlagMb: 2560 }),
+    ).toBeUndefined();
+    expect(
+      resolveDocsBuildHeapCapMb({ ...vercelStandardMachine, heapLimitMb: 3072, maxOldSpaceFlagMb: 3000 }),
+    ).toBeUndefined();
+  });
+
+  it('does nothing when the default limit already leaves the reserve free', () => {
+    // A 16 GB machine whose Node defaults to a 4 GB heap, and a contributor
+    // laptop/sandbox with a 2 GB default.
+    expect(
+      resolveDocsBuildHeapCapMb({ heapLimitMb: 4144, maxOldSpaceFlagMb: null, constrainedMemMb: 16384 }),
+    ).toBeUndefined();
+    expect(
+      resolveDocsBuildHeapCapMb({ heapLimitMb: 2096, maxOldSpaceFlagMb: null, constrainedMemMb: 13673 }),
+    ).toBeUndefined();
+  });
+
+  it('scales with the machine instead of hardcoding one size', () => {
+    expect(
+      resolveDocsBuildHeapCapMb({ heapLimitMb: 16500, maxOldSpaceFlagMb: null, constrainedMemMb: 16384 }),
+    ).toBe(16384 - DOCS_BUILD_NON_HEAP_RESERVE_MB);
+  });
+
+  it('refuses a cap that could not fit the build rather than guarantee a heap abort', () => {
+    expect(
+      resolveDocsBuildHeapCapMb({ heapLimitMb: 4200, maxOldSpaceFlagMb: null, constrainedMemMb: 4096 }),
+    ).toBeUndefined();
+    expect(
+      resolveDocsBuildHeapCapMb({
+        heapLimitMb: 8000,
+        maxOldSpaceFlagMb: null,
+        constrainedMemMb: DOCS_BUILD_NON_HEAP_RESERVE_MB + DOCS_BUILD_MIN_HEAP_CAP_MB - 1,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('does nothing when the host limit is unknown', () => {
+    expect(resolveDocsBuildHeapCapMb({ heapLimitMb: 8288, maxOldSpaceFlagMb: null })).toBeUndefined();
+    expect(
+      resolveDocsBuildHeapCapMb({ heapLimitMb: 8288, maxOldSpaceFlagMb: null, constrainedMemMb: 0 }),
+    ).toBeUndefined();
+    expect(
+      resolveDocsBuildHeapCapMb({ heapLimitMb: 8288, maxOldSpaceFlagMb: null, constrainedMemMb: null }),
+    ).toBeUndefined();
+    expect(resolveDocsBuildHeapCapMb({ maxOldSpaceFlagMb: null, constrainedMemMb: 8192 })).toBeUndefined();
+  });
+
+  it('reports a heap flag in either spelling and takes the last one', () => {
+    expect(parseMaxOldSpaceFlagMb(undefined)).toBeNull();
+    expect(parseMaxOldSpaceFlagMb('--use-openssl-ca')).toBeNull();
+    expect(parseMaxOldSpaceFlagMb('--max-old-space-size=6144')).toBe(6144);
+    // V8 accepts underscores, and that is the spelling the Vercel build
+    // environment uses.
+    expect(parseMaxOldSpaceFlagMb('--max_old_space_size=8192')).toBe(8192);
+    expect(parseMaxOldSpaceFlagMb('--trace-gc --max-old_space-size=5000 --inspect')).toBe(5000);
+    expect(
+      parseMaxOldSpaceFlagMb('--max-old-space-size=2048 --max_old_space_size=7000'),
+    ).toBe(7000);
+  });
+
+  it('appends the flag and keeps existing NODE_OPTIONS', () => {
+    expect(withDocsBuildHeapCap(undefined, 3584)).toBe('--max-old-space-size=3584');
+    expect(withDocsBuildHeapCap('', 3584)).toBe('--max-old-space-size=3584');
+    expect(withDocsBuildHeapCap(' --use-openssl-ca ', 3584)).toBe(
+      '--use-openssl-ca --max-old-space-size=3584',
+    );
+    // Appended last, so it wins over the platform's own flag.
+    const capped = withDocsBuildHeapCap('--max_old_space_size=8192', 3072);
+    expect(capped).toBe('--max_old_space_size=8192 --max-old-space-size=3072');
+    expect(parseMaxOldSpaceFlagMb(capped)).toBe(3072);
+  });
+});

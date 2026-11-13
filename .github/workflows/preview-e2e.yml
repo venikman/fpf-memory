@@ -16,7 +16,15 @@ permissions:
 jobs:
   e2e:
     name: Playwright on Vercel preview
-    runs-on: ubuntu-latest
+    # Pinned image, not `ubuntu-latest`. `playwright install --with-deps`
+    # only knows the Ubuntu releases its own version was built against, so a
+    # floating label turns a runner-image rollout into a hard failure of this
+    # required check: when `ubuntu-latest` moved to 26.04 (first seen
+    # 2026-10-26) Playwright 1.59.1 answered "does not support chromium on
+    # ubuntu26.04-x64" and every sync PR stopped merging. Move this pin only
+    # in the same change as a Playwright upgrade that supports the new image.
+    # Guarded by tests/preview-e2e-runner-parity.test.ts.
+    runs-on: ubuntu-24.04
     if: >-
       github.event.deployment_status.state == 'success' &&
       github.event.deployment_status.environment == 'Preview' &&
