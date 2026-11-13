@@ -23,7 +23,9 @@ process.stdout.write(
 // why its heap is capped from the container size.
 const buildEnv: NodeJS.ProcessEnv = { ...process.env };
 const heapCapMb =
-  surface === 'website' && typeof host !== 'string' ? resolveDocsBuildHeapCapMb(host) : undefined;
+  surface === 'website' && typeof host !== 'string' && process.env.FPF_MEASURE_UNCAPPED !== undefined
+    ? resolveDocsBuildHeapCapMb(host)
+    : undefined;
 if (heapCapMb !== undefined) {
   buildEnv.NODE_OPTIONS = withDocsBuildHeapCap(buildEnv.NODE_OPTIONS, heapCapMb);
   process.stdout.write(
