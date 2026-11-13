@@ -1,34 +1,40 @@
 /**
  * Heap budget for the Rspress docs build on a memory-constrained build host.
  *
- * The Vercel git-preview build runs `rspress build` in an 8 GB container, and
- * that container was OOM-killed on 18 of 31 sync previews between 2026-10-13
- * and 2026-11-02 (the same spec, built twice, passed once and failed once).
- * A failed preview fails the "Vercel" status the sync worker requires, so each
- * kill costs a publication slot.
+ * The Vercel git-preview build runs `rspress build` in an 8 GB container.
+ * That container was OOM-killed on 18 of 31 sync previews between 2026-10-13
+ * and 2026-11-02 (the same spec, built twice, passed once and failed once),
+ * and once before in 2026-08. A failed preview fails the "Vercel" status the
+ * sync worker requires, so each kill costs a publication slot.
  *
- * Cause, measured on the build host on 2026-11-13: Node v26.13.1 reports a
- * default heap limit of 8288 MB inside an 8192 MB container. With a limit
- * above the container size V8 never comes under heap pressure before the
- * kernel does, and the build's peak memory follows the limit, not the content:
+ * What is measured (2026-11-13):
  *
- *   heap limit   outcome on upstream 1e57ccda (18.4 MB), 4 cores
- *   1536 MB      aborts: JavaScript heap out of memory
- *   1792 MB      5.4 GiB peak RSS
- *   2096 MB      5.3-5.8 GiB
- *   3072 MB      6.3 GiB
- *   4096 MB      6.7 GiB
+ * - On the build host, Node v26.13.1 reports a default heap limit of 8288 MB
+ *   inside an 8192 MB container, so V8 is never the first to feel pressure.
+ * - The build's peak memory follows the heap limit, not the content
+ *   (`rspress build`, upstream 1e57ccda at 18.4 MB, 4 cores, Node 22):
  *
- * So the build needs about 1.7 GB of live heap and holds another ~3.5 GiB
- * outside it (rspack's native memory, Buffers). Capping the heap at the
- * container size minus that non-heap share keeps the peak under the limit
- * without starving the build, and scales by itself if the machine changes.
- * On the 8 GB machine the cap is 3072 MB: ~6.3 GiB peak, 1.8x the live heap.
+ *     heap limit   outcome
+ *     1536 MB      aborts: JavaScript heap out of memory
+ *     1792 MB      5.4 GiB peak RSS
+ *     2096 MB      5.3-5.8 GiB (same at 16.2 MB of spec)
+ *     3072 MB      6.3 GiB
+ *     4096 MB      6.7 GiB
  *
- * This buys margin, not capacity. Both shares grow with the spec; when the
- * live heap outgrows the cap the build aborts with a heap error instead of
- * being killed, and the answer then is a larger machine or a build that runs
- * elsewhere (ROADMAP item 7), not a smaller reserve.
+ * - On the build host, same tree built twice: container peak 5938 MB with
+ *   the default limit, 5432 MB with the heap capped at 3072 MB.
+ *
+ * What is not established: that the heap limit caused the 2026-10 kills.
+ * They stopped about when Vercel moved this project's builds to Node 26, and
+ * the earlier runtime can no longer be measured. The cap is therefore a
+ * bound on the part of memory this repo controls, worth about 0.5 GB of
+ * margin today and independent of which Node major the build floats to.
+ *
+ * It buys margin, not capacity. The build needs about 1.7 GB of live heap
+ * and holds about 3.5 GiB outside it (rspack's native memory, Buffers), and
+ * both grow with the spec. When the container peak nears its limit the
+ * answer is a larger machine or a build that runs elsewhere (ROADMAP item
+ * 7), not a smaller reserve.
  */
 
 /** What the build holds outside the V8 heap (~3.5 GiB) plus ~1.5 GiB slack. */

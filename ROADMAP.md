@@ -99,9 +99,12 @@ the delivery is what let a 16-day outage report "within SLO" (see #253).
    token-expiry findings from `GET /v5/user/tokens/current`.
    2026-11-13 stall recovery (#401) removed what kept every sync PR red
    after upstream `f2bc67dd`: a catalog boundary keyed to a heading upstream
-   renamed, a Playwright / `ubuntu-latest` mismatch, test timeouts sitting at
-   80-100% of their limits, and a Node heap limit larger than the 8 GB Vercel
-   preview build machine. Still open under this item, ranked:
+   renamed, a Playwright / `ubuntu-latest` mismatch, and test timeouts
+   sitting at 80-100% of their limits. It also capped the docs build's Node
+   heap on the 8 GB Vercel preview machine (container peak 5938 MB to
+   5432 MB); the out-of-memory kills of 2026-10-13 to 11-02 had already
+   stopped and their cause could not be re-measured. Still open under this
+   item, ranked:
    (a) **The alarm has no responder.** #353 opened at 2026-10-12 23:53Z,
    minutes after the first failed sync, and #359 four days later; neither
    drew a response until 2026-11-13. After the first notification the
@@ -114,11 +117,13 @@ the delivery is what let a 16-day outage report "within SLO" (see #253).
    four days against the same failed preview).
    (c) **Preview build capacity.** At 18.4 MB of spec `rspress build` needs
    about 1.7 GB of live heap and holds about 3.5 GiB outside it; the preview
-   machine has 8 GB. The heap cap in `src/build/docs-build-memory.ts` buys
-   margin, not capacity. Watch the `container memory peak` line in the
-   preview build log; before it passes ~7 GB, build previews in GitHub
-   Actions and upload them prebuilt (as production already is) or move to a
-   larger build machine (a billing decision for Stas).
+   machine has 8 GB and has been OOM-killed in two separate periods
+   (2026-08, 2026-10). The heap cap in `src/build/docs-build-memory.ts`
+   buys margin, not capacity. Watch the `container memory peak` line in the
+   preview build log (5432 MB of 8192 MB on 2026-11-13); before it passes
+   ~7 GB, build previews in GitHub Actions and upload them prebuilt (as
+   production already is) or move to a larger build machine (a billing
+   decision for Stas).
    (d) **Per-test spec compiles.** Most test files rebuild the full snapshot
    inside every test, so suite time tracks upstream size (10.2 MB to 18.4 MB
    from 2026-07 to 2026-11). `FpfRuntime` already accepts `artifactSeedDir`;
