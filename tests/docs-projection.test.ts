@@ -12,9 +12,11 @@ import { generateDocsSite } from '../src/adapters/docs/generate.js';
 import {
   buildDocsNavigation,
   buildDocsProjection,
+  headingSlug,
   resolveDocTarget,
 } from '../src/core/documents.js';
 import { compileFpfSource } from '../src/runtime/compiler.js';
+import { findCatalogEnd } from '../src/runtime/source-parser.js';
 import type { Snapshot } from '../src/runtime/types.js';
 
 const execFileAsync = promisify(execFile);
@@ -119,16 +121,11 @@ describe('docs projection', () => {
     const patternPage =
       projection.pagesByMarkdownPath['docs/generated/patterns/A.2.md']?.markdown ?? '';
 
-    // Pattern pages now use "About this pattern" instead of the
-    // boilerplate "What this page is" (PR #72 design review).
-    expect(patternPage).toContain('## About this pattern');
-    expect(patternPage).toContain('This is a generated FPF pattern page');
-    // "Methodology" was renamed to "How to use this pattern" alongside
-    // "About this pattern" so the pattern page heading set says what
-    // it actually means (PR #72 design review).
-    expect(patternPage).toContain('## How to use this pattern');
-    expect(patternPage).toContain('## Problem Frame');
-    expect(patternPage).not.toContain('## A.2:1 - Problem Frame');
+    // fpf.sh represents FPF without adding its own guidance to spec pages.
+    expect(patternPage).not.toContain('## About this pattern');
+    expect(patternPage).not.toContain('## How to use this pattern');
+    // Section headings keep the spec's ID, the way FPF cites them.
+    expect(patternPage).toContain('## A.2:1 - Problem Frame');
     // The ID + status/type/normativity/cluster/part render as ONE
     // inline mono byline directly under the H1 (was a boxed blockquote
     // before PR #72 design review, then briefly an eyebrow above + a
@@ -354,7 +351,18 @@ describe('docs projection', () => {
     // escapes and HTML entities both fail to round-trip Rspress's
     // MDX pipeline; rewriting the brackets to parens keeps the label
     // legible and the link as a single anchor.
-    const projection = buildDocsProjection(snapshot);
+    //
+    // The labelled headings in the current spec sit inside patterns and
+    // render on pattern pages, so label one Part heading (Parts always get a
+    // preface page) to exercise the catalog path.
+    const synthetic = structuredClone(snapshot);
+    const part = Object.values(synthetic.indexMap).find(
+      (node) => node.id.startsWith('heading:') && node.level === 1 && node.title.startsWith('Part '),
+    );
+    expect(part, 'expected a Part heading in the published spec').toBeDefined();
+    if (!part) return;
+    part.title = `${part.title} [A/I]`;
+    const projection = buildDocsProjection(synthetic);
     const catalog =
       projection.pagesByMarkdownPath[
         'docs/generated/preface/index.md'
@@ -861,5 +869,145 @@ describe('docs projection', () => {
     const home =
       projection.pagesByMarkdownPath['docs/index.md']?.markdown ?? '';
     expect(home).toContain('[2026-05-10](https://github.com/ailev/FPF/commit/136be3bbdf2a0c22e29beaea769851d794fdef39)');
+  });
+  describe('fidelity to the published spec', () => {
+    // Catalog rows whose ID shape the compiler cannot read yet. `G.Core` has
+    // a word, not a number, after the Part letter; widening the ID shape to
+    // words would also capture type names such as `U.Holon`.
+    const KNOWN_UNSUPPORTED_CATALOG_IDS = new Set(['G.Core']);
+    const INJECTED_HEADINGS = [
+      '## About this pattern',
+      '## How to use this pattern',
+      '## What this page is',
+      '## Methodology',
+    ];
+
+    function catalogRowIds(sourceText: string): string[] {
+      const lines = sourceText.split(/\r?\n/);
+      const ids = new Set<string>();
+      for (const line of lines.slice(0, findCatalogEnd(lines))) {
+        const id = /^\|\s*\**([A-Z]\.[A-Za-z0-9][A-Za-z0-9.-]*?)\**\s*\|/.exec(line)?.[1];
+        if (id) ids.add(id);
+      }
+      return [...ids];
+    }
+
+    function headingAnchors(markdown: string): Set<string> {
+      // Mirrors rspress: one id per heading, numbered on repeats, plus any
+      // explicit `<a id>` anchors carried over from the spec.
+      const anchors = new Set<string>();
+      const seen = new Map<string, number>();
+      let fenced = false;
+      for (const line of markdown.split('\n')) {
+        if (/^ {0,3}(`{3,}|~{3,})/.test(line)) {
+          fenced = !fenced;
+          continue;
+        }
+        if (fenced) continue;
+        const heading = /^#{1,6}\s+(.*?)\s*$/.exec(line)?.[1];
+        if (heading !== undefined) {
+          const text = heading.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/<[^>]+>/g, '');
+          const slug = headingSlug(text);
+          const count = seen.get(slug) ?? 0;
+          seen.set(slug, count + 1);
+          anchors.add(count === 0 ? slug : `${slug}-${count}`);
+        }
+        for (const match of line.matchAll(/<a\b[^>]*\bid=["']([^"']+)["']/g)) {
+          anchors.add(match[1]!);
+        }
+      }
+      return anchors;
+    }
+
+    it('gives every catalog row a pattern page', async () => {
+      const sourceText = await readFile(canonicalSourcePath, 'utf8');
+      const projection = buildDocsProjection(snapshot);
+      const missing = catalogRowIds(sourceText).filter(
+        (id) => !KNOWN_UNSUPPORTED_CATALOG_IDS.has(id)
+          && !projection.pagesByMarkdownPath[`docs/generated/patterns/${id}.md`],
+      );
+      expect(missing).toEqual([]);
+      for (const id of [
+        'A.19.SOURCE-SET-SPACE-SUBSTRATE',
+        'A.19.DECLARED-SUBSTRATE-INTERPRETIVE-VIEW',
+        'C.30.TFS-REL',
+      ]) {
+        expect(projection.pagesByMarkdownPath[`docs/generated/patterns/${id}.md`]).toBeDefined();
+      }
+    });
+
+    it('renders spec content on every pattern page that has a body in the spec', () => {
+      const projection = buildDocsProjection(snapshot);
+      const withoutContent = Object.values(snapshot.patternGraph.nodes)
+        .filter((pattern) => pattern.sectionIds.length > 0 || snapshot.indexMap[pattern.id])
+        .filter((pattern) => !projection.pagesByMarkdownPath[
+          `docs/generated/patterns/${pattern.id}.md`
+        ]?.markdown.includes('\n## Content\n'))
+        .map((pattern) => pattern.id);
+      expect(withoutContent).toEqual([]);
+      // Catalog-only rows are the spec's planned patterns.
+      const catalogOnly = Object.values(snapshot.patternGraph.nodes)
+        .filter((pattern) => pattern.sectionIds.length === 0 && !snapshot.indexMap[pattern.id]);
+      expect(catalogOnly.every((pattern) => pattern.status === 'Planned')).toBe(true);
+    });
+
+    it('keeps each section ID in its heading', () => {
+      const projection = buildDocsProjection(snapshot);
+      const missing: string[] = [];
+      for (const pattern of Object.values(snapshot.patternGraph.nodes)) {
+        const markdown =
+          projection.pagesByMarkdownPath[`docs/generated/patterns/${pattern.id}.md`]?.markdown ?? '';
+        const headings = new Set(
+          markdown.split('\n').filter((line) => /^#{2,6} /.test(line)).map((line) => line.replace(/^#+ /, '')),
+        );
+        for (const sectionId of pattern.sectionIds) {
+          const title = snapshot.indexMap[sectionId]?.title;
+          if (!title || !title.startsWith(sectionId)) continue;
+          if (!headings.has(title)) missing.push(sectionId);
+        }
+      }
+      expect(missing).toEqual([]);
+    });
+
+    it('resolves every generated #fragment link to an anchor on its target page', () => {
+      const projection = buildDocsProjection(snapshot);
+      const anchorsByPath = new Map<string, Set<string>>();
+      for (const page of projection.pages) {
+        anchorsByPath.set(page.staticPath, headingAnchors(page.markdown));
+      }
+      const broken: string[] = [];
+      let checked = 0;
+      for (const page of projection.pages) {
+        for (const match of page.markdown.matchAll(/\]\((\/generated\/[^)#\s]+)#([^)\s]+)\)/g)) {
+          checked += 1;
+          const anchors = anchorsByPath.get(match[1]!);
+          if (!anchors?.has(match[2]!)) broken.push(`${page.staticPath} -> ${match[1]}#${match[2]}`);
+        }
+      }
+      expect(checked).toBeGreaterThan(1000);
+      expect(broken.slice(0, 20)).toEqual([]);
+    });
+
+    it('builds no page without spec content and no :End marker page', () => {
+      const projection = buildDocsProjection(snapshot);
+      const prefacePages = projection.pages.filter(
+        (page) => page.kind === 'preface' && page.markdownPath.includes('/heading_'),
+      );
+      expect(prefacePages.filter((page) => /:End$/.test(page.title)).map((page) => page.title)).toEqual([]);
+      const empty = prefacePages
+        .filter((page) => !page.markdown.includes('\n## Content\n') && !/^Part [A-Z]\b/.test(page.title))
+        .map((page) => page.title);
+      expect(empty).toEqual([]);
+    });
+
+    it('adds no site-authored guidance blocks to spec pages', () => {
+      const projection = buildDocsProjection(snapshot);
+      const offending = projection.pages
+        .filter((page) => page.kind === 'pattern' || page.kind === 'preface')
+        .filter((page) => page.markdownPath.includes('/generated/patterns/') || page.markdownPath.includes('/heading_'))
+        .filter((page) => INJECTED_HEADINGS.some((heading) => page.markdown.includes(`\n${heading}\n`)))
+        .map((page) => page.staticPath);
+      expect(offending).toEqual([]);
+    });
   });
 });

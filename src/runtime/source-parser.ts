@@ -7,6 +7,7 @@ import {
 import {
   cleanMarkdown,
   extractIds,
+  FPF_PATTERN_ID_SOURCE,
   isMarkdownSeparatorRow,
   normalizeForLookup,
   normalizeLabel,
@@ -87,7 +88,7 @@ const RELATION_LABELS_BY_FIRST_CHARACTER = ORDERED_RELATION_LABELS.reduce<
   return labelsByFirstCharacter;
 }, {});
 
-const PATTERN_ROW_ID = /^\**[A-Z]\.\d+(?:\.[A-Za-z0-9]+)*\**$/;
+const PATTERN_ROW_ID = new RegExp(String.raw`^\**${FPF_PATTERN_ID_SOURCE}\**$`);
 
 interface ParsedHeadingLine {
   level: number;
@@ -138,10 +139,15 @@ function parseStructuredHeading(
   };
 }
 
+/**
+ * Index of the first space-flanked dash between a heading's ID and its title.
+ * Upstream writes the separator as `-`, `–` or `—` (`## A.2.9 — U.SpeechAct …`),
+ * so all three count; hyphens inside an ID are never space-flanked.
+ */
 function findSpacedDashSeparator(text: string): number {
   for (let index = 1; index < text.length - 1; index += 1) {
     if (
-      text[index] === '-' &&
+      isDashCharacter(text[index]) &&
       isWhitespaceCharacter(text[index - 1]) &&
       isWhitespaceCharacter(text[index + 1])
     ) {
@@ -171,7 +177,7 @@ function isStructuredHeadingId(value: string): boolean {
 
   while (value[index] === '.') {
     index += 1;
-    const nextIndex = consumeAlphaNumeric(value, index);
+    const nextIndex = consumeIdSegment(value, index);
     if (nextIndex === index) {
       return false;
     }
@@ -204,6 +210,37 @@ function consumeAlphaNumeric(text: string, startIndex: number): number {
     index += 1;
   }
   return index;
+}
+
+/**
+ * One dot-separated ID segment. Upper-case words may be hyphen-joined
+ * (`SOURCE-SET-SPACE-SUBSTRATE`, `TFS-REL`), matching `FPF_PATTERN_ID_SOURCE`.
+ */
+function consumeIdSegment(text: string, startIndex: number): number {
+  let index = consumeAlphaNumeric(text, startIndex);
+  if (index === startIndex || !isUpperCaseWord(text, startIndex, index)) {
+    return index;
+  }
+  while (text[index] === '-' && isUppercaseAsciiLetter(text[index + 1])) {
+    const wordEnd = consumeAlphaNumeric(text, index + 1);
+    if (!isUpperCaseWord(text, index + 1, wordEnd)) {
+      break;
+    }
+    index = wordEnd;
+  }
+  return index;
+}
+
+function isUpperCaseWord(text: string, start: number, end: number): boolean {
+  if (!isUppercaseAsciiLetter(text[start])) {
+    return false;
+  }
+  for (let index = start + 1; index < end; index += 1) {
+    if (!isUppercaseAsciiLetter(text[index]) && !isAsciiDigit(text[index])) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function consumeAlphaNumericOrDots(text: string, startIndex: number): number {
@@ -414,8 +451,29 @@ function parseHeadingSections(lines: string[]): HeadingSection[] {
     patternId?: string;
   }> = [];
 
+  // `#` lines inside fenced code blocks are example text, not headings
+  // (E.11.PFP shows heading templates such as `## <FrameworkCode>.Reference:<n> - <Title>`).
+  let openFence: string | undefined;
   for (let index = 0; index < lines.length; index += 1) {
-    const parsedHeading = parseHeadingLine(lines[index] ?? '');
+    const line = lines[index] ?? '';
+    const fence = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
+    if (fence) {
+      const marker = fence[1]!;
+      if (!openFence) {
+        openFence = marker;
+      } else if (
+        marker[0] === openFence[0]
+        && marker.length >= openFence.length
+        && fence[2]!.trim() === ''
+      ) {
+        openFence = undefined;
+      }
+      continue;
+    }
+    if (openFence) {
+      continue;
+    }
+    const parsedHeading = parseHeadingLine(line);
     if (!parsedHeading) {
       continue;
     }

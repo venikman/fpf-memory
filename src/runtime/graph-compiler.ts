@@ -55,7 +55,7 @@ export function buildPatternGraph(
         section.heading.toLowerCase().includes('relations'),
       )),
     ]);
-    const title = meta?.title ?? cleanMarkdown(patternSection.heading.replace(/^.+?\s+-\s+/, ''));
+    const title = meta?.title ?? cleanMarkdown(patternSection.heading.replace(/^.+?\s+[-–—]\s+/, ''));
     const keywords = meta?.keywords ?? [];
     const queries = meta?.queries ?? [];
     const aliases = deriveAliases(title, patternSection.heading);

@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from '@rstest/core';
 
 import { DEFAULT_SOURCE_PATH, PREFACE_MARKER } from '../src/core/constants.js';
+import { extractIds } from '../src/core/text.js';
 import {
   findCatalogEnd,
   findCatalogHeadingIndex,
@@ -110,6 +111,77 @@ describe('source-parser', () => {
       patternId: 'A.1',
       heading: 'A.1:Definition - Definition',
     });
+  });
+
+  it('parses hyphen-joined upper-case IDs as patterns, in headings and catalog rows', () => {
+    const sourceText = [
+      '**Part A - Foundations**',
+      '| ID | Title | Status | Keywords | Dependencies |',
+      '| --- | --- | --- | --- | --- |',
+      '| A.19.SOURCE-SET-SPACE-SUBSTRATE | Source-Set Substrate | Stable | short description | |',
+      '',
+      '## A.19.SOURCE-SET-SPACE-SUBSTRATE - Source-Set Substrate',
+      'Body paragraph',
+      '',
+      '### A.19.SOURCE-SET-SPACE-SUBSTRATE:4.1 - Section',
+      'Section body',
+    ].join('\n');
+
+    const ir = parseSource(sourceText);
+
+    expect(ir.metadata['A.19.SOURCE-SET-SPACE-SUBSTRATE']?.title).toBe('Source-Set Substrate');
+    expect(ir.sections[0]).toMatchObject({
+      id: 'A.19.SOURCE-SET-SPACE-SUBSTRATE',
+      patternId: 'A.19.SOURCE-SET-SPACE-SUBSTRATE',
+    });
+    expect(ir.sections[1]).toMatchObject({
+      id: 'A.19.SOURCE-SET-SPACE-SUBSTRATE:4.1',
+      patternId: 'A.19.SOURCE-SET-SPACE-SUBSTRATE',
+    });
+  });
+
+  it('accepts an en or em dash between a heading ID and its title', () => {
+    const ir = parseSource([
+      '## A.2.9 — U.SpeechAct — Communicative Work',
+      'Body',
+      '### A.6.B:4.2 – The square',
+      'Body',
+      '### Plain heading — not an ID',
+      'Body',
+    ].join('\n'));
+
+    expect(ir.sections.map((section) => section.id)).toEqual([
+      'A.2.9',
+      'A.6.B:4.2',
+      expect.stringMatching(/^heading:/),
+    ]);
+  });
+
+  it('does not read `#` lines inside fenced code blocks as headings', () => {
+    const ir = parseSource([
+      '## E.11 - Example',
+      'Template:',
+      '```markdown',
+      '## <FrameworkCode>.Reference:<n> - <Title>',
+      '```',
+      '### E.11:1 - Real section',
+      'Body',
+    ].join('\n'));
+
+    expect(ir.sections.map((section) => section.id)).toEqual(['E.11', 'E.11:1']);
+    expect(ir.sections[1]?.parentId).toBe('E.11');
+  });
+
+  it('extracts hyphen-joined IDs without swallowing prose or checklist suffixes', () => {
+    expect(extractIds(
+      'See C.30.TFS-REL, A.19.DECLARED-SUBSTRATE-INTERPRETIVE-VIEW:4.1, C.2.LS-1, A.6.2-A and E.18.NET-conforming.',
+    )).toEqual([
+      'C.30.TFS-REL',
+      'A.19.DECLARED-SUBSTRATE-INTERPRETIVE-VIEW:4.1',
+      'C.2.LS',
+      'A.6.2',
+      'E.18.NET',
+    ]);
   });
 
   it('accepts copy-pasted whitespace around structured headings and part labels', () => {
