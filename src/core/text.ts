@@ -33,8 +33,28 @@ const STOP_WORDS = new Set([
   'with',
 ]);
 
-const ID_PATTERN =
-  /\b[A-Z]\.\d+(?:\.[A-Za-z0-9]+)*(?::[A-Za-z0-9.]+)?\b/g;
+/**
+ * Regex source for an FPF pattern ID without a section suffix, e.g. `A.1`,
+ * `A.6.B`, `C.39.WI`, and hyphen-joined upper-case segments such as
+ * `A.19.SOURCE-SET-SPACE-SUBSTRATE` or `C.30.TFS-REL`.
+ *
+ * A hyphen continues a segment only between upper-case words, so prose and
+ * checklist forms keep their base ID: `C.2.LS-1` → `C.2.LS`, `A.6.2-A` →
+ * `A.6.2`, `E.18.NET-conforming` → `E.18.NET`.
+ *
+ * The ID regexes in the compiler and docs generator are built from this
+ * source so the shapes cannot drift apart.
+ */
+export const FPF_PATTERN_ID_SOURCE =
+  String.raw`[A-Z]\.\d+(?:\.(?:[A-Z][A-Z0-9]*(?:-[A-Z][A-Z0-9]*)+|[A-Za-z0-9]+))*`;
+
+/** Optional section suffix after a pattern ID, e.g. `:4.1` in `A.2.3:4.1`. */
+export const FPF_SECTION_SUFFIX_SOURCE = String.raw`(?::[A-Za-z0-9.]+)?`;
+
+const ID_PATTERN = new RegExp(
+  String.raw`\b${FPF_PATTERN_ID_SOURCE}${FPF_SECTION_SUFFIX_SOURCE}\b`,
+  'g',
+);
 
 export function cleanMarkdown(text: string): string {
   return text

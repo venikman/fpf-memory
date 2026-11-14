@@ -50,7 +50,9 @@ describe('source links in generated docs', () => {
   // definitions previously had their filenames corrupted by ID autolinking.
   const causalFile = 'C.28-CausalUse-CAL-Causal-Use-Questions-Causality-Ladder-Rungs-Identification-and-Realizability.md';
   const causalFragment = 'c2844---identification-result';
-  const causalUrl = '/generated/patterns/C.28#identification-result';
+  // Section headings keep their IDs, so the generated anchor equals the
+  // upstream GitHub fragment.
+  const causalUrl = `/generated/patterns/C.28#${causalFragment}`;
 
   it('projects extracted-pattern reference definitions and protects their labels', () => {
     const markdown = project([
@@ -61,7 +63,7 @@ describe('source links in generated docs', () => {
     ].join('\n'));
     expect(markdown).toContain('Read [C.28][fpf-c28-4-4-ref] and [B.5][reasoning].');
     expect(markdown).toContain(`[fpf-c28-4-4-ref]: ${causalUrl} "C.28 result"`);
-    expect(markdown).toContain('[reasoning]: /generated/patterns/B.5#a-counterexample-becomes-a-constructive-mathematical-question');
+    expect(markdown).toContain('[reasoning]: /generated/patterns/B.5#b551---a-counterexample-becomes-a-constructive-mathematical-question');
     expect(markdown).not.toContain(']([C.28]');
   });
 

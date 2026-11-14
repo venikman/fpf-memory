@@ -14,7 +14,12 @@ import {
 import { WIKI_CONNECT_MCP_MARKDOWN_LINK } from './public-copy.js';
 import { escapeHtml } from './markup.js';
 import { containsOffset, markdownAutolinkGuards, rewriteMarkdownDestinations } from './markdown-links.js';
-import { normalizeForLookup, unique } from './text.js';
+import {
+  FPF_PATTERN_ID_SOURCE,
+  FPF_SECTION_SUFFIX_SOURCE,
+  normalizeForLookup,
+  unique,
+} from './text.js';
 
 export interface GeneratedDocPage {
   kind: 'pattern' | 'route' | 'preface' | 'index';
@@ -860,8 +865,8 @@ function renderPatternPage(snapshot: Snapshot, pattern: PatternRecord): string {
     `<p class="fpf-pattern-byline">${patternIdChip(pattern.id)}${bylineMetaHtml ? ` <span class="fpf-pattern-byline__meta">· ${bylineMetaHtml}</span>` : ''}</p>`,
   ];
 
-  appendPatternContext(lines, pattern);
-
+  // No site-authored text between the byline and the spec's own content:
+  // fpf.sh represents FPF; it does not explain or interpret it.
   if (introText) {
     lines.push(
       '',
@@ -909,51 +914,6 @@ function renderPatternPage(snapshot: Snapshot, pattern: PatternRecord): string {
   }
 
   return `${lines.join('\n')}\n`;
-}
-
-function appendPatternContext(lines: string[], pattern: PatternRecord): void {
-  const context = patternPageContext(pattern);
-  // Heading is "About this pattern" on pattern pages (PR #72 design
-  // review) — the "What this page is" wording felt boilerplate when
-  // it appeared on every page with identical phrasing. Pattern pages
-  // are visibly about a pattern, so the heading should say so.
-  lines.push(
-    '',
-    '## About this pattern',
-    '',
-    context.what,
-    '',
-    '## How to use this pattern',
-    '',
-    context.methodology,
-  );
-}
-
-function patternPageContext(pattern: PatternRecord): { what: string; methodology: string } {
-  if (pattern.id === 'H.1') {
-    return {
-      what:
-        'This is the FPF glossary generated from the published FPF source. It defines framework terms; it is not a glossary of FPF Reference UI, repository, or deployment terms.',
-      methodology:
-        'Use it to normalize terms before route or pattern work. When a term changes a decision, follow its linked or cited pattern ID instead of treating the glossary entry as a whole-task answer.',
-    };
-  }
-
-  if (pattern.id === 'I.3') {
-    return {
-      what:
-        'This is the FPF specification change log generated from the published FPF source. It is not the FPF Reference product changelog, product release notes, or GitHub history.',
-      methodology:
-        'Use it to understand semantic changes inside FPF itself. Use repository PRs, commits, or releases for product changes, and cite I.3 only when the specification evolution matters to the work.',
-    };
-  }
-
-  return {
-    what:
-      'This is a generated FPF pattern page projected from the published FPF source. It is canonical FPF content for this ID; it is not a FPF Reference product feature page.',
-    methodology:
-      'Read the ID, status, type, and normativity first. Use the content for exact wording, the relations for adjacent concepts, and citations to keep active work grounded without pasting the whole specification.',
-  };
 }
 
 function normalizedCatalogReminder(
@@ -1069,14 +1029,6 @@ function renderPrefacePage(snapshot: Snapshot, sectionId: string): string {
     '',
     `# ${section.title}`,
     `> Preface node ${inlineCode(sectionId)}`,
-    '',
-    '## What this page is',
-    '',
-    'This is generated FPF reference text from the specification preface or supporting sections. It helps interpret FPF; it is not FPF Reference product documentation.',
-    '',
-    '## Methodology',
-    '',
-    'Use it to understand how the specification wants to be read, then return to a route, pattern, or work packet for active work. Cite generated IDs only when the wording changes the task decision.',
   ];
 
   if (anchor.text.trim() || section.childIds.length > 0) {
@@ -1125,7 +1077,10 @@ function renderSection(
   }
 
   const headingLevel = Math.max(2, section.level - baseLevel + 1);
-  lines.push(`${'#'.repeat(headingLevel)} ${displaySectionTitle(section.title)}`, '');
+  // Keep the spec's own heading text, section ID included (`A.2.3:4.1 - …`):
+  // the ID is how FPF cites a section, and it keeps the rspress anchor equal
+  // to the upstream GitHub anchor for the same heading.
+  lines.push(`${'#'.repeat(headingLevel)} ${section.title}`, '');
   if (anchor.text.trim()) {
     const linked = autolinkPatternIdsInTableCells(
       snapshot,
@@ -1164,17 +1119,21 @@ function appendNodeIdList(
   }
 }
 
-// Keep this anchored regex aligned with `ID_PATTERN` in `src/core/text.ts` so
-// the generator only renders pattern-ID chips for strings the compiler itself
-// treats as valid IDs.
+// Built from the shared ID source in `src/core/text.ts` so the generator only
+// renders pattern-ID chips for strings the compiler itself treats as valid IDs.
+const FPF_ID_WITH_SECTION_SOURCE = `${FPF_PATTERN_ID_SOURCE}${FPF_SECTION_SUFFIX_SOURCE}`;
+const PATTERN_ID_SHAPE = new RegExp(`^${FPF_ID_WITH_SECTION_SOURCE}$`, 'u');
+
 function isPatternIdShape(nodeId: string): boolean {
-  return /^[A-Z]\.\d+(?:\.[A-Za-z0-9]+)*(?::[A-Za-z0-9.]+)?$/u.test(nodeId);
+  return PATTERN_ID_SHAPE.test(nodeId);
 }
 
-// Same shape as `ID_PATTERN`/`isPatternIdShape`, but global so we can rewrite
-// every match inside body markdown.
-const PATTERN_ID_TOKEN_PATTERN =
-  /\b[A-Z]\.\d+(?:\.[A-Za-z0-9]+)*(?::[A-Za-z0-9.]+)?\b/g;
+// Same shape as `isPatternIdShape`, but global so we can rewrite every match
+// inside body markdown.
+const PATTERN_ID_TOKEN_PATTERN = new RegExp(String.raw`\b${FPF_ID_WITH_SECTION_SOURCE}\b`, 'g');
+
+// Code-spanned ID inside a table cell: `\`A.6.9\``.
+const CODE_SPAN_PATTERN_ID_PATTERN = new RegExp(`\`(${FPF_ID_WITH_SECTION_SOURCE})\``, 'g');
 
 /**
  * Replace each bare pattern-ID token (`A.6.9`, `B.1.2`, etc.) in a markdown
@@ -1241,7 +1200,7 @@ function autolinkPatternIdsInTableCells(
     if (!line.trimStart().startsWith('|')) continue;
     if (/^\s*\|?(?:\s*:?-+:?\s*\|)+\s*:?-+:?\s*\|?\s*$/.test(line)) continue;
     lines[index] = line.replace(
-      /`([A-Z]\.\d+(?:\.[A-Za-z0-9]+)*(?::[A-Za-z0-9.]+)?)`/g,
+      CODE_SPAN_PATTERN_ID_PATTERN,
       (match, id: string, matchOffset: number) => {
         if (containsOffset(guards, offset + matchOffset)) return match;
         const node = snapshot.compiledNodes[id];
@@ -1443,20 +1402,16 @@ function sourceLinkResolver(snapshot: Snapshot): (target: string) => string {
     else fragments.set(fragment, url);
   };
   for (const node of Object.values(snapshot.indexMap)) {
-    const patternId = snapshot.patternGraph.nodes[node.id]
-      ? node.id : node.metadata.patternId;
-    const pattern = patternId ? snapshot.patternGraph.nodes[patternId] : undefined;
-    const page = pattern
-      ? patternDocRef(pattern.id).staticPath
-      : node.id.startsWith('heading:') ? prefaceDocRef(node.id, node.lineStart).staticPath : undefined;
-    if (!page) continue;
-    const url = pattern && node.id !== pattern.id ? `${page}#${headingSlug(node.title)}` : page;
-    // Upstream links include the ID in their heading slug; generated pages
-    // remove that prefix from section headings, and split the monolith.
-    remember(markdownHeadingSlug(node.title), url);
+    const container = containingPage(snapshot, node.id);
+    if (!container) continue;
+    const page = container.staticPath;
+    const url = container.isRoot ? page : `${page}#${headingSlug(node.title)}`;
+    // Upstream links use the GitHub slug of the full heading, ID included.
+    // Generated pages keep that heading text, so only the page split differs.
+    remember(headingSlug(node.title), url);
     for (const match of (snapshot.anchorMap[node.id]?.text ?? '').matchAll(/<a\b[^>]*\bid=["']([^"']+)["'][^>]*>/g)) {
       const explicitId = match[1]!;
-      const namedPatternId = explicitId.match(/^fpf-pattern-([A-Z]\.\d+(?:\.[A-Za-z0-9]+)*)$/)?.[1];
+      const namedPatternId = explicitId.match(NAMED_PATTERN_ANCHOR_ID)?.[1];
       // These upstream anchors precede the named pattern heading and may
       // parse into the previous pattern's End section. Their explicit known
       // ID owns the link; ordinary anchors keep their actual container.
@@ -1483,16 +1438,19 @@ function sourceLinkResolver(snapshot: Snapshot): (target: string) => string {
   };
 }
 
+const NAMED_PATTERN_ANCHOR_ID = new RegExp(`^fpf-pattern-(${FPF_PATTERN_ID_SOURCE})$`);
+const SOURCE_PATTERN_FILE = new RegExp(String.raw`^(?:\.\/)?(${FPF_PATTERN_ID_SOURCE})(?:-[^/]*)?\.md$`);
+
 function sourcePatternId(snapshot: Snapshot, path: string): string | undefined {
-  const file = path.match(/^(?:\.\/)?([A-Z]\.\d+(?:\.[A-Za-z0-9]+)*)(?:-[^/]*)?\.md$/);
+  const file = path.match(SOURCE_PATTERN_FILE);
   return file && snapshot.patternGraph.nodes[file[1]!] ? file[1] : undefined;
 }
 
 /**
  * Resolve a section-shaped ID (e.g. `A.19:0`, `I.2.1`, `E.18:5.9`) to a
- * URL that points at the parent pattern's generated page plus the section
- * heading anchor. Returns `undefined` if the ID isn't an indexed section
- * or its parent isn't a generated pattern page.
+ * URL that points at the generated page rendering it (normally the owning
+ * pattern) plus the section heading anchor. Returns `undefined` if the ID
+ * isn't an indexed section or no generated page renders it.
  *
  * Used by `formatNodeReference` (relations panel) and the body autolinker
  * — sub-anchor IDs render as live links instead of dead `<code>` chips.
@@ -1502,24 +1460,23 @@ function resolveSectionAnchorUrl(
   nodeId: string,
 ): { title: string; url: string } | undefined {
   const indexEntry = snapshot.indexMap[nodeId];
-  if (!indexEntry || !indexEntry.parentId) return undefined;
-  const parent = snapshot.compiledNodes[indexEntry.parentId];
-  if (!parent || parent.kind !== 'pattern') return undefined;
-  const ref = patternDocRef(parent.id);
-  const slug = headingSlug(indexEntry.title);
+  if (!indexEntry || snapshot.patternGraph.nodes[nodeId]) return undefined;
+  const container = containingPage(snapshot, nodeId);
+  if (!container) return undefined;
   return {
     title: indexEntry.title || nodeId,
-    url: `${ref.staticPath}#${slug}`,
+    url: container.isRoot
+      ? container.staticPath
+      : `${container.staticPath}#${headingSlug(indexEntry.title)}`,
   };
 }
 
 /**
- * Convert a heading text to the slug rspress emits for `<h*>` ids. The
- * generator's `displaySectionTitle` strips the leading FPF-ID prefix
- * (`A.19:0 - `) before rendering the H2, so the slug must be computed
- * AFTER the same strip — otherwise the link target won't exist on the
- * page. Slug rules then mirror GitHub-style slugification (lowercase,
- * keep alphanumerics + dashes, collapse whitespace to single dashes).
+ * Convert a heading text to the slug rspress emits for `<h*>` ids. Section
+ * headings render with their FPF ID prefix (`A.19:0 - …`), so the slug is
+ * computed from the full title — the same slug GitHub gives the heading in
+ * the upstream FPF-Spec.md. Slug rules mirror GitHub-style slugification
+ * (lowercase, keep alphanumerics + dashes, whitespace to dashes).
  */
 export function headingSlug(text: string): string {
   // Mirror rspress / rehype-slug / github-slugger behavior:
@@ -1539,10 +1496,6 @@ export function headingSlug(text: string): string {
   // and Cyrillic but had a gap for Greek (U+0370–U+03FF), producing
   // broken `#anchor` links for any pattern whose title started with Γ
   // (PR #72 review feedback).
-  return markdownHeadingSlug(displaySectionTitle(text));
-}
-
-function markdownHeadingSlug(text: string): string {
   return text
     .toLowerCase()
     .replace(/[^\p{L}\p{N}\s\-_]/gu, '')
@@ -1586,6 +1539,71 @@ function sortedPatterns(snapshot: Snapshot): PatternRecord[] {
   });
 }
 
+/**
+ * Index nodes from `nodeId` up through its heading ancestors, nearest first.
+ * Uses the heading tree, not declared IDs: a section renders under the heading
+ * that contains it in the source.
+ */
+function* headingAncestry(
+  snapshot: Snapshot,
+  nodeId: string,
+): Generator<Snapshot['indexMap'][string]> {
+  const seen = new Set<string>();
+  let current: Snapshot['indexMap'][string] | undefined = snapshot.indexMap[nodeId];
+  while (current && !seen.has(current.id)) {
+    seen.add(current.id);
+    yield current;
+    current = current.parentId ? snapshot.indexMap[current.parentId] : undefined;
+  }
+}
+
+/**
+ * Nearest pattern that contains this index node (the node itself if it is a
+ * pattern). Headings inside a pattern render on that pattern's page.
+ */
+function owningPatternId(snapshot: Snapshot, nodeId: string): string | undefined {
+  for (const node of headingAncestry(snapshot, nodeId)) {
+    if (snapshot.patternGraph.nodes[node.id]) return node.id;
+  }
+  return undefined;
+}
+
+/**
+ * The generated page that renders this index node: the nearest pattern page
+ * or preface page among the node and its ancestors. `isRoot` is true when the
+ * node is that page's own heading, so links need no `#fragment`.
+ */
+function containingPage(
+  snapshot: Snapshot,
+  nodeId: string,
+): { staticPath: string; isRoot: boolean } | undefined {
+  for (const node of headingAncestry(snapshot, nodeId)) {
+    if (snapshot.patternGraph.nodes[node.id]) {
+      return { staticPath: patternDocRef(node.id).staticPath, isRoot: node.id === nodeId };
+    }
+    if (hasPrefacePage(snapshot, node.id)) {
+      return { staticPath: prefaceDocRef(node.id, node.lineStart).staticPath, isRoot: node.id === nodeId };
+    }
+  }
+  return undefined;
+}
+
+/**
+ * A non-pattern heading gets its own page only when it is not already
+ * rendered on a pattern page and it carries spec content. Level-1 headings
+ * (the Parts) always keep a page, so an empty Part such as `Part H - Reserved`
+ * stays visible. This drops the empty `X:End` marker pages and the duplicate
+ * copies of headings that live inside a pattern.
+ */
+function hasPrefacePage(snapshot: Snapshot, nodeId: string): boolean {
+  const node = snapshot.indexMap[nodeId];
+  if (!node || !node.id.startsWith('heading:')) return false;
+  if (owningPatternId(snapshot, nodeId)) return false;
+  if (node.level === 1) return true;
+  const text = snapshot.anchorMap[nodeId]?.text.trim() ?? '';
+  return text.length > 0 || node.childIds.length > 0;
+}
+
 function sortedPrefaceSections(snapshot: Snapshot): Array<{
   id: string;
   title: string;
@@ -1593,7 +1611,7 @@ function sortedPrefaceSections(snapshot: Snapshot): Array<{
   lineStart: number;
 }> {
   return Object.values(snapshot.indexMap)
-    .filter((node) => node.id.startsWith('heading:'))
+    .filter((node) => hasPrefacePage(snapshot, node.id))
     .map((node) => ({
       id: node.id,
       title: node.title,
@@ -1762,13 +1780,6 @@ function firstChildExcerpt(snapshot: Snapshot, nodeId: string): string | undefin
     ?.trim();
 
   return excerpt || undefined;
-}
-
-function displaySectionTitle(title: string): string {
-  return title.replace(
-    /^([A-Z]\.\d+(?:\.[A-Za-z0-9]+)*(?::[A-Za-z0-9.]+)?)\s+-\s+/u,
-    '',
-  );
 }
 
 export function docsRelativePath(markdownPath: string, docsRoot = DOCS_ROOT): string {

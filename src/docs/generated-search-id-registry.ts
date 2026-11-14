@@ -527,6 +527,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/A.19.CPM"
     },
     {
+      "id": "A.19.DECLARED-SUBSTRATE-INTERPRETIVE-VIEW",
+      "title": "Interpretive Views of Declared Source Sets and Search/Outcome Spaces",
+      "staticPath": "/generated/patterns/A.19.DECLARED-SUBSTRATE-INTERPRETIVE-VIEW"
+    },
+    {
       "id": "A.19.ECS",
       "title": "CharacteristicSpace Construction: Define What Counts as Better",
       "staticPath": "/generated/patterns/A.19.ECS"
@@ -535,6 +540,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "A.19.SelectorMechanism",
       "title": "Selection Kernel",
       "staticPath": "/generated/patterns/A.19.SelectorMechanism"
+    },
+    {
+      "id": "A.19.SOURCE-SET-SPACE-SUBSTRATE",
+      "title": "Source-Set and Search/Outcome-Space Substrate",
+      "staticPath": "/generated/patterns/A.19.SOURCE-SET-SPACE-SUBSTRATE"
     },
     {
       "id": "A.19.SPR",
@@ -1165,6 +1175,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "C.30.STRAT",
       "title": "Clarify Stratification and Architecture Source Labels",
       "staticPath": "/generated/patterns/C.30.STRAT"
+    },
+    {
+      "id": "C.30.TFS-REL",
+      "title": "Use Transformation-Flow Structures and Networks in Architecture",
+      "staticPath": "/generated/patterns/C.30.TFS-REL"
     },
     {
       "id": "C.31",

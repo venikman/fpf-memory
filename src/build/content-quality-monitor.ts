@@ -7,6 +7,7 @@ import {
   type PublicationManifestSummary,
 } from '../core/documents.js';
 import { WEBSITE_PUBLICATION_MANIFEST_PATH } from '../core/constants.js';
+import { FPF_PATTERN_ID_SOURCE, FPF_SECTION_SUFFIX_SOURCE } from '../core/text.js';
 import type {
   RouteRecord,
   Snapshot,
@@ -754,9 +755,14 @@ function extractRouteSelectors(text: string): string[] {
   );
 }
 
+const GENERATED_PATTERN_LINK = new RegExp(
+  String.raw`\/generated\/patterns\/(${FPF_PATTERN_ID_SOURCE}${FPF_SECTION_SUFFIX_SOURCE})`,
+  'gu',
+);
+
 function extractPatternLinks(text: string): string[] {
   return uniqueStrings(
-    [...text.matchAll(/\/generated\/patterns\/([A-Z]\.\d+(?:\.[A-Za-z0-9]+)*(?::[A-Za-z0-9.]+)?)/gu)]
+    [...text.matchAll(GENERATED_PATTERN_LINK)]
       .map((match) => match[1])
       .filter((value): value is string => Boolean(value)),
   );

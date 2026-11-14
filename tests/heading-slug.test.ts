@@ -40,12 +40,17 @@ describe('headingSlug', () => {
     expect(headingSlug('foo — bar & baz (qux).')).toBe('foo--bar--baz-qux');
   });
 
-  it('strips the leading FPF id prefix from sub-anchor titles', () => {
-    // displaySectionTitle strips "A.19:0 - " before slugging so the
-    // anchor matches rspress's heading id (which derives from just
-    // the visible title text).
+  it('keeps the FPF id prefix, matching the upstream GitHub anchor', () => {
+    // Section headings render with their ID ("A.19:0 - …"), so the rspress
+    // heading id is the same slug GitHub gives that heading in FPF-Spec.md.
     expect(headingSlug('A.19:0 - Reading path for engineer-managers')).toBe(
-      'reading-path-for-engineer-managers',
+      'a190---reading-path-for-engineer-managers',
+    );
+    expect(headingSlug('C.39.WI - Discover Worthwhile Methods')).toBe(
+      'c39wi---discover-worthwhile-methods',
+    );
+    expect(headingSlug('A.19.SOURCE-SET-SPACE-SUBSTRATE:4.1 - Section')).toBe(
+      'a19source-set-space-substrate41---section',
     );
   });
 
