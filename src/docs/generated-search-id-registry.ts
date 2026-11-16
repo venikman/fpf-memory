@@ -238,7 +238,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "A.6.3.RT",
-      "title": "Representation-Scheme Transition: Change Representation of the Same EntityOfConcern",
+      "title": "Representation Transition: Change Representation of the Same EntityOfConcern",
       "staticPath": "/generated/patterns/A.6.3.RT"
     },
     {
@@ -745,6 +745,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "B.5.MPC.R",
       "title": "Repair a Physical-Mathematical-Computational Connection",
       "staticPath": "/generated/patterns/B.5.MPC.R"
+    },
+    {
+      "id": "B.5.MR",
+      "title": "Compare Models for Refinement",
+      "staticPath": "/generated/patterns/B.5.MR"
     },
     {
       "id": "B.5.PI",
@@ -1297,6 +1302,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.37.CF"
     },
     {
+      "id": "C.37.MM",
+      "title": "Coordinate Related Models for Use and Handover",
+      "staticPath": "/generated/patterns/C.37.MM"
+    },
+    {
       "id": "C.37.MP",
       "title": "Maintain a Method Representation Profile",
       "staticPath": "/generated/patterns/C.37.MP"
@@ -1565,6 +1575,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "id": "E.5.2",
       "title": "Notational Independence",
       "staticPath": "/generated/patterns/E.5.2"
+    },
+    {
+      "id": "E.5.2.L",
+      "title": "Languages, Expressions and Interpretation",
+      "staticPath": "/generated/patterns/E.5.2.L"
     },
     {
       "id": "E.5.3",
