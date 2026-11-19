@@ -1565,7 +1565,7 @@ For this worked example, define the operational requirement as follows: a qualif
 
 ##### FPF.Reference:16.5.4.2 - Compare proposed ways to meet the need
 
-The nightly windows require 56 hours of coverage per week. Qualified members of the internal team can cover 12 of those 56 hours without conflicting with their other assignments. The internal roster leaves 44 hours uncovered.
+The nightly windows require 56 hours of coverage per week. Qualified members of the internal team have 12 hours available without conflicting with their other assignments. No night assignment has been established. Even if the owner assigns those 12 hours and verifies the required response, another 44 hours still need staff.
 
 Assume an external provider offers all 56 hours for 600 units per week, within a budget of 800. The proposed service includes a qualified operator and replacement coverage. For the declared incident class, its proposed serial bounds are 0.5 minutes for alarm delivery, 1 minute for the operator to take responsibility for the incident, 1.5 minutes for diagnosis and 1 minute to start mitigation. Their sum is 4 minutes. These are offer terms to verify, not observed performance.
 
@@ -1573,16 +1573,16 @@ The existing automation can route an alarm but cannot select and start the requi
 
 | Alternative under the stipulated facts | Result of comparison | What could change that result |
 | --- | --- | --- |
-| Extend the current internal roster | Incomplete: 12 of 56 required hours are available; obtaining the other 44 hours is unexplained | Availability, assignments, replacement, response capability and full cost of the additional coverage |
+| Extend the internal roster | Staff have 12 hours available. The proposed roster has no identified staff for the other 44 hours. | Assignments, replacement, response capability and the full cost of covering all 56 hours |
 | Obtain the offered external provision | Offered price is within the budget and the proposed response bound meets the target; total cost and operating conditions remain to qualify | Setup and continuing owner work, unavailable replacement, failed access, a failed bound or unacceptable contractual conditions |
 | Use the present automation alone | Missing the required diagnosis and mitigation capability | A separately developed and authorized capability with suitable assurance |
 | Restrict the promise to daytime | Does not meet the stated receiving use | An authorized revision of that need and its accepted consequences |
 
-The comparison is unfinished. C.38 exposes the missing internal way: who could cover the other 44 hours, with what replacement, response capability, assignments and full cost? The external offer also leaves setup, verification and continuing owner work to qualify. Those contributions could change the comparison. Once the service owner has enough information to compare the alternatives, the owner can use C.11 to choose. The following paragraphs develop the external proposal. If the owner chooses the offer, the parties must still agree on terms, and the service must be provided and verified before the owner can rely on it.
+Continuing the current arrangements leaves night coverage unverified. To assess a full internal roster, identify who could cover the other 44 hours, on what assignments and at what cost. To assess the external offer, qualify its total cost, terms and operating conditions. If a comparison is due, a second provider or a mixed roster could also supply a credible alternative. If the commission is to secure coverage and one qualified offer suffices, the owner can proceed within the purchasing authority. The parties must agree on terms and verify actual provision before anyone can rely on night coverage.
 
 ##### FPF.Reference:16.5.4.3 - Specify the missing procurement and operating results
 
-Before choosing, the service owner needs an adequately supported external proposal. It must identify the covered hours, response obligations, full cost, replacement and withdrawal conditions, the provider's required access, and who can authorize and make the proposed commitments. These details must support comparison with the internal way under C.38 and the subsequent choice under C.11.
+Before committing to the external service, the service owner needs an adequately supported external proposal. It must identify the covered hours, response obligations, full cost, replacement and withdrawal conditions, the provider's required access, and who can authorize and make the proposed commitments. If a sourcing choice is due, use those same conditions to compare the ways under C.38 and take the choice to C.11.
 
 That proposal is still missing. No procurement method or qualified provider result that establishes it is supplied here. A.15.9 can help request a bounded specialist result, such as an assessment of the proposed response time; it cannot supply the missing procurement operation.
 
@@ -1594,9 +1594,9 @@ Before authorizing the arrangement, examine a relevant consequence outside the i
 
 ##### FPF.Reference:16.5.4.4 - Return the result and its remaining conditions
 
-The worked result is a partial comparison and requirements for a conditional external arrangement. Before a choice can be supported, the service owner still needs an adequate proposal and a complete enough internal alternative. The first subject-domain gap is a way to obtain and qualify that proposal. After a supported choice and agreement, staffing, working access, authority and operating evidence would still have to be established before anyone could claim night coverage. For framework development, carry these two missing operations and their required results into E.4.PFAD's decision about an existing or new subject-domain contribution. The original conditional daytime calculation remains valid.
+The planner can identify staff time for 12 of the 56 required hours. The remaining 44 are a gap in the proposed internal roster. The external offer is still a proposal. The next procurement task is to obtain and qualify that offer. A commission to compare two ways also needs a credible second way or a statement of what prevents the comparison. After agreement, the service still needs staffing, working access, authority and operating evidence. Take the procurement and operating gaps to E.4.PFAD when deciding which subject-domain practice can supply each result. The original conditional daytime calculation remains valid.
 
-Once the comparison has supported a choice and the selected arrangement has the required commitments and operating evidence, the owner can decide whether to rely on the night service at the stated scope. Communication then conveys the qualified result and its remaining limits. Understanding, commitment, acquired capability and observed response remain different outcomes along this construction.
+Once the service has been authorized and the commitments and operating evidence are in place, the owner can decide whether to rely on the night service at the stated scope. Communication then conveys the qualified result and its remaining limits. Understanding, commitment, acquired capability and observed response remain different outcomes along this construction.
 
 Change the whole condition to two simultaneous incidents. The offered bounds apply only to one. Compare parallel provision, a second authorized responder or a justified prioritization with a changed service promise; return an unmet requirement if no continuation is supported. Retain the verified meaning of the alarm and each applicable diagnosis; reopen concurrent capacity and its implications for time, cost and authority.
 
@@ -86867,7 +86867,7 @@ C.37 governs co-use for one action. C.37.MP relates different uses of representa
 
 **What changes in practice.** Instead of comparing *buy* against *AI* or *internal* as if the labels were peer kinds, the practitioner asks how each whole way could make the same accepted result available. Duplicate labels merge, materially different ways under one label split, and omitted integration, evidence, support, capability, custody, resource, consequence, and exit burdens become visible before commitment.
 
-**When to stop.** Stop if a direct domain Method already returns the complete useful comparison for this result and use, if one mandatory path leaves no real comparison decision, or if a complete `OptionSet` already exists and only `C.11` is needed.
+**When to stop.** If the receiver can already obtain the ordered result on the agreed terms and no further choice or appraisal is due under the applicable commission, show how the existing provision meets those terms and omit the proposed new work. If one authorized way suffices and no comparison is due, use the direct domain Method. A domain comparison that already answers the decision can go straight to the chooser. Use `C.11` when only the choice from a complete `OptionSet` remains.
 
 **Use another pattern for these questions:**
 
@@ -86902,13 +86902,15 @@ The needed move is to fix one result question, construct complete-enough materia
 
 ### C.38:4 - Solution
 
-Fix one result, receiving use, situation, horizon, and acceptance basis. Construct at least two materially different complete ways by resolving labels into the Agents, Work, Methods, Systems, values, relations, conditions, and enabling branches that can change this decision. Ask the same decision-changing questions of every way, preserve unknowns, then freeze only complete-enough ways for `C.11`.
+First establish what the receiver can obtain if present arrangements continue. Check access, fitness for the intended use and availability over the required period. An item in a supplier’s catalogue or a file in an archive establishes availability to this receiver only if the receiver can use it on those terms. Where something is missing, name it. That may leave only a permission to obtain or an adaptation to make. Use `C.42` if removing existing work would affect the provision on which the receiver relies.
+
+If a choice is still due, give every way the same test. Continuing the present arrangement may itself qualify, with its ongoing costs and dependencies. A required appraisal may also use it to show what would happen without a change, even when it fails a condition for selection. An appraisal of a named change against that baseline can answer its commissioned question directly. If the choice concerns alternative ways to obtain the result, construct comparable ways and pass them to `C.11`.
 
 #### C.38:4.1 - Follow the seven-step same-result sequence
 
-1. **Fix one result question.** Name the sought result by its direct governed kind, the receiver and use, applicable configuration or situation, horizon, acceptance conditions, deciding System, authority boundary, and commitment the decision may make. If rows seek a System, performed service, capability, access relation, and episteme interchangeably, split the questions before comparing.
-2. **Recover available inputs and gaps.** Use available subject and specialist results only where they fit the same question. Apply `A.15.9` only when one bounded result from another practice is missing or needs qualification. That request or return is an input to a way, not the whole way and not the choice.
-3. **Construct at least two materially different complete ways.** Use labels only as prompts. For each surviving way, describe the relevant proposed or available Agents, Work, Methods, Systems, values, provision or access relations, enabling branches, and conditions through which the same result could become available. Mark every decision-bearing premise as supported now, proposed, or unknown. Merge labels that resolve to the same decision-changing contents; split ways under one label when a content difference can change the choice. If no second way can be supported, return the missing-alternative or search gap rather than fabricating a peer. When the gap is an unexplained obtaining operation, use `C.39` to develop a candidate explanation or identify the unresolved contribution. Its sufficient-one-way result does not complete this comparison.
+1. **Fix the result of the commission.** Name the receiver, intended use, horizon, conditions for acceptance, and who can commit to a way of obtaining it. Separate unlike ends. If the commission requires both delivery now and the receiving team’s ability to do a later job under changed conditions, keep both in every way. State what will count as an acceptable delivery and, separately, what the team must decide or perform on the later job and what help it may use.
+2. **Find what is already available and what is missing.** Use earlier work when its conditions still apply. Prior independent performance can establish the team’s capability if it covers the change in question. When the team must exercise independent judgement, establish which choices the brief, tools or helper already supply and examine the choices the team makes on its own. If the order calls for constructing a rule for a class of jobs, examine an earlier work product or give a task that leaves the consequential choices open. Check how the team justified the rule and where it applies. When the order calls for applying an approved rule, give the team that rule. A supplier’s accepted delivery establishes the delivery. Credit the team with decisions evidenced by its own work. Seek a missing or unqualified result from another practice through `A.15.9`.
+3. **Construct at least two materially different complete ways.** Use labels only as prompts. For each surviving way, describe the relevant proposed or available Agents, Work, Methods, Systems, values, provision or access relations, enabling branches, and conditions through which the same result could become available. Mark every decision-bearing premise as supported now, proposed, or unknown. Merge labels that resolve to the same decision-changing contents; split ways under one label when a content difference can change the choice. A way may combine delivery by a provider with work through which the team acquires and demonstrates the required capability. State how that capability will be checked and mark it as proposed until there is evidence. When the gap is an unexplained obtaining operation, use `C.39` to develop a candidate explanation or identify the unresolved contribution. A single supported way can close a request for a way to proceed. For a commissioned choice between ways to obtain the result, report a missing second eligible way as a gap in the comparison.
 4. **Use one decision-changing parity basis.** Ask the same bounded questions of every way: result and availability condition; performers, Work, Methods, and means; production, transfer, provision, access, custody, or ownership; fit, interfaces, integration, and configuration; evidence, uncertainty, and assurance; support, maintenance, change, exit, and recovery; capability consequences; resources; and consequences for affected Systems. Omit a group only when it cannot change this choice. Keep a decision-reversing unknown as a visible gap.
 5. **Restore comparability without forcing totality.** Keep the result, receiving use, acceptance conditions, situation, configuration boundary, evidence horizon, and burden categories shared. Use ordinary comparison when the ordering is direct. Use `A.19.CPM` and `A.19.SelectorMechanism` only when evidence gates, partial orders, incomparability, abstention, or set-valued retention matter. Do not hide protected conditions inside an unexplained score.
 6. **Freeze and hand off a finite option set.** Put only complete-enough whole ways into the current `OptionSet`, with gaps that the chooser can see. When local choice is current, apply `C.11`. Its result may choose one way or a retained tie-set, reject the current set, probe again, or reroute. `C.38` does not choose by implication and does not gain the chooser's authority.
@@ -86956,7 +86958,7 @@ The episteme, table, document, or diagram that carries the claims does not, mere
 
 #### C.38:4.5 - Separate recognition from assurance
 
-- **Recognition.** A candidate list whose labels name unlike things, or whose rows omit different burdens, is enough to open `C.38`. Two parallel ordinary descriptions can be enough for a reversible decision.
+- **Recognition.** Start with the receiving use. If the ordered result is already available, establish whether anyone still has a choice to make. When several ways remain and their labels conceal differences that matter to that choice, two parallel descriptions can suffice for a reversible decision.
 - **Assurance.** Consequential use checks that every row seeks the same result on the same basis, every actual premise has direct support, modal premises remain modal, protected conditions remain visible, and no omitted burden can plausibly reverse the choice unnoticed. Domain acceptance, assurance, authority, realization, and release stay with their direct Methods.
 
 ### C.38:5 - Worked cases
@@ -86971,11 +86973,13 @@ The same parity questions expose plant interfaces, commissioning evidence, respo
 
 #### C.38:5.2 - A performance recording needs one usable artifact
 
-A music project intends one bounded Music Work occurrence and a recording through which a later learner can recover the required timing and spatial relation. Before production, the project compares a local live-capture way, a specialist mobile-team way, and a venue-service way for that same result and use.
+A music project commissions a particular performance and a recording from which a later learner can recover when two groups entered and where they stood relative to one another. Before the performance it compares local capture, a specialist mobile team and the venue’s service for that same use. An earlier rehearsal can help test a proposed recording method. The commissioned performance still lies ahead.
 
-`C.38` makes the three proposed ways answer the same fidelity, access, rights, setup, performer-interference, evidence, support, resource, and recovery questions. The comparison remains one standalone ordinary episteme and its finite set goes to `C.11`; neither result says that performance or recording Work has occurred.
+For each way the team asks how the later learner could establish both relations, what they would have permission to use and which parts of the proposal still need testing. The team can send the alternatives to `C.11` before the performance.
 
-After a way is retained, the performance-production Method integrates the selected production and presentation inputs, tests the load-bearing artistic or participatory relation, and records the performed Work, artifact, and unresolved limits separately. `C.38` absorbs none of that Work, artistic authority, publication, or rights decision.
+After the performance the learner can retrieve two time-aligned tracks identified with that run and labelled by group. Both start before either group enters, and the first musical entry of each group can be identified on its track. Their times on the common clock establish the order and interval. The recorder took the two groups’ feeds directly and saved no positions. The same pair of tracks is compatible with either group on the left. A cue sheet recording the actual placements for that performance may settle the remaining question if the learner can match it to the tracks and access it on the agreed terms. If a single annotated recording was ordered, use the sheet to complete that recording. If the existing material already meets the agreed terms, the order needs no further production. If placement cannot be recovered, record that limit.
+
+The production Method governs capture, use rights and acceptance of the recording. If the commission also calls for a learner who can interpret a later recording independently, examine that learner’s work. When a tutor identifies both entries, the learner may still measure the interval. The measurement leaves open whether the learner could identify the entries unaided. If devising a rule for future recordings is also commissioned, the learner can choose how to distinguish an entry from a tuning sound and justify when the rule applies.
 
 #### C.38:5.3 - Direct Method-base stop
 
@@ -87001,7 +87005,7 @@ Use that direct Method. Adding a `C.38` account for the same decision would dupl
 
 A use conforms only when the checks needed by its claimed comparison pass:
 
-1. One governed result, receiver, use, situation or configuration, horizon, acceptance basis, deciding System, and authority boundary are explicit.
+1. The result, receiver, use, horizon, acceptance conditions and decision authority are explicit. Existing provision has been checked against the same terms. If the commission includes the receiver’s later capability, the comparison identifies the work that would establish it and the assistance allowed.
 2. At least two materially different complete-enough ways seek that same result. Duplicate labels merge and material differences under one label split.
 3. Every decision-bearing premise is visibly supported now, proposed, or unknown; proposed or unknown premises establish no actual capability, authority, Work, provision, delivery, acceptance, availability, or use.
 4. The same decision-changing parity questions are applied to every way; an omitted group is justified by irrelevance to this choice.
@@ -87047,6 +87051,8 @@ The practice question is how to construct several decision-ready ways to obtain 
 An initial table may contain labels such as internal, provider, buy, build, partner, procurement vehicle or lifecycle stage. Scoring those labels before recovering their contents can mix unlike alternatives and hide integration, evidence, support, capability, custody, consequence, recovery and exit burdens. `C.38` repairs that defect by fixing one result and receiver, resolving every label into a whole possible-future way, applying a bounded parity basis, marking unknowns without inventing current relations, and stopping before local choice or actual Work.
 
 The common comparison depends on its domain inputs. Systems Engineering supplies the engineered-System conditions, specialist criteria, realization and assurance; the recording Method supplies artistic, participatory and production requirements. Those differences determine what a complete way must include. When a domain Method already returns the sufficient comparison, use that result directly.
+
+In formal appraisal, the expected result of continuing current arrangements supplies a baseline even when it falls short of the objective. In procurement, the buyer can commission knowledge and skills transfer alongside the immediate deliverable and specify how transfer will be assessed. These practices answer different questions in the comparison. [HM Treasury, The Green Book, chapter 4](https://www.gov.uk/government/publications/the-green-book--2/the-green-book-2026) · [Cabinet Office, The Consultancy Playbook, Knowledge and skills](https://www.gov.uk/government/publications/the-consultancy-playbook/the-consultancy-playbook-html).
 
 Reopen the affected candidate or parity question when a decision-changing premise changes. Reconsider the comparison approach when an available direct Method supplies the needed result more economically or when evidence shows that the current comparison hides a consequential burden.
 
@@ -87181,9 +87187,13 @@ Keep an unavailable domain operation visible. General guidance can identify a re
 
 #### C.39:4.4 - Refine only what can change the answer
 
-Follow a constituent contribution further when its unresolved obtaining way could change the whole's result, feasibility or burden. State that effect before opening another search. A qualified existing operation can remain intact while one missing connection is developed.
+**Which constituent operation needs further work?**
 
-Choose the next level by the decision it enables, not by a fixed decomposition depth. Stop when the explanation is sufficient for that decision. If it is not, name the missing operation or support question and what observation would allow reconsideration.
+Start from the decision about the Method as a whole. Which result must one operation supply to another? A known bound on that result may already settle the decision even while the exact value or the way of obtaining it remains unknown. When the decision is still open, identify what is missing. If a suitable operation exists, its performer may need an input, access or an assignment. If the available operations cannot produce the required result under the stated conditions, develop the missing operation or change how they are connected.
+
+To explain a composite Method, identify the repeatable action of the whole and the result it obtains. Show how the constituent operations together obtain that result under their operating conditions. Where one Method supplies an input to another and each has its own result, describing that exchange may be all the receiver needs.
+
+To compare two models of a Method, name the question both must answer. What ways of carrying out the Method does the proposed model allow? Show that at least one is possible and that each satisfies the earlier model's assertions when read in its terms. A strict refinement also rules out an answer the earlier model allowed. Explaining the parts can leave the allowed answers unchanged. B.5.MR:4.1–4.2 gives the comparison for other modeled entities and inquiries.
 
 Compare further inquiry with using the adequate current answer, narrowing the sought result and stopping. Include the effort and displaced work. A technically interesting uncertainty need not be resolved when none of its attainable answers would change the current decision.
 
@@ -87973,7 +87983,7 @@ Keep the conclusion at that supported scope. Choose further proof, model develop
 
 #### C.39.RO:4.5 - Examine a changed use
 
-Instantiate the operation on the selected changed input. Perform its steps and interpret the output. Choose a change that exercises what was generalized: more inputs, a different arrangement, a boundary condition or a changed constituent.
+Choose a changed input that tests the proposed generalization, such as a larger input set, a different arrangement, a boundary condition or a changed constituent. Apply the operation and interpret what you obtain. With stipulated physical conditions, a calculation can give a required setting, a bound or a prediction. To report what an apparatus actually delivered, use evidence from that run, such as a calibrated measurement of the delivery.
 
 Compare the obtained result with the receiving question. If the operation returns a failure witness, use it to change the proposed action or question. If an assumption fails, repair the dependent part or narrow the application conditions.
 
@@ -87981,9 +87991,9 @@ A worked changed case can expose a defect in the proposed operation. The scope o
 
 #### C.39.RO:4.6 - Make the operation usable at the receiving point
 
-Give the next practitioner the input meanings, the operation, its result and the conditions needed for that use. Keep the reason or worked construction accessible where adaptation will depend on it. A concise name helps retrieval when it reflects what the operation does.
+What will the next practitioner do with the operation? To apply it, the practitioner needs to know what the inputs mean, which conditions to check, how to obtain the output and what decision the output supports. Sometimes a justified bound or an impossibility result already settles that decision. Give the practitioner the grounds and the conditions under which they hold.
 
-Stop when the receiving use can instantiate the operation or understand its supported limit.
+To adapt the operation, the practitioner also needs to know why it works, which assumptions the new use affects and which parts can still be used. If the assignment is to develop a reusable operation independently, identify which construction choices the practitioner made and what was already supplied by the example, a tool or a colleague. Observing the practitioner correctly apply a supplied operation supports a claim about that performance. A claim about independent construction needs evidence of the practitioner's own choices and their grounds.
 
 ### C.39.RO:5 - Archetypal Grounding
 
@@ -88121,7 +88131,7 @@ The source synthesis supports constructive reuse without requiring the whole aut
 
 Use this pattern when a project says that its “methodology”, “process”, “workflow”, or “way of working” must change, but the decision subject is ambiguous. The concern may be one Method, several related Methods, an established Method family, a temporary comparison grouping, or something else such as a tool, capability, support arrangement, description, resource, or project System.
 
-Begin with the result that is missing, late, unsafe, or too costly and the representative Work in which that result matters. Recover the Methods and candidate accounts already visible there before choosing the level of focus.
+Begin with the result that is missing, late, unsafe, or too costly and the Work in which it matters. Identify the Methods already used there and any accounts that still need examination. What could change the decision about that result: improving one Method, changing how Methods work together, or securing the tool, capability or service the work requires?
 
 The first useful move is to compare the plausible focus options: one Method, an established family or project-local grouping, named Method relations, or a non-Method return. This gives later repertoire, qualification, or architecture Work a supported subject and the relations it needs to address, without inventing a Method or a composite.
 
@@ -88904,7 +88914,7 @@ Reopen when a relied-on source contribution, its support or its applicability ch
 
 Use this pattern when a Method, an established-family or project-local grouping choice, or a proposed Method/Work/support structure may fail in the project's situation. Enter when the practical question concerns the receiving result, performer capabilities, technical or organizational conditions, variability, evidence, authority, or acceptable burden and those conditions are not yet explicit enough for individual qualification or architecture comparison.
 
-Begin with the situation family, intended or current Work, receiving professional result, and the level of the Method decision. State the contributions that a Method or several Methods must make without preselecting which candidate supplies them. Place every resulting criterion with the Method, description, performer capability, covering Work assignment, permission relation, decision-authority relation, performed Work, decision result, support/access relation, responsibility, cultural subject, or receiving result it concerns.
+Begin with the recurring situation, the intended or actual Work and the result its recipient needs. Identify the decision that the criteria will serve. Selecting one Method and arranging several Methods to run together can impose different conditions on the same work. State what must be achieved before selecting a candidate. Attach each criterion to what it constrains, such as the Method, a performer's capability, an assignment, permission to act, the authority to decide, the support available or the result delivered.
 
 The first useful result is a bounded set of criteria with subjects, allowed variation, evidence needs, satisfaction observations, and stops. A criterion can be ready for later use even when no candidate currently meets it. Enter also when the present question concerns the justification of a criterion. That use can finish with a supported requirement recommendation and the criterion's current force or amendment limit, without selecting a Method.
 
@@ -88975,10 +88985,10 @@ Recognition is cheap: recurring Work, a changed constraint, or one plausible cap
 5. **Separate variation from invariants.** Name lawful branches, substitutions, timing ranges, and local adaptations. Mark non-negotiable result, safety, confidentiality, authority, or evidence conditions.
 
    If a criterion's justification is the question, use §4.4 to appraise it while retaining its current force. An already justified criterion needs no new appraisal.
-6. **Set burdens at the right level.** Attach time, attention, capacity, delay, meeting, or cost limits to a participant, Work scope, and window. Keep individual burden distinguishable from combined peak demand and burden transferred to another participant or period.
+6. **Identify who bears each burden and when.** Attach time, attention, capacity, delay, meeting, or cost limits to a participant, Work scope, and window. Keep individual burden distinguishable from combined peak demand and burden transferred to another participant or period.
 7. **Name evidence and observations.** For every decision-changing criterion, state what record or observation a later evaluation needs, its edition or window when material, and what would count as satisfied, failed, or unknown. Do not turn the requested evidence into a fit verdict.
 8. **State acceptance, stop, and reopen rules.** Say when the criteria set is adequate for its next use, which missing fact stops that route, and which situation or source change requires rebuilding it. A stop may route to capability, support, authority, product, or Work redesign rather than Method selection.
-9. **Return without selecting.** Make the criteria available by subject and decision level; an adequate existing account can carry them. Send individual subject questions to A.3.1.QM and combined structure questions to C.32.MWA.PP only when their entry conditions hold.
+9. **Return without selecting.** For each criterion, state what it constrains and which decision depends on it. An adequate existing account can carry the criteria. Use A.3.1.QM to qualify one identified Method, retain or exclude a candidate account, or examine a connection that can be assessed on its own. Use C.32.MWA.PP when combined work, provision or shared constraints can change the decision.
 
 #### C.39.RQ:4.2 - Record the Result
 
@@ -88986,9 +88996,9 @@ Use the rows that carry the present result. For a disputed criterion, retain the
 
 | Result position | Content for the present use |
 | --- | --- |
-| use and situation family | Receiving Work/result, decision level, scope, window, representative variations, and exclusions. |
+| use and situation family | Receiving Work and result, decision to be made, scope, window, representative variations, and exclusions. |
 | required contributions | Candidate-neutral Method contributions and the result or preserved condition each must support. |
-| criterion rows | Criterion ID, subject/relation, requirement or bound, allowed variation, non-negotiable status, and decision level. |
+| criterion rows | Criterion ID, subject/relation, requirement or bound, allowed variation, non-negotiable status, and decision that uses the criterion. |
 | capability, assignment, permission, and authority | Required performer capabilities; separate responsibility and access conditions; covering Work assignments; permission and decision-authority relations; and evidence for each. |
 | technical and organizational conditions | Inputs, support/provider conditions, evidence timing, reversibility, coordination, and other situated constraints. |
 | burden limits | Participant, Work scope, applicable time window, bound and its basis, how satisfaction can be determined, and any material transfer of burden. |
@@ -89016,7 +89026,7 @@ Carry the useful reason and limit in the same criteria or recommendation result.
 
 The situation family is a safety-relevant controller change combining firmware and supplier-originated harness geometry under a fixed release calendar. The intended Work produces one released change with traceable affected requirements, implementation revisions, verification results, evidence status, and human release authority. Some cases have signed supplier evidence before integration; others have only versioned provisional evidence until later. AI support may suggest trace links but may not receive confidential geometry or decide release.
 
-Three views describe the same release Work. The project view exposes dates, allocations, and authority; the process view exposes recurring supplier-evidence, integration, verification, and release-result correspondences; the case view exposes how new evidence changes the next decision for one release. These views help find criteria. They create neither additional Work nor a Method.
+Three accounts inform the release decision. The project plan gives dates, allocations and decision authority. The process account shows how supplier evidence, integration and verification support a release decision across changes. The case record shows which evidence is available for this release and how it affects the next decision. Use each account to identify criteria for what it describes.
 
 Required Method contributions are stated without selecting an architecture: produce the affected hardware verification result; integrate the implementation against a versioned evidence state; produce signed supplier approval or a missing-approval stop; and return release, withhold, or next-slot authorization under named human authority. Evidence reconciliation and trace review are additional candidate contributions, not pre-admitted Methods.
 
@@ -89036,7 +89046,7 @@ F.6 tests precise assignment-bound attribution when that claim is needed; a fail
 
 Responsibility, access, capability, assignment, permission, authority, performed Work, and decision result therefore remain separately testable. The AI provider is a separate System and is holder or subject of none of these assignments or relations.
 
-| Criterion | Subject and decision level | Requirement, variation, and bound | Evidence needed and stop |
+| Criterion | Subject of the criterion and decision it affects | Requirement, variation, and bound | Evidence needed and stop |
 | --- | --- | --- | --- |
 | `SC-TRACE-01` | EC-417 receiving result and its requirement/implementation/verification correspondence | every affected safety requirement links to one or more named current implementation revisions and one or more named verification results; every correspondence link remains inspectable, while representation format may vary | versioned trace record; an affected requirement with no current implementation-revision link or no verification-result link is `failed` and stops safety closure |
 | `SC-CONF-01` | supplier-geometry information and AI-provider access relation | confidential supplier geometry stays outside the AI provider; using no AI is allowable | access configuration and handling record; any provider exposure is `failed` and stops the AI-supported route |
@@ -89084,14 +89094,14 @@ If timely amendment is unavailable, the rule remains in force and the release ar
 | candidate-shaped criteria | Requirements restate the familiar candidate's procedure. | State the contribution or protected condition before assigning a candidate. |
 | description-reification bias | Goal, rationale, framing, or mindset text becomes a world-side Method part or capability fact. | Place each answer with the description, account, capability, or cultural subject it concerns. |
 | capability-assignment-authority collapse | A capable System is assumed assigned and authorized, or an authority holder is assumed capable and assigned. | Record capability, responsibility, access, assignment, permission, authority, performed Work, and decision result separately. |
-| scalar-fit bias | Unlike safety, evidence, burden, and authority rows collapse into one score. | Preserve non-negotiable stops, unknowns, and decision levels. |
+| scalar-fit bias | Unlike safety, evidence, burden, and authority rows collapse into one score. | Keep each binding stop or unresolved criterion with the decision it affects. |
 | local-burden blindness | A passing individual estimate hides a combined peak or burden moved to another participant. | Attach burden to participant, scope, and window; route combined structures to C.32.MWA.PP. |
 
 ### C.39.RQ:7 - Conformance Checklist
 
 Apply these questions to the criteria being established or appraised and to the present use of the result. Existing relevant context can supply the answer.
 
-- [ ] The criteria name a situation family, receiving Work/result, decision level, scope, window, variations, and exclusions.
+- [ ] The criteria name a situation family, receiving Work and result, decision to be made, scope, window, variations, and exclusions.
 - [ ] Required Method contributions are stated before candidate assignment.
 - [ ] Every criterion names its subject or relation rather than hiding it under “method fit”.
 - [ ] Method/account content, MethodDescription, performer capability, responsibility, support/access, covering Work assignment, permission relation, decision-authority relation, performed Work, decision result, culture, and receiving-result claims remain distinct.
@@ -89134,7 +89144,7 @@ Method Content Theory and the design-method ecosystem line are complementary bec
 | Tsai, Zdravkovic, and Söder, [situational Method Engineering in a digital business ecosystem](https://doi.org/10.1007/s10270-022-01068-z) | Empirical action-research evidence for situational requirements, construction, and selection in an ecosystem. | One action-research setting does not establish a universal criterion set or cross-domain fit. |
 | Bender, [context-specific embedded-analytics process selection](https://doi.org/10.1007/s10257-024-00675-1) | Context-specific requirement and selection questions with practical constraints. | The application population and source-local process terms do not determine Method identity or general applicability. |
 
-Reopen when a source model changes a decision-bearing prompt, a later evaluation exposes a criterion whose subject or decision level was wrong, a recurring architecture failure can be prevented by one affordable criterion, or the situation family, receiving result, variation, evidence window, performer, support, authority, or burden regime changes.
+Reopen when a source model changes a decision-bearing prompt, a later evaluation exposes a criterion applied to the wrong subject or used for the wrong decision, a recurring architecture failure can be prevented by one affordable criterion, or the situation family, receiving result, variation, evidence window, performer, support, authority, or burden regime changes.
 
 ### C.39.RQ:12 - Relations
 
@@ -90636,9 +90646,11 @@ Recover what made the successful enactment possible: preparation, inputs, operat
 
 Decide which contributions the receiver must perform and which can remain obtainable from elsewhere. Restore access or activation when that is sufficient; develop capability when the receiver cannot perform a necessary operation. E.23.CAE distinguishes those gaps under grounded capability claims, E.23.CDI develops the named capability, and C.36.RP arranges acquisition, provision and continuing access.
 
-Use a receiving attempt that can reveal the uncertain transfer. A person who copied a demonstration may still be unable to adapt its critical step. Ask the receiver to use the method under the changed condition that matters, with the support the intended arrangement permits. If the helper supplied the decision, the supported configuration's success remains useful, but does not establish the receiver's independent capability.
+Check the operation the receiver is expected to perform with the help that will be available. An earlier performance by that receiver under comparable conditions may already answer the question. If adaptation to a changed condition is still in doubt, choose a task in which that change affects what the receiver must do. Identify which adjustment the receiver made and what a helper supplied. A successful joint performance can qualify the arrangement for the job. Credit the receiver with following an instruction when someone else selected the adjustment. To credit the receiver with adapting the method, establish which change in working conditions the receiver noticed, which adjustment the receiver chose and why, with the help that was actually available.
 
-For shared terms, test a consequential action on the common object. Ask participants to classify or act on the same borderline case, state what they expect to happen, and inspect the difference. Repair the operative distinction or action when identical words hide different uses. Agreement in wording alone does not establish common understanding.
+When a shared term matters, start with the decision the participants need to make together. For one handoff, check what the sender's classification tells the receiver to do with this item. People can understand the same term and take different actions because their jobs differ. Completing the handoff on the agreed terms can settle that joint task. If the item must also meet an acceptance criterion, check it against that criterion.
+
+If later work depends on several participants using the same criterion, compare their classifications under the same facts and for the same question. If their answers diverge, locate the fact, instruction or criterion that led them to act differently. Where the work requires agreement, resolve the difference with the person responsible, repair the handoff and try it again on the disputed item. To distinguish criteria still consistent with their answers, seek a case on which those criteria would give different answers. If both participants give the answer that one criterion predicts, that observation counts against a rival that predicted a different answer. Other criteria may still fit. To rely on agreement across a class of inputs, establish why the criteria used give the same decision throughout that class, or state the range and limits of the evidence for agreement. An agreed instruction can settle which criterion participants should use. Evidence of their work is needed when the question is which criterion they actually use.
 
 Retain an obtainable explanation, executable material or demonstration suited to that receiver. A complete account does not require every participant to internalize every constituent operation. It does require the arrangement to supply them when they are needed.
 
@@ -90795,11 +90807,11 @@ Do not use this Method to reopen an adequate option set merely because more idea
 
 A complete first return can be modest: “This contribution could address the named receiving-use problem, but only if access to these records and the required review support can be obtained. The next question is whether the data owner can provide that bounded access.” Missing feasibility does not have to erase the useful problem; it prevents a stronger reachability claim.
 
-The first useful result is a candidate opportunity with a worthwhile problem or proposed promise, dependencies, bounded reachability rationale, uncertainty and a next discriminating question.
+A useful result can be a candidate opportunity with a worthwhile problem or a proposed promise to a recipient, the conditions under which it is attainable and what is still uncertain. The inquiry can also establish that the proposal has no worthwhile use under the stated conditions. Give the recipient a further question when its answer could change a decision they face.
 
 ### C.40.OCN:2 - Problem
 
-A promising means can be mistaken for a worthwhile result, and a plausible direction for an attainable one. Separate search, problem, support and qualification results then leave the practitioner to invent their connection. The required result is one inspectable opportunity whose useful contribution, conditions, uncertainty and next question remain connected.
+A promising means can be mistaken for a worthwhile result, and a plausible direction for an attainable one. Separate search, problem, support and qualification results then leave the practitioner to invent their connection. The practitioner needs to show the recipient what the proposed contribution could make possible and under what conditions it is attainable. The inquiry may show that the current arrangement is adequate. It can also identify a missing condition whose resolution would change the decision.
 
 ### C.40.OCN:3 - Forces
 
@@ -90813,7 +90825,7 @@ A promising means can be mistaken for a worthwhile result, and a plausible direc
 
 ### C.40.OCN:4 - Solution
 
-Construct a bounded opportunity by relating possible later Work to neighboring uses and technologies, distinguishing a useful problem from an offered promise, constructing materially different directions and supports, qualifying their dependencies, and returning the strongest supported reachability claim and next question.
+To construct a bounded opportunity, examine neighboring uses and technologies, distinguish the problem from what someone proposes to supply, develop alternatives where they matter and check which combinations can actually be obtained. Return what the recipient can rely on and what could defeat it. If an open question matters to the recipient's next decision, say how its answer would change that decision.
 
 Its generic participants are the performer or performers conducting the inquiry, the developing holder or subject, possible receivers or users of the later contribution, and sources or suppliers of material premises. They are Method-side meanings, not actual assignments or Work participants. The inquiry performer may also be the subject of the proposed change; no distinct recommendation recipient is an applicability condition.
 
@@ -90960,7 +90972,7 @@ Reconsider an opportunity when a relied-on problem, promise, source, holder conf
 
 For example, suppose the data owner in the constructed model case later qualifies only a narrower source set. Retain the receiving need and the manual-index direction. Narrow the model-assisted candidate to the permitted set; remove the unsupported representative-use reachability claim and request missing evidence only if its obtainable contribution to that broader use warrants the whole acquisition burden. No earlier actual Work is erased by this change of knowledge.
 
-If the new source set also excludes the region that a candidate stepping stone was meant to open, revise or remove that retention rationale. Another retained candidate does not become invalid by association. If the proposed next question is no longer discriminating, choose a new one under the receiving policy.
+If the new source set also excludes the region that a candidate stepping stone was meant to open, revise or remove that retention rationale. Another retained candidate does not become invalid by association. If the proposed question can no longer change the recipient's decision, drop it. Choose a replacement only if another open question matters to work the recipient intends to pursue. An answer that settles the commissioned inquiry can close it.
 
 A factual change in one application does not automatically change this reusable Method. Reopen the Method's claims when evidence or a stronger practice line shows that its search, problem/promise construction, dependency reasoning, reachability rule or stop omits a material action. G.11 supplies source refresh; C.40.RQ requalifies an affected opportunity. A recurring failure of this Method returns to its maintainer.
 
@@ -91926,7 +91938,7 @@ Say what could be supplied, for which receiving use, under what conditions, with
 
 Use [A.2.3](https://github.com/ailev/FPF/blob/main/FPF-Spec.md) when a promise's content must be identified or relied on. Read an existing provider promise from its source; mark a newly constructed promise as proposed. Neither description establishes a provider commitment, capability, access, provision, fulfilment, or achieved benefit.
 
-A research contribution can be a criticism, discriminating experiment, reproducible comparison, or clarification of an unresolved claim. It need not be sold, but its intended epistemic result and evidence standard must be inspectable. Do not impose a commercial service model on that use.
+A research contribution can be a criticism, a discriminating experiment, a reproducible comparison or a clarification. Specify the claim the inquiry should settle and what would count as evidence for it. A single admissible occurrence can establish possibility or disprove a claim with no exceptions. To establish how often something occurs, or that it holds throughout a class, use evidence that bears on that claim. The research result can be useful in its own right.
 
 #### C.40.PC:4.5 - Link the contribution to the problem without assuming success
 
@@ -91942,7 +91954,7 @@ Ordinary prose is enough when the receiver can recover the situation, worthwhile
 
 > The case's acceptance engineer reports that unsupported claims cannot be recovered reliably from the incoming package, and the stipulated review records support that concern. We propose a source-traceable claim-to-evidence account, not approval; the next question is whether the available records and review criteria cover a representative package without breaching confidentiality.
 
-Use `C.40.DC` when the contribution premise is adequate and materially different directions need construction. Return to `C.40.NU` when the lead must change. Stop when the result is a problem hypothesis or rejection. If an adequate direction already exists, proceed to the missing reachability, comparison, or advising result; no mandatory cycle through earlier PatternIDs follows.
+Use `C.40.DC` when the contribution premise is adequate and materially different directions need construction. Return to `C.40.NU` when the lead must change. When the assignment is to formulate a problem or decide whether this lead merits attention, a problem hypothesis or a reason to close the lead can complete it. If an adequate direction already exists, proceed to the missing reachability, comparison, or advising result; no mandatory cycle through earlier PatternIDs follows.
 
 Reopen the affected problem or contribution under `C.40.RQ` when the receiving use, value evidence, acceptance expectation, source, horizon, or protected condition changes. A narrower permitted source set can narrow one proposed contribution while leaving the receiver's problem and another direction intact.
 
@@ -91968,7 +91980,7 @@ The inquiry rejects this lead for the current use. It does not claim that the te
 
 A research group suspects that an evaluation loses important failure cases when several task types are pooled. The proposed contribution is a reproducible comparison between the pooled and separated analyses, with explicit limits on what any difference would establish.
 
-The problem is provisional: no result yet shows that the suspected loss changes the relevant scientific conclusion. The next question is whether the comparison exposes a conclusion-changing discrepancy on an admissible dataset. A negative answer closes or narrows the hypothesis; a positive answer motivates further research. Publication, funding, and improved model performance are not part of the proposed epistemic result.
+First establish what the group wants to know. If it needs a conclusion for this dataset, return the two analyses and explain whether pooling changed that conclusion. If the separated analysis reproducibly reveals an important failure that pooling concealed on an admissible dataset, that dataset establishes that such a loss is possible. A change in the numerical summaries alone can leave every important failure visible. Agreement on that dataset leaves the possibility open elsewhere. A claim about how often the loss occurs needs evidence about the population of datasets. If the requested comparison answers the group's question, the work can end there. The group can choose a further inquiry when its answer would matter.
 
 ### C.40.PC:6 - Bias-Annotation
 
@@ -92353,7 +92365,7 @@ An existing result for another holder or configuration is not automatically a re
 
 #### C.40.JF:4.3 - Test the combination, not just its ingredients
 
-Put jointly necessary conditions on one compatible basis. Recover the time intervals, resource quantities, operating and transition demands, availability restrictions, and protection limits. Do not add estimates from incompatible scenarios or treat the same resource as available twice.
+Put jointly necessary conditions on one compatible basis. Recover the time intervals, resource quantities, operating and transition demands, availability restrictions, and protection limits. Before adding the demands on one provider, establish which operations must be performed separately and which one performance can supply to several recipients. Count shared work once and each separate demand in the time window in which it must be met. If sharing is undecided and would change feasibility, keep the two outcomes open.
 
 Ask which conditions compete, complement, substitute for, or interfere with one another. Inspect common causes and shared suppliers, thresholds, congestion, delays, continuing obligations, and evidence dependencies where they can change the result. Two claims derived from the same unqualified assumption do not independently support the combination.
 
@@ -92384,9 +92396,9 @@ Write the result at the smallest affected scope.
 
 “Conditional” is useful only when the condition changes the result. State what a positive and a negative answer would do. Do not retain a known-infeasible direction as merely awaiting more evidence, or call an unanswered question a negative result.
 
-An ordinary return can be two sentences:
+A short answer may suffice.
 
-> Each support direction can operate alone during the eight-week inquiry, but both require the same engineer for two hours each week and only two hours are available. The joint direction is ruled out under the no-overtime protection; retain the separate candidates, and qualify a shared-support configuration only if its combined demand could change that result.
+> The two departments each need two hours of the same engineer's time every week. For this inquiry the engineer must review each department's confidential material separately. Two hours a week are available. Either review fits. Together they need four hours, so they cannot both be delivered in the eight weeks while urgent operating cover is protected.
 
 This return need not become a large dependency register. Expand it when several recipients, delayed reuse, disagreement, or consequence makes the basis hard to recover.
 
@@ -92404,7 +92416,7 @@ Reopen only the affected claim when its subject, starting configuration, use, ho
 
 Consider a constructed engineering-organization case. Two departments want better acceptance preparation during an eight-week period. The current arrangement is manual review. Candidate A supports one department with a qualified reviewer; candidate B supports the other with the same specialist. The following are stipulated case premises, not reported field evidence.
 
-The relevant practice has qualified each direction separately for its own use. Each needs two specialist hours every week for all eight weeks. The organization has confirmed only two hours per week for this inquiry, after existing obligations. The protected condition is no overtime or loss of urgent operating cover. Setup and the remaining dependencies are covered in each separate qualification.
+The relevant practice has qualified each direction separately for its own use. Each requires the same specialist to review its own confidential work for two hours every week for all eight weeks. Each review occupies the specialist for the full two hours, and the departments' access conditions require separate reviews. The organization has confirmed only two hours per week for this inquiry, after existing obligations. The protected condition is no overtime or loss of urgent operating cover. Setup and the remaining dependencies are covered in each separate qualification.
 
 | Claim | Joint test and result |
 | --- | --- |
@@ -92412,7 +92424,7 @@ The relevant practice has qualified each direction separately for its own use. E
 | B alone | Its two weekly hours fit the same availability when A is absent; retain its bounded individual reachability. |
 | A and B together | Four hours are required in each overlapping week, against two available; the combination is ruled out for this horizon and protection. |
 | A followed by B | Both need eight weeks, so moving B after A does not fit the original eight-week horizon. A longer horizon would be a revised claim requiring its own availability and continuing-demand basis. |
-| Shared support for A and B | “The specialist can cover both at once” is an unqualified new configuration, not a consequence of the individual results. |
+| Shared support for A and B | A joint briefing could serve both if both needed the same guidance and joint access were permitted. Here each needs its own review. A redesigned service would have to meet both review needs within the available time and permissions. |
 
 The useful answer is not “development is impossible.” Both separate directions remain candidates. The organization can request the combined-work estimate for a shared-support configuration, examine another provider, or later consider a different horizon. Those possibilities require their own qualification. Choosing between A and B remains a separate decision.
 
@@ -92436,7 +92448,7 @@ If the qualified data result excludes that operational use, reject the access-de
 
 #### C.40.JF:5.4 - All pairs fit but the whole combination does not
 
-All pairs can fit while the whole set does not. In a separate arithmetic illustration, three non-shareable seven-hour activities each draw on one eighteen-hour budget. Every pair needs fourteen hours; all three need twenty-one. The deficit rules out that combination under those premises. It does not choose an optimal subset. The same issue arises when two six-hour demands compete for eight hours of shared capacity in an organization inquiry.
+All pairs can fit while the whole set does not. In a separate arithmetic illustration, three non-shareable seven-hour activities each draw on one eighteen-hour budget. Every pair needs fourteen hours; all three need twenty-one. The deficit rules out that combination under those premises. It does not choose an optimal subset. Two separate six-hour reviews likewise exceed eight available hours if each occupies the same reviewer throughout.
 
 ### C.40.JF:6 - Bias-Annotation
 
@@ -92973,7 +92985,7 @@ The Method can guide self-development with assistance, work by organizational le
 
 For one adequate bounded improvement with available means and no consequential connection problem, use its direct Method. Do not build a network description merely to redescribe that work. Conversely, a bounded contract may be one contribution to continuing development without promising to provide its whole future.
 
-To direct this development from the conditions it faces, use **C.43:4.8** to connect observation, advice, choice and intervention across the working Method, developing capability and provision. Supply it with the present possibilities, proposed directions and the conditions under which contributions can be obtained. C.40.DC supplies alternatives from successive attained configurations; C.40.JD returns the receiving work result, changed capability with retained assistance, and knowledge about the Method and provision. C.40.NP can supply the next worthwhile problem after complete success. The control account returns which dependency, timing, allocation or observation must change for this construction to proceed. This relationship preserves new problem formation and epistemic results rather than treating development as execution toward one permanently fixed target.
+To direct this development from the conditions it faces, use **C.43:4.8** to connect observation, advice, choice and intervention across the working Method, developing capability and provision. Supply it with the present possibilities, proposed directions and the conditions under which contributions can be obtained. C.40.DC supplies alternatives from successive attained configurations; C.40.JD establishes what the receiving activity obtained, what the holder demonstrated with the available help and what the work revealed about the Method and its provision. A claim that the holder gained a capability also needs evidence of what it could do earlier. When continuing development is wanted, C.40.NP helps those responsible choose a worthwhile problem from the new starting point. The control account returns which dependency, timing, allocation or observation must change for this construction to proceed. This relationship preserves new problem formation and epistemic results rather than treating development as execution toward one permanently fixed target.
 
 ### C.40.OD:2 - Problem
 
@@ -93045,7 +93057,7 @@ A **direction is ready for the next construction** when it specifies enough of t
 
 Connect the formulated problem or selected inquiry to an obtainable epistemic or practical contribution. Then connect that contribution to the conditions of its use and to a further possibility opened by the changed position. A research result can change a problem formulation before a new application is built. A newly developed Method can make another result reproducible before anyone needs to acquire a new personal skill. A holder-development branch is selected only where the intended continuation requires it.
 
-When changes to the obtaining way, the holder's capability and the conditions for performance depend on one another, use C.40.JD to construct those joins. Its return distinguishes delivered work, acquired capability, improved Method and retained help. When a qualified result is already obtained but the next worthwhile problem is unclear, use C.40.NP. Its return identifies what the changed position enables, including a justified local stop and preserved future possibility. These Methods can be used independently of this whole: one joins a present construction, the other starts from a result.
+When changes to the obtaining way, the holder's capability and the conditions for performance depend on one another, use C.40.JD to construct those joins. It distinguishes the delivered work, the holder's performance with the retained help and any supported change in capability or in the Method. When a qualified result is already obtained but the next worthwhile problem is unclear, use C.40.NP. Its return identifies what the changed position enables, including a justified local stop and preserved future possibility. These Methods can be used independently of this whole: one joins a present construction, the other starts from a result.
 
 Do not require all branches. A theory-building inquiry may continue through a new question and a discriminating explanation without a training programme. A practitioner may use a developed way with an unchanged provision arrangement. A better AI configuration may remove a human operation while a different undertaking deliberately retains human mastery as an independent result. Keep the chosen end visible when changing its means.
 
@@ -93334,7 +93346,7 @@ Keep external contributions visible without treating useful assistance as a fail
 
 #### C.40.JD:4.3 - Rejoin in consequential work and distinguish what changed
 
-Bring the available way, performer and provision together in one consequential receiving occasion. Ordinary work supplies the material and stakes; the developed way supplies the operation; the performer enacts it; the arrangement supplies the necessary conditions. The work changes its own subject, such as a service, engineered system or decision. To establish a change in the holder’s capability, examine what it can now perform or organize with the assistance intended for later use.
+Bring the available way, performer and provision together in one consequential receiving occasion. Ordinary work supplies the material and stakes; the developed way supplies the operation; the performer enacts it; the arrangement supplies the necessary conditions. The work changes its own subject, such as a service, engineered system or decision. This performance can show what the holder can do or organize with the help intended for later use. To judge a change in capability, compare it with grounded evidence of what the same holder could do earlier. Account for differences in the task, access and help that could explain the change in performance. If the earlier capability is unknown, qualify the present performance and leave the change open.
 
 Use the work and its appropriate examination to recover three distinct results where they matter:
 
@@ -93342,7 +93354,7 @@ Use the work and its appropriate examination to recover three distinct results w
 - what the developing subject can now do, under which retained assistance and conditions;
 - what the attempt revealed about the way and its provision.
 
-The first goes back into ordinary operation. The second changes the starting position for subsequent development. The third can change the Method, help, organization or the earlier direction. A useful result that still depends on a specialist remains useful. It does not establish independent capability, nor does that limit invalidate the delivered service.
+The receiving activity can use its result. Those choosing further work can use what they know about the holder's present capability, including a capability it already had. What the attempt reveals about the Method or its provision can change the next decision. When a specialist made the critical choice, the delivered service and the holder's own contribution can each be credited at the scope the work supports.
 
 Use the development or provision Method selected for the holder to make the named operation available. Check the receiving performance under the promised assistance and state what capability the evidence supports for the holder and arrangement. C.40.CU, E.23.CDI and the subject evaluation Methods provide the corresponding construction and qualification.
 
@@ -93447,7 +93459,7 @@ The lead has to locate which condition is consequential. For the well-supported 
 
 Those enactments would support only what the performance evidence establishes. If the lead independently notices the premise difference and formulates the consequential question but still needs a specialist's technical result, retain that bounded capability with its support dependence. Do not call it complete subject expertise. If the adviser still chooses the difference and every consequential operation, retain the delivered project result and assisted performance, and continue the missing development.
 
-The useful change is not merely familiarity with a new test. The lead can now turn an ill-formed scheduling complaint into a meaningful question about an obtaining way, seek the result that changes a commitment and preserve a sufficient existing way when no new inquiry is warranted. That changes which situations she can handle and which further difficulties she can see.
+The later cases show what the lead can do with the agreed help. If comparable earlier work shows that she could not identify the premise or frame the question under those conditions, her later choices support a gain in those operations. If earlier records show that she made those choices whenever the source information was available, the skill was already present. If missing access had blocked an earlier commitment, restoring that access removes the documented obstacle. Protected time or specialist help may also have made the present commitment possible. If those conditions changed together, the contribution of access alone may remain unknown. Either finding can guide the next assignment. Attributing a gain to the adviser's intervention also requires grounds for separating its effect from other changes.
 
 #### C.40.JD:5.3 - Support several masteries in a company without centralising every judgement
 
