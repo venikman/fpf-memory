@@ -449,8 +449,8 @@ Use Part and cluster headings to locate content. E.4 explains how Kernel, broade
 | § | ID & Title | Status | Keywords & Search Queries | Dependencies |
 | :--- | :--- | :--- | :--- | :--- |
 | D.1 | **Clarify an Ethical Claim's Value Basis (Value Plurality)** | Stable | Makes the ethical claim or question, affected EntityOfConcern, value concern, and intended use explicit. Qualifies the basis of an ethical judgement and uses a frame or evidence return for the reasoning or reliance that needs it. | **Builds on:** E.2, A.1, A.7. **Coordinates with:** D.2, D.3, D.4, D.5, A.10, B.3, C.11, C.11.DUA. |
-| D.2 | **Recognize Ethical Concerns Across Levels and Scopes (Multilevel Ethics)** | Stable | Entry pattern for ethical questions where a system, holon, method, work, policy, recommendation, or architecture move may improve one declared level or scope while harming another. | **Builds on:** D.1, A.1, B.1, C.30.ILC. **Coordinates with:** D.3, D.4, D.5, A.15, A.3.4, C.16. |
-| D.3 | **Describe an Ethical Conflict Across Levels or Scopes** | Stable | Use when ethical claims at different levels or scopes raise an incompatibility, trade-off or unresolved value tension that needs explanation. Connect each side's claim, affected entity, value frame, consequence and horizon; state the tension and next use. Stop at a short note when it suffices; identify a reusable conflict-description episteme only when needed. Keywords: interlevel ethical conflict. | **Builds on:** D.1, D.2, A.1, A.14, C.13. **Coordinates with:** E.10.ROLE, D.4, C.2.1, E.17, C.30.ILC, C.16, A.10, B.3. |
+| D.2 | **Recognize Ethical Concerns Across Levels and Scopes (Multilevel Ethics)** | Stable | Use when an action, policy or change to a system or method may affect who benefits, who bears a cost or risk, or who is responsible. Trace how the change reaches the parties concerned, including through a shared service or membership in overlapping groups. | **Builds on:** D.1, A.1, B.1, C.30.ILC. **Coordinates with:** D.3, D.4, D.5, A.15, A.3.4, C.16. |
+| D.3 | **Describe an Ethical Conflict Across Levels or Scopes** | Stable | Use when ethical claims conflict, require a trade-off or leave a priority unresolved. The claims can concern the same people under the same conditions. Relate each claim to the affected entity, its value premise, the consequences and their timing. A brief note can suffice. Identify the account when another reader needs to cite, compare or revise it. Keywords: interlevel ethical conflict. | **Builds on:** D.1, D.2, A.1, A.14, C.13. **Coordinates with:** E.10.ROLE, D.4, C.2.1, E.17, C.30.ILC, C.16, A.10, B.3. |
 | D.4 | **Ethical Mediation and Decision Use** | Stable | Use an already described ethical conflict to develop feasible alternatives and compare them under the stated value premises. Return a supported recommendation, conditional continuation, refusal or impasse, with any inquiry or neighboring-pattern return that the decision needs. | **Builds on:** D.3, C.11. **Coordinates with:** D.5, A.10, B.3, C.28, C.30.ILC, A.20, A.21. |
 | D.5 | **Bias Audit and Ethical Assurance** | Stable | Start from the bias, fairness or impact question and intended use. A qualified metric comparison or bounded finding can suffice. Choose audit depth and further inquiry from the claim that will rely on the result; causal and assurance conclusions retain their own support requirements. | **Builds on:** D.1, D.4, E.5.4. **Coordinates with:** A.10, B.3, C.16, C.28, E.13. |
 
@@ -77627,7 +77627,7 @@ ControlStructureViewNote:
   stopCondition:
 ```
 
-Use `rateBandRef?`, `controlLayerRelationRef?`, and `externalityBoundaryRef?` only when that object or relation changes the control-structure use. Otherwise one control relation and its feedback-closure state can answer the question; name a further pattern only if its contribution is needed. Generic stratification labels stay with `C.30.STRAT` until a control-specific relation is recovered.
+Use `rateBandRef?`, `controlLayerRelationRef?`, and `externalityBoundaryRef?` only when that object or relation changes the control-structure use. Read the feedback-closure state for the selected return path, operating configuration and interval. One control relation and its feedback-closure state can answer a bounded question; name a further pattern only if its contribution is needed. Generic stratification labels stay with `C.30.STRAT` until a control-specific relation is recovered.
 
 When a recovered control-layer relation is used to justify decomposition, substitution, or design reliance, recover the inter-layer assumption-guarantee relation or mark the control-layer relation as orientation only. `interLayerControlRelationRefs?` is used only when the relation is already control-specific and is used for decomposition, substitution, design reliance, safety, or stability claims.
 
@@ -77751,6 +77751,8 @@ SafetyLossControlStructureNote:
 
 The note gives a safety-triggered architecture move: find the loss-control structure, controlled process or plant, constraint, foreseeable misuse, operational design scope, and action-relevant boundary. It does not replace the generic control-structure view and does not replace evidence, assurance, gate, causal, dynamics, or temporal claims.
 
+#### C.30.LCA:4.1 - Interpret control relations and the claims they support
+
 **Control-participant interpretation.**
 
 | Source label | FPF recovery |
@@ -77771,9 +77773,9 @@ If a dated Work occurrence involving an episteme is claimed, recover the perform
 
 **Use of a mathematical model.** A proof can settle the response of the modeled loop for all disturbances and operating conditions covered by its assumptions. To apply that proof to the installed loop, identify the operating mode and check the feedback path, plant response and timing on which the conclusion depends. A successful trial can establish the response in that trial. C.29 handles the transfer, A.3.3 the dynamics, C.27.TA and C.27 the temporal claims, and C.28 a claim about the effect of changing the controller.
 
-**Nesting and scale rule.** When nested control affects latency, stability, observability, accountability or assurance, recover the affected relation and the bounds needed for that use. Retain a scale-audit reference only when the receiving rule calls for it; nesting alone requires no additional record.
+**Nesting and scale.** Identify the property at issue and which control relations could produce it. A regulator can use feedback while a supervisor supplies a fixed reference. For a claim of supervisory control, show how the reference, limit or operating mode set by the supervisor governs the regulator’s action. For supervisory feedback, also trace the observation returned to the supervisor and how it can affect that setting. Several regulators can produce a joint response through their interactions and shared limits. Trace these when they account for the behavior of the whole. Recover the bounds needed to judge latency, stability, observability, accountability or assurance, and keep a scale-audit reference when the receiving rule calls for it.
 
-**Worked slice A — a diagram used as proof.** A safety note claims that a plant is safe because the supervisor monitors the lower controller. Recover what the diagram specifies about the observation path. A display may show measurements even when commands run on a timer. To establish feedback in one episode, trace a measurement used in choosing a command, the applied command, and the observation of its effect. That trace can confirm feedback for the episode. To assess safety, name the hazard and operating conditions and establish how the response addresses them.
+**Worked slice A — a diagram used as proof.** A safety note claims that a plant is safe because the supervisor monitors the lower controller. A display can show measurements even while commands run on a timer. For feedback between the supervisor and the lower controller in one episode, establish what the supervisor observed about the lower controller, how the rule or judgement in use depended on that observation, and which resulting influence reached the lower controller. A timestamp can fit both a fixed schedule and an observation-dependent rule. Records of the input and decision can distinguish them even when both would issue the same command. A claim about the physical effect of that command needs evidence of the plant response. To extend the feedback claim to another operating mode, check the signals available in time, the rule enabled in that mode and the return to the controller. To assess safety, identify the hazard and establish how the response addresses it under the conditions at issue.
 
 Use the applicable safety pattern for the safety claim, `B.3` only for a named assurance claim, `A.10` for bounded source-to-use reliance, `G.6` for citable provenance paths, `C.27.TA` for temporal aspects and rate bands, `C.27` for authored temporal-claim adequacy, and `A.3.3` or the applicable dynamics pattern for dynamics or stability.
 
@@ -80470,7 +80472,7 @@ State what is meant to change, for whom, by when, and within which protected con
 
 Identify the acting participants, the subject affected, the available interventions, and the observations that can inform their selection. Recover what an existing arrangement does from an actual consequential episode or an adequate model. For a proposed arrangement, explain the intended dependence without describing it as already operating.
 
-A feedback claim needs an observation, an influence returned to the subject, and a rule and case facts coupling that influence to the observation. **B.2.5** supplies this recovery. Use the result here to find which dependence must be constructed or changed. A dashboard that nobody uses to change action supplies information but not that control dependence.
+For a proposed feedback arrangement, specify which later intervention can depend on an observation returned from the controlled system, and how the intervention can affect that system. For an operating arrangement, establish when that dependence was in use. **B.2.5** develops the supervisor–subholon claim when an acting system supervises identified holons. It recovers the observation, the influence returned to each holon and the facts coupling that return to its observation. A dashboard can supply a useful reading before anyone has decided how to act on it.
 
 Keep the selected structure and its representation distinct. **C.30.LCA** helps recover the observation, command, reference, feedback and timing relations represented in a view. Use those relations as inputs, then examine their consequences below. An organizational chart may omit an external supplier who controls a needed release; including that relationship does not make the supplier part of the enterprise.
 
@@ -80526,7 +80528,7 @@ Then follow a consequential demand forward from the available observations and i
 
 **C.32.MWA.PP:4.3–4.7** supplies the general construction across Method, Work, performer, means and allocation structures, including their joint demands. Use that account where the proposed division leaves performance or support unresolved.
 
-Here the additional connection is control-specific: explain how the joined contributions turn an observation into a permitted influence on the subject, and how the resulting observation can change the next decision. Change the division or its possible realization when that connection fails; preserve already adequate contributions.
+For control, connect the source of the reference or input to the decision, the permitted influence and the means by which it reaches the subject. For a proposed feedback path, also trace how an observation returned from the subject can affect the next decision. Change the division or its realization where it leaves a needed connection open.
 
 For each candidate, explain how a local result becomes usable by the next participant and how a consequential limitation returns. The result is a candidate arrangement with an operating mechanism, not a collection of independently desirable boxes.
 
@@ -80616,7 +80618,7 @@ For each relied-on component or participant result, state its inputs, operating 
 
 Begin with a jointly possible situation. Two controllers can each require the other to have already restored the shared condition. Two teams can each promise to start when the other releases the only specialist. Such mutual expectations supply neither an initial action nor a continuation. Construct an initial allocation, a compatible joint condition or another arrangement.
 
-Next follow a consequential action or change through the whole. Establish what remains true, what must be updated and what is available next. A successful isolated execution does not establish repeated continuation.
+Next follow a consequential action or change through the whole. Establish what remains true, what must be updated and what is available next. For a promise about recurring work, start the next job from a state in which the preceding job can leave the shared means. A rule or bound can establish continued feasibility if the work can start under its stated conditions and every permitted transition leaves the next job with what it needs. A record of one execution can settle what happened on that occasion.
 
 For a modeled controller interconnection, derive or obtain the joint dynamics rather than combining separate stability labels. Include reference changes, state estimation, hold rules, actuator limits and computational delay. A technical result can establish an admissible region, an error bound, recursive feasibility, stability or goal attainment; retain the property established. These results are not interchangeable.
 
@@ -80738,6 +80740,8 @@ A forecast of a likely change can allow reversible preparation before approval. 
 The installer checks the panel in place and reports completion or a problem to the coordinator. The table bounds physical installation. If the venue also needs confirmation by 16:00, include time for this check and report or establish that the approved release already covers them. A missing report leaves the installation status open. One person may perform several contributions when the demands still fit. Their number does not determine a management hierarchy.
 
 The timing implication is mathematical under its premises. The premises about people, authority, resources and duration need organizational support and observation; they are not supplied by the equation. In actual use, distinguish a committed service bound, an empirical estimate and a planning assumption.
+
+The same hour-long bound can cover another panel presented on its own if the path from the content change to physical installation includes all its work and waiting, with the same upper bounds, authority and available capacity. An added wait for material to set can break the bound even if the four operations take the same time. A promise to confirm completion needs a bound through confirmation. To promise two installations with overlapping windows, account for the shared editor and printer across both. One approval can serve both panels only when it covers both and arrives in time for each. Place the shared work and the remaining work on the joint schedule.
 
 #### C.32.LCA:5.3 - The smaller sufficient result
 
@@ -87670,11 +87674,15 @@ Recover or propose what connects the relevant contributions. Follow the required
 
 For a Method, explain inputs, actions, choices, intermediate results, common conditions, alternatives and returns. A branch is usable when the reader can distinguish its applicability; an iteration needs a reason to continue and a condition for stopping.
 
-For a discipline, recover its field question and boundary, the knowledge contributions that explain or constrain reusable practice, and the methods by which practice tests and changes that knowledge. Explain how those contributions form the field's assembly and what their coupling makes possible. Distinguish a constituent from a supplier whose result the field uses. Retain competing explanations or methods with their conditions of use. A changed claim or method must reconnect to that assembly; C.20:4.1–4.5 supplies its construction and continuity criteria. Several independently usable Methods can belong in the account without being forced into one sequence.
+For a discipline, recover its field question and boundary, the knowledge contributions that explain or constrain reusable practice, and the methods by which practice tests and changes that knowledge. Explain how those contributions form the field's assembly and what their coupling makes possible. Distinguish a constituent from a supplier whose result the field uses. Retain competing explanations or methods with their conditions of use. A changed claim or method must reconnect to that assembly; C.20:4.1–4.5 supplies its construction and continuity criteria. Several independently usable Methods can belong in the account without being forced into one sequence. Explain which principles the families share, what guides a choice among them, and what their enactments can establish. Where one family uses results from another, explain that connection.
 
 For an existing whole, establish its relevant constituents and organizing relations under its subject rule. For a proposed whole, explain how the arrangement could obtain the needed property and which premises remain to be established. A knowledge claim, a physical object and a reusable Method have different conditions of composition and identity.
 
-Develop the relations at the scale where their consequences arise. A field account may need several layers of explanation: a common problem and principles, families of Methods, connections among those families, and enactments. Library.Reference:6 distinguishes composition levels, functional layers, abstraction, detail and scale. Select the structure that changes this account's reasoning. A longer list of local activities can leave the organizing relation absent.
+**Which whole must the reader be able to explain?** When explaining a holon, identify it and the property or behavior at issue. Explain how its constituents and their organization bear on that property. A project can use a Method. Within a composite Method, B.1.5 asks whether two identified Methods stand in a constituent relation. The whole's construction must require the part's contribution or admit it as an alternative for a required contribution. A functional layer groups contributions by what they do. For a claim that one participant controls another’s action, identify how its decision can affect that action. If feedback is claimed, show how an observation enters a later decision. Use the relation on which the conclusion depends. Library.Reference:6.2 helps resolve familiar terms such as *level* and *layer*.
+
+**How far does the explanation apply?** A record can explain what happened to an entire organization on one occasion. A principle common to several disciplines can govern just one decision within it. At a fixed level of model abstraction, ask whether the account of the constituent could remain true while the promised outcome of the whole fails. Keep the same extent of composition in view, such as an entire office in each setting. Ask which assertions hold when the discipline, local arrangement or individual occurrence changes. Extending an explanation to another setting needs grounds that its conditions still hold. If the task is to construct a more concrete model, use B.5.MR:4.2–4.3 to show that the new model has a feasible completion, that its permitted completions preserve the earlier assertions, and which previously admissible answer it rules out.
+
+When an explanation promises to work at every relevant level of composition, specify the eligible wholes. A stock balance can hold for each store and for a group of stores. Combining the accounts works when the stocks cover the group without overlap, the units and time window agree, and the two entries for an internal transfer cancel. Stock in transit must also be accounted for. These conditions explain why the balance survives regrouping. To explain whether a delivery can cross the same stores on time, follow the handovers and the capacity available for them. Separate balances leave that joint behavior open.
 
 A useful general explanation supplies reasons for choices. It lets the reader say why these contributions belong together, what their connection makes possible, and what a changed condition would reopen. Where the available description says only “coordinate,” recover what must be made compatible, who or what supplies it, and how the resulting relation affects the whole.
 
@@ -93740,6 +93748,8 @@ Across this family, ask whether the important work questions are covered, their 
 
 Recognition begins with the ordinary situations in §0.1 and the Problem frames. Assurance comes from examining the questions, observations, mappings, counterexamples and consequences in the later sections.
 
+**What does a filled checklist establish?** Read the existing answers and their grounds before asking for another check. If they meet the acceptance conditions for this delivery, the recipient can act on them. A completed checklist can express a model of one delivery (L0). Its template may embody the team's model of a repeatable local check (L1). When the commission is to develop a disciplinary model of what to check (L2) using the transdisciplinary model of question selection here (L3), show which conditions of the discipline's work matter to the decision and how the chosen questions reveal them. A filled form can also carry that reasoning if its author records the design choice. When the assignment is to use an approved question set, the performer can take it as given. To credit the performer with applying the checklist, trace the answers to the checks they made or the prior results they chose to reuse. To credit them with selecting the questions, identify which choices the brief, form or helper supplied and which the performer made and justified. An earlier selection or a change the performer made to the form can supply that evidence.
+
 The constructed examples here illustrate reasoning and possible use. They do not report measured effectiveness. Human-use studies and AI evaluation studies inform the Methods under the limits in [C.41:11](https://github.com/ailev/FPF/blob/main/FPF-Spec.md#c4111---sota-echoing) and the supplying patterns' SoTA-Echoing sections. Practical adoption depends on capabilities, access, working conditions and the result people value.
 
 The arrangement favors visible, discussable omissions. It can underrepresent tacit expertise, unusual events and concerns that people cannot safely voice. Keep open inquiry alongside the selected questions. Watch for time displaced from the work, repeated uninterpretable answers, prefilled records and harmful reliance on a narrow pass. Use those observations to change or remove the aid.
@@ -93809,7 +93819,7 @@ A question can support prevention, preparation for a possible failure or recover
 
 A canvas can prompt inquiry as well as confirm conditions. “Who will use this result, and why?” may initiate a conversation that develops an account; “Have we identified the intended users?” asks about that account. Select the prompt that serves this occasion, and distinguish obtaining an answer from judging its adequacy. Filled sections can expose missing connections without establishing that the described proposal will work. For a seminar proposal, naming participants, activities and available support does not establish that those participants can attend or that the activities help them learn. Keep the substantive assumptions and grounds available for discussion; use the appropriate domain practice to test them.
 
-Challenge the set with one plausible failure and one satisfactory case. Would they receive distinguishable answers? Does a missing item hide a consequential difference? Does an included item duplicate an already available adequate result? Use C.41.QC when the criterion or checking means itself remains uncertain.
+A known failure within the proposed use that would pass every question already refutes the claim that passing suffices for acceptance. If the question is which difference the set can detect, compare a satisfactory result with a plausible failure. Would their answers lead the user to act differently where the work calls for it? Distinguishing one pair shows which difference the questions can expose. For reliance beyond that pair, trace the consequential conditions of the work to the questions and their grounds, or limit the proposed use to the conditions supported so far. Reuse an adequate qualification. An existing observation can answer a question for this delivery. Before dropping that question from the maintained list, check how later users will obtain the answer or why they can make their decision without it. Use C.41.QC where the criterion or checking means still needs examination.
 
 #### C.41:4.3 - Select coverage and a useful stopping point
 
@@ -93851,7 +93861,7 @@ Begin with [C.41](https://github.com/ailev/FPF/blob/main/FPF-Spec.md#c41---selec
 
 The worked case below explains those conditional moves. Resume at the unresolved contribution after interruption; if the questions have been answered but the aid's worth remains unknown, continue with **Worth and improvement** and [C.11.MV](https://github.com/ailev/FPF/blob/main/FPF-Spec.md#c11mv---compare-the-worth-of-a-method-option).
 
-**Selection.** C.41 separates the physical-set description from the assumption that this set will serve the exercise. The three selected questions concern contents/readability, wording and assembly. A separate exercise trial addresses instructional usefulness. The result is a bounded question set with sources for its answers.
+**Selection.** Here the facilitator supplied the description, and the three questions concern contents and readability, wording and assembly. With grounded answers the packer can settle whether this set meets that description for delivery. To commission the packer to design checks for future sets, give the packer the work and its acceptance conditions and examine which omissions the packer identified, which questions the packer selected and why. An earlier design with those choices can serve. The facilitator's separate trial addresses what the set enables participants to do in the exercise.
 
 **Construction.** C.41.TF puts the set and description reference once above the questions. The packing view carries count/readability and assembly; the facilitator's view carries wording comparison. Both retain S and v2. The answer forms allow a supported negative or an unresolved question. The transposed example in C.41.TF shows the same answers without changing their subject.
 
@@ -93966,6 +93976,8 @@ For each answer, make recoverable what is being asked, what counts as an answer 
 
 Distinguish a reusable instruction from a filled claim. “Count the cards against the contents description” is part of the template's help. “Twenty cards present in S, observed at 10:00” is an instance answer and its basis. [FPF A.3.2](https://github.com/ailev/FPF/blob/main/FPF-Spec.md#a32---umethoddescription-description-episteme-for-a-way-of-doing) governs a MethodDescription claim when the template has an already admitted Method as its EntityOfConcern and makes at least one substantive claim about that Method as a way of doing.
 
+If a form opens with an answer already entered, make its source recoverable where the user needs to act on it. A suggested value still needs grounds. An observation from an earlier occasion can supply the answer when its subject, criterion and conditions still apply. A record of a new check identifies what was actually examined. These distinctions let the recipient use adequate prior work and identify any check that remains to be made.
+
 #### C.41.TF:4.2 - Give answers enough expressive range
 
 Use answer forms that preserve consequential distinctions. In the examples here, **Yes** asserts the question's condition on the stated basis; **No** denies it on such a basis; **unknown** says the available grounds do not settle it; **not checked** says no check was performed for this occasion. These are local answer meanings, not a universal state taxonomy. An old adequate result may be reused even when no fresh check occurred.
@@ -93982,7 +93994,7 @@ Add observation time, description edition, performer or evidence reference when 
 
 Choose paper, editable text, a table or a working application according to the occasion. Transpose or split the presentation only while preserving the associations needed to interpret an answer: subject, question, comparison basis, answer and grounds. Keep shared reference information visible or directly reachable in each local view.
 
-Retain one form when it serves the receiving uses. Make another view only for an access or interpretation difficulty, and compare both with the same filled cases. Include the effort of preparing the view, recovering references during use and updating affected copies. Deriving views from shared content can reduce divergent copies; a separate generator is worthwhile only when that saving exceeds its setup and maintenance cost.
+Retain one form when it serves the receiving uses. Make another view when it will resolve an access or interpretation difficulty. To hand over one record, compare the answers and their grounds as they reach its recipient. To approve a view for future records, establish how the form keeps each answer and its grounds with the right question, subject and comparison basis across the entries it must support. If two fields could be confused, try values that would call for different actions if exchanged. Following the field definitions through to the displayed questions may already establish how entries are carried over. Include preparation, looking up references and updating copies in the cost of maintaining a second view. Generating the views from shared content can be worth the effort when it prevents enough copying and update errors.
 
 For a maintained aid, make clear which question set and template edition are in use. A corrected wording question in the working application can coexist unnoticed with an obsolete printed form or presentation. Derive needed views from the same maintained content where practical; otherwise identify how affected copies are updated or withdrawn. Preserve the earlier question and comparison basis when historical answers still refer to them. The useful result is a recoverable current form and interpretable earlier records; a separate modeling application is worthwhile only if it helps sustain that result.
 
@@ -93990,7 +94002,7 @@ Inspect what entering an answer does in the chosen tool. A mark may record a com
 
 An outline that puts each item under one heading can hide another relevant relationship. One comparison of the projected example with the cards may contribute both to display preparation and to exercise preparation. Preserve both uses when they affect the next action; use a cross-reference or a small relation table if one parent heading cannot express them. Do not infer that the subject has only one such relation from the form's single indentation.
 
-Replay one satisfactory answer, one negative answer and one unresolved case in the proposed form. When the intended recipient's interpretation or next move remains uncertain, ask a representative recipient to recover the question and next move. Use that response to locate the missing explanation. Compare the proposed repair's benefit with preparation, answering and maintenance effort. Return a missing distinction to the template, a misunderstood question to selection, and inaccessible observation to C.41.OF.
+Where interpretation of the answer forms is in doubt, replay the different answers that matter to the next action, including a supported negative or an unresolved answer where users need them. If the intended recipient's interpretation remains uncertain, ask someone who will use the form in those conditions to recover the question and decide what to do with the answer. Use that response to locate the missing explanation. Compare the repair's benefit with preparation, answering and maintenance effort. Return a missing answer distinction to the template, a question that asks about the wrong condition to selection, and an inaccessible observation to C.41.OF.
 
 When transfer changes the speaker or recipient, recover relative references through [FPF A.6.P.RI](https://github.com/ailev/FPF/blob/main/FPF-Spec.md#a6pri---recover-agent-relative-references-for-action): “my cards” or “our current description” can acquire a different referent in a copied view. Check the question's associations after the change even when its words are unchanged.
 
@@ -94017,6 +94029,8 @@ Suppose the wide table on a small screen separates the answer from its S/v2 refe
 | Set assembled for delivery? | Yes: assembled, observed 10:10 |
 
 If entries are recorded at 10:12, that time describes the recording. It neither changes the observation times nor shows when each condition first became true. A split view for counting and a view for wording comparison retain the S/v2 references and the relevant observation grounds.
+
+The explanations and times help the recipient check the three associations in this record. All three verdicts happen to be Yes. A display that copies the wording verdict into the assembly row would give the same verdicts here. Keep the described contents and wording, but leave the set unpacked. The assembly row must now show No with the observation of the unpacked set. The wording row can still show Yes from the comparison with v2. The two answers show that the wording matches v2 and the set is unpacked. If an assembled set is still due, the packer assembles it. If the recipient asked only for its present state, the packer can return the two answers with their grounds. It tests this particular copying error. Other fields and answer meanings need grounds of their own when approving the view for wider use.
 
 For an AI-assisted importer, a template can ask for an observed catalogue before and after a malformed input, with a reference to the input and the comparison performed. A field headed “Tests pass” loses the question if it is detached from those cases. When an observation tool fails, the form supports “unknown: post-import catalogue was not obtained”; it does not coerce the agent into a positive completion entry.
 
@@ -94137,9 +94151,9 @@ When a new observation of representative work is needed, use [A.3.1.WT](https://
 
 Choose observations from the unresolved question. An existing reliable record may settle whether the aid appeared at the intended occasion. That appearance alone does not settle whether a participant understood or acted on a concern; use evidence of that interaction when it matters. Use a bounded observation of representative work before choosing continuing oversight. Include the observer's effort and any change their presence makes to the work.
 
-A first assisted use can reveal unfamiliar wording or a missing observation route. Provide enough help to diagnose and repair the obstacle, then distinguish what the user can do with that help from what is independently repeatable. Ask whether the aid changed the work result and what effort it moved to other people or tools.
+During an assisted use, establish who interpreted the question, obtained the observation and chose the response. The result may be sufficient for this handoff with the available help. If someone supplied the interpretation, credit the user with the work they actually did. When deciding what the user can do on other occasions, identify the support that will be available then and the decisions the user will have to make. Examine the effect on the work result and the effort moved to other participants or tools.
 
-After the assisted occasion, examine an ordinary later use where continued reliance matters. Compare when the aid influenced the work with the observations and entries made. A late record can faithfully report an earlier observation; it is different from inventing answers for omitted checks. Repair the reason for bypassing or fictional completion, including poor fit, missing access or incentives that suppress truthful answers. Choose any continuing oversight through the work arrangement; a penalty is not a universal checklist-design remedy.
+If ordinary use is still in doubt, look for an existing performance by the intended user with the applicable form, support and work conditions. Observe another occasion when the available evidence leaves a consequential question unanswered. Compare when the aid influenced the work with the observations and entries made. A late record can faithfully report an earlier observation. For entries made without the required check, repair the obstacle, such as missing access or incentives that discourage a truthful answer. Choose continuing oversight only where it serves the work.
 
 Return a meaning defect to C.41.TF, a coverage defect to C.41, an inadequate check to C.41.QC, and a missing capability or resource to its supplying practice. When the fitting decision still needs a worth comparison, use [C.11.MV](https://github.com/ailev/FPF/blob/main/FPF-Spec.md#c11mv---compare-the-worth-of-a-method-option). Use [A.3.1.MI](https://github.com/ailev/FPF/blob/main/FPF-Spec.md#a31mi---introduce-a-method-into-practice-and-decide-what-to-keep-or-change) when a decision to change or retire the aid depends on its introduction and later use. Stop when the arrangement works at worthwhile cost; do not keep adding ceremony merely because some use remains irregular.
 
@@ -94149,7 +94163,7 @@ The seminar organizer originally emails a spreadsheet a day before delivery. The
 
 The repaired arrangement puts the three questions and the v2 description in the preparation workspace. The packer counts and inspects during assembly; the facilitator compares wording where instructional interpretation is needed. Before closing the box, the organizer confirms the set and unresolved questions.
 
-Another reminder email would leave the missing access and late occasion unchanged. A permanent second observer would add effort before the team knows which difficulty remains. The organizer instead joins one initial use to inspect access and interpretation, then examines an ordinary later use if the arrangement will be relied on. Continued assistance is selected only for a difficulty that the revised arrangement still cannot resolve.
+Another reminder email would leave the missing access and late occasion unchanged. The organizer joins one initial use to inspect access and interpretation. To decide whether the new arrangement can be used routinely, the organizer can draw on a comparable ordinary use under the revised conditions. If the available evidence covers only the assisted use and the independent decision still matters, observe that decision at an ordinary packing occasion. Continued help or a second observer is worth arranging when it addresses a difficulty still present.
 
 On first use, “readable” turns out to be interpreted differently by two people. They inspect the cards under the intended display conditions and ask the facilitator what the exercise needs. Repair that interpretation in the criterion and nearby help before asking the packer to answer again.
 
@@ -94278,7 +94292,7 @@ If a change is selected, recover how it could produce the intended result: the s
 
 Distinguish the selected work from checking and recording it. A decision to replace a card does not establish that the card was replaced. After the change, check the affected question on adequate grounds. An operating-case continuation Method separates continuation, performance, records and resulting state when an operating case needs another action; an applicable operating-control Method addresses the quality and reliability question in continuing operation.
 
-Keep historical answers and unaffected grounds. Reopen other questions only where the change can defeat their basis. Stop when the selected questions are sufficiently answered for the intended use, or report which observation, interpretation, capability or decision is missing. Use C.41.SR when several participants' reliance is affected.
+Keep historical answers and unaffected grounds. Reopen other questions only where the change can defeat their basis. Stop when the selected questions are sufficiently answered for the intended use, or report which observation, interpretation, capability or decision is missing. Use C.41.SR when a decision depends on how several answers fit together or a changed premise can affect a conclusion drawn from them. One person can need that reconciliation. Several recipients can also use a single sufficient answer directly.
 
 ### C.41.UA:5 - Archetypal Grounding
 
@@ -94298,7 +94312,7 @@ The v2 answer remains a historical answer to its question. Recording the v3 answ
 
 A spill can make already checked cards unreadable while their wording and the completed printing work remain unchanged. Observed damage supports a current negative answer to readability; it does not erase the earlier work. In another branch, the workshop is cancelled while every physical-set answer remains true. The decision about further preparation then uses the changed occasion and value of the work, rather than trying to turn the physical answers negative.
 
-For an importer, the agent's message “error handling implemented” concerns its account of work. To answer whether malformed input leaves the previous catalogue intact, inspect the relevant before/after state using a suitable check. A failed observation tool leaves that question unresolved even if the implementation might be correct. Conversely, a demonstrated state difference can establish No; another run is not needed just to avoid recording a negative answer.
+For an importer, the agent's message “error handling implemented” reports work. To decide what happened in a particular failed import, use an adequate comparison of the catalogue before and after that run. If the only observation tool failed and the later state is unknown, the question stays open. A confirmed change to the state that should have been preserved settles it in the negative. One such failure within the promised range refutes the claim that the importer preserves the catalogue on every failed import. If preservation is required, this run violated that requirement. The same requirement applies to the next import. An unchanged catalogue settles the question for that run. Extending that success to other inputs calls for grounds that cover them. Another run adds nothing to a negative answer already established for the decision at hand.
 
 ### C.41.UA:6 - Bias-Annotation
 
@@ -94405,9 +94419,9 @@ In a progress conversation or report, examine what is absent as well as what is 
 
 #### C.41.SR:4.2 - Test how the contributions support the whole
 
-Ask what each local answer establishes and what the shared conclusion additionally needs. Does it concern the same subject configuration and occasion? Is the necessary intermediate result available? Are the contributions compatible in their use of time, people and resources?
+Start with the decision about the whole and its acceptance conditions. Which conditions must all hold, which alternatives are allowed, and what has to work at the connection between contributions? Establish which conditions the local answers cover for the same configuration and occasion, including the availability of intermediate results and the joint demands on time, people and resources. If those grounds settle the shared question, give the answer and its grounds to whoever makes the decision. An established failure of a required condition can settle the question in the negative. If one admissible alternative fails, judge the others on their own grounds. If the question remains open, identify what would settle it. Participants may need to interpret an observation, obtain a missing one, agree on a handover or allocate a resource. Tell the decision maker what the available answers already establish.
 
-Name the relevant relation instead of inferring it from a checklist's nesting. A supplier can enable work; a schedule allowance can affect its feasibility; a model can describe the subject; one observation can support several conclusions. None becomes a physical part of another subject merely by appearing below it in a list. Recover what a changed local condition changes for each consuming claim.
+Name the relevant relation instead of inferring it from a checklist's nesting. A supplier can enable work; a schedule allowance can affect its feasibility; a model can describe the subject; one observation can support several conclusions. Identify the facts it supplies to each. Two records derived from the same observation count as one source when independent confirmation matters. For a physical part–whole claim, identify the part and the whole in the work itself. Recover what a changed local condition changes for each consuming claim.
 
 A local Method can contribute to an encompassing Method during the same performance. [FPF B.1.5](https://github.com/ailev/FPF/blob/main/FPF-Spec.md#b15---gamma_method---order-sensitive-method-composition-and-work-enactment) explains the composition distinction; its consequence here is to examine the whole's conditions when interpreting constituent work. Service availability enables the work; establish separately how the performed contribution enters the encompassing Method.
 
@@ -94471,7 +94485,7 @@ The worked case below connects these moves to the room, materials and workshop. 
 
 **Local representation and occasion.** C.41.TF preserves the session, room and materials references in the relevant local views. C.41.OF arranges the observation while the room and content are available. A missing capable interpreter returns to capability support; an unavailable room returns to scheduling.
 
-**Local answers and simultaneous contribution.** Through C.41.UA, the technician establishes equipment conditions and the facilitator compares projected and physical examples. The projection check contributes to equipment preparation and preparation of the workshop at the same time. Its relation to the whole changes what is checked: a test image alone cannot establish the example's use.
+**Local answers and simultaneous contribution.** Through C.41.UA the technician establishes equipment conditions and the facilitator compares the projected example with the physical card. One well-grounded comparison can settle whether those two versions agree. Both participants can use it, even if they record it in separate lists. If projection is essential to the commissioned exercise, a confirmed projector failure rules out running it as planned. If the exercise also permits printed copies, that failure rules out the screen option. The organizer can use the printed option when the copies, participants' access and other conditions of that exercise are established.
 
 **Reconciliation.** C.41.SR connects the local answers to workshop W. A whole-session account includes the materials and arrangement, not a count of green local lists. If the facilitator and technician need the room at incompatible times, a shared operating account makes the conflicting claims visible to the people who can select a feasible arrangement before those contributions combine.
 
@@ -94490,7 +94504,7 @@ A central record can also shift maintenance work to whoever has the least author
 For the shared conclusion being used, inspect:
 
 - Which local claims support it, and do their subject, meaning and occasion match its use?
-- What condition of the whole is not established by the constituent answers?
+- Which conditions and connections does the shared decision require, which do the available answers establish, and what, if anything, remains open?
 - Are missing arrangement, missing observation and substantive conflict distinguished?
 - Does each changed premise reopen the reliance it affects?
 - Can participants recover the next contribution in their working tools without unnecessary duplication?
@@ -94583,13 +94597,13 @@ Name this intended inference and next move. Challenge both false reassurance and
 
 #### C.41.QC:4.2 - Construct a discriminating challenge
 
-Choose cases with known or competently established differences relevant to the criterion. Include a satisfactory case and a plausible failure. Vary the property of interest while holding irrelevant differences small enough to interpret the result. For a subjective criterion, recover the judgement basis and a meaningful disagreement rather than inventing a false objective threshold.
+Choose a challenge whose answer could change the proposed reliance. Use cases with known or competently established differences relevant to the criterion. When qualification depends on detecting both a satisfactory result and a plausible failure, include both and vary the property of interest while keeping other differences small enough to interpret the verdict. One established false pass can already rule out a checker as a guarantee that every accepted item meets the criterion. For a subjective criterion, recover the judgement basis and a meaningful disagreement.
 
 Predict which answers those differences support before inspecting the checker output. Then compare the outputs with adequate grounds for those expected distinctions. A false pass and a false failure can have different costs; inspect both where they affect the work.
 
 Where a rubric may drive the verdict independently of the subject, also hold the subject facts fixed and change the question. Establish what answer the new predicate supports before asking the checker. A reversed condition can call for the opposite answer; if only wording changes and the question stays the same, the expected answer stays the same. This distinction tests responsiveness to meaning without requiring every wording change to reverse a result.
 
-When uncertainty concerns the judging arrangement, compare it on those grounded cases with a cheaper or less interfering alternative.
+When a decision about the judging arrangement depends on whether an alternative would give adequate answers with less effort or interference, compare the alternatives on the grounded cases. A question about whether the existing arrangement can be relied on may already be settled by its observations or by a known failure.
 
 Grouping criteria can save calls; separating them can reveal interference. Repetition and a rule for combining verdicts may reduce sampling instability, but repeated agreement cannot correct a consistent error or supply independent truth.
 
@@ -94613,9 +94627,9 @@ A stronger second model can help investigate disagreement, but its score needs g
 
 #### C.41.QC:4.3 - State the bounded result and a return condition
 
-State what the qualification supports: which criterion, checking means, cases, conditions and receiving use it covers. State detected defects and residual uncertainty in terms that change action. A narrow successful probe does not establish all-domain accuracy.
+State which decisions the qualification supports. A grounded check on one item can settle the disposition of that item. When relying on a checker across a class of items, establish why its observations and decision rule detect the differences that matter throughout that class, or bound the claim by the evidence available. Testing one checker on one kind of item and another checker on a different kind establishes what happened in those pairings. To use them interchangeably, examine the untried combinations that matter or establish why the change cannot affect the answer the recipient needs. If the intended decision permits a rate of error, evidence about that rate must cover the population and operating conditions to which it will be applied. Report detected defects and remaining uncertainty where they change what the recipient can accept or needs to inspect.
 
-If the criterion misses a work question, return to C.41. If the form corrupts its meaning, return to C.41.TF. If access or capability is missing, return to C.41.OF or its supplier. If the checker fails, repair, replace or restrict its use and repeat the affected challenge. Compare the gain with the qualification and operating cost through [C.11.MV](https://github.com/ailev/FPF/blob/main/FPF-Spec.md#c11mv---compare-the-worth-of-a-method-option).
+If the criterion misses a work question, return to C.41. If the form corrupts its meaning, return to C.41.TF. If access or capability is missing, return to C.41.OF or its supplier. A false pass, a false rejection or a failure to return a needed answer can justify withdrawing the checker from that use or limiting it to conditions for which adequate evidence already exists. Before relying on a repaired or replacement checker, establish that it gives the answer the criterion calls for under the affected conditions. Repeat the affected challenge if that evidence is still missing. Compare the gain with the qualification and operating cost through [C.11.MV](https://github.com/ailev/FPF/blob/main/FPF-Spec.md#c11mv---compare-the-worth-of-a-method-option).
 
 Keep the qualification separate from subject answers. C.41.UA establishes what is true of the subject on its occasion.
 
@@ -94791,7 +94805,7 @@ Follow a proposed deletion through its actual uses. Ask what would become unavai
 
 When a local action belongs to several larger undertakings, B.1.5.EW helps recover those encompassing uses; B.1.5.RS evaluates a replacement against what each affected whole relies on.
 
-Follow indirect uses only while they can change the decision. Unknown use prevents an unrestricted deletion, not every bounded change.
+Decide which work can cease. To omit an operation on one job, establish what each affected recipient can obtain on that job without it. To remove the operation from a recurring method, say which jobs would proceed without it. One eligible job in which a recipient would lose a required result rules out that proposal as written. A narrower change may still work if the performer can recognize the exceptions in time and keep an adequate way to serve them. Follow an indirect use when its loss could change this decision.
 
 Separate three conclusions:
 
@@ -94914,7 +94928,7 @@ Use limited exposure, retained alternatives, parallel provision or another suita
 
 Compare the intended difference with what occurs in the receiving work. Was the needed result obtained, with its safeguards and support? Did whole effort or relevant delay decrease, for whom, and under which conditions? Include transition work and exceptional cases at the scope of the claim.
 
-This account of the total effect and a new decision about future work use different cost bases, as explained in §4.5. A successful demonstration or completed instruction is not yet evidence of sustained ordinary performance.
+The decision about work still to come uses the cost comparison in §4.5. Keep the grounds for two conclusions distinct. To retire a step across a class of work, establish what happens to the need it served. The output may have no further use. A change at the source may prevent the difficulty that required correction. If a recipient still needs what the step supplied, establish how they will obtain it throughout that class. A checked property of a common source may settle that question. Where exceptions are possible, establish how the performer recognizes them before reliance and what the recipient can then use. A hold is adequate only for a use that permits it. To claim a saving in ordinary use, compare the work that actually recurs, including exceptions and work transferred to others, over the period claimed. The replacement can preserve every required result and still cost more to run.
 
 Distinguish a useful result from its explanation. Observed improvement can support keeping a local arrangement while leaving causal attribution uncertain. If the claimed advantage depends on attributing the effect to one intervention, C.28.CM supplies the further causal question. A.3.1.MI keeps introduction, contextual support and the later performance claim separate.
 
@@ -94970,7 +94984,9 @@ The resulting 370 minutes include the recovery instead of hiding it. The record 
 
 The group can keep the change within these supported conditions while continuing the ordinary comparison.
 
-If correction persists because some supposedly matching identifiers have different meanings, the original prevention premise fails for those rows. The group reopens that interpretation and retains the useful deletion of the duplicate presentation.
+Consider a group with the same four weekly records whose month-end reviewer also needs the reasons that observations were excluded. Only the presentation gives those reasons. The four packets still support acceptance of the weekly work. The month-end use rules out dropping every presentation. If preparation staff know which packets go to month-end review, they can retain the presentation for those packets. To retire it there too, the group can put the reasons in the authoritative table and establish that the reviewer can retrieve them for the edition under review. The work of recording and using those reasons belongs in the revised comparison.
+
+If correction persists because some supposedly matching identifiers have different meanings, the original prevention premise fails for those rows. The group reopens that interpretation. It can still omit the presentation for packets where the presentation serves no further use.
 
 If the recipient later needs an annotated presentation for a new audience, the deletion decision is reconsidered for that use; the source-identity improvement can remain.
 
@@ -95152,9 +95168,11 @@ In an explanatory inquiry, the proposed regulated characteristic and its relatio
 
 Keep three questions available. **Description** recovers the relations that obtain, their participants and the consequential gaps. **Explanation** derives what those relations do under the stated conditions, including an unwanted result. **Design** compares changes that could make the continuation more suitable. A descriptive or explanatory inquiry can finish without prescribing a new arrangement. In design, an intelligible description of the incumbent supplies a comparison basis, not a reason to retain it.
 
-Control can be open over a selected interval. An input is selected or set from the initial situation and then executed without using later observations to correct it within that interval. Establish the conditions under which that choice remains adequate. A later decision can close a wider loop by using the resulting observation.
+Control can be open over the interval being examined. A controller may follow a fixed schedule or adjust its input to a measured incoming disturbance before the disturbance affects the process. Trace how it sets the input and how the input reaches the controlled system. If the controller also uses an observation of the resulting state to select a later intervention, that return supplies a feedback path. Both paths can operate in one arrangement.
 
-Feedback exists where a subsequent influence depends on returned observations; that dependence can remain operative while the observed value and the resulting input stay unchanged. Whether the response is timely and beneficial requires an explanation. Use **C.30.LCA** to recover these obtaining relations and **C.32.LCA** when changing their organization is the needed result.
+Feedback operates when an observation returned from the controlled system can affect a subsequent intervention on that system. Identify the decision and the interval. Which different reading could change the action, its timing or the decision to continue it? Several readings can call for the same action. To establish what happened on a particular occasion, recover the rule or judgement actually used and the information that reached it. A fixed schedule and an observation-dependent rule can produce the same recorded command. Evidence of how the decision was made can distinguish them even when the command stayed the same.
+
+For a claim about the whole arrangement, state the property at issue and how it follows from what the parts do. If two loads account for the entire circuit load, their active powers add. Readings taken at the same instant give the total at that instant. Limits that apply to both loads in the same operating mode give an upper bound on the total. Whether both loads can reach their limits together is a further question. Where regulators share capacity or change one another’s inputs, follow the connections that affect the claimed response. A unit can correct its own backlog while its allocation follows a fixed schedule. Several units can also produce a common response through their interactions. To extend a conclusion to other operating conditions, establish which limits, decision rules and connections still apply. Use **C.30.LCA** to describe the control relations and **C.32.LCA** when their organization needs to change.
 
 The subject of the decision, the information and interventions available to each participant, and the physical realization can have different boundaries. One device can estimate, choose, act and modify its means. Several participants can jointly supply one influence, and each can be influenced by the others. Recover the contributions and how they are connected before allocating them to parts.
 
@@ -95265,7 +95283,7 @@ Keep feasibility, outcome preference and assurance distinct in the comparison. A
 
 Follow the chosen continuation through the participants and means that must realize it. Establish what action is needed, who or what can perform it, what resources and permissions it uses, and when the effect is needed. The calculation, communication, agreement and execution consume time and capacity. Include them when they can change the option's availability or result.
 
-Check coupled uses of scarce means. Two independently feasible actions can compete for the same machine, specialist, energy reserve or decision authority. An action that meets the immediate objective can exhaust the reserve required to respond later. Resolve those interactions in the whole continuation, rather than assuming that local feasibility composes.
+Check what each action needs from a shared machine, specialist, reserve or decision maker. When one performance serves both commitments, count the time it occupies each required resource once. Work that must be done separately consumes time for each performance. Allow for the reserve needed for later action. A lower bound that exceeds capacity can rule out a deadline. To promise completion, fit attainable durations, eligible performers and dependencies into the available windows.
 
 Choose the organization of decisions where it is unresolved. One rapid feedback response may protect the system while a slower plan is revised. Alternatively, the relevant decisions may need to be made together. Different timescales do not by themselves require layers, and organizational titles do not establish update rates. Use **C.32.LCA** to construct or change the observation, decision and intervention arrangement when those relations are the limiting condition.
 
@@ -95322,7 +95340,7 @@ These returns can also change the means of further action. When the receiving wo
 
 The common account makes theories comparable through the questions they answer. To use a specialization, identify its representation of the system and information, available actions, outcome criterion, execution assumptions and warranted conclusion. Preserve what its additional assumptions make possible and what it leaves to another contribution.
 
-**Compact improvement, decision and learning cycles.** First establish whether the source prescribes a way, offers an explanatory heuristic or reminds a prepared practitioner of a known way. Relate a prescription to its operations, actual or proposed performance, provision and authority. Use a heuristic to investigate the relationships it explains before selecting an intervention. One performer may supply several control contributions, and several performers may share one; recover the relationship before assigning a level.
+**Compact improvement, decision and learning cycles.** First establish whether the source prescribes a way, offers an explanatory heuristic or reminds a prepared practitioner of a known way. Relate a prescription to its operations, actual or proposed performance, provision and authority. Use a heuristic to investigate the relationships it explains before selecting an intervention. One performer may supply several control contributions, and several performers may share one. For a claimed control layer, identify the reference, limit or rule it sets and how this can affect the other controller’s action. For a feedback claim, also identify the returned observation and how it can change that setting. B.5.MR compares what models of those decisions specify or leave open.
 
 [Library.Reference:6.5](FPF-LIBRARY-REFERENCE.md#libraryreference65---compact-cycles-in-working-control-arrangements) develops the family connections, a sufficient short choice and the returns caused by changed conditions. Use an already adequate method; expand the arrangement where a missing dependency requires it.
 
@@ -95368,7 +95386,7 @@ A record of training or a recommender's estimate can inform this inquiry; the re
 
 For instance, additional practice can develop an absent judgement; a changed division of work can instead obtain that judgement from someone already capable. The two interventions can deliver the same immediate answer while leaving different capabilities and dependencies.
 
-The method stack contains several relations. Recover the relation that makes a proposed change consequential:
+To decide how to develop a Method or capability, identify the relation through which the proposed change could affect the agent’s subsequent work.
 
 | Related structure | Connection to recover | How it guides an intervention |
 | --- | --- | --- |
@@ -95379,7 +95397,7 @@ The method stack contains several relations. Recover the relation that makes a p
 | Observation and decision at different scopes | Which local differences matter to an encompassing choice, and which aggregate hides them | Change the observation or its use; apply **C.30.ILC** and **C.32.MLAO** when the conflict crosses the identified scopes. |
 | Changes on different timescales | How long an effect takes to become observable, usable and retained | Coordinate practice, feedback, deployment and reconsideration by those delays rather than by organizational rank. |
 
-One organization can remain the developing subject while it changes a working Method, the preparation of its performers and its way of choosing further development. These changes do not require one universal hierarchy. A service provider can affect an encompassing result without becoming part of its recipient. A Method that improves another can have that Method as its subject rather than its constituent. Explain the relation before using a change at one position to predict another.
+One organization can remain the developing subject while it changes a working Method, the preparation of its performers and its way of choosing further development. These changes do not require one universal hierarchy. A service provider can affect an encompassing result without becoming part of its recipient. A Method that improves another can have that Method as its subject rather than its constituent. Before claiming an improvement in the receiving Method, explain what the development work changes in that Method and how this affects its use.
 
 **Construct a complete intervention.** Explain the causal and constructive connections: the proposed work changes a named subject; that change makes a contribution obtainable; the contribution enables receiving work; the receiving result changes further possibilities. Include the preparation, assistance and transition that make those connections feasible.
 
@@ -95445,9 +95463,11 @@ During use, the operator checks the assumption that test delay leaves both actio
 
 #### C.43:5.2 - A feasible local correction can defeat the next commitment
 
-A service team has six specialist-hours available before the next deadline. A repair requires four hours; an already accepted obligation requires three. Separate forecasts that assign all six hours to each task make both look feasible. The joint continuation needs seven.
+A service team has one qualified specialist available from 09:00 to 15:00. Under the stated conditions the repair takes four hours and the team’s other accepted obligation takes three. Each is ready to start and can be completed on its own in that window. If their work is distinct and the specialist is needed throughout, seven hours are required. The team cannot deliver both by 15:00.
 
-The common Method connects the obligations to the same capacity and time window. It prompts a substantive choice: obtain an additional qualified hour that can be used in time, change one scope or deadline with the relevant participant, or choose which consequence to accept under legitimate authority.
+Now suppose both durations include the same one-hour inspection. Its result meets both recipients’ acceptance conditions, and the remaining work is distinct. The specialist can inspect from 09:00 to 10:00, complete the repair from 10:00 to 13:00 and use the last two hours for the other obligation. If material for those last two hours arrives only at 14:00, six hours of capacity in total no longer secures both deliveries. If four and three hours are only lower bounds, subtracting the shared hour gives a six-hour minimum. A promise still needs attainable durations and a schedule.
+
+When the distinct work requires seven hours, possible changes include obtaining another qualified hour usable on the work in time, agreeing with the affected recipient on a different scope or deadline, or asking the authorized participant to choose which consequence to accept.
 
 If another qualified specialist becomes available, the resource conflict can close without changing the goal. If the client withdraws the obligation, the goal and commitment basis changes even with no forecasting error. If neither remedy can be arranged inside the decision window, the team may need a different standing allocation or authority arrangement. The changed dependency selects the different return.
 
@@ -95480,9 +95500,9 @@ The common Method has supplied a connected research result: two proposed observa
 
 Consider a constructed case. A team produces sound diagnoses with one expert's help. Its other members can calculate candidate explanations, but cannot yet recognize when an important modeling assumption has failed. The current work is successful; the wanted development is the team's ability to handle that judgement when the expert is unavailable.
 
-The recommender recovers the connection: calculation is available, assumption recognition is not, and the expert currently supplies it. It constructs three feasible proposals. Continue buying qualified diagnosis as a service; practise contrasting cases and receive feedback on the missing judgement; or change the working Method so ordinary cases are handled locally and exceptional cases obtain a reserved expert contribution.
+The recommender recovers the connection: calculation is available, assumption recognition is not, and the expert currently supplies it. It constructs three proposals to examine against the team’s aims and commitments. Continue buying qualified diagnosis as a service; practise contrasting cases and receive feedback on the missing judgement; or change the working Method so ordinary cases are handled locally and exceptional cases obtain a reserved expert contribution.
 
-The first can be sufficient if the only retained aim is delivery. The second develops a local capability. The third changes the encompassing Method and its provision. A combination can protect current delivery while development proceeds.
+The first can be sufficient if the only retained aim is delivery. The second aims to develop local judgement. The third proposes a different Method for handling ordinary cases and securing help with exceptions. A combination can protect current delivery while development proceeds.
 
 Compare the alternatives from the team's present repertoire and commitments. Practice consumes time that could deliver existing work; the expert must have time to give the proposed feedback; continuing external help remains part of the result where required. Choose the combination only if its additional attainable capability and future uses warrant that burden. An AI assistant can supply contrasts or perform calculation, but the comparison asks which consequential judgement the resulting team can obtain and under what continuing help.
 
@@ -95586,6 +95606,7 @@ It is an authored methodological synthesis. Its conditional calculations support
 
 | Question and alternative | Selected contribution, source role and limit | Consequence and reconsideration |
 | --- | --- | --- |
+| Can a controller adjust an input before it observes the controlled outcome? | Åström and Murray show how a measured disturbance can drive feedforward action alongside feedback from the controlled output. [Feedback Systems, §3.6](https://www.cds.caltech.edu/~murray/books/AM08/pdf/fbs-public_04Sep12.pdf) | §4.1.1 identifies the source of the observation and the action it can change. The two paths can operate together. |
 | Can informative action be evaluated as a fixed future action sequence? | Adapt Nuijten and de Vries, *Sophisticated Policies from Epistemic Priors*, arXiv:2607.19518v1, §§2–6. The controlled computational comparison separates information incentive from future state-contingent action; neither alone solves its benchmark. It is a current constructive comparator, not a universal ranking of inference algorithms. | §§4.3–4.4 and §5.1 retain both information and the future response it enables. Reconsider the representation when a receiving problem does not need future conditional action or a cheaper adequate representation is available. [Paper](https://arxiv.org/html/2607.19518v1) |
 | Can information sources be ranked independently of what is already known? | Adopt the dependence on joint information from Brooks, Frankel and Kamenica, *Comparisons of Signals*, AER 114(9), 2024, §§2–3.2, DOI 10.1257/aer.20230430. Their comparison is about instrumental decision value; it does not price acquisition or other uses of knowledge. | §4.4 compares additional information with the current information and actions. Reopen a ranking when the accompanying information or receiving decision changes. [Author text](https://benjaminbrooks.net/downloads/bfk_comparisons.pdf) |
 | Is tracking a fixed target the only adequate economic-control construction? | Adapt Degner and colleagues, *Adaptive Economic Model Predictive Control*, arXiv:2412.13046v3, §§II–IV. The method jointly uses an economic objective, online parameter adaptation and robust constraints under stated model and feasibility assumptions. | §4.7 distinguishes outcome optimization, adaptation and assured feasibility. Retain its technical guarantees only where their assumptions hold; new dynamics or observability conditions require a different construction. [Paper](https://arxiv.org/html/2412.13046v3) |
@@ -96345,7 +96366,7 @@ Reopen the pattern when a field case supplies decision-changing evidence for ano
 
 **Use this when.** The value basis of an ethical claim or proposed action is unclear.
 
-If that ethical claim is current but a possibly consequence-bearing System has not yet been identified, or the affected-System set is not adequate, use `A.1.CSD` first. Return to D.1 with the bounded discovery account or the reason identification remains unresolved. Use that account to clarify the value concern.
+Use `A.1.CSD` when the judgement depends on who could bear a consequence and the affected systems are still unclear. A conditional value premise can be examined for a class of participants. To apply it to a proposed action, establish whom the action reaches and which conditions of the premise hold. Retain a missing participant or consequence as an open question when it could change the judgement.
 
 
 **Not this pattern when.** If the question is already a conflict across declared levels or scopes, use `D.3`. If the question is how to mediate that conflict or use it in a decision, use `D.4`. If the question is bias, fairness, human or group impact audit, causal-fairness audit consumption, or ethical assurance, use `D.5`.
@@ -96415,6 +96436,8 @@ This frame makes the value premises inspectable; the ethical judgement needs rea
 A value label identifies a concern; a reason explains why that concern supports the proposed judgement. State the value premise, the relevant facts and the step joining them. For example, a prediction of greater aggregate benefit can support a recommendation only under a premise giving that benefit the relevant priority. A right can constrain the recommendation under a different premise even when the prediction is correct. Use `B.5.RA` when the argument must be recovered from a source, including a rhetorical question or an analogy.
 
 Keep the grounds of acceptance distinct. Evidence can support a claim about consequences or the conditions in which a person agreed. A normative premise states what ought to count, what may be required or which treatment is permissible. Explaining a tradition's history can help interpret its premise; neither that history nor a model of a system establishes the premise's moral authority. When the premise is contested, preserve the conditional conclusion and identify what accepting another premise would change.
+
+Attribute the premise at the level at which it has grounds. A member can report their own objection. To say that an organization adopted a rule, identify the decision that gave the rule force and the matters it covers. That decision may bind members who disagree. A claim that all members endorse it needs evidence about their views. An analyst can identify an unreported risk to a member and give the reasons for considering it, while leaving that member’s assessment open.
 
 The following argument develops one such conditional basis for decisions about people's participation. It supplies reasons that can be examined and applied; FPF does not select this basis as its final ethical doctrine.
 
@@ -96567,19 +96590,19 @@ These sources supply developed treatments in medicine and research; their requir
 > **Status:** Stable
 
 
-**Use this when.** An action or arrangement may benefit one affected entity while harming another across levels or scopes, or responsibility is assigned across levels.
+**Use this when.** A proposed action may benefit one party and impose a cost or risk on another, or it may change who is responsible for the consequences. The parties can be parts of one system, members of overlapping groups or users affected through a shared service.
 
 **Not this pattern when.** If only the value frame is missing, use `D.1`. If `D.3` has already described the conflict, use that result. If the conflict has to be mediated or used in a decision, use `D.4`. If the concern is bias, fairness, impact audit, causal-fairness audit consumption, or ethical assurance, use `D.5`.
 
-**What goes wrong if missed.** A local improvement is treated as ethically sufficient while another declared level, scope, or affected holon carries the harm.
+**What goes wrong if missed.** A team sees the improvement it sought and recommends the change while somebody else loses access, takes on work or bears a new risk.
 
-**What this buys.** Identify who or what may bear a loss, explain how the affected scopes are related, and choose the question to examine next.
+**What this buys.** Identify who or what may bear a consequence, explain how the action could reach them, and choose the ethical question that needs an answer.
 
 ### D.2:1 - Problem Frame
 
-Ethical trouble in system-holon work often appears because the action is good for one level and bad for another. A person may benefit while a team is damaged. A project may benefit while a community pays the cost. A standard may improve coordination while excluding a minority case. A model may improve one metric while moving harm to a less visible scope.
+An organization can save work by moving it to its members. A project can meet its target while people outside the project lose access to a service. A standard can improve coordination for some users while excluding a device on which others rely. In each case, follow the change from the decision to those who may gain or lose.
 
-Do not force these cases into a fixed ladder such as local, group, ecosystem, planetary. Declare the levels and scopes present in the situation and explain who or what may be affected, including where the scopes overlap or one contains another.
+Use a level of composition when the concern depends on what a constituent does within an identified whole. Two groups can share members, or rely on the same service, without either group being a constituent of the other. Identify the relation that carries the effect. Someone can bear a consequence without taking part in the decision.
 
 ### D.2:1.0 - Problem
 
@@ -96590,18 +96613,18 @@ A change can benefit one affected entity while imposing harm, exclusion or risk 
 | Force | Tension |
 | --- | --- |
 | Local benefit vs. cross-level harm | A change can improve one declared scope while imposing cost, risk, or exclusion elsewhere. |
-| Situation-defined levels vs. fixed ladders | Multilevel ethics needs declared levels and scopes from the case, not a universal moral hierarchy. |
+| Situation-defined levels vs. fixed ladders | Identify the relevant composition, membership or exposure in the situation and the conditions assumed in the claim. |
 | Affected entities and their descriptions | Identify the affected entity, whether a system or an episteme such as a standard, and explain whose use or interests make the change an ethical concern. |
 | Early recognition vs. premature mediation | Use D.2 to make the conflict visible, D.3 to describe its sides and tension, and D.4 for mediation. |
 | Ethical concern vs. architecture residual | Cross-scope residuals can be architectural, ethical, or both; choose the method for the question that needs answering. |
 
 ### D.2:2 - Solution
 
-Start with the proposed action or arrangement and the local gain. If an adequate account of affected parties and consequences already exists, use it. Otherwise follow the changed work, use or dependency from the proposal to the entities that may bear its effects; use `A.1.CSD` when a consequential bearer or effect path remains unclear. Keep an obtaining relation distinct from a possible consequence and retain an unresolved bearer or path as unresolved.
+Start with the proposed action or arrangement and the gain it promises. Use an existing account if it identifies the affected parties and explains the consequences that matter here. Otherwise trace the changes in work, use or dependency to the entities that may experience their effects. Say which connections already exist, which the proposal would create, and which effects are observed or predicted. If you cannot tell who might experience an effect or how it would reach them, use `A.1.CSD` to investigate and state what remains unknown.
 
-Name the possible loss and the levels or scopes that make it an ethical concern, then state the next question to settle. Recognition is complete when the affected sides and next use are sufficiently clear; an already qualified `D.3` conflict or `D.4` decision question can be used.
+Connect each material consequence to the party or entity affected, the value premise that makes it matter and the conditions under which the change could produce it. If the claim concerns a whole, establish how the effects on its constituents bear on the property in question. A saving for one office may be extra work for another. If the claim concerns other settings, establish which conditions of that explanation hold there. State the next question. Use D.3 when the sides and their tension need describing. When an adequate account of the conflict already exists, it can go directly into the D.4 comparison.
 
-Use `MultilevelEthicsEntry@Context` when the practitioner or a recipient needs to recover these connections for comparison or revision. Keep its content in the existing answer or working note when that suffices. Add evidence, value-frame editions, and supporting relations where the stated concern relies on them:
+Use `MultilevelEthicsEntry@Context` when the practitioner or a recipient needs to recover these connections for comparison or revision. Keep its content in the existing answer or working note when that suffices. If an existing note says only “level or scope”, recover which relation, affected population or applicability condition the note identified. Retain a reference to a `U.WorkScope` with the capability it qualifies, or to a `U.PublicationScope` with the publication view or form it qualifies. If the meaning of the old label is still unclear, keep the original wording and identify that uncertainty. Add the evidence, value-frame editions and supporting relations on which the stated concern relies.
 
 ```text
 MultilevelEthicsEntry@Context:
@@ -96610,8 +96633,9 @@ MultilevelEthicsEntry@Context:
   valueFrameEditionRefs?
   claimScopeRef?: U.ClaimScope
   qualificationWindowRef?
-  declaredLevelOrScopeRefs
-  affectedHolonRefs
+  compositionRelationRefs?  // identified whole and constituent, when their relation matters
+  affectedPopulationOrAreaRefs?  // who is included or where exposure occurs
+  affectedHolonRefs?
   affectedEpistemeRefs?
   roleWordRecoveryRefs?: E.10.ROLE results when the relevant role meaning needed clarification
   localSystemRoleKindRefs?: FinSet(U.KindRef)
@@ -96650,16 +96674,16 @@ Material systems and epistemes can be affected EntitiesOfConcern. For an epistem
 | Working situation | What to recover | Next pattern to apply |
 | --- | --- | --- |
 | A Method helps one team meet its target while increasing risk for another team or for users. | Affected holons, any independently current assignment, Method, actual Work when present, expected consequences, evidence, and each responsibility, commitment, permission, authority, or participation relation that the concern relies on. | `D.3` conflict description |
-| A public policy helps a city-level goal while making one neighborhood or profession worse off. | Declared scopes, value concerns, responsibility claims, evidence, uncertainty. | `D.3` conflict description |
+| A city service gains capacity while access for night-shift workers in one district may worsen. | Identify the service, who can use it at the relevant hours, how the proposed change affects access, and whose responsibilities or value claims it engages. | `D.3` conflict description |
 | A technical standard improves interoperability but excludes a minority device, language, publication form, or data source. | Standard or episteme whole, affected systems, publication and use relations, consequence horizon. | `D.3`, with `C.2.1` and `E.17` as needed |
-| A model or metric looks fair at one aggregate level but hides subgroup harm. | Metric, affected groups, causal claim, evidence set, audit condition. | `D.5`, with `C.28` when causal fairness is claimed |
+| An overall result meets its target while the outcome for a particular group is unknown. | Recover who entered the count, which outcome was measured, and whether the result supports the claim about that group. | `D.5`, with `C.28` when a causal claim matters |
 | An architecture move reduces residual at one holon level while creating cross-scope residual elsewhere. | Architecture structure, selected scopes, residual, affected value concerns. | `C.30.ILC`; use `D.3` if ethical conflict is live |
 
 ### D.2:4 - Boundaries
 
 D.2 recognizes ethical concerns across levels and scopes. Use the corresponding subject method to judge a conflict, mediate it or conduct an audit.
 
-Levels and scopes are declared relations in the situation. If a mathematical lens is needed for scale, frustration, optimization, Pareto comparison, or renormalization-like reasoning, use `C.29` and the applicable pattern for the object.
+An affected population identifies who may experience a change. A composition relation identifies a whole and its constituent. A claim’s scope identifies the conditions under which the assertion applies (`A.2.6`). A proposed use can fall within the stated scope while evidence for its predicted effect is still missing. The same fact can matter to more than one of these questions. A change to a service can affect an entire organization on one occasion. To use that explanation for future decisions, identify what would carry the effect again. `B.5.MR` compares what models fix or leave open. Use `C.29` when a mathematical representation is needed to examine scale, a trade-off or an allocation.
 
 ### D.2:5 - Archetypal Grounding (Worked Slice)
 
@@ -96675,8 +96699,8 @@ Use `C.11.DUA` to compare the restriction's protective contribution with access 
 
 | Bias risk | Failure | Mitigation |
 | --- | --- | --- |
-| Local optimum becomes ethical sufficiency | A benefit at one level is treated as enough while another scope carries harm. | Declare affected levels, scopes, holons, value concerns, and next subject pattern. |
-| Fixed ladder bias | A generic hierarchy such as individual, team, and society replaces the levels present in the case. | Derive levels and scopes from the affected EntityOfConcern, named holons and Work, value frames, and responsibility relations that are current. |
+| Local improvement treated as sufficient | A proposal benefits one party while imposing costs elsewhere. | Trace where the work, risk or loss goes and why it matters to those affected. |
+| Fixed ladder bias | A hierarchy such as individual, team and society is imposed on an affected population. | Identify actual composition, membership, use or exposure. Establish responsibility where the judgement relies on it. |
 | System-only bias | Multilevel ethics is limited to material systems and misses epistemes, standards, publications, or descriptions. | Treat affected systems and epistemes as admitted holons when the case makes them current. |
 | Architecture absorbs ethics | A cross-scope residual is treated only as architecture because it has a structural shape. | Use `C.30.ILC` for architecture residual and `D.3` and `D.4` when value, harm, responsibility, or admissible sacrifice is live. |
 
@@ -96684,7 +96708,7 @@ Use `C.11.DUA` to compare the restriction's protective contribution with access 
 
 | ID | Requirement | Purpose |
 | --- | --- | --- |
-| CC-D2-1 | Declared levels or scopes come from the situation and are named by value. | Keeps the ethical comparison grounded in the relations rather than a fixed moral ladder. |
+| CC-D2-1 | Identify the whole and constituent when composition matters, the membership or exposure that locates the affected parties, and the conditions on which the consequence claim depends. Use the distinctions needed for the next decision. | Makes clear whose gain or loss is at issue and where the explanation applies. |
 | CC-D2-2 | Name the affected entities, Methods, actual Work and consequences needed for the concern. Clarify unclear role wording with `E.10.ROLE`; keep any local kind and C.2.1 classification assertion distinct. For an assignment, use its declared species and support the claim; an asserted occurrence needs its participants and applicability. Establish participation, responsibility, commitment, permission and authority separately when relied on, retaining a supported negative or conditional result, or the missing fact or rule. | Keeps the entry usable without making assignment imply participation or responsibility. |
 | CC-D2-3 | The result identifies the next live question and `D.3`, `D.4`, `D.5`, `C.30.ILC`, or another subject pattern that answers it. The entry record is used only when its recoverable content contributes to that use. | Keeps D.2 as entry recognition, not conflict solver. |
 | CC-D2-4 | Mathematical reasoning retains its subject, interpretation and applicable conditions. Use `C.29` when representation choice, transfer or supported use remains unresolved, and the measurement pattern when a measurement claim is current. | Keeps mathematical support distinct from ethical priority. |
@@ -96715,7 +96739,7 @@ This construction makes the traced concern available for the next question witho
 ### D.2:11 - Relations
 
 - Builds on `D.1` for ethical value frame boundary.
-- Builds on `A.1`, `B.1`, and `C.13` for holon, level, scope, and part-whole grounding.
+- Use `A.1`, `B.1` and `C.13` to recover holons and composition, and `A.2.6` to establish where a claim applies.
 - Coordinates with `D.3` for the interlevel ethical conflict description and with `D.4` for mediation or decision use.
 - Coordinates with `D.5` for bias, fairness, impact audit, causal-fairness audit consumption, and ethical assurance.
 - Coordinates with `C.11.DUA` when a proposed inquiry or disputed protective requirement needs contribution, feasibility, and burden appraisal.
@@ -96729,7 +96753,7 @@ This construction makes the traced concern available for the next question witho
 > **Status:** Stable
 
 
-**Use this when.** Ethical claims at different declared levels or scopes raise an incompatibility, trade-off or unresolved value tension that needs explaining. State each ethical concern as a claim about the case.
+**Use this when.** A decision puts ethical claims about affected parties, activities or uses in tension and their incompatibility, trade-off or unresolved priority needs explaining. The claims can concern different constituents, overlapping populations or different uses of the same arrangement. State each concern in ordinary language.
 
 **Not this pattern when.** If only the ethical value frame is missing, use `D.1`. If only entry recognition is needed, use `D.2`. If D.3 has already described the conflict and the question is mediation or decision use, use `D.4`. If the question is bias, fairness, impact audit, causal-fairness audit consumption, or ethical assurance, use `D.5`.
 
@@ -96768,18 +96792,18 @@ Identify the sides needed to explain the conflict. At least two claims are invol
 
 1. the ethical claim that states the concern in ordinary language;
 2. the affected entity;
-3. the declared level relation, claim scope, or Work extent that locates the concern;
+3. how the proposed action reaches that entity. Identify the whole and constituent if composition matters, the people or work covered if their extent matters, and the conditions on which this side’s claim relies;
 4. the value premise under which the consequence matters, with a frame-edition reference when the reasoning uses one;
 5. the expected benefit, harm, or constraint and its consequence horizon; and
 6. the evidence use or uncertainty only when the side relies on it.
 
-Then explain why the claims cannot all be met as stated, what would be traded, or why they remain in unresolved tension. Three or more claims may be jointly incompatible even when every pair is compatible. Name the intended use of this description and any question that remains to be settled. Stop when this makes the conflict inspectable for its intended use.
+Then explain why the claims cannot all be met as stated, what would be traded, or why they remain in unresolved tension. Three or more claims may be jointly incompatible even when every pair is compatible. To establish that all the claims can be met together, give a feasible arrangement or other sufficient grounds. To establish that they cannot, show why every arrangement meeting those claims would violate a constraint that applies. When an attempted arrangement fails, ask which alternatives its reason for failure also rules out. Name the intended use of this description and any question that remains to be settled. Stop when this makes the conflict inspectable for its intended use.
 
 A short working note can be sufficient. Develop a more elaborate description only when its intended use requires the additional content.
 
 #### D.3:2.2 - Reusable conflict description
 
-When another reader or later use must cite, compare, revise, or publish the result, identify one `InterlevelEthicalConflictDescription`. This is an ordinary local name for one C.2.1 `U.Episteme`.
+Identify the account of the conflict when another reader needs to cite, compare, revise or publish that account. A short note can serve. The account is one C.2.1 `U.Episteme`, here called an `InterlevelEthicalConflictDescription`. If a publication reports one observation, identify the source for that observation.
 
 Apply the C.2.1 identity test:
 
@@ -96820,6 +96844,8 @@ InterlevelEthicalConflictDescription — C.2.1 identity:
 ```
 
 When a restriction on the whole description matters, `descriptionClaimScopeRef` identifies the conditions under which its claims apply. Identify any subsystem affected on one side. The subject of the whole description can still be a fleet-wide decision. Change that subject only if the claim is now about the subsystem itself. Each side can also have its own ClaimScope or refer to a particular Work and its extent. Give the whole description its own scope when that further restriction matters.
+
+For another setting, carry over the reasoning that connects the action to a consequence under a value premise. Check whether the same dependency, value premise and relevant constraints apply there. One affected party may belong to several groups. Count distinct people once for a headcount. For a claim about burdens, establish whether that person experiences one burden reported twice or distinct burdens. State what can be concluded about the whole under the relevant counting or composition rule.
 
 The `plainStatement` must name the incompatibility, trade-off, parity, or other tension claimed among the sides. In an ordinary case, it remains claim content in the description. If a receiving use relies on a separately obtaining direct relation, cite the relation definition and occurrence with its participants, applicability, and identity. If no adequate governor exists, record the `A.6.RCD` missing-governor result. Merely filling a reference field never makes a direct relation obtain.
 
@@ -96882,7 +96908,7 @@ If consulting Work later occurs, use A.13 to identify its performer and A.15.1 t
 
 If the consulting agreement explicitly excludes deployment decisions, it grants no authority for those decisions. If the agreement's scope is unavailable, leave that authority claim unresolved and identify the missing agreement. D.4 can use either result: a justified denial concerns this agreement, while an unavailable premise leaves a question to settle.
 
-**Joint incompatibility.** Three neighborhoods each claim at least one hour of a mobile clinic's service under a declared equal-access requirement. Only two service hours are available in the relevant window. Any pair of claims could be met; all three together cannot. Describe all three sides and the shared capacity condition before asking D.4 to examine continuations. No pairwise description captures this whole conflict.
+**Joint incompatibility.** Three neighborhoods each have a claim to a separate hour-long visit from the same mobile clinic at their own site, under a stated equal-access rule. One crew has 150 minutes, including travel and setup. Each two-site itinerary needs at most 30 minutes for travel and setup, so the crew can serve any pair. The three visits alone require 180 minutes. No itinerary can provide them all within the window. Choosing which visit to defer needs an ethical and decision basis. If a common session is proposed, establish whether it would count under the rule and whether residents from the affected sites could use it.
 
 **Conditional collection record.** A fleet-wide maintenance change lowers cost but may raise failure risk for a small subfleet operating in harsh conditions. The description has a fleet-cost side and a harsh-service safety side, each with its affected entity, scope, value premise and any frame edition used, consequence, and horizon. Add the exact fleet-membership relation because it locates the subfleet. Identify the reliability evidence and its grounds for this safety claim; use A.10 if the source-to-use relation is implicit or needs a replayable account. Return the causal question to C.28 if the risk claim depends on the proposed change.
 
@@ -97030,6 +97056,8 @@ Recover the conflict, develop feasible alternatives, compare their consequences 
 
 Use the same reasoning when the option is advice, publication, a technical change or a change to a method. Identify how its possible use can affect other participants; describing one's contribution as analysis leaves that question open. The relevant causal and responsibility relations need their basis.
 
+Decide the reach of the proposed action. For a decision on behalf of a group, establish which procedure gives the decision force, whose work or rights it covers, and who can carry it out. Record a member’s dissent when it matters to the decision or its consequences. If the recipient wants a standing rule, examine the cases the rule would permit. A change in exposure, access, authority or available means can reverse the comparison. Where the same premises support the recommendation throughout the proposed use, the existing reasoning can cover those cases.
+
 #### D.4:2.2 - Retain the decision basis when the work needs it
 
 Use an `EthicalMediationDecisionUse` account when another participant needs to inspect, compare, authorize or later revise the result. The necessary content can remain in the existing answer or decision record. The following form groups that content; use only the optional detail needed for this decision:
@@ -97121,6 +97149,8 @@ For this constructed decision, the participants' stated orderings are:
 Both orderings prefer the voluntary option to either original alternative. The team can recommend it on this basis without adding the ordinal ranks or deciding how much privacy one unit of access is worth. The judgement concerns these supplied preferences and feature conditions. The technical feature, the permitted voluntary arrangement and each participant's choice are separate contributions to its use.
 
 Now suppose the team instead needs guaranteed coverage of a required shift. Voluntary windows do not guarantee that contribution. The previous recommendation remains an answer to finding a willing specialist, but does not answer the changed staffing question. Return to the staffing arrangement and its affected commitments. A new assignment, another resource or a changed service promise may be needed.
+
+If a second team asks only how to find a willing specialist, it can use the same recommendation when the feature is available, the applicable permission covers that use and the affected participants’ privacy and access judgements still support that option. A decision to offer the feature across the organization can authorize making it available to both teams. Each disclosure still depends on the choice or other authority governing that disclosure.
 
 #### D.4:4.2 - Keep a useful decision when a stronger claim is unavailable
 
@@ -97235,6 +97265,8 @@ The failure is to treat technical verification as sufficient for a fairness or e
 
 Identify the object, the bias or fairness concern, and the use the answer must support. Give the result warranted by the available basis, with the affected groups and limitations that change that use. A metric comparison can finish at its qualified measurement result; recognizing a value conflict returns to `D.3` or `D.4`.
 
+For a claim about a group, state what the conclusion attributes to whom. An eligibility rule can establish who is entitled to a service under its stated conditions. Whether people received the service depends on what happened. For a measured rate, identify the unit counted, the numerator and denominator, the period and which eligible units entered the evidence. An overall rate can meet its target while a subgroup misses it. Rates for two overlapping groups can each meet the target while their intersection falls short. Subtracting a subgroup’s numerator and denominator from the corresponding population counts gives the counts outside that subgroup. Use them for another named group only if it covers exactly the remaining records. If the evidence already establishes the required outcome for every member of the covered population, the same member-by-member finding holds within each subgroup. A verified violation can refute such an all-member claim without establishing how frequent the violation is. For a different population or period, establish which conditions of the rule or of the empirical comparison still apply.
+
 An intended audit, fairness, or assurance conclusion must satisfy its evidence conditions. A missing basis leaves that conclusion unsupported. Select further investigation and the record it needs for that claim or decision, using §3.1.
 
 Use `BiasAuditAssuranceFrame@Context` to organize an audit whose recipient needs to inspect the connection among claims, evidence, constraints, and residuals. The applicable content may already be present in the result being used:
@@ -97335,7 +97367,7 @@ Use `B.3` for the assurance relation. Establish the needed evidence and its curr
 
 ### D.5:6 - Archetypal Grounding (Worked Slice)
 
-A hiring-screening model has high aggregate accuracy and an internal note says it is "fair." D.5 first asks what fairness claim is being made. If the claim is only a metric disparity comparison, give the metric or evaluation result with its affected groups, intended use, and material limits, then stop. A recipient can reuse or publish that bounded comparison without treating it as a conclusion that hiring is fair. An intended stronger conclusion reopens its missing basis.
+Suppose a hiring-screening model agreed with a reviewed reference decision on 90 of 100 applications. Each applicant in the comparison submitted one application, and ten of the applicants belong to the group under review. All ten discrepancies could fall inside that group or all ten could fall outside it. A reliable subtotal of agreements for those ten applications, or a count from the corresponding decisions, can establish the observed group rate. If applicants can submit repeatedly, a rate per person also needs a rule for counting their decisions. An estimate for a wider population needs grounds for extending the comparison and an account of its uncertainty. A judgement about fair treatment also needs a criterion for what counts as fair in that use. People unable to submit an application are outside this calculation. A claim about access must account for them.
 
 If the team claims counterfactual fairness, C.28 must expose the causal estimand, additional counterfactual-identifiability assumptions, and an estimate with its consistency result when that estimate is relied on. Missing conditions lower the C.28 support result before D.5 decides its audit use. If the audit exposes a conflict between company efficiency and applicant harm across declared scopes, D.3 describes that conflict and D.4 guides its decision use.
 
@@ -97378,6 +97410,8 @@ Audit depth follows what a claim or decision needs from the result. A compact ac
 ### D.5:10 - SoTA-Echoing
 
 For deciding what a fairness result supports, **adapt** C.16’s measurement interpretation and C.28:4.6’s claim-specific identification and estimation conditions. Against the aggregate-accuracy inference in :6, :2–4 retain the qualified metric result and obtain the additional causal basis only for a conclusion that needs it. Section :3.1 reuses an adequate audit account and selects further work from the reliance, while a missing required basis leaves the stronger conclusion unsupported. B.3 supplies any assurance relation and D.4 its ethical decision use. Reopen the affected basis when the population, intended use, claimed effect, evidence conditions or binding requirement changes.
+
+Kearns, Neel, Roth and Wu show how a classifier can meet a parity condition for each of several predefined groups while violating it for a subgroup defined by a combination of attributes. Section 2 uses that distinction to select the group a claim concerns. Which criterion matters and which population it covers still come from the receiving use. [Preventing Fairness Gerrymandering (2018)](https://proceedings.mlr.press/v80/kearns18a.html)
 
 ### D.5:11 - Relations
 
@@ -103327,6 +103361,8 @@ The raw/result prototype, the source-qualified comparison and the reduced single
 ###### E.8:4.2.1.3 - Choose examples by the explanation they make usable
 
 Determine the content owed to the reader from the subject, declared scope and receiving work. Include the relations, grounds, alternatives and conditions needed for that work; do not let the circumstances of a convenient example decide which of them to explain. This is a priority in deciding adequacy, not a compulsory order of discovery or presentation.
+
+Choose the check that fits the reader's promised use. For a conclusion about a holon drawn from its constituents, keep the level of model abstraction fixed. Could everything said about a constituent be true while the whole fails to do what the text promises? For a claim extending beyond one occurrence, compare like structural scopes, such as one whole office with another whole office. Could the occurrence be as reported while another permitted condition defeats the proposed rule? Where an explanation makes both moves, supply the missing connection and the grounds for the rule throughout its claimed use. A bounded account of one occurrence may already meet the reader’s need. For a claim across levels of composition, C.39.WA:4.2 explains how to establish that a relation holds at each eligible level or how work across levels produces a joint result.
 
 A case, sketch or attempted calculation can reveal a missing relation before the general account is finished. Carry that discovery back into the account and distinguish a reusable condition from an incidental feature of the case.
 
