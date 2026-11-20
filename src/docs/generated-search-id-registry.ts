@@ -1322,6 +1322,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.39"
     },
     {
+      "id": "C.39.GA",
+      "title": "Restore a Missing General Argument",
+      "staticPath": "/generated/patterns/C.39.GA"
+    },
+    {
       "id": "C.39.MC",
       "title": "Continue Method Development from Changed Conditions",
       "staticPath": "/generated/patterns/C.39.MC"
