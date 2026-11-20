@@ -462,7 +462,7 @@ Use Part and cluster headings to locate content. E.4 explains how Kernel, broade
 | E.1 | **Vision & Mission** | Stable | *Keywords:* vision, mission, first principles, shared grounds, reusable methods, purpose, scope, goals, non-goals. *Queries:* "What is FPF?", "What is the purpose of the First Principles Framework?", "What problem does FPF solve?". | **Prerequisite for:** All other patterns, especially E.2. |
 | E.2 | **FPF's Eleven Pillars and Bitter-Lesson Preference (BLP)** | Stable | *Keywords:* principles, constitution, eleven pillars, invariants, P-1 to P-11, Bitter-Lesson Preference, BLP, scalable methods, scale audit. *Queries:* "What are the governing principles of FPF?", "What is the Bitter-Lesson Preference and when does it apply?", "What must a BLP scale audit establish?" | **Builds on:** E.1. **Prerequisite for:** E.3 and all normative patterns. |
 | E.2.DA | **Evaluate How FPF Realizes Its Pillars (Pillar-Adequacy CharacteristicSpace)** | Stable | Evaluate one declared FPF edition, corpus slice, family or publication/access change against all eleven E.2 Pillars. Return justified ordinal values, affected-use findings, a local stop or first repair, and a reopen condition. E.2 defines the Pillars; E.21 evaluates one pattern, and E.9.DA one DRR. | **Builds on:** E.2, A.19.ECS. **Coordinates with:** E.21, E.9.DA, E.22, E.23, E.11, E.10, F.18, F.19. |
-| E.3 | **Principle Taxonomy, Precedence and Agent Autonomy Profiles (ABL)** | Stable | *Keywords:* principle taxonomy, precedence, conflict resolution, Gov, Arch, Epist, Prag, Did, autonomy budget, oversight, ABL, profile change, BLP waiver. *Queries:* "Which rule takes precedence in this conflict?", "Which autonomy and oversight profile is declared for these agent calls?", "What must a profile change or policy exception retain?" | **Builds on:** E.2. **Constrains:** All patterns and DRRs. |
+| E.3 | **Principle Taxonomy, Precedence and Agent Autonomy Profiles (ABL)** | Stable | *Keywords:* principle taxonomy, precedence, conflict resolution, Gov, Arch, Epist, Prag, Did, autonomy budget, oversight, ABL, profile change, BLP waiver. *Queries:* "Which rule governs this decision?", "Who may settle this case or change the rule for future cases?", "Which autonomy and oversight profile is declared for these agent calls?", "What must a profile change or policy exception retain?" | **Builds on:** E.2. **Applies to:** Precedence for principles in FPF patterns and DRRs, and oversight profiles for agentic tool use. |
 | E.4 | **FPF Ecosystem Architecture: Framework Families, Products and DPF Suites** | Stable | Choose the next pattern for an FPF ecosystem question, distinguish FPF Core content from an FPF edition, separate support units from independently used products, or constitute a DPF product series and Suite. When available methods cannot supply the needed result, use C.39. Use E.4.CM to explain methods and their connections for framework reuse. Publication, access, maintenance and Suite membership keep their separate meanings. | **Builds on:** E.1, E.2/P-5, E.5.3. **Coordinates with:** C.39, E.4.CM, E.4.FPF, E.4.PFAD, E.4.DPF, E.4.DPF.DA, E.4.PFR, E.11, E.17, G.2, G.5, G.11, C.33, C.34, C.35, F.18, E.21, E.23, E.19. |
 | E.4.CM | **Develop Connected Methods as Framework Contributions** | Stable | Use as an FPF or DPF author when relevant patterns leave readers to invent connections within one composite Method or among independent Methods. Apply C.39's general construction, explanation and change; compare the available framework supply, choose a public owner, apply the pattern content functions and form, and preserve direct uses before deriving a short entry. | **Builds on:** E.4, E.8. **Uses:** C.39, C.39.RO, A.3.1, B.1.5, B.1.5.EW, B.1.5.RS and direct subject Methods. **Coordinates with:** C.32.MWA, E.11, E.11.PFP, E.19, E.21, F.0.2, F.19. |
 | E.4.FPF | **FPF Edition Assembly: Publication Forms, Carriers and Access Routes** | Stable | Rebuild and expose one First Principles Framework edition from its selected Core sources. Keep publication units, forms, presentation carriers and access routes distinct; derive the index and bodies from one selection and stop on a source, boundary or preservation mismatch. E.11.PFP supplies the common reader-facing form; E.4.PFIP checks integration and predecessor preservation; E.2.DA owns whole-FPF adequacy. | **Builds on:** E.4, E.2.DA, E.11, E.17, E.21. **Coordinates with:** E.4.PFAD, E.4.PFR, E.4.DPF, E.4.DPF.DA, G.11, F.18, F.19. |
@@ -473,10 +473,10 @@ Use Part and cluster headings to locate content. E.4 explains how Kernel, broade
 | E.4.PFIP | **Principle-Framework Publication Integration and Preservation** | Stable | Compares accepted source contributions and predecessor publication content with one candidate publication, keeping one-to-one expression and split-or-merge allocation cases distinct. | **Builds on:** C.2.1, E.24.PUB. **Coordinates with:** E.17, E.11, C.33, C.34, E.8. **Used by:** E.4.FPF, E.4.DPF, E.4.DPF.DA. |
 | E.5 | **Four Guard-Rails of FPF** | Stable | Umbrella for four FPF architectural constraints: the DevOps Lexical Firewall, Notational Independence, Unidirectional Dependency and Cross-Disciplinary Bias Audit. Use it to identify which guard-rail governs a Core, Tooling or Pedagogy change, then use E.5.1–E.5.4 for the applicable rule. These constraints do not select a lint tool or supply a domain safety decision. | **Builds on:** E.2, E.3. **Prerequisite for:** E.5.1, E.5.2, E.5.3, E.5.4. |
 | E.5.1 | **DevOps Lexical Firewall** | Stable | Keep incidental implementation paths, commands and runnable teaching code outside normative Core, citing executable illustrations by conceptual name. Retain the exact syntax needed by a governed publication form, protocol or grammar, and operative mathematics under E.5.2. Use this lexical rule with E.5.2 for notation and E.5.3 for semantic dependency; an optional linter is not the rule. | **Refines:** E.5. **Constrains:** All Core patterns. |
-| E.5.2 | **Notational Independence** | Stable | Keep FPF meaning recoverable while choosing a useful expression. Explain interpretation and any reasoning or construction operation; state correspondences and losses when translating, comparing or substituting expressions. A semantic mapping preserves only its named claims and conditions, not equal reader preparation, capability or effort. Use A.6.3.RT for a representation transition and A.6.3.RT.OE for an operative expression. | **Refines:** E.5. **Constrains:** All Core patterns. |
+| E.5.2 | **Notational Independence** | Stable | Explain how to read a table, diagram or formula and use it for the intended work. When replacing another expression, compare what the recipient can still determine or choose and what information that takes. Check a required delivery form against its convention. Use A.6.3.RT to change representations, A.6.3.RT.OE to construct an operative expression and B.5.MR to compare changed model assertions. | **Refines:** E.5. **Constrains:** All Core patterns. |
 | E.5.2.L | **Languages, Expressions and Interpretation** | Stable | Establish how a language forms expressions. For a representation language, recover the permissible readings. For a language of designations, recover how an entry identifies an entity under the applicable rules and bindings. | E.5.2, C.2.1, A.6.3.RT and F.18. |
-| E.5.3 | **Unidirectional Dependency between FPF Families** | Stable | Constrain an already identified framework-family dependency: imports must form an acyclic graph and point toward greater semantic stability. Pedagogy may use Tooling and Core; Tooling may use Core; Core imports neither. Keep specialization separate. E.4.PFR determines whether a framework-edition dependency exists. | **Refines:** E.5. **Constrains:** E.4. |
-| E.5.4 | **Cross-Disciplinary Bias Audit** | Stable | Inspect a normative pattern through Gov, Arch, Epist, Prag and Did lenses for a source-discipline bias or an unjustified imbalance. Repair the explanation or state the intended scope, and retain the useful Bias-Annotation. Use D.5 for bias, fairness or human-impact audit; use A.8 only for universal-core placement of a durable U-kind candidate governed by E.24.UK. | **Refines:** E.5. **Constrains:** All Core patterns. **Links to:** Part D. |
+| E.5.3 | **Unidirectional Dependency between FPF Families** | Stable | Which family may supply a rule to another? May a guide rely directly on Core? Check permitted directions and cycles, including imports within a family. E.4.PFR identifies the claim another edition needs for a particular use. | **Part of:** E.5. **Constrains:** Imports in the family architecture of E.4. |
+| E.5.4 | **Cross-Disciplinary Bias Audit** | Stable | Examine a normative pattern through Gov, Arch, Epist, Prag and Did. For use in another discipline, state what the rule lets its practitioner conclude or do, then establish its conditions there. When plausible readings differ in their consequences, test a case that distinguishes them. Report the material result in the Bias-Annotation. D.5 addresses fairness and human impact. A.8 governs projections for universal-core placement under E.24.UK. | **Refines:** E.5. **Constrains:** All Core patterns. **Links to:** Part D. |
 | **Cluster E.II — The Author’s Handbook** | | | | |
 | E.6 | **Didactic Architecture of the FPF Specification** | Stable | *Keywords:* didactic, pedagogy, structure, narrative flow, on-ramp, learning. *Queries:* "How is the FPF specification structured for learning?", "What is the 'On-Ramp first' principle?". | **Builds on:** E.2 (P-2 Didactic Primacy). |
 | E.7 | **Archetypal Grounding: Explain Rules of FPF Architectural Patterns through Cases** | Stable | Make an architectural rule and its applicability concrete through System and Episteme cases. Use both where the rule spans both; state and justify a single-substrate boundary. The cases show application and expose limits; universality needs its own warranted basis. E.8 supplies the section form, E.5.4 the bias lenses, and A.8 the distinct universal-core U-kind test. | **Builds on:** E.6. **Constrains:** All architectural patterns. |
@@ -19605,6 +19605,8 @@ Check each target-side connective against the source or same-EntityOfConcern cor
 ##### A.6.3.RT:4.5.b - Loss and recoverability
 
 State which distinctions, inspection possibilities, uncertainty cues, or local qualifiers are lost, foregrounded, rearranged, or harder to recover. The target may remain useful under a reliability claim bounded by the source or with an explicitly narrowed admissible use. If the target is admissible only for a declared narrower use with source return, A.6.3.CSC is primary.
+
+If the target omits a condition, establish how the recipient is to interpret the omission. An extract that says nothing about joint operation may leave the reader to consult the source. A replacement model that expressly permits the settings of two controllers to be chosen independently can admit a combination the source ruled out, even when each controller still has exactly the same settings. Compare the permitted combinations for the same inquiry under B.5.MR. For a strict abstraction, establish a feasible source answer, show that every source answer remains permitted and identify an additional answer permitted by the replacement. When the target provides no answer to that inquiry, report the limit of the extract's use.
 
 ##### A.6.3.RT:4.5.c - Decode-mediated entry
 
@@ -97469,7 +97471,7 @@ FPF expresses these shared grounds and reusable contributions through:
 1. a **Kernel** of admitted universal meta-concepts and the rules that define their meanings and relations;
 2. **patterns** that explain reusable methods, state their conditions and grounds, and apply or extend shared distinctions without replacing their governing meanings;
 3. a **pattern language** (*Architectural* ► why/ how; *Definitional* ► what) with embedded **Conformance Checklist (CC)**;
-4. **Design Rationale Records (DRRs)** that govern safe, auditable evolution;
+4. **Design Rationale Records (DRRs)** that preserve the grounds for changes to FPF and make them available for audit;
 5. three **core invariants** that every artefact must honour
 
    * **Evolvability** — change is expected and governed;
@@ -97516,7 +97518,7 @@ R1 supports **Didactic Transparency** by making the reason for reuse or reopenin
 
 There is one invalid reuse under the label-only rule and none under R1 in these two cases. This supports the stated failure-prevention argument; it is not an observation of reader behavior or proof that review is faster. The added comparison has a cost. If a receiver claims “R1 makes all reviews 20% faster” without observations, remove that outcome claim and retain the bounded aim, or select a task-matched inquiry before making it. If the proposed rule merely requires a new label and says “supports Evolvability,” return the missing continuity or change-handling contribution; the label alone does not satisfy CC-Vision.2.
 
-Therefore, use the supported instruction for this bounded concern, investigate a claimed reader benefit through E.12 when worthwhile, or repair the unsupported invariant argument. New evidence about the source population reopens applicability; new evidence about reading cost reopens the benefit claim.
+R1 can guide the stipulated reuse decision. Admission to FPF requires the charter argument; a team adopting R1 uses its own decision authority. New evidence about the source population reopens applicability. A claim about actual reading cost or invalid reuse decisions can be investigated through E.12. A proposal whose contribution to a core invariant is still unclear needs that argument before admission.
 
 ### E.1:6 - Consequences
 
@@ -97534,7 +97536,7 @@ The [GOV.UK Service Standard's success-definition guidance](https://www.gov.uk/s
 At the same proposal and two-case scope, §5.2's substantive replay detects the unsafe label-only reuse that a complete traceability field would leave unanswered. It costs a small comparison; wider reader or performance claims cost separately justified inquiry. Reuse an already adequate argument when its conditions match, and justify an omitted benefit where CC-Vision.4 permits it. Reopen only when the intended task, invariant contribution, benefit evidence or cheaper alternative changes enough to affect adoption.
 
 ### E.1:7 - Relations & Precedence
-Pattern E.1 governs **E.2 Eleven Pillars** and the Guard‑Rail set **E.5**; any later pattern that conflicts with E.1 **MUST** be revised via a DRR before entering the Canon.
+E.1 supplies the charter commitments for **E.2 Eleven Pillars** and **E.5 Guard-Rails**. If a proposed FPF rule contradicts an applicable charter commitment, identify the conflicting provisions. The proposal **MUST** be revised through E.9 before admission under the current charter. For a team using the method, its own governing terms determine who may adopt a local rule.
 
 
 
@@ -97564,7 +97566,7 @@ Without binding first principles, contributors cannot distinguish commitments th
 | **Pragmatic Grounding**        | Abstract invariants ↔ measurable, falsifiable outcomes |
 
 ### E.2:4 - Solution
-FPF rests on **eleven binding pillars**. Every artefact, pattern, and design-rationale record (DRR) must honour the applicable constraints and explain material conflicts. Together the pillars guide evolvability, cross-scale coherence and didactic clarity; their realization must be established for the use.
+FPF rests on **eleven binding pillars**. For an FPF proposal or artifact to conform, it must satisfy the pillar constraints applicable to its use. Identify those constraints and explain any material conflict. A DRR proposing a normative change records the impact on the pillars. Together the pillars guide evolvability, cross-scale coherence and didactic clarity; their realization must be established for the use.
 
 | ID       | Pillar                         | Essence                                                                                                                   |
 | -------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
@@ -97582,7 +97584,7 @@ FPF rests on **eleven binding pillars**. Every artefact, pattern, and design-rat
 
 A pillar-impact argument can use ordinary accepted mathematical theory. Use `C.29` when a separate question remains about choosing a mathematical representation, transferring a result, or relying on the represented structure. State the correspondence, preserved and lost structure, and limits needed for that use; `E.2` continues to govern the pillar claim.
 
-> Any DRR that contradicts a pillar must first amend this constitutional pattern.
+> A proposed FPF rule that conflicts with a pillar can be revised to respect it. To proceed with the conflicting proposal, the body empowered to change the constitution must enact the pillar amendment first. The DRR states the grounds and Pillar Impact Analysis.
 
 ### E.2:5 - Conformance Checklist
 
@@ -97669,9 +97671,9 @@ The pillars interlock: *Cognitive Elegance* (P‑1) enables *Didactic Primacy* (
 ### E.2:12 - Relations
 
 * **Depends on:** `E.1` – pillars operationalise the mission.
-* **Refined by:** All subsequent patterns in the Core Specification.
+* **Applied by:** Later Core patterns use the pillars relevant to their decisions. When a pattern also claims strict model refinement, compare the two models for the same inquiry. The proposed model must admit a feasible completion, preserve the earlier commitments in every completion and exclude a formerly admissible answer. [B.5.MR:4.2](#b5mr42---test-preservation-and-strictness) gives the test when the models use different languages.
 * **Mathematical support path:** `C.29` supports pillar-impact arguments only for adequacy of mathematical lenses used to express first-principles structure. It does not amend pillar content, priority, or conformance.
-* **Governs:** Every DRR, tool, and pedagogical artefact linked to FPF.
+* **Governs:** FPF proposals and artifacts where a pillar sets a condition of conformance. A team using an FPF publication can identify which provisions it has adopted for its own work.
 
 
 
@@ -97959,7 +97961,7 @@ The result uses short rationales and evidence loci named by value. Obtaining the
 > **Status:** Stable
 
 ### E.3:1 - Problem frame
-Use §4 when applicable principles conflict: identify the rules and their scope, then determine precedence or hold the unresolved action. Use §6 to declare and apply an autonomy oversight profile for agentic tool use, binding it to the action, budget and permission window. E.2 supplies the eleven constitutional pillars; their names alone do not settle a conflict.
+When several provisions govern a decision, start with [the decision and the applicable provisions in §4.2](#e342---precedence-stack). Establish whether you can meet them together, which rule takes priority if they conflict, and who can settle an outstanding case or change the standing rule. Use §6 to declare and apply an autonomy oversight profile for agentic tool use, binding it to the action, budget and permission window. E.2 supplies the eleven constitutional pillars; their names alone do not settle a conflict.
 
 ### E.3:2 - Problem
 
@@ -97989,26 +97991,30 @@ When applicable pillars or derived principles prescribe incompatible actions, pa
 
  #### E.3:4.2 - **Precedence Stack**
 
-Each precedence node is an applicable pillar, derived principle, guard or assurance requirement, or local policy. The table identifies its source level; it does not rank every sentence in one file above every sentence in another. In particular, level 1 is the Eleven Pillars, not the entire E.2 file.
+Identify who would do what, for whom or to what, and when. Which provisions govern that decision? Can a course of action meet them together? A rule can require an action, forbid it, reserve a choice to a participant, or let another decision maker choose. A team can select a common format if the governing rule delegates that choice to the team. If the rule reserves the choice to each sender, a team instruction that removes the sender’s choice conflicts with it. Apply compatible provisions together. If applicability turns on a missing fact, compare what each possible rule would allow or require. When all support the same action on the same terms, it can proceed. Obtain the fact if it changes the decision or the required procedure, or if the task asks which rule applies.
 
-   | Level | Governing Artefact                    | Overrides        |
-   | ----- | ------------------------------------- | ---------------- |
-   | 0     | **Vision & Mission** (E.1)            | everything       |
-   | 1     | **Eleven Pillars** (E.2)              | all below        |
-   | 2     | **Principles** (this pattern)         | patterns & DRRs  |
-   | 3     | Architectural / Definitional patterns | local rules      |
-   | 4     | Tooling & Pedagogy                    | informative only |
+The **FPF precedence rank** orders applicable provisions in the FPF constitution. A smaller number gives the provision priority where the two conflict. Rank 1 belongs to the eleven pillars themselves. The derived BLP policy also printed in E.2 has its own terms in §6. A passage that quotes a binding rule takes its force from that rule. When an organization adopts guidance for its own work, the terms of adoption establish where it binds.
 
-**Default class order.** Identify the applicable rules and their source levels. Within the higher-rule boundaries, apply any explicit priority governing this pair. Only an otherwise unresolved conflict uses the default class order:
+| FPF precedence rank | Source | Effect for an FPF decision |
+| --- | --- | --- |
+| 0 | Vision & Mission (E.1) | Charter commitments govern what FPF may admit. |
+| 1 | The Eleven Pillars (E.2:4) | Their applicable constraints bind principles and patterns within the charter. |
+| 2 | Derived principles, including the precedence rules in E.3 | They govern pattern choices and proposals for change within the pillars. |
+| 3 | Architectural and definitional patterns | Their applicable provisions constrain choices left to local rules in a conforming use. |
+| 4 | Tooling and pedagogy | Their own suggestions guide implementation and teaching. |
+
+**Apply the priority that governs the conflict.** Within higher-ranking constraints, first use an explicit priority for the provisions in conflict. For a remaining conflict between classified principles, use the default class order:
 `Gov ≫ Arch ≫ Epist ≫ Prag ≫ Did`
 
-**Unresolved conflict.** These relations form a partial order. Two incompatible applicable rules may remain tied or incomparable after the source-level, explicit-priority and class comparisons. Return that pair, the shared action and applicability conditions, and **hold the dependent action**. Unrelated actions remain governed by their applicable rules. Acyclicity does not guarantee a winner.
+Apply the priority to the disputed choice and retain the other obligations. Several provisions can leave an obligation with no permitted way to satisfy it even when every pair is compatible. To establish that conflict, show how the provisions close every permitted alternative. If the alternatives are still unknown, identify what would establish them. After resolving a conflict, check the proposed course against the provisions together. Separately establish whether the people and resources needed for that course are available.
 
-To resolve the hold, refer the pair to the authority empowered to amend the affected rules or their priority under their governing change process. That authority may adopt a priority or amend a rule's scope. Record the rationale, affected scope, Pillar Impact Analysis and edge effects under E.9; an exception also retains its required expiry. The DRR records the decision and does not itself authorize the change. Apply the resolution only after the necessary authorization, retaining higher-rule constraints and the graph rule below.
+**When a conflict remains**, identify the provisions responsible, the affected action and the conditions that make them apply. Hold the dependent action. Independent permitted work can proceed. An existing ruling may already settle this case. If a holder is empowered to resolve this conflict, apply their actual decision within its scope and effective period. Until they decide, a known decision maker gives the parties someone to ask.
+
+When the case would need an exception, use only an exception the governing terms authorize for these circumstances. If the mandate does not cover the conflict, keep the affected action on hold. To change a rule or priority for future cases, obtain the decision of the body or bodies empowered to change it. Record the rationale, affected scope, Pillar Impact Analysis and edge effects of an FPF change under E.9. For an exception governed by the FPF policy in §6, its DRR, rationale and expiry are required. An organization’s own policy sets the terms for exceptions within its authority. An earlier ruling governs a later case only when the governing terms give it that reach.
 
  **Graph Rule** — The precedence graph MUST be acyclic; any new edge that would form a cycle is **rejected**.
 
-For a release-schedule rule classified as Gov and a performance-tuning preference classified as Prag, the default order gives the schedule rule priority only if source-level constraints and explicit priorities leave the conflict unresolved.
+A release-schedule rule classified as Gov takes priority over a conflicting performance-tuning preference classified as Prag when the ranks and applicable explicit priorities leave the choice to the class order.
 
 ### E.3:5 - Conformance Checklist
 
@@ -98017,15 +98023,17 @@ For a release-schedule rule classified as Gov and a performance-tuning preferenc
 | **CC‑PT.1** | Every principle record **MUST** state `class` and may list `precedence_over[]`.                                      | Makes declared priorities inspectable. |
 | **CC‑PT.2** | Precedence graph **MUST** be acyclic.    | Prevents circular law.           |
 | **CC‑PT.3** | Any DRR introducing/modifying a principle **MUST** include a *Pillar Impact Analysis* and the impact of proposed precedence edges on each affected Pillar (P‑1… P‑11). | Aligns evolution with Pillars.   |
-| **CC‑PT.4** | Incompatible applicable rules without a winner **MUST** return the unresolved pair and hold the dependent action until an authorized resolution under §4.2. | Prevents an arbitrary tie-break from acting as authority. |
+| **CC‑PT.4** | When applicable provisions leave a conflict unresolved, identify the provisions and conditions that block the action. The dependent action **MUST** wait for an authorized resolution under §4.2. | Keeps the outstanding duty visible while other permitted work proceeds. |
 
 ### E.3:6 - Illustrative Conflict Resolution
 
 **Same-kind wording.** First recover the intended kind under A.1. For an identified U.System, compare the plain name System with its technical expression U.System; both name the same kind. P-1 supports a precise, economical expression, while P-2 expressly gives human comprehension priority over theoretical or tooling purity. Use the familiar wording where it preserves the required meaning and make the technical designation recoverable where needed. The default Arch-over-Did order does not reverse that explicit P-2 priority. U.System is a proper subtype of U.Holon: replacing a non-System Holon with System would change the subject’s extension before any legitimate wording comparison.
 
-**Two Gov rules with no priority.** Suppose two rules at the same source level apply to publishing report R to audience A at noon: rule G1 requires that action and G2 forbids it. Both are Gov and neither has priority over the other. Return G1/G2, R, A and the noon window as the unresolved conflict; hold publication. Merely listing the class and an acyclic graph does not settle it. The rule-governing authority can authorize an applicable priority or scope amendment with the §4.2 rationale. A proposed priority has no effect before the required authorization; an authorized amendment outside this action's scope leaves this conflict unresolved.
+**Two Gov rules with no priority.** G1 requires publishing report R to audience A at noon. G2 forbids the same publication. Both are Gov and have the same FPF precedence rank. Hold the report. Suppose the charter gives a duty officer power to decide individual report disputes. Naming the officer leaves today's decision open. If the officer rules that R must be withheld from A today, apply that ruling. Tomorrow's report still falls under the standing rules. A proposed change to their priority needs a decision from the authority empowered to change it.
 
 **Changed case.** Suppose an authorized G2-over-G1 priority is in force for R, A and the noon window. G2 governs, so publication is forbidden; this pair needs no further priority resolution. A proposed G1-over-G2 edge would create a cycle and is rejected. The existing priority and G2's prohibition remain in force.
+
+**Three provisions, two notice channels.** A service must send a notice today through either channel A or channel B. One provision closes A and another closes B. Both channels are working, yet there is no permitted way to send the required notice. Any two of these provisions could be met together. Report all three and the outstanding duty. If an authorized, effective exception opens A for this notice, send it through A. The restriction on B and the terms for tomorrow’s notices still apply.
 
 **BLP and a guard.** If an applicable E.5 guard excludes a proposed implementation dependency, BLP-6 gives that guard priority over BLP. Compare those rules in their current scope, not the E.2 and E.5 files as whole nodes. B.3 enters the policy ordering for an assurance requirement consumed by the use.
 
@@ -98097,14 +98105,14 @@ This section defines an **extensible family of autonomy oversight profiles** for
 ### E.3:8 - Consequences
 *Positive* — Makes priorities and unresolved conflicts inspectable before the dependent action.
 
-*Cost* — A conflict outside the declared ordering needs an authorized governance decision. Holding that action can delay work, but avoids silently giving a new priority to whichever rule happens to be encountered first.
+*Cost* — A conflict can delay the dependent work until a competent holder decides the case. Changing the priority for future uses can take longer and calls for the authority to amend the governing terms.
 
 ### E.3:9 - Rationale
-The taxonomy groups principles according to what they govern: change (**Gov**), framework structure (**Arch**), meaning, evidence and trust (**Epist**), practical value (**Prag**), or comprehension (**Did**). Explicit override edges and the default hierarchy determine a winner where the declared ordering suffices. Where it does not, the explicit hold preserves the boundary between applying a rule and acquiring authority to change it. The taxonomy supports that decision; it does not make every pair comparable.
+The taxonomy groups principles according to what they govern: change (**Gov**), framework structure (**Arch**), meaning, evidence and trust (**Epist**), practical value (**Prag**), or comprehension (**Did**). Explicit override edges and the default hierarchy determine a winner where the declared ordering suffices. Where it does not, the hold leaves the decision with the holder empowered to settle this conflict. That mandate determines whether the ruling covers this case or changes future decisions. The taxonomy supports that decision; it does not make every pair comparable.
 
 ### E.3:10 - Relations
 * **Depends on:** `E.1`, `E.2`
-* **Governs:** All subsequent patterns and DRRs; Guard‑Rail patterns reference CC‑PT.
+* **Governs:** Classification and precedence when an FPF pattern or DRR introduces, changes or compares principles. Guard‑Rail patterns reference CC‑PT. Section 6 also governs the oversight profile for agentic tool use.
 
 
 
@@ -98114,13 +98122,15 @@ The taxonomy groups principles according to what they govern: change (**Gov**), 
 
 Under [Cedar's authorization algorithm](https://docs.cedarpolicy.com/auth/authorization.html), an applicable forbid overrides permits, otherwise an applicable permit allows the request, and the default is denial. **Adopt** explicit request scope and a declared combination rule where that permission policy is intended. **Reject** treating it as a universal ordering of obligations: a requirement to publish and a prohibition of publication can remain normatively inconsistent even when access is denied. Cedar does not claim to repair that inconsistency. Its policy-error handling also does not replace A.21's treatment of required check results. The source defines an authorization language, not FPF rule-change authority.
 
+Engineering configuration management gives a practical test for the reach of an exception. After an authorized waiver for one item, a team inspecting the next item still works from the effective baseline. Apply that distinction to case rulings and standing amendments. The mandate governing the actual decision determines who can grant either and what the ruling covers. [NASA Systems Engineering Handbook, §6.5.1.2.3](https://www.nasa.gov/reference/6-5-configuration-management/)
+
 For oversight, §6 draws on [NIST AI RMF 1.0 §6, pp.33–34](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf). Its profiles depend on the use, requirements, risk tolerance and resources; they can distinguish current and target conditions. **Adapt** that contextual treatment to §6's budgets, signers, checks and effective window. The source does not prescribe ABL's L0–L4 labels, numeric defaults or FPF permission semantics. A project's defaults need a basis appropriate to its use; an ordinal-looking label alone supplies none. This comparison uses the published 1.0 method.
 
 At the same action and input scope, the two cases expose the chosen trade-off:
 
 | Case | Simpler default | Selected move and cost |
 | --- | --- | --- |
-| G1 requires noon publication and G2 forbids it; same source level and class, no priority. | A forbid-overrides permission rule denies publication. It is a complete access decision if that combination is already authorized, but leaves the competing obligation to be resolved. | §4.2 returns the unresolved obligation pair and holds its action. The extra cost is obtaining an authorized priority or scope amendment; the gain is a visible unresolved duty instead of an invented governance winner. |
+| G1 requires noon publication and G2 forbids it. Both have the same rank and class, with no priority between them. | A forbid-overrides policy can settle access when that policy governs the request. The duty to publish still needs a resolution. | Under §4.2 the report waits. A duly empowered officer can decide one report at the cost of referring that case. Changing the standing priority requires its own authority and rationale. |
 | A plan keeps the label L2 while its requested ceiling changes from twenty to thirty minutes. | A stable profile table works if it already resolves the correct edition, checks and window. Looking only at an unchanged label cannot decide the new request. | §6 binds the new ceiling and permission before minute twenty-five. Maintaining those conditions costs more than checking a label; an existing table or policy system can carry them without another store. No E.18 or F.9 event is inferred from the budget change. |
 
 The taxonomy groups principles for the declared fallback order; its five classes are not a claim that all governing duties reduce to permission predicates. Use the simpler default when its scope and maintained inputs suffice. Reopen only the affected priority or profile comparison when a new incompatible rule, changed permission condition, or equally adequate cheaper policy changes the action. BLP comparisons remain conditional on a scale claim or declared generality policy.
@@ -98375,7 +98385,7 @@ For a durable ecosystem-architecture answer, use the following operations as the
 2. Name the family member being created, used, or changed.
 3. Name only the fields from `FPFEcosystemArchitectureRecord@Context` that this architecture claim uses. For PF work, the pattern-language publication carrier exposes a reader-facing expression of the selected problem-and-solution architecture.
 4. If the family member is FPF itself as a framework edition, open `E.4.FPF` for form, presentation carriers, access routes, and whole-FPF adequacy routing.
-5. Apply `E.5.3`: dependencies point toward more stable framework editions. FPF Core does not depend on domain or local frameworks.
+5. Identify the content another edition supplies and the work that needs it. For Conceptual Core, Tooling and Pedagogy, check the permitted import directions in `E.5.3`. For framework editions, apply `E.4.PFR:3.4`. An LPF may rely on a DPF, and either may rely directly on Core. Core must supply its transdisciplinary rule and grounds independently of those domain and local frameworks.
 6. State publication and first-entry claims using `E.11` and `E.17`; state framework-carrier structure-account assertions using `E.4.FPF` for FPF itself or `E.4.DPF`/`E.4.DPF.DA` for domain and local frameworks.
 7. State pattern-use recommendation claims using `E.11.PUR`.
 8. When a framework-architecture question is open, record the selected answer in one `E.9` DRR and use `E.4.PFAD` to profile its framework-specific content. Use `C.32.PAD` only for a project architecture decision and `C.32.ADR` only to project such a decision into an ADR-like publication.
@@ -98451,7 +98461,7 @@ Mini-example:
 
 The recurrent drift is publication-first architecture: the visible file, all-in-one carrier, card deck, table of contents, or graph is treated as the architecture because it is what a reader sees first. The repair is to name the selected structures and dependency direction first, then use publication patterns to expose them.
 
-Another recurrent drift is Core absorption: useful domain or local material is pulled into the Core because it is well written or broadly reusable. The repair is to ask which domain or local situation the claim addresses and which framework edition should depend on which more stable edition.
+A useful local rule may suggest a Core amendment. Identify what makes the rule hold across the domains where readers would apply it. If its conclusions still depend on one practice's convention or authority, publish those conclusions with that practice. Credit the local source for the discovery when a transdisciplinary argument can stand on its own.
 
 | Lens | Declared bias and counter-check |
 | --- | --- |
@@ -98467,7 +98477,7 @@ Another recurrent drift is Core absorption: useful domain or local material is p
 | --- | --- |
 | CC-E4.1 First route and family case | The work names the ecosystem question, classifies the likely case, points to the pattern that addresses the case or states what is missing, and opens a complete ecosystem-architecture record only when durable architecture or later reliance needs it. When a record is needed, it names whether the family member is Core, Tooling Reference, Pedagogical Companion, a foundational principle pattern set, a First Principles Framework edition, FPF Core, a domain principle framework, or a local practice framework. |
 | CC-E4.2 Selected structures named | The ecosystem-architecture record names its intended use and every field from `FPFEcosystemArchitectureRecord@Context` that the claim uses. Cite a source, pattern host, publication relation, or bounded model-use structure only when the record uses that independently established value. |
-| CC-E4.3 E.5.3 respected | Dependency direction points toward more stable framework editions, and Core does not depend on domain or local frameworks. |
+| CC-E4.3 E.5.3 respected | For each claimed dependency, identify the required content and its use. The direction must be permitted for those families and the imports must remain acyclic. Core must remain usable independently of domain and local frameworks. |
 | CC-E4.4 Publication and access separated | Each publication form or unit, presentation carrier, access route, access occurrence, and view keeps its subject and predicate. Apply the pattern that defines each claim. |
 | CC-E4.5 Exact predicate and assertion named | Each architecture-adjacent claim names its exact subject and predicate; a pattern identifier is only the locator for the next question's defining or constraining ClaimGraph. |
 | CC-E4.6 Source-return present | Any carrier used as architecture evidence states captured structure, lost structure, admissible use, and the source to return to. |
@@ -101396,7 +101406,7 @@ When earlier prose says that one pattern contains the defining content for or go
 
 #### E.4.PFR:3.4 - Edition and package discipline
 
-Domain and local frameworks depend toward more stable editions. A local practice framework may depend on a domain principle framework and on Core content in an FPF edition. A domain principle framework may depend on Core content in an FPF edition.
+A local practice framework may depend directly on a domain framework, on Core claims in an FPF edition, or on both. A domain framework may depend on Core claims. Identify each supplier for the work that actually uses it.
 
 Identify that FPF edition and its required Core claims separately, as E.4 specifies. E.4.FPF governs the FPF edition.
 
@@ -101404,11 +101414,13 @@ Core does not depend on domain or local frameworks. Incorporate an accepted tran
 
 Framework-edition dependency obtains for one dependent edition, one relied-on edition, exact content in the relied-on edition, and one named use only when the dependent edition's current content or result for that use requires the relied-on content. Removing it or changing it in a way relevant to the use would invalidate the dependent content/result or require that use to be reopened.
 
-State that case fact and why the content is required. Edition labels, joint publication, joint-use membership, and an allowed direction do not establish dependency.
+Name the decision, calculation or other use that requires the supplying claim. In a chain of editions, trace the particular content through each use. If an intermediate edition uses the changed rule only for a different operation, the chain alone gives no reason to revise the final user's operation. If the intermediate result needed by that user relies on the rule, check whether the result still serves that use. Honor any separate commitment to check a new edition when adopting it.
+
+Several grounds may support the same decision. Establish which grounds must hold together and which can each support the decision on their own. If either of two accepted routes suffices, losing one leaves the result available through the other. Losing both reopens it. Trace any premise they share. A proposed substitute becomes a ground for the decision once it is qualified for this use and in effect. A separate promise of conformance to a named edition still requires checking that edition.
 
 > `Domain@D` uses selected Core relation semantics in `FPF@C` as required constraints on framework review. Without those semantics, or after a relevant change to them, the affected review guidance cannot remain current without recheck. `Domain@D` therefore depends on `FPF@C` for that content and use. The edition labels are illustrative. An actual assertion identifies the claims used, as in §4.2.
 
-E.5.3 constrains the allowed dependency direction and Core acyclicity after the relation has been identified. G.11 governs the edition pin, currentness, and refresh condition. Neither supplies the dependency predicate or makes the case fact obtain.
+E.5.3 tests the permitted direction and acyclicity of the identified imports. G.11 governs the edition pin, currentness and refresh condition. A permitted direction, joint publication or a shared use of two editions is insufficient to establish a dependency.
 
 Compatibility answers whether the two editions in the pair can support an overlapping use despite a stated difference or interface. State it separately and only when current:
 
@@ -101512,6 +101524,10 @@ If a later Core relation-function maintenance replay must enumerate every CGUS p
 Start with the readable dependency assertion. The edition labels below are illustrative. `FPF@C1` contains the cited Core claims:
 
 > `CodexProcessFramework@L1` depends on `FPF@C1` for local process authoring: its revision guidance applies E.8:4.1.2, item 6, which requires repair of stale direct consumers in the same authoring increment; its evaluation guidance applies E.21:4.3's rule for an adjacent-value rationale in each coordinate result. Removing or materially changing either claim reopens the corresponding local guidance. Changing the selected FPF edition also requires checking these dependencies.
+
+A local review manual uses the evaluation guidance to judge scores. If the direct-consumer repair rule changes, revisit the local revision guidance. The manual's score judgement can still use the adjacent-value rule if its grounds hold. If that rule changes, trace the change through the local evaluation guidance to the manual. Adopting a different pinned Core edition still calls for the edition checks specified above.
+
+Suppose the manual accepts either a signed assessment under the named edition or an independently validated repeat assessment on the same scale. Either can support the score decision while it remains valid. Withdrawal of the signed assessment matters immediately if the repeat is only planned. If both assessments use the same faulty scale, agreement between them cannot rescue the score. A request specifically for the signed assessment under that edition still needs the signed assessment.
 
 Choose the representation from the receiver's job. A cross-relation comparison may use one generic PFR row. An edition-impact or refresh receiver may use one dependency-specific record. This receiver needs the relied-on content and refresh fields, so it uses only the dependency record:
 
@@ -102008,7 +102024,7 @@ Core definitions can become tied to transient tools or one notation, acquire dep
 |-------|---------|
 | **Abstraction vs Concrete Use** | Keep concept definitions stable while illustrating them with useful examples from real situations. |
 | **Universality vs Convention** | A familiar notation can be convenient, but tying a cross-domain rule to that notation limits its use elsewhere. |
-| **Modularity vs Integration** | Keep layers independent despite the temptation to cross-link them for speed. |
+| **Modularity vs Integration** | Authors want readers to find related work in either direction while keeping Core meanings independent of tools and teaching material. |
 | **Cross-Domain Use vs Perspective** | Claims intended for several domains can reflect contributors’ disciplinary and cultural assumptions. |
 
 ### E.5:4 - Solution — the Four Guard‑Rails
@@ -102024,7 +102040,7 @@ Linting and automation remain outside Core and are optional unless a separate op
 |---|------------|------------------|
 | **GR‑1** | **DevOps Lexical Firewall** | Pull of implementation, governance, automation, and DevOps concerns |
 | **GR‑2** | **Notational Independence** | Notation lock‑in |
-| **GR‑3** | **Unidirectional Dependency** | Convenience cycles |
+| **GR‑3** | **Unidirectional Dependency** | A claim relies on a family that may not supply it, or imports form a cycle. |
 | **GR‑4** | **Cross‑Disciplinary Bias Audit** | Disciplinary monoculture |
 
 For the detailed rule behind each guard-rail, see **E.5.1 – E.5.4**.
@@ -102035,8 +102051,8 @@ For the detailed rule behind each guard-rail, see **E.5.1 – E.5.4**.
 |------------|-------------------|----------------------|
 | GR‑1 | Definition of `U.System` never cites file formats or build scripts. | Definition of `U.Episteme` avoids naming specific proof engines. |
 | GR‑2 | A meaning-preserving mapping between text and diagram retains the pump boundary invariant. | A meaning-preserving mapping between algebraic and graph expressions retains F‑G‑R semantics. |
-| GR‑3 | A sizing helper imports Core invariants. Core never imports helper tutorials. | A learning guide cites the R‑score. Core does not derive its semantics from the guide. |
-| GR‑4 | Bias audit removes thermo‑mechanical jargon from a “universal” pattern. | Audit replaces physics‑centric metaphors in a trust pattern. |
+| GR‑3 | A sizing helper imports Core invariants. Core supplies their meaning independently of the helper. | A learning guide uses the Core definition of R‑score. A Core reader may follow a return link for an illustration and can interpret the definition without it. |
+| GR‑4 | The author limits “the earlier check settles acceptance” to the diameter criterion and the shaft state the measurement covers. A bound on one side can be combined with a check on the other. | The author establishes what the register’s date field records and limits the conclusion to that date until there are grounds for using it as the date of the event. |
 
 ### E.5:6 - Conformance Checklist
 
@@ -102106,7 +102122,7 @@ Apply the **Lexical Firewall** to the subject the text governs:
 2. **Retain the syntax needed to test conformance of a concrete subject.**
    When a rule governs a publication form, protocol or grammar, it **MAY** state the exact syntax needed to apply that subject's conformance condition. Name the subject and its edition or use boundary. The exception applies only where replacing the syntax with a conceptual alias would remove an operative condition.
 
-   A heading marker in a heading grammar qualifies. An unrelated build command does not. Calling executable code a grammar example supplies no exception.
+   E.8 H-2 specifies the characters that separate a heading identifier from its title. An editor can explain the separator in prose. To decide whether a submitted heading conforms, inspect the characters in that heading. A correct explanation of the rule can accompany a heading that fails it. An unrelated build command belongs with the tool that uses it.
 
 3. **Keep executable teaching in its teaching or Tooling source.**
    A Core concept needing a runnable illustration cites the teaching or Tooling artifact by conceptual name. Runnable teaching programs, concrete execution paths and commands remain there. A subject-defining syntax fragment under item 2 is not a runnable illustration merely because it appears in a code span or block.
@@ -102199,7 +102215,11 @@ A definition can depend on unstated conventions of one glyph set or diagram gram
 
    Name the source expression and the expression being compared with it. Name their representation languages when the rules matter to interpretation. State the correspondences for the claims and conditions needed by the intended use. If a relevant distinction is lost, state the loss and limit the equivalence claim accordingly.
 
-   A meaning-preserving mapping leaves open what operations a reader can perform with each expression, with what preparation and effort.
+   First check that the display, its conventions and the other information available to the recipient fit at least one possible situation. If they conflict, resolve the conflict before relying on the display. For a value or a yes-or-no decision, start with the answer the recipient needs. Could two situations consistent with everything the recipient gets yield the same display and different answers to that question? If so, locate the missing information or limit the use. A display can determine whether a limit was exceeded even when it gives only a range for the value. To rely on it, show that every value still possible gives the same decision. Count any independent information used in that argument among the prerequisites.
+
+   The recipient may instead need any one acceptable choice. A choice that works in every situation still consistent with the display can be made now, even when the complete lists of acceptable choices differ. If every situation has a solution but they share none, another observation may show which one to choose.
+
+   Show how the intended reader obtains the determined answer or makes the supported choice with the preparation and resources available. Use A.6.3.RT.OE when the expression needs to support a calculation, comparison or edit. Use B.5.MR to compare models when the substitution also changes what they say is possible about the same subject.
 
 3. **Reference the conceptual role.**
    If the Core cites a diagram, refer to its conceptual role, such as a boundary schematic, rather than making a file or syntax name part of the concept.
@@ -102207,10 +102227,8 @@ A definition can depend on unstated conventions of one glyph set or diagram gram
 4. **Keep conceptual prefixes neutral.**
    Use E.10.P for the prefix registry and required anchors. A conceptual label's meaning **MUST NOT** depend on its expansion into a serialized name or URI. If a tool supplies such an expansion, describe the relation between the conceptual label and the tool's name or URI in Tooling or Pedagogy, and mark it informative.
 
-5. **Keep conceptual forms distinct from tooling formats.**
-   Cards, tables, conformance checklists and guards in the Core specify conceptual content and relations.
-
-   Their data models, machine-checking formats and linters belong in Tooling. Core forms require no data-related or lint-specific notation. Ease of machine checking does not justify a Core concept or rule.
+5. **Identify what the form governs.**
+   A Core card or table can identify what the reader needs to record and how the entries relate. Another expression can carry those same claims. When the work calls for a file, publication or message in a specified form, check the submitted expression against the convention for that form. E.5.1:4 permits the exact syntax needed for this judgement. A correctly formed submission can still contain an incorrect claim. An independently specified tool or delivery procedure has its own conditions. When proposing a new syntax rule, explain what the users of the governed form need it for. A restriction needed solely by one validator belongs in Tooling with that validator. Put the implementation of the automated check there as well.
 
 The first result is an expression whose meaning can be recovered, with an explanation of any reasoning or construction step it supports. Include a semantic mapping when the use compares it with another expression or depends on the content it carries from that expression.
 
@@ -102228,7 +102246,7 @@ The diagram can help the user examine connections across the boundary. That oper
 
 In the episteme case, F-G-R assurance components can be described in prose and represented in a diagram. Explain which elements denote the assurance components and which relations denote their connections. A triple-store serialization stores this content using tooling conventions. Its storage names do not define the components.
 
-An R-score table can also be rendered as a heatmap. State which score or interval each colour denotes. If several scores share a colour, retain the values or limit the equivalence claim to the displayed intervals.
+An R-score table can also be rendered as a heatmap. State which score or interval each colour denotes and how the review threshold treats equality. For a cell that represents several scores, apply the review rule to every score still possible. If all would be flagged, flag the cell. If all would pass, the cell passes this threshold check. If some would be flagged and others would pass, consult the values or other available evidence for that decision. For an order requiring the numeric table itself, deliver the table even if the heatmap settles every flag.
 
 A project instruction permits a motor to start only while both the clamp-closed and pressure-present signals are true. A local sketch replaces this with `clamp closes -> pressure arrives -> motor starts`, where each arrow means only that one event precedes the next.
 
@@ -102240,7 +102258,7 @@ Compare the source condition with the sketch's timing relations. Show that motor
 
 | ID | Requirement |
 |----|-------------|
-| **CC‑NI.1** | A Core pattern **MUST** make its concepts, claims and conditions recoverable without depending on any one notation. The interpretation of meaning-bearing signs and relations is stated. |
+| **CC‑NI.1** | A Core pattern **MUST** make its concepts, claims and conditions intelligible independently of the notation used to present them and explain how to interpret meaning-bearing signs and relations. Where the claim concerns conformance to a particular form, the explanation identifies the governing convention and retains the syntax needed to test the submitted expression (E.5.1:4). |
 | **CC‑NI.2** | An illustrative expression **SHALL** be marked “informative”. When an expression carries a reasoning or construction step, explain that operation and its prerequisites locally or refer to the guidance that defines them. |
 | **CC‑NI.3** | When expressions are compared, translated, substituted or relied on as carrying the same content, the semantic mapping **MUST** identify the compared expressions, their interpretation rules where needed, the claims and conditions preserved, and any use-relevant loss or limit. The mapping claim does not assert equal user capability or effort. |
 | **CC‑NI.4** | A conceptual prefix follows E.10.P's registry and anchor rules. If its expansion into a serialized name or URI is shown, that expansion **SHALL** be marked *informative* and **MUST NOT** be required to interpret the concept. |
@@ -102260,7 +102278,7 @@ A notation can preserve meaning while changing which operations a reader can per
 
 A prose-first alternative treats diagrams and written calculi as secondary illustrations. It keeps verbal definitions accessible, but can exclude an operation from the normative account when the operation is performed through the expression. Reject that blanket restriction.
 
-For example, in the Euclidean construction in A.6.3.RT.OE:5.1, the same segment participates as a radius and as a triangle side. The prepared expression helps the reader combine those relations. Its role needs an explanation of that operation, beyond a caption describing the picture.
+For example, in the Euclidean construction in A.6.3.RT.OE:5.1, the same segment participates as a radius and as a triangle side. The prepared expression helps the reader combine those relations. Its role needs an explanation of that operation, beyond a caption describing the picture. Either intersection of the two circles yields a valid triangle on the given segment. A request for the triangle on a specified side adds a condition to that construction.
 
 A second alternative is to require one canonical notation. This can provide shared interpretation and manipulation rules within a practice whose readers have learned them. Retain that option for such a practice. Extending it across FPF would also require readers in other practices to acquire those conventions, even when another expression supports their task.
 
@@ -102356,7 +102374,7 @@ The added criteria entail the preceding criteria for the same individual: Refere
 
 **A system and its designation.** A maintenance planner finds equipment code P-17 on a drawing. The drawing and maintenance register use the same form. The designated pump depends on the issuing plant and the date of assignment. A later reassignment can change which pump a job concerns within the same code language. To route the job, resolve the assignment in force when the work is to be done. To establish what happened to the pump, consult the work evidence.
 
-**An episteme and its reading.** Two teams accept exactly the same measurement table. On ordinary numeric entries they calculate the same totals. One report explicitly instructs its reader to treat an empty cell as zero. The other uses it for a missing observation. The teams can share the table language and still obtain different counts of observed values under the reports' effective rules. If a new edition of the table language mandates one reading for every report, the change now concerns that edition. Neither report by itself establishes the counterfactual readings of every conforming report.
+**An episteme and its reading.** Two reports use the same table language. Each lists two scheduled gauge readings, 8 in the morning and a blank at noon. One report instructs the reader to use zero for a blank when calculating the daily mean. The other omits blanks and gives the number of readings used. With these entries the first report gives a mean of 4. The second gives 8 from one reading. To report that the gauge actually read zero, establish that the noon measurement took place and yielded zero. A reliable witness can establish this. So can a record of that reading, including a blank when there are grounds that the recorder used it to record a measured zero on this occasion. An arithmetic default supplies no such observation. If a new edition of the table language prescribes a calculation for every report, the scope of the convention changes. A rule in one report governs that report.
 
 ### E.5.2.L:6 - Bias-Annotation
 
@@ -102371,7 +102389,7 @@ A published grammar makes formal conventions easy to inspect. In a workplace, pe
 
 ### E.5.2.L:8 - Common Anti-Patterns and How to Avoid Them
 
-Routing a job because the printed code matches can send it to the wrong equipment. Resolve the designation under the applicable assignment. Treating a more formal wording as a stricter rule can also change a decision without warrant. Identify a previously permitted case that the revised rule excludes before claiming it is stricter.
+Routing a job because the printed code matches can send it to the wrong equipment. Resolve the designation under the applicable assignment. Treating a more formal wording as a stricter rule can also change a decision without warrant. Apply B.5.MR:4.2 to the rules as models of the same inquiry. Establish that the revision has a feasible answer, preserves the earlier conditions for every answer it permits and excludes a formerly possible answer.
 
 ### E.5.2.L:9 - Consequences
 
@@ -102396,74 +102414,78 @@ E.5.2 governs notational independence. A.6.2 uses language correspondence in com
 > **Status:** Stable
 
 ### E.5.3:1 - Problem frame
-Use this pattern when an FPF artefact imports or otherwise depends on another artefact. FPF separates the Conceptual Core, Tooling Reference and Pedagogical Companion under E.4. The dependency direction must preserve that separation while allowing the outer families to change.
+Use this pattern to decide whether one FPF member may rely on another member, in the same family or a different one, for a definition, rule or procedure. Name the work that needs the supplier and what that work takes from it. A reader who follows a link for an optional illustration can use the original rule independently. For an assertion about two framework editions, establish the dependency under E.4.PFR:3.4.
 
 ### E.5.3:2 - Problem
-A Core pattern can become dependent on a tutorial or helper feature introduced for a local need. Changes to that feature then require reconsidering Core content even when its conceptual subject is unchanged. A cycle prevents the layers from being revised independently and violates **P-5 FPF Layering**.
+A tutorial may teach a Core term using a helper. If the helper's output becomes the only way to tell what the Core term means, changing the helper can change the term for every Core reader. A cycle of imports also prevents an author from supplying one member on the declared basis independently of the others in the cycle. Pillar P-5 governs this separation.
 
 
 ### E.5.3:3 - Forces
 
 | Force | Tension |
 |-------|---------|
-| **Agility vs Stability** | Tooling must iterate quickly, while changes to Core must remain slow and deliberate. |
-| **Reuse vs Isolation** | Authors want to reuse helper concepts, but Core cannot depend on volatile code. |
-| **Simplicity** | The rule must be testable and unambiguous and must allow legitimate upward imports. |
+| **Independent revision** | Tool authors need room to change an implementation while Core readers can still interpret the rule it checks. Either publication may be revised frequently. |
+| **Reuse** | A guide can teach a Core rule directly or teach a procedure that also uses a tool. The two uses rely on different suppliers. |
+| **Assurance** | An import list makes cycles visible. Establishing which claims a user needs takes a reading of the content. |
 
 ### E.5.3:4 - Solution — One‑Way, Acyclic Imports
-Define a strict **partial order** over FPF ecosystem families. Imports between families point only **upward** in stability. Also protect the direction of meaning flow under **E.10 V-1**: **no Core semantics** may derive from Tooling or Pedagogy. The Conceptual Core excludes linters and machine checking.
+Read a dependency arrow from the member that needs content for a stated use to the member that supplies it. The **strict partial order** on distinct families constrains the permitted direction of cross-family imports. The actual imports connect particular members. A family may have several permitted suppliers and need only one for the work at hand.
 
 **`imports` expresses dependency. Specialisation is a separate relation (normative).** When an artefact exposes an `imports : [...]` list (e.g., `SignatureManifest.imports` in A.6.0), treat each dependency claim in the list as an edge of its `imports` graph. The graph MUST be **acyclic** (a DAG) and MUST respect the declared direction.
 
 `imports` MUST NOT be used to encode *specialisation* (e.g., `⊑` / `⊑⁺` between mechanisms). Specialisation relations and any specialisation-chain claims are declared separately under their defining rules. For mechanism declarations, apply A.6.1:4.8 to the comparison claim. Use C.29 when a separate mathematical-representation choice, transfer or reliance question remains.
 
-Pedagogical Companion  ⟶  Tooling Reference  ⟶  Conceptual Core
+**Permitted suppliers for Core, Tooling and Pedagogy**
 
-1. **Allowed edges**
-   Dependencies between families **MAY** point **only upward** (toward greater semantic
-   stability). Cycles are forbidden.
+| Family of the receiving member | That member may import directly from members of these families |
+| --- | --- |
+| Conceptual Core | Conceptual Core |
+| Tooling Reference | Tooling Reference, Conceptual Core |
+| Pedagogical Companion | Pedagogical Companion, Tooling Reference, Conceptual Core |
 
-2. **No downward import**
-   Conceptual Core patterns **SHALL NOT** import Tooling Reference or Pedagogical Companion family members.
-   Tooling Reference family members **SHALL NOT** import Pedagogical Companion family members.
+Each row lists permitted suppliers. Use the ones needed for the member’s stated work. A guide can take a definition directly from Core. An intermediary is needed when its contribution is required for that use.
 
-3. **Future layers**
-   Any new family is inserted below an existing one or becomes part of
-   the Tooling or Pedagogy strata. The ordering extends accordingly.
+The acyclicity rule applies within each family as well as across families. Before adding an import, follow the existing imports from the proposed supplier. If a path reaches the receiving member, the new import would close a cycle. Keep Core meanings independent of Tooling, Pedagogy and domain or local frameworks (E.10 V-1, E.4). Linters and other executable checks of Core conformance belong in Tooling. Core states the conditions they check. For Core, DPF and LPF editions, apply the edition rules in E.4.PFR:3.4. An LPF may depend directly on a DPF, and either may depend directly on Core. E.4.DPF also permits a DPF to rely on a contribution from another DPF when it fits the receiving use. The discipline to which a Method belongs, the order of chapters and the level of abstraction of a model each need their own grounds (E.4:4.2.2, B.5.MR).
+
+**Extending the order.** Classify a proposed tool or teaching publication by the use it supplies. It can join an existing family under that family's rules. For a genuinely new family, use E.4.PFAD and E.9 to decide both who may supply it and who may import from it. Under the current extension rule, place it on the receiving side of at least one existing family. Follow the proposed directions through the existing order. Reject a loop even if nobody has yet exercised any of the permissions. Specify any change in what existing families may obtain from one another and seek the amendment needed before an existing prohibition can change. Families without a direct or transitive ordering relation can remain incomparable. A permitted direction need not yet have an actual import. A proposal outside the extension rule requires a change to that rule before admission.
+
+**When a needed import would be forbidden**, keep the contingent claim with the family that can warrant it. If Core readers need a transdisciplinary rule, supply the rule and grounds they can use independently. A guide can receive credit for the discovery. Copying a guide's convention leaves Core dependent on that convention whenever the argument still requires it. If two members would have to import one another, look for a common definition they can both use from a permitted supplier. Where two definitions must be given together, consider one defining account and check its imports. Printing two mutually dependent members in one file leaves their cycle intact.
 
 ### E.5.3:5 - Archetypal Grounding (System / Episteme)
 
-| Layer | `U.System` illustration | `U.Episteme` illustration |
+| Family | `U.System` illustration | `U.Episteme` illustration |
 |-------|------------------------|---------------------------|
 | Core | Definition of `U.System` and boundary invariant. | Definition of F‑G‑R assurance components. |
 | Tooling | The “Reference system‑profile” checks boundary flow and *imports* Core invariants. | The “Episteme‑scoring routine” calculates R‑score and *imports* Core characteristics. |
 | Pedagogy | A tutorial uses the system‑profile to model a pump and *imports* the profile and Core term. | A case study explains R‑score evolution and *imports* the scoring routine and Core term. |
 | **Forbidden** | Core pattern importing measurement script. | Core pattern importing R‑score web dashboard. |
 
+A guide teaches the boundary invariant from Core and links to a profile checker for practice. Readers can establish a boundary from the published rule with the checker unavailable. One exercise accepts any report satisfying a separately published format. Another generator can supply it if its report meets the acceptance conditions. A separate exercise requires a report signed by the named checker in the agreed format. This exercise relies on the checker as well as the Core rule. If the available checker can no longer produce an acceptable signed report, use a compatible edition whose signature the recipient accepts for the named checker. If none can supply an acceptable report, revise that exercise. Readers can continue to work from the Core definition. Recheck their explanation if its definition or the argument used to teach it changes.
+
 ### E.5.3:6 - Conformance Checklist
 
 | ID | Requirement |
 |----|-------------|
-| **CC-UD.1** | Dependency graph among all FPF ecosystem family members **MUST** be acyclic. |
-| **CC-UD.2** | A family member **SHALL** import only from its own family or any family above it in the order. |
-| **CC‑UD.3** | A DRR that introduces a downward edge **SHALL** be automatically rejected. |
+| **CC-UD.1** | The graph of actual imports among FPF ecosystem family members **MUST** be acyclic, including imports within a family. |
+| **CC-UD.2** | The permitted directions for distinct families **SHALL** form a strict partial order, including after an extension. Each cross-family import must follow that order. A same-family import must satisfy CC-UD.1. |
+| **CC‑UD.3** | Reject an import forbidden by the governing order. A DRR can resolve the design without that import or propose an amendment under E.3 and E.9. The amendment must take effect before the import can be admitted. |
 
 ### E.5.3:7 - Consequences
 
 | Benefits | Trade‑offs / Mitigations |
 |----------|-------------------------|
-| Core stays free of tool churn and tutorial bias. | Authors must create abstraction layers in Tooling instead of inserting hooks into Core. |
-| Tooling and Pedagogy can change without a Core release. | Slight duplication occurs when several tools target the same concept. Shared Core definitions mitigate it. |
+| Core can supply meanings independently as tools change. | A tool-specific convention may still be useful in the tooling or teaching material that relies on it. |
+| Different families can revise their contributions independently where the uses allow it. | A change to a shared claim may reach several readers. Follow that claim to each affected use under E.4.PFR:3.4. |
 
 ### E.5.3:8 - Rationale
-One-way dependencies keep changes in Tooling or Pedagogy from becoming prerequisites for interpreting Core claims. The rule implements **P-4 Open-Ended Kernel** and **P-5 FPF Layering** while allowing those families to evolve under the Core semantics they use.
+Under P‑5 FPF Layering, an author can replace a tool or a teaching example while readers continue to use the Core claim on its own grounds. P‑4 Open‑Ended Kernel keeps a convention that depends on a particular practice with its proper supplier. P‑10 Open‑Ended Evolution allows a warranted proposal to change the family order. Until the competent authority enacts such a change, the current order governs every import.
 
 
 ### E.5.3:9 - Relations
 * **Parent umbrella:** `pat:constitution/guard‑rails` (E.5)
 * **References family definition:** `pat:constitution/fpf-ecosystem-family-architecture` (E.4)
-* **Instantiates pillars:** P‑4, P‑5
-* **Constrains:** All artefact imports recorded in DRRs or SCRs
+* **Instantiates pillars:** P‑4, P‑5 and P‑10
+* **Constrains:** Actual imports between FPF ecosystem members. A manifest, DRR or SCR may record an import. A required claim can still create a dependency when its source is unacknowledged.
 
 ### E.5.3:End
 
@@ -102472,7 +102494,7 @@ One-way dependencies keep changes in Tooling or Pedagogy from becoming prerequis
 > **Status:** Stable
 
 ### E.5.4:1 - Problem frame
-Use this pattern when authoring or reviewing a normative pattern's assumptions, examples and claimed scope. Wording and metaphors drawn from one domain can hide assumptions that readers in another domain need to recognize.
+Use this pattern when you write or review a normative pattern and need to check its assumptions, explain an established rule to its readers, or decide where the rule applies. A familiar example can conceal who makes a decision, which parts have to work together or what a record actually establishes. The audit helps you find such assumptions. To recommend the rule in another discipline, establish what entitles a practitioner there to take the proposed action or draw the proposed conclusion.
 
 ### E.5.4:2 - Problem
 Bias in wording, examples, unit choices or principle weighting can make a rule appear applicable where its assumptions do not hold. This undermines **P-2 Didactic Primacy** and **P-8 Cross-Scale Consistency**. The author needs to justify the emphasis, repair the imbalance or state a narrower scope.
@@ -102488,33 +102510,25 @@ Bias in wording, examples, unit choices or principle weighting can make a rule a
 
 ### E.5.4:4 - Solution — Principle‑Taxonomy‑Guided Bias Audit
 
-1. **Bias‑Lens set**
-   Every normative pattern is assessed through **five lenses** that match the
-   Principle classes from **E.3**:
-   `Gov`, `Arch`, `Epist` (epistemological and ontological), `Prag`, `Did`.
+**Examine the rule from all five classes in E.3.** Gov asks who can decide or change what the rule relies on. Arch asks which parts, interfaces or invariants the result depends on. Epist asks what the terms refer to and what supports the inference. Prag asks whether the work is feasible and worth doing for its intended use. Did asks what the reader needs to recognize and do in their role, with the help available for the intended use. If independent performance is promised, check which choices the reader must make. For each, ask whether the emphasis is justified and whether an omission would change how someone uses the rule. E.3:4.1 assigns a principle to one class for precedence. Here the same rule is examined from all five. Give each concern the weight its effect on use warrants.
 
-2. **Equilibrium question**
-   For each lens ask:
-   *“Does the pattern give this class more weight than its use justifies, or omit a concern from this class that changes use?”*
-   *Examples:*
-   *   Over‑reliance on `Epist` precision may ignore `Prag` cost.
-   *   An `Arch` metaphor may hide meaning the `Did` audience needs.
+**State what carries across disciplines.** Express the rule without its example. Name the action or conclusion it licenses and the conditions it relies on. For each discipline in which you claim it applies, explain what plays the relevant parts there and how its practice supplies the conditions. One argument can cover several disciplines when their definitions or work arrangements establish the same relation. A case can illustrate how to use that argument. A shared word, an attractive analogy or successful joint work can suggest a transfer to investigate.
 
-3. **Scope‑or‑Balance rule**
-   * If an unjustified imbalance is found and universality is intended, revise the claims or explanation to correct the weighting or address the neglected concern.
-   * If a domain‑specific pattern has an intentional imbalance, state its scope. For example, *“Applies primarily to thermodynamic systems.”*
+Match the grounds to the conclusion. A derivation together with a warranted interpretation can establish what follows under specified conditions. For a predicted change in performance, use an adequate comparison in the receiving practice or explain why evidence from elsewhere bears on the effect under the receiving conditions. Account for material differences such as workload or case mix. To say who may act, recover the decision or rule that gives that authority. Where a condition is unknown, state what the recipient can already conclude and what they would have to establish for the further use.
 
-4. **Bias annotation**
-   The pattern carries a short **Bias-Annotation** reporting the result of the five-lens examination, including any material weighting, its justification, and the scope or correction needed for the intended use.
+**Test the boundary.** If a plausible alternative gives a different conclusion, try a case that decides between the two. A derivation can already settle the claim throughout the stated scope. If an instance meets the stated conditions and contradicts a factual conclusion asserted for every such instance, revise that claim. For a normative rule, distinguish breaking the rule from a valid exception to it. An unauthorized release can show a violation. An authorized exception can disprove the claim that every release requires the same approval. To retain a narrower rule, name a condition the practitioner can establish independently of the promised result and show why the conclusion follows within it. A case outside the conditions can expose a limit to use. It can also defeat a separate promise that every intended recipient will meet those conditions. For a claim about frequency or average effect, examine what the observations support about that frequency or effect.
 
-   Keep workflow checklists, reviewer metadata and other data outside the Core, along with tips on data formats and data governance.
+**Report the material result.** The Bias-Annotation records the justified emphasis and any repair or scope limit that changes use. If a local rule is intended for one practice, explain the local condition that matters. For universal-core placement of a durable U-kind, A.8:3 and E.24.UK govern the projections into at least three foundationally different domain families and the other admission conditions. Workflow checklists, reviewer metadata and data-format advice belong outside Core.
 
 ### E.5.4:5 - Archetypal Grounding (System / Episteme)
 
-| Bias lens | Example imbalance | Conceptual correction |
-|-----------|------------------|-----------------------|
-| `Arch` vs `Did` | A pump pattern uses abstract terms from category theory. | Add a plain-language account of the boundary or move the abstraction to an appendix. |
-| `Epist` vs `Prag` | The definition of an episteme trust score uses complex logic but gives no guidance on empirical cost. | Add a note on the cost of collecting evidence or limit the pattern's scope. |
+When can an earlier check help settle a later acceptance criterion? Combine what it established with the other evidence available for the relevant item and state. First check that at least one situation fits the evidence. Conflicting records may need reconciliation. If all the possibilities that fit meet the criterion, the receiver can accept that aspect. If they all fail it, the receiver can reject it. If both remain possible, report the established part or obtain the observation that decides between them. An applicable risk rule may also authorize action on incomplete evidence. Other acceptance criteria and the authority to release the item keep their own force.
+
+In mechanical inspection, the gauge reads 20.01 mm on an identified shaft. For this check the inspection procedure warrants an absolute error bound of 0.01 mm. The whole interval fits a receiving tolerance of 19.95–20.05 mm. If the measurement is valid for the shaft in its present state, the inspector can accept its diameter. A reading of 20.20 mm with the same bound settles rejection. Two checks can also settle acceptance together, one establishing the lower limit and the other the upper limit for that shaft in the same state. A requirement for performance under load still calls for evidence about the loaded assembly. Suppose the shaft passes the diameter check but a damaged keyway lets the assembly slip during its rated-load test. That outcome defeats the stronger rule that passing the diameter check guarantees performance under load. The diameter finding still holds.
+
+In archival description, the receiving question might be which date the accession register gives for a photograph. A verified link from the photograph's identifier to its register entry and a legible entry giving the date settle that question. Dating the exposure itself requires grounds for interpreting the entry as a reliable record of the exposure date. An accession date can be entirely correct and still answer a different question. These two disciplines support the same conditional principle. Whether either team saves time by reusing checks is a further empirical question.
+
+A reader who can follow the inspection example may still need help recognizing which archival date matters. Explain the receiving criterion in the archivist's vocabulary. The distinction between what the record establishes and what the next decision requires survives that change of wording.
 
 ### E.5.4:6 - Conformance Checklist
 
@@ -102522,7 +102536,7 @@ Bias in wording, examples, unit choices or principle weighting can make a rule a
 |----|-------------|---------|
 | **CC‑BA.1** | Each Core pattern **SHALL** include a *Bias-Annotation* stating the material result of the five-lens examination and any justified scope limitation. | Makes the audit’s conclusion usable. |
 | **CC‑BA.2** | A pattern labelled “universal” **MUST NOT** privilege a single lens without justification or scoping note. | Preserves trans‑disciplinary integrity. |
-| **CC‑BA.3** | If scope is declared, the pattern **SHALL** state its rationale. When cross-domain translation is claimed or required, it **SHALL** reference the mapping or rationale supporting that translation and state its limits. | Keeps pathways open for other calculi. |
+| **CC‑BA.3** | The pattern **SHALL** justify its declared scope, give or cite the correspondence and its limits for any claimed or required translation between domains, and give the interpretation and grounds for the receiving action or inference for any claimed or required use in another discipline. | A reader can check an identifier translated between two collections in one discipline as well as a rule applied across disciplines. |
 | **CC‑BA.4 Universality claim and applicable evidence** | A pattern labelled **“universal”** identifies the ClaimScope for that claim, the population or bearer it covers, its qualification window, and its intended use. When the claim is universal-core placement for a durable U-kind candidate governed by **E.24.UK**, apply **A.8:3**'s complete cross-domain projection test. `Diversity_P` or `IlluminationSummary` supports that test only through its governing C.17, C.19, or direct pattern. Neither is a standalone gate. | Keeps the claimed scope and its applicable evidence explicit. |
 
 ### E.5.4:7 - Consequences
@@ -102674,7 +102688,7 @@ The cases make application and limits inspectable. A claim of wider applicabilit
 |----|-------------|---------|
 | **CC‑AG.1** | Every architectural pattern **SHALL** contain a section headed *“Archetypal Grounding”* under E.8's heading rules. | Keeps grounding findable across all Parts. |
 | **CC‑AG.2** | The Archetypal Grounding section **MUST** illustrate the rule with both `U.System` and `U.Episteme` when it applies to both. A single-substrate rule follows CC‑AG.3. | Makes the claimed application and scope inspectable. |
-| **CC‑AG.3** | If a rule intentionally applies to only one substrate, the subsection **SHALL** state the scope limitation and justify it against the five Principle‑Taxonomy lenses (`Gov`, `Arch`, `Epist` (epistemological and ontological), `Prag`, `Did`). | Prevents bias from passing unnoticed. The five lenses connect the justification to the Bias‑Audit guard‑rail. |
+| **CC‑AG.3** | For a rule specific to one substrate, the subsection **SHALL** identify what its application requires of that substrate and justify the scope. Use the five Principle-Taxonomy lenses in E.5.4 to find assumptions that could change that judgement. | A reader can distinguish a limit of the rule from a limit of the examples supplied. |
 | **CC‑AG.4** | Patterns lacking a compliant Archetypal Grounding subsection **MAY NOT** progress to “Accepted” status. | Keeps grounding a condition of acceptance. |
 
 ### E.7:7 - Consequences
@@ -102682,7 +102696,7 @@ Applicable, contrasting cases let readers inspect how the rule works and where a
 
 
 ### E.7:8 - Rationale
-Tell-Show-Show places the rule next to applicable cases and makes their shared conditions and differences inspectable. Making that connection explicit implements **P‑2 Didactic Primacy** while **P‑1 Cognitive Elegance** keeps the grounding proportionate to the rule’s scope. The five Principle lenses connect scope justification to the **Taxonomy-Guided Bias Audit** in E.5.4.
+Tell-Show-Show places the rule next to applicable cases and makes their shared conditions and differences inspectable. Making that connection explicit implements **P‑2 Didactic Primacy** while **P‑1 Cognitive Elegance** keeps the grounding proportionate to the rule’s scope. The five classes in E.5.4 can expose an assumption about a substrate. Establish which property the operation requires and where it is available. A case can show that the operation works for a system. To claim that only systems support it, establish why an episteme cannot supply the required property. When evidence covers only the system application, state that limit on the evidence.
 
 ### E.7:9 - Relations
 
@@ -103176,7 +103190,7 @@ If the recognition text says “this pattern helps with a bounded working situat
 
 If a pattern claims **universal** or **transdisciplinary** status, that claim must already be visible in the recognition text.
 It is not enough for universality to appear only later in a guidance or check sheet, declaration block, or `SoTA-Echoing` rationale.
-A broad claim should therefore be demonstrated in the recognition text through **heterogeneous reader or domain situations adequate to the claimed breadth**. The separate three-domain minimum in `A.8` applies to universal-core U-kind admission.
+Make a broad claim recognizable through **heterogeneous reader or domain situations adequate to the claimed breadth**. Vary the reader when the claim concerns who can use the explanation. For a claim across disciplines, explain what enables the same operation or inference in the receiving disciplines. One argument can cover all disciplines that meet its premises. Where that depends on a disciplinary premise, show what establishes it in the receiving practice. The separate three-domain minimum in `A.8` applies to universal-core U-kind admission.
 When a compact matrix helps, `F.16` is the preferred template for showing that breadth.
 If `SoTA-Echoing` carries an FPF-governed claim, the practical implication of those rows should be recoverable from the recognition text and case bank rather than remaining a late-only justification layer.
 
@@ -103628,7 +103642,7 @@ For boundary/interface/protocol/declaration patterns, prefer A.6.B-scoped claim 
 | **CC-SG.1** | Every new pattern **SHALL** follow the section order defined in the Canonical Template (Title block -> … -> Footer marker). | Guarantees structural comparability. |
 | **CC-SG.1a (Initial pattern draft shape).** | The first non-empty authored version of a pattern **SHALL** use the canonical section frame (Title block -> Footer marker). Authors **MUST NOT** start from a pre-template opening memo and promise to backfill canonical sections later. | Prevents large late-stage structural rewrites and keeps drafting aligned with `E.8` from the first substantive pass. |
 | **CC-SG.2 (Grounding required).** | Every pattern **MUST** include content-bearing *Archetypal Grounding*. Apply §4.2.1.3 to connect its cases or demonstrations to the explained relations and to supply the material variation required by the declared use. A reduced case or ordinary/non-use boundary can serve a bounded grounding question; the complete explanation still supplies its common grounds and the correspondences needed for its promised scope. An omission placeholder is nonconforming. | Makes the subject and its applications inspectable without treating a section or fixed example count as sufficient grounding. |
-| **CC-SG.3** | The *Bias-Annotation* section **SHALL** state the material result of the five-lens examination under `E.5.4`, including any justified weighting or scope limitation. | States the cross-disciplinary conclusion. |
+| **CC-SG.3** | The *Bias-Annotation* section **SHALL** state the material result of the five-lens examination under E.5.4, including any justified weighting or scope limitation. For an intended use in another discipline, give or refer to the grounds for applying the rule there. | Lets the recipient decide which conclusion holds in their practice. |
 | **CC-SG.4** | Deontic normative sentences **MUST** use only RFC-style keywords (see **H-8**); RFC keywords **MUST NOT** appear inside `Definition:`/`Invariant:`/`Well-formedness constraint:` blocks. When enforceable, admissibility/validity predicates **SHOULD** be referenced by id from the Conformance Checklist (rather than duplicated as “X MUST …”). Informal deontic verbs are prohibited in normative clauses. | Prevents ambiguity between obligation language and model validity; improves auditability. |
 | **CC-SG.5** | Pattern prose **SHOULD** demonstrate adherence to Style Principles **S-0 … S-19**; reviewers are empowered to request revision when clarity or didactic quality suffers. | Embeds common narrative voice without rigid policing. |
 | **CC-SG.6 (SoTA-Echo required).** | Every pattern **SHALL** include a **SoTA-Echoing** section. It names the practice question and either gives the smallest adequate best-known comparison or states the source gap. Architectural patterns **SHALL** use the full comparison contract below. A definitional pattern may use a reduced comparison, but it still names the ambiguity or terminology question, the best-known current line, the serious default it improves or rejects, and the pattern locus changed. Internal coherence, official status, or a current edition is not a substitute. | Keeps source use tied to the pattern's working problem and prevents an empty mandatory section from becoming a prestige shelf. |
