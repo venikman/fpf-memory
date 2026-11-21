@@ -1357,6 +1357,11 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
       "staticPath": "/generated/patterns/C.39.RQ"
     },
     {
+      "id": "C.39.SA",
+      "title": "Choose Composition Scales and Model Abstraction for the Task",
+      "staticPath": "/generated/patterns/C.39.SA"
+    },
+    {
       "id": "C.39.WA",
       "title": "Develop an Account of the Whole Subject",
       "staticPath": "/generated/patterns/C.39.WA"
