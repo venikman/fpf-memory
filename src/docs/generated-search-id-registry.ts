@@ -1608,7 +1608,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.7",
-      "title": "Archetypal Grounding: Explain Rules of FPF Architectural Patterns through Cases",
+      "title": "Archetypal Grounding: Show How a Practitioner Can Apply an Architectural Rule",
       "staticPath": "/generated/patterns/E.7"
     },
     {
