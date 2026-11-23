@@ -1703,7 +1703,7 @@ export const SEARCH_ID_REGISTRY: SearchIdRegistry = {
     },
     {
       "id": "E.11.PUA",
-      "title": "Pattern Use in a Working Situation and First Useful Result",
+      "title": "Apply a Selected Pattern and Use Its Result in the Original Work",
       "staticPath": "/generated/patterns/E.11.PUA"
     },
     {
